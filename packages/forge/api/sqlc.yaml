@@ -1,0 +1,41 @@
+version: "2"
+
+sql:
+  - engine: "sqlite"
+    # Schema is the migration directory itself, so sqlc type-checks queries
+    # against exactly what the database will look like after migrating.
+    schema: "migrations"
+    queries: "query"
+
+    gen:
+      go:
+        package: "generated"
+        out: "internal/repository/generated"
+        sql_package: "database/sql"
+
+        emit_json_tags: true
+        emit_pointers_for_null_types: true
+        emit_prepared_queries: false
+        emit_interface: true
+        emit_empty_slices: true
+        emit_result_struct_pointers: false
+
+        # Style.md: acronyms stay upper-case in Go, and sqlc's default
+        # initialisms do not cover our column names.
+        rename:
+          id: "ID"
+          uuid: "UUID"
+          foundry_id: "FoundryID"
+          region_id: "RegionID"
+          race_id: "RaceID"
+          skill_id: "SkillID"
+          background_id: "BackgroundID"
+          specialization_id: "SpecializationID"
+          skill_choice_id: "SkillChoiceID"
+
+        overrides:
+          # SQLite has no boolean type; these columns are INTEGER CHECK (x IN (0,1)).
+          - column: "*.is_free_form"
+            go_type: "bool"
+          - column: "*.is_secondary"
+            go_type: "bool"

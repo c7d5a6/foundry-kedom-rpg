@@ -1,0 +1,57 @@
+---
+description: Safe SQLite migration rules for Forge — avoid CASCADE wipes, FK traps, and slug churn
+globs: packages/forge/api/migrations/**/*.sql
+alwaysApply: false
+---
+# Forge SQLite migrations
+
+Adapted from `/home/c7d5a6/projects/rts/c7d5a6l/.cursor/rules/sqlite-migrations.mdc`.
+
+Migrations run **inside a transaction** with **foreign_keys ON**. Write SQL accordingly.
+
+Schema reference: `docs/forge/schema.md`.
+
+## Hard rules
+
+1. **Never `DROP TABLE` a table referenced with `ON DELETE CASCADE`** — `skill`, `specialization`, `race`, `background`, `region`, `class` are all cascade parents — unless you have rebuilt **all** dependents in the same migration and verified no data loss.
+2. **`PRAGMA foreign_keys = OFF` is a no-op inside a migration transaction.** Do not rely on it to make a DROP/rebuild "safe".
+3. Prefer **additive** changes: `CREATE TABLE`, `CREATE INDEX`, `ALTER TABLE … ADD COLUMN`.
+4. Changing a column DEFAULT only: **do not rebuild the table**. Leave existing rows alone unless a deliberate backfill is required.
+5. If a table rebuild is unavoidable:
+   - Copy rows with **explicit `id`, `slug`, and `foundry_id` columns preserved**
+   - Recreate every dependent FK target with matching IDs before relying on FKs again
+   - Prefer a new migration that adds a parallel table, backfills, and cuts over — never a casual DROP of a parent table
+6. **Do not edit an already-applied migration.** Fix forward with a new numbered file. Editing is only acceptable if you are certain the version was never applied anywhere that matters.
+7. Name files `NNNN_snake_case.sql`, next integer after the latest.
+8. Comment **why** a risky step is safe, or that it is intentionally additive-only.
+
+## Identity is sacred
+
+9. **Never rewrite `slug` or `foundry_id` values in a migration.** A changed slug breaks every reference from the Foundry system and every export; a changed `foundry_id` breaks every reference to that document in every existing world. If a label needs to change, change `label`.
+10. Keep the slug `CHECK` constraint on any new table carrying a slug: lower-case, `[a-z0-9]`, dot-separated segments, `UNIQUE`.
+11. SQLite has no boolean type. Use `INTEGER NOT NULL CHECK (col IN (0, 1))` and add an `overrides` entry in `sqlc.yaml` so it generates as `bool`.
+
+## Examples
+
+```sql
+-- additive, safe
+CREATE TABLE skill_choice_option (…);
+ALTER TABLE race ADD COLUMN unarmored_ac INTEGER;
+
+-- wipes specialization rows via ON DELETE CASCADE when FKs are on
+DROP TABLE skill;
+```
+
+```sql
+-- useless inside the migration transaction; FKs are still enforced
+PRAGMA foreign_keys = OFF;
+DROP TABLE skill;
+```
+
+## Checklist before finishing
+
+- [ ] No `DROP` of a cascade parent without a proven data-preserving rebuild
+- [ ] No dependence on `PRAGMA foreign_keys = OFF`
+- [ ] No `slug` or `foundry_id` values rewritten
+- [ ] `sqlc generate` still succeeds — it type-checks `query/*.sql` against these files
+- [ ] `pnpm forge:dump` re-run so `packages/content/dump.sql` matches

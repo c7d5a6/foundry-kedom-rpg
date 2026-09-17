@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    // fvtt-types declares the `foundry` namespace and the globals (game, CONFIG, Hooks)
+    // ambiently. It is a v14 beta; if a declaration is wrong, widen at the call site
+    // rather than disabling strict mode. See ADR-002.
+    "types": ["fvtt-types", "vite/client"],
+    "paths": {
+      "@kedom/shared": ["../shared/src/index.ts"],
+      "@kedom/shared/*": ["../shared/src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "vite.config.ts"],
+  "exclude": ["node_modules", "dist"]
+}

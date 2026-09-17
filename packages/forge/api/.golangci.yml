@@ -1,0 +1,97 @@
+version: "2"
+
+# Encodes what Style.md and go-style.mdc can be machine-checked.
+# Install: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+
+run:
+  timeout: 3m
+  tests: true
+
+formatters:
+  enable:
+    # Style.md: gofumpt, tabs, no column limit.
+    - gofumpt
+    - goimports
+  settings:
+    gofumpt:
+      extra-rules: true
+
+linters:
+  default: standard
+  enable:
+    # Style.md: handle every error, never discard with `_ =`.
+    - errcheck
+    - errorlint
+    # Style.md: wrap with %w and add context.
+    - wrapcheck
+    # Style.md: naming -- acronyms upper-case, no stuttering.
+    - revive
+    # Style.md: soft 70-line functions.
+    - funlen
+    # Style.md: simple, explicit control flow.
+    - gocritic
+    - nilerr
+    - nilnil
+    # Style.md: context.Context first, named ctx.
+    - containedctx
+    - contextcheck
+    # Style.md: no aliasing or duplicated state.
+    - copyloopvar
+    - predeclared
+    # Boundaries never crash the host.
+    - bodyclose
+    - rowserrcheck
+    - sqlclosecheck
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+
+    funlen:
+      # Soft 70-line limit from Style.md. Reported, not fatal on its own.
+      lines: 70
+      statements: 50
+      ignore-comments: true
+
+    revive:
+      rules:
+        - name: var-naming
+        - name: exported
+        - name: error-return
+        - name: error-naming
+        - name: error-strings
+        - name: receiver-naming
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: indent-error-flow
+        - name: early-return
+        # Catches model.ModelSkill, which is the same rule as Style.md's
+        # "do not repeat a path segment".
+        - name: package-comments
+          disabled: true
+
+    wrapcheck:
+      ignore-sigs:
+        - .Errorf(
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - .Wrap(
+        - .Wrapf(
+
+  exclusions:
+    rules:
+      # sqlc output is generated and not ours to style.
+      - path: internal/repository/generated
+        linters:
+          - revive
+          - gocritic
+          - funlen
+          - wrapcheck
+          - errcheck
+      # Table-driven tests are legitimately long.
+      - path: _test\.go
+        linters:
+          - funlen
+          - wrapcheck

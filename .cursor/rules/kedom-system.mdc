@@ -1,0 +1,40 @@
+---
+description: Foundry v14 system architecture; ApplicationV2 only, DataModels only, pure derivations, stable slugs
+globs: packages/system/**/*.ts,packages/system/**/*.hbs,packages/system/system.json
+alwaysApply: false
+---
+# Kedom Foundry system
+
+Architecture decisions and their evidence are in `docs/research/05-decisions.md`. Data shapes are in `docs/system/data-model.md`. Do not re-litigate these in code.
+
+## Hard rules
+
+- **Foundry v14 only.** `minimum: "14.367"`. Never add a v13 compatibility path.
+- **ApplicationV2 only.** ApplicationV1 is deprecated until v16. Lancer and StarWarsFFG are stranded on v13 because they never migrated — do not repeat it.
+- **Handlebars only. No Svelte, no UI framework inside Foundry.** Tidy 5e's looks are 16,213 lines of plain CSS and 6 lines of scoped Svelte CSS; the framework buys reactivity we do not need. Svelte belongs in `packages/forge/web` only.
+- **DataModels only.** `foundry.abstract.TypeDataModel` on `CONFIG.*.dataModels`. `template.json` was removed in v14; never create one.
+- **Derivations are pure functions** in `src/derivations/`: data in, data out. No `game`, no document reads, no I/O, no `await`. `prepareDerivedData` runs on every actor update.
+- **Zero-initialise every derived path in `prepareBaseData`.** Active Effects target these paths, and an absent path fails silently depending on preparation order.
+- **Slugs are identity; display labels are not.** Never parse a name to recover meaning. CoC7, WFRP4e, and SWFFG all do, and renaming silently breaks references. Slugs are branded types.
+- **Renaming a derived path is a migration.** Effects in user worlds target them; that path list is public API.
+
+## Do not build
+
+- A rules engine. Modifiers come from independent collector functions returning `Modifier[]`; adding a rule means adding one file. No RuleElement hierarchy (pf2e has 38), no roll-option predicate graph, no Activities (dnd5e's mixin is ~1,400 lines).
+- More than one tier function. `resolveTier` is pure, takes `(total, difficulty)`, and returns `{ tier, margin, critical }`. `critical` is an orthogonal flag, not a fourth tier. WFRP4e's ~200-line `computeResult` is the anti-pattern.
+- User-authored JavaScript in content. Effects are declarative documents plus a named handler registry. WFRP4e ships ~2,100 hashed `.js` files; never that.
+- Extra document types. Two actor types, seven item types. Prefer a `subType` discriminator over a near-identical new type, as WWN did for `power`.
+
+## Conventions
+
+- Sheets declare `static TABS` and `static PARTS`; enrich per tab in `_preparePartContext`. Base class is `KedomDocumentSheet`, in the shape of draw-steel's `DSDocumentSheet`.
+- `data-action` dispatch, not per-element listeners.
+- Preserve scroll and focus across re-renders in the base sheet class.
+- Numbered migrations in `src/migrations/NNN-description.ts`, one class each. Never a monolith.
+- Dice expressions and thresholds come from `src/config/`, never hard-coded — the core mechanic is unresolved (`docs/rules/99-open-questions.md`, Q1).
+- Typed ChatMessage DataModels persist the labelled modifier list, so cards explain themselves and stay interactive.
+- All user-facing strings go through `lang/en.json`. No literals in templates or code.
+
+## Budget
+
+Under 10,000 lines of logic for v1. dnd5e is ~100k and pf2e ~124k because of scope, not polish. If a change needs a new abstraction layer, say so rather than adding it quietly.

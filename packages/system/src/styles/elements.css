@@ -1,0 +1,9 @@
+/*
+ * Barrel for the `elements` cascade layer.
+ *
+ * Bare element styling inside Kedom surfaces: input, button, table, a, hr.
+ * Consumes tokens, defines no components. Lowest-priority layer we own, so
+ * component styles can always override without !important.
+ *
+ * Add files under elements/ and @import them here.
+ */

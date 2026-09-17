@@ -1,0 +1,16 @@
+{
+  "name": "@kedom/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Types shared by the Foundry system and the Forge UI. Mostly generated from the Go models.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "check": "pnpm run typecheck"
+  }
+}

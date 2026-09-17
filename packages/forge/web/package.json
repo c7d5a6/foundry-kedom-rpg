@@ -1,0 +1,25 @@
+{
+  "name": "@kedom/forge-web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Kedom Forge content-authoring UI. Svelte 5, runs outside Foundry.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json",
+    "check": "pnpm run typecheck"
+  },
+  "dependencies": {
+    "@kedom/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.2.0",
+    "@tsconfig/svelte": "^5.0.8",
+    "svelte": "^5.56.4",
+    "svelte-check": "^4.7.1",
+    "vite": "^8.1.4"
+  }
+}

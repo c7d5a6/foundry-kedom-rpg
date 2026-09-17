@@ -1,0 +1,10 @@
+/*
+ * Barrel for the `variables` cascade layer.
+ *
+ * Design tokens only: custom property declarations on :root and theme scopes.
+ * No selectors that produce visual output. Everything here is overridable by
+ * modules and by user themes, which is the point of the layer.
+ *
+ * Add files under tokens/ and @import them here. See
+ * docs/system/ui-design-system.md for the token taxonomy.
+ */

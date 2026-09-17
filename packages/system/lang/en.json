@@ -1,0 +1,209 @@
+{
+  "TYPES": {
+    "Actor": {
+      "character": "Character",
+      "npc": "NPC"
+    },
+    "Item": {
+      "skill": "Skill",
+      "weapon": "Weapon",
+      "armor": "Armor",
+      "gear": "Gear",
+      "focus": "Focus",
+      "power": "Power",
+      "origin": "Origin"
+    },
+    "ChatMessage": {
+      "check": "Skill Check",
+      "attack": "Attack",
+      "damage": "Damage"
+    },
+    "ActiveEffect": {
+      "condition": "Condition",
+      "injury": "Injury"
+    }
+  },
+
+  "KEDOM": {
+    "System": {
+      "Title": "Kedom RPG"
+    },
+
+    "Ability": {
+      "str": { "label": "Strength", "abbr": "STR" },
+      "con": { "label": "Constitution", "abbr": "CON" },
+      "dex": { "label": "Dexterity", "abbr": "DEX" },
+      "int": { "label": "Intelligence", "abbr": "INT" },
+      "wis": { "label": "Wisdom", "abbr": "WIS" },
+      "cha": { "label": "Charisma", "abbr": "CHA" },
+      "luck": { "label": "Luck", "abbr": "LCK" }
+    },
+
+    "Skill": {
+      "arcana": "Arcana",
+      "conduct": "Conduct",
+      "connect": "Connect",
+      "convince": "Convince",
+      "craft": "Craft",
+      "exert": "Exert",
+      "guile": "Guile",
+      "heal": "Heal",
+      "investigate": "Investigate",
+      "know": "Know",
+      "notice": "Notice",
+      "prowl": "Prowl",
+      "punch": "Punch",
+      "shoot": "Shoot",
+      "stab": "Stab",
+      "survive": "Survive",
+      "travel": "Travel",
+      "work": "Work",
+      "worship": "Worship"
+    },
+
+    "Proficiency": {
+      "untrained": "Untrained",
+      "apprentice": "Apprentice",
+      "trained": "Trained",
+      "expert": "Expert",
+      "master": "Master",
+      "legendary": "Legendary"
+    },
+
+    "Tier": {
+      "failure": "Failure",
+      "cost": "Success at a Cost",
+      "success": "Success",
+      "critical": "Critical Success"
+    },
+
+    "Save": {
+      "physical": "Physical",
+      "mental": "Mental",
+      "evasion": "Evasion",
+      "luck": "Luck"
+    },
+
+    "Difficulty": {
+      "challenging": "Challenging",
+      "hard": "Hard",
+      "veryHard": "Very Hard",
+      "incrediblyHard": "Incredibly Hard"
+    },
+
+    "Attributes": {
+      "hp": "Hit Points",
+      "hpShort": "HP",
+      "strain": "System Strain",
+      "strainShort": "SS",
+      "wounds": "Wounds",
+      "ac": "Armor Class",
+      "acShort": "AC",
+      "acMelee": "Melee AC",
+      "acRanged": "Ranged AC",
+      "attackBonus": "Attack Bonus",
+      "initiative": "Initiative",
+      "movement": "Movement",
+      "encumbrance": "Encumbrance",
+      "level": "Level",
+      "experience": "Experience"
+    },
+
+    "Condition": {
+      "stunned": "Stunned",
+      "paralyzed": "Paralyzed",
+      "prone": "Prone",
+      "blinded": "Blinded",
+      "deafened": "Deafened",
+      "ignited": "Ignited",
+      "slowed": "Slowed",
+      "sickened": "Sickened",
+      "wounded": "Wounded",
+      "strained": "Strained"
+    },
+
+    "Injury": {
+      "Severity": {
+        "minor": "Minor",
+        "major": "Major",
+        "severe": "Severe"
+      },
+      "Location": {
+        "head": "Head",
+        "body": "Body",
+        "arms": "Arms",
+        "legs": "Legs",
+        "bleed": "Bleeding"
+      },
+      "WeaponType": {
+        "arrow": "Arrow",
+        "bullet": "Bullet",
+        "blunt": "Blunt",
+        "claws": "Claws",
+        "cutting": "Cutting",
+        "flame": "Flame",
+        "piercing": "Piercing",
+        "explosion": "Explosion"
+      }
+    },
+
+    "Sheet": {
+      "Tab": {
+        "stats": "Stats",
+        "skills": "Skills",
+        "inventory": "Inventory",
+        "powers": "Powers",
+        "effects": "Effects",
+        "biography": "Biography",
+        "description": "Description",
+        "details": "Details"
+      },
+      "Mode": {
+        "play": "Play Mode",
+        "edit": "Edit Mode",
+        "toggleHint": "Switch between play and edit mode"
+      },
+      "Action": {
+        "roll": "Roll",
+        "rollSkill": "Roll {skill}",
+        "create": "Create",
+        "edit": "Edit",
+        "delete": "Delete",
+        "equip": "Equip",
+        "unequip": "Unequip"
+      },
+      "searchPlaceholder": "Search"
+    },
+
+    "Roll": {
+      "Modifier": {
+        "ability": "{ability} modifier",
+        "skillLevel": "{skill} level",
+        "specialization": "{specialization}",
+        "untrained": "Untrained",
+        "armorPenalty": "Armor penalty",
+        "situational": "Situational",
+        "effect": "{effect}"
+      },
+      "Dialog": {
+        "title": "Configure Roll",
+        "situationalLabel": "Situational modifier",
+        "difficultyLabel": "Difficulty",
+        "submit": "Roll"
+      }
+    },
+
+    "Error": {
+      "SheetRender": "The Kedom sheet failed to render. See the console for details.",
+      "UnknownSkillSlug": "No skill is registered with the slug \"{slug}\".",
+      "UnknownSpecializationSlug": "No specialization is registered with the slug \"{slug}\"."
+    },
+
+    "Settings": {
+      "MigrationVersion": {
+        "name": "Last migration version",
+        "hint": "Internal. The system data version this world was last migrated to."
+      }
+    }
+  }
+}

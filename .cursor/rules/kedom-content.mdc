@@ -1,0 +1,67 @@
+---
+description: Content invariants — slug stability, one-way export, determinism, never hand-edit generated packs
+globs: packages/system/packs/_source/**,packages/content/**,packages/forge/api/internal/export/**
+alwaysApply: false
+---
+# Kedom content
+
+Pipeline: `docs/system/compendium-pipeline.md`. Schema: `docs/forge/schema.md`. Formats: `docs/forge/export-formats.md`.
+
+## Source of truth
+
+`packages/content/content.sqlite` is the source of truth. Everything downstream is generated.
+
+```
+Forge UI -> content.sqlite -> dump.sql          (review)
+                           -> packs/_source/**  (YAML, committed)
+                           -> packs/*/          (LevelDB, gitignored)
+```
+
+**Do not hand-edit `packages/system/packs/_source/`.** It is generated. Edit in Forge and re-export; the next export overwrites anything you change.
+
+**Do not hand-edit `packages/content/dump.sql`.** Regenerate with `pnpm forge:dump`.
+
+## One-way, always
+
+Export flows outward and never back. `pnpm packs:extract` exists only as a diagnostic — to see what Foundry actually stored. **Its output is never an input.**
+
+Reversing this creates two sources of truth for one record, which means building either a diff UI or arbitrary conflict rules. Neither is worth it for a single-author project.
+
+Content edited inside a Foundry world is play state, not source, and is deliberately not captured.
+
+## Identity
+
+| Field | Mutable | Purpose |
+|---|---|---|
+| `id` | never | SQLite primary key, internal to Forge |
+| `slug` | never | cross-system identity, referenced by system code and exports |
+| `foundry_id` | never | the Foundry document `_id`; regenerating it breaks every reference in every world |
+| `label` | freely | what humans read |
+
+**Never derive meaning from a label.** No name parsing, ever. CoC7, WFRP4e, and SWFFG all encode specialisation identity in the display name (`"Locksmith (Craft)"`) and parse it back; WFRP4e additionally stores career skill lists as name strings, so a rename needs a routine to rewrite every referencing career, with silent breakage on any missed path. See `docs/research/04-skill-systems.md`.
+
+Slug format: lower-case, `[a-z0-9]`, dot-separated segments, nesting under the owner — `survive.tracking`, `survive.environment.forest`.
+
+## Determinism
+
+Same database in, same bytes out. Otherwise every export is a diff full of noise and the reviewability that justifies the YAML stage disappears.
+
+- Keys sorted, indentation fixed, UTF-8, LF endings.
+- **No timestamps** in generated output.
+- `dump.sql` rows ordered by primary key, schema statements first.
+- Filenames are the slug: `survive.yml`.
+- One file per document, not one per pack, so a content change touches one file.
+
+## UTF-8
+
+Kedom names carry diacritics from a constructed language — `Kedôm`, `Nitól`, `Ñiziel`. No escaping, no Unicode normalisation, no transliteration on the way out.
+
+## Validate before exporting
+
+Refuse to export invalid content rather than emitting something Foundry chokes on, and report **every** problem at once. The full check list is in `docs/forge/export-formats.md`; the one that matters most is that a race cannot grant a skill that does not exist — which would have caught Q10 in `docs/rules/99-open-questions.md` at authoring time instead of at play time.
+
+## Reproducibility
+
+The chain must run from a fresh clone. `content.sqlite` and `dump.sql` are both committed for this reason — the database because it is the source, the dump because a binary file tells a reviewer nothing and is the recovery path.
+
+`foundryvtt-wwn` is the counter-example: all fourteen of its pack-generation scripts point at a gitignored directory, so nobody but its author can rebuild its packs.

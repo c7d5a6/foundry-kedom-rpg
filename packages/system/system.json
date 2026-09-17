@@ -1,0 +1,84 @@
+{
+  "id": "kedom",
+  "title": "Kedom RPG",
+  "description": "A low-fantasy OSR system in the Worlds Without Number tradition, set in the world of Kedom.",
+  "version": "0.0.0",
+  "compatibility": {
+    "minimum": "14.367",
+    "verified": "14"
+  },
+  "authors": [
+    {
+      "name": "c7d5a6",
+      "github": "c7d5a6"
+    }
+  ],
+  "url": "https://github.com/c7d5a6/foundry-kedom-rpg",
+  "manifest": "https://github.com/c7d5a6/foundry-kedom-rpg/releases/latest/download/system.json",
+  "download": "https://github.com/c7d5a6/foundry-kedom-rpg/releases/latest/download/kedom.zip",
+  "license": "LICENSE",
+  "readme": "README.md",
+  "bugs": "https://github.com/c7d5a6/foundry-kedom-rpg/issues",
+
+  "esmodules": ["kedom.mjs"],
+
+  "styles": [
+    { "src": "css/kedom-tokens.css", "layer": "variables" },
+    { "src": "css/kedom-elements.css", "layer": "elements" },
+    { "src": "css/kedom-system.css", "layer": "system" }
+  ],
+
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+
+  "packs": [],
+  "packFolders": [],
+
+  "grid": {
+    "distance": 5,
+    "units": "ft"
+  },
+
+  "primaryTokenAttribute": "attributes.hp",
+  "secondaryTokenAttribute": "attributes.strain",
+
+  "documentTypes": {
+    "Actor": {
+      "character": {},
+      "npc": {}
+    },
+    "Item": {
+      "skill": {},
+      "weapon": {},
+      "armor": {},
+      "gear": {},
+      "focus": {},
+      "power": {},
+      "origin": {}
+    },
+    "ChatMessage": {
+      "check": {},
+      "attack": {},
+      "damage": {}
+    },
+    "ActiveEffect": {
+      "condition": {},
+      "injury": {}
+    }
+  },
+
+  "flags": {
+    "kedom": {
+      "needsMigrationVersion": "0.0.0"
+    },
+    "hotReload": {
+      "extensions": ["css", "hbs", "json"],
+      "paths": ["css", "templates", "lang"]
+    }
+  }
+}

@@ -1,0 +1,27 @@
+# Mirrors Style.md. See that file for the reasoning, including why Go differs.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+max_line_length = 100
+
+# gofmt mandates tabs and never wraps lines, so Go opts out of the column limit
+# rather than fighting the formatter.
+[*.go]
+indent_style = tab
+max_line_length = off
+
+[*.{md,markdown}]
+# Trailing whitespace is significant in Markdown line breaks.
+trim_trailing_whitespace = false
+
+[*.sql]
+indent_size = 2
+
+[Makefile]
+indent_style = tab

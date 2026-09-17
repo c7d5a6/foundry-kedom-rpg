@@ -1,0 +1,25 @@
+---
+description: Follow Style.md for Go; gofumpt, names, 70-line fns, wrap every error, sqlc only
+globs: *.go,**/*.go
+alwaysApply: false
+---
+# Go style
+
+Follow `Style.md` (repo root) for all new Go and for lines you already touch. Do not restyle unrelated existing code.
+
+Must:
+
+- Run `gofumpt`. Tabs. **No column limit** — `gofmt` does not wrap, so do not fight it. Soft 70 lines per function.
+- Names: `TitleCase` exported, `camelCase` unexported, `snake_case.go` files, short single-word lower-case packages (`model`, not `models`).
+- Acronyms upper-case: `ID`, `URL`, `HTTPHandler`, `UUID`. No stuttering: `model.Skill`, not `model.ModelSkill`.
+- Handle every error. Never discard with `_ =` without a comment saying why. Wrap with `%w` plus context the caller lacks.
+- `panic` only for genuine programmer error in pure logic. HTTP handlers are a boundary: log, return a status, never panic. Keep recover middleware installed.
+- Simplest return that works: `void` > `bool` > `T` > `(T, bool)` > `(T, error)`.
+- `context.Context` first, named `ctx`, on anything doing I/O. This is the only un-banned use of "Context".
+- Two `int` params, or an unclear optional, takes an options struct.
+- Package privacy is the real mechanism; do not export a field just to test it.
+- Layering is `handler → service → repository`, one direction. `internal/model` imports nothing from this module — it is the tygo input.
+- SQL lives in `query/*.sql` and goes through `sqlc`. No hand-written SQL strings, no query builders.
+- `PRAGMA foreign_keys = ON` on every connection.
+
+If `Style.md` and existing code disagree, keep the existing name/shape unless this change already has to rename that symbol.

@@ -1,0 +1,52 @@
+{
+  "name": "kedom-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Kedom RPG: a Foundry VTT game system and its content-authoring toolchain.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "system:build": "pnpm --filter @kedom/system run build",
+    "system:watch": "pnpm --filter @kedom/system run watch",
+    "system:link": "tsx tools/link-foundry.ts",
+    "packs:build": "tsx tools/pack.ts",
+    "packs:extract": "tsx tools/unpack.ts",
+    "forge:web": "pnpm --filter @kedom/forge-web run dev",
+    "forge:api": "go -C packages/forge/api run ./cmd/forge",
+    "forge:types": "cd packages/forge/api && tygo generate",
+    "forge:sqlc": "cd packages/forge/api && sqlc generate",
+    "forge:dump": "tsx tools/dump-content.ts",
+    "lint": "pnpm run lint:ts && pnpm run lint:go",
+    "lint:ts": "eslint .",
+    "lint:go": "cd packages/forge/api && golangci-lint run ./...",
+    "lint:fix": "eslint . --fix && gofumpt -w packages/forge/api",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "pnpm -r --parallel run typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.56.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.10.0",
+    "eslint": "^10.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.5.0",
+    "js-yaml": "^4.1.0",
+    "prettier": "^3.9.5",
+    "prettier-plugin-svelte": "^4.1.1",
+    "svelte": "^5.56.4",
+    "tsx": "^4.23.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.63.0",
+    "vitest": "^4.1.10"
+  }
+}

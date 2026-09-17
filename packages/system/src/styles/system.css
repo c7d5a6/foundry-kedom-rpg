@@ -1,0 +1,10 @@
+/*
+ * Barrel for the `system` cascade layer.
+ *
+ * Components first, then per-surface sheet styles, because sheets legitimately
+ * need to override component defaults and cascade order is the cheapest way to
+ * let them.
+ *
+ * Add files under components/ and sheets/ and @import them here, components
+ * before sheets. See docs/system/ui-design-system.md.
+ */

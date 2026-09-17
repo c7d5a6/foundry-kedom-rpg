@@ -1,0 +1,57 @@
+---
+description: Kedom CSS design system; token-first, three cascade layers, no animations, no preprocessor
+globs: packages/system/src/styles/**/*.css,packages/system/src/styles/*.css
+alwaysApply: false
+---
+# Kedom CSS
+
+Full architecture in `docs/system/ui-design-system.md`. This is where the project's appearance budget is spent — 10,000-15,000 lines, deliberately.
+
+## Layers
+
+Three bundles, each assigned a Foundry cascade layer in `system.json`. Keep them separate through the build; the layer assignment is what lets modules and user themes override without `!important`.
+
+| Barrel | Layer | Contains |
+|---|---|---|
+| `tokens.css` | `variables` | custom property declarations only, no visual output |
+| `elements.css` | `elements` | bare element styling: `input`, `button`, `table`, `a` |
+| `system.css` | `system` | `components/` then `sheets/`, in that order |
+
+Add a file under the matching directory and `@import` it in the barrel. Components before sheets, because sheets legitimately override component defaults.
+
+## Tokens
+
+Two tiers, and the distinction is load-bearing:
+
+- **Primitives** — raw values, no semantics: `--kedom-color-ink-900`, `--kedom-space-4`.
+- **Semantic** — meaning, referencing primitives: `--kedom-surface-sheet`, `--kedom-text-muted`, `--kedom-tier-success`.
+
+**Components reference semantic tokens only.** A component reaching for a primitive cannot be themed, which defeats the structure.
+
+Dark mode redefines **semantic tokens only**, via `@scope (.theme-dark) to (.themed)`. Primitives stay fixed; components are untouched.
+
+## Naming
+
+BEM-ish and always prefixed: `.kedom-skill-row`, `.kedom-skill-row__level`, `.kedom-skill-row--untrained`.
+
+Prefixing is not optional. These styles share a document with core Foundry and every active module.
+
+## Do not
+
+- **No animations.** Explicitly out of scope. Transitions on hover and focus only — those are affordances, not decoration.
+- **No preprocessor.** Native nesting, custom properties, `@layer`, and `@scope` cover it. PostCSS runs `postcss-import` and `autoprefixer`, nothing else.
+- **No utility framework.** Tailwind or similar inside Foundry's shared document is a specificity problem, and owning the cascade is the point.
+- **No `!important`.** If you reach for it, the layer or token structure is wrong.
+- **No new visual treatment in `sheets/`.** Sheet files compose components and adjust spacing. New treatment belongs in `components/`.
+- **No absolute asset paths.** `/systems/kedom/...` breaks behind a route prefix.
+
+## Budget
+
+| | Lines |
+|---|---|
+| tokens/ | ~600 |
+| elements/ | ~500 |
+| components/ | ~5,000 |
+| sheets/ | ~6,000 |
+
+Unlike the logic budget, this is an investment to make, not a ceiling to stay under.

@@ -1,0 +1,25 @@
+---
+description: Follow Style.md for TypeScript; prettier, names, 100 cols, 70-line fns, three-tier asserts
+globs: *.ts,**/*.ts,**/*.svelte
+alwaysApply: false
+---
+# TypeScript style
+
+Follow `Style.md` (repo root) for all new TypeScript and for lines you already touch. Do not restyle unrelated existing code.
+
+Must:
+
+- Run `prettier`. 2 spaces. Hard 100 columns. Soft 70 lines per function.
+- Names: `TitleCase` types, `camelCase` functions/vars, `kebab-case.ts` files. Acronyms upper-case: `XMLParser`, `ID` never `Id`.
+- `strict` plus `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`. No `any`; use `unknown` and narrow.
+- Make invalid states unrepresentable first: discriminated unions, branded slug types. Then assert in pure logic.
+- Pure logic (`derivations/`, `rolls/`) asserts pre/postconditions and invariants; average two per function; split compound asserts.
+- Boundaries (sheet render, Foundry hooks, click handlers) never crash the host: catch, log, notify. No asserts there.
+- No floating promises. No bare `catch {}`. `unknown` in catch clauses.
+- Simplest return that works: `void` > `boolean` > `number` > `T | null` > throws. Prefer `null` over `undefined`.
+- Two `number` params, or an unclear optional, takes an options object.
+- Use `#private`, never an underscore convention — except Foundry's own `_prepareContext` / `_onRender`, which you are overriding.
+- Never `Value`, `Data`, `Manager`, `State`, `utils`, `misc`. `Context` only for Foundry's API.
+- Do not repeat a path segment: `rolls.Modifier`, not `rolls.RollModifier`.
+
+If `Style.md` and existing code disagree, keep the existing name/shape unless this change already has to rename that symbol.

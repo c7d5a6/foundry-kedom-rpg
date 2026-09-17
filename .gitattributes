@@ -1,0 +1,27 @@
+# Style.md: source is UTF-8 with LF endings.
+* text=auto eol=lf
+
+*.go text eol=lf
+*.ts text eol=lf
+*.svelte text eol=lf
+*.css text eol=lf
+*.hbs text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
+
+# The authored content database is binary; dump.sql is the reviewable form.
+*.sqlite binary
+*.db binary
+
+# Generated files: collapse in diffs and exclude from language statistics.
+packages/shared/src/generated/** linguist-generated=true
+packages/forge/api/internal/repository/generated/** linguist-generated=true
+packages/content/dump.sql linguist-generated=true -diff
+
+# Compendium sources are content, not code.
+packages/system/packs/_source/** linguist-vendored=true
+
+pnpm-lock.yaml -diff linguist-generated=true

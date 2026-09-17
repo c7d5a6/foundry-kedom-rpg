@@ -1,0 +1,41 @@
+---
+description: Forge API layering — handlers, services, repositories, sqlc, tygo, export
+globs: packages/forge/api/**/*.go
+alwaysApply: false
+---
+# Forge API conventions
+
+Adapted from `/home/c7d5a6/projects/rts/c7d5a6l/.cursor/rules/backend-go.mdc` so both projects read the same way. This rule covers **architecture**; code style lives in `go-style.mdc` and `Style.md`.
+
+Full write-up: `packages/forge/api/README.md`. Schema: `docs/forge/schema.md`.
+
+## Layers
+
+| Package | Role |
+|---|---|
+| `internal/handler` | HTTP only (prefer this name over "controller") |
+| `internal/service` | Business use-cases; **TX for any DB writes** |
+| `internal/repository` | All SQLite access, via sqlc-generated code |
+| `internal/model` | Domain types. No behaviour, no imports from this module |
+| `internal/db` | Connection setup, pragmas, migration runner |
+| `internal/export` | YAML, JSON, and Markdown emitters |
+
+Dependency flow: `handler → service → repository`. One direction.
+
+## Rules
+
+1. Handlers do not run SQL and do not open transactions. Decode, validate shape, call one service, encode.
+2. Service methods that write: `BeginTx` → work → `Commit`, with `defer Rollback()`.
+3. `internal/model` imports nothing from this module. It is the tygo input, and a dependency there leaks into generated TypeScript.
+4. `internal/export` reads; it never writes to the database. Export is one-way by design — see `docs/forge/export-formats.md`.
+5. No hand-written SQL strings and no query builders. Queries live in `query/*.sql` and go through `sqlc`, which type-checks them against `migrations/`.
+6. Generated code (`internal/repository/generated/`, `packages/shared/src/generated/`) is gitignored and never hand-edited. Regenerate with `pnpm forge:sqlc` / `pnpm forge:types`.
+7. `PRAGMA foreign_keys = ON` on every connection. Without it SQLite silently ignores foreign keys, which defeats the relational schema.
+8. Handlers are a **boundary**: log and return a status, never panic. Keep recover middleware installed in `cmd/forge`.
+9. `net/http` with `ServeMux` method-and-path patterns. No router framework — there are a few dozen routes.
+10. The committed database is `packages/content/content.sqlite`. Tests copy fixtures to a temp file per test; never write a committed database from a test.
+11. Validate before export and report **every** problem at once. Fixing content one error per run is miserable — see the validation list in `docs/forge/export-formats.md`.
+
+## Identity
+
+`id`, `slug`, and `foundry_id` are identity and never change: no regeneration on export, no rewriting in a migration. `label` is the mutable human-readable field. Conflating identity with display name is the specific mistake CoC7, WFRP4e, and SWFFG all made (`docs/research/04-skill-systems.md`).
