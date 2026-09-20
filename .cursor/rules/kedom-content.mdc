@@ -1,11 +1,11 @@
 ---
 description: Content invariants — slug stability, one-way export, determinism, never hand-edit generated packs
-globs: packages/system/packs/_source/**,packages/content/**,packages/forge/api/internal/export/**
+globs: packages/system/packs/_source/**,packages/system/lang/babele/**,packages/content/**,packages/forge/api/internal/export/**
 alwaysApply: false
 ---
 # Kedom content
 
-Pipeline: `docs/system/compendium-pipeline.md`. Schema: `docs/forge/schema.md`. Formats: `docs/forge/export-formats.md`.
+Pipeline: `docs/system/compendium-pipeline.md`. Schema: `docs/forge/schema.md`. Formats: `docs/forge/export-formats.md`. Localisation: `docs/forge/localisation.md`.
 
 ## Source of truth
 
@@ -13,14 +13,17 @@ Pipeline: `docs/system/compendium-pipeline.md`. Schema: `docs/forge/schema.md`. 
 
 ```
 Forge UI -> content.sqlite -> dump.sql          (review)
-                           -> packs/_source/**  (YAML, committed)
+                           -> packs/_source/**  (YAML, English, committed)
                            -> packs/*/          (LevelDB, gitignored)
-                           -> site/v1/**.json   (public site, designed not built)
+                           -> lang/babele/ru/** (Babele JSON, committed)
+                           -> site/v1/{en,ru}/** (public site, designed not built)
 ```
 
-The public website's character generator is a fourth consumer, not a second source. Same invariants: slugs are identity across all of them, so a race on the site and a race in a compendium are the same entity. Design in `docs/forge/public-site-export.md`.
+The public website and the Babele overlay are additional consumers, not second sources. Same invariants: slugs are identity across all of them. Design in `docs/forge/public-site-export.md` and `docs/forge/localisation.md`.
 
 **Do not hand-edit `packages/system/packs/_source/`.** It is generated. Edit in Forge and re-export; the next export overwrites anything you change.
+
+**Do not hand-edit `packages/system/lang/babele/`.** Same pipeline, different target. Russian content overlays.
 
 **Do not hand-edit `packages/content/dump.sql`.** Regenerate with `pnpm forge:dump`.
 
@@ -39,11 +42,22 @@ Content edited inside a Foundry world is play state, not source, and is delibera
 | `id` | never | SQLite primary key, internal to Forge |
 | `slug` | never | cross-system identity, referenced by system code and exports |
 | `foundry_id` | never | the Foundry document `_id`; regenerating it breaks every reference in every world |
-| `label` | freely | what humans read |
+| `label` | freely | English display name. Russian is a `translation` row, never a second column. |
 
 **Never derive meaning from a label.** No name parsing, ever. CoC7, WFRP4e, and SWFFG all encode specialisation identity in the display name (`"Locksmith (Craft)"`) and parse it back; WFRP4e additionally stores career skill lists as name strings, so a rename needs a routine to rewrite every referencing career, with silent breakage on any missed path. See `docs/research/04-skill-systems.md`.
 
 Slug format: lower-case, `[a-z0-9]`, dot-separated segments, nesting under the owner — `survive.tracking`, `survive.environment.forest`.
+
+## Localisation
+
+English is canonical. Russian is an overlay. Design: `docs/forge/localisation.md`.
+
+- Entity tables hold English `label` / `description`. The `translation` table holds `locale='ru'` only.
+- Slugs are never translated.
+- YAML packs are English. Russian content ships as generated Babele JSON.
+- `lang/{en,ru}.json` are **source** (UI strings). `lang/babele/` is **generated** (content).
+- Missing Russian is a fallback to English, not an export error. Never copy English into a Russian field to fake completeness.
+- A third locale is new rows, not new columns.
 
 ## Determinism
 
@@ -57,7 +71,7 @@ Same database in, same bytes out. Otherwise every export is a diff full of noise
 
 ## UTF-8
 
-Kedom names carry diacritics from a constructed language — `Kedôm`, `Nitól`, `Ñiziel`. No escaping, no Unicode normalisation, no transliteration on the way out.
+Kedom names carry diacritics from a constructed language — `Kedôm`, `Nitól`, `Ñiziel` — and Russian content is Cyrillic. No escaping, no Unicode normalisation, no transliteration on the way out.
 
 ## Validate before exporting
 

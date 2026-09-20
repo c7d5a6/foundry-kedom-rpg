@@ -16,6 +16,7 @@ Architecture decisions and their evidence are in `docs/research/05-decisions.md`
 - **Derivations are pure functions** in `src/derivations/`: data in, data out. No `game`, no document reads, no I/O, no `await`. `prepareDerivedData` runs on every actor update.
 - **Zero-initialise every derived path in `prepareBaseData`.** Active Effects target these paths, and an absent path fails silently depending on preparation order.
 - **Slugs are identity; display labels are not.** Never parse a name to recover meaning. CoC7, WFRP4e, and SWFFG all do, and renaming silently breaks references. Slugs are branded types.
+- **Every user-facing string is localised.** `game.i18n.localize` or the Handlebars `localize` helper; hard-coded English in a template is a bug. UI strings live in `lang/{en,ru}.json`. Content translations live in SQLite and ship as Babele JSON; do not put race descriptions in `lang/ru.json` and do not require Babele. See `docs/forge/localisation.md`.
 - **Renaming a derived path is a migration.** Effects in user worlds target them; that path list is public API.
 
 ## Do not build
@@ -33,7 +34,7 @@ Architecture decisions and their evidence are in `docs/research/05-decisions.md`
 - Numbered migrations in `src/migrations/NNN-description.ts`, one class each. Never a monolith.
 - Dice expressions and thresholds come from `src/config/`, never hard-coded — the core mechanic is unresolved (`docs/rules/99-open-questions.md`, Q1).
 - Typed ChatMessage DataModels persist the labelled modifier list, so cards explain themselves and stay interactive.
-- All user-facing strings go through `lang/en.json`. No literals in templates or code.
+- All user-facing strings go through `lang/{en,ru}.json`. No literals in templates or code.
 
 ## Budget
 

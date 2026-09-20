@@ -266,6 +266,40 @@ up after itself.
 
 ---
 
+## ADR-015 — English canonical, Russian as an overlay
+
+**Decision.** Author in English. Russian is a first-class overlay in SQLite, Forge, every
+export, and the Foundry system. A third locale is new rows, not new columns.
+
+Two channels, because Foundry forces the split:
+
+1. **UI strings** — `lang/en.json` and `lang/ru.json`, native Foundry `languages`. Hand-authored.
+2. **Content** — English `label` / `description` on the entity table; Russian in a
+   `translation` table keyed by `(entity_kind, entity_id, locale, field)`. YAML packs stay
+   English. Forge emits Babele JSON for the Russian overlay. The system registers Babele if
+   present and does not require it.
+
+**Evidence.** Foundry translates UI, not documents — community wiki, and Babele exists
+specifically to fill that gap. Babele 2.8/2.9 targets v14. Duplicating packs per language
+is what Babele is designed to avoid; storing `flags.kedom.name.ru` and swapping at render
+misses chat cards, tokens, the sidebar, and every module that reads `document.name`.
+
+`label_en` / `label_ru` columns were the alternative. They make a third language a migration
+across every table, which is the retrofit this decision exists to prevent.
+
+**Consequence.** Babele is an optional relationship, not a hard dependency. A Russian client
+without it still gets a Russian sheet and English compendia. Incomplete Russian is a
+fallback, never an export failure, and never a copy of English pretending to be complete.
+Closed vocabularies (skills, attributes, saves) appear both in `lang/*.json` and in SQLite;
+Forge should eventually check they match.
+
+Full design: [../forge/localisation.md](../forge/localisation.md). Closes Q27.
+
+**Revisit if** Foundry grows native document translation, or if a third locale arrives whose
+script or fallback rules do not fit an overlay (right-to-left, for example).
+
+---
+
 ## Open question carried forward
 
 **The dice mechanic is unresolved.** `Kedom RPG.md` specifies `2d8 + STAT + level` with

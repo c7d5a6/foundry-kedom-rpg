@@ -196,18 +196,27 @@ theme-neutral. Storing Markdown and rendering per target keeps one source. Track
 
 ## Localisation
 
-The existing generator is **entirely in Russian**, with English rules terms left untranslated
-mid-sentence. The Foundry system is English-first with everything in `lang/en.json`.
+**Settled.** English is canonical; Russian is an overlay. The site export produces **one tree
+per locale**:
 
-If both consume the same Forge export, content needs a language dimension — `label_en` /
-`label_ru`, or a `translation` table keyed by slug and locale. This has to be decided before
-the schema sets, because retrofitting it means touching every table. Tracked as
-[Q27](../rules/99-open-questions.md#q27--content-localisation).
+```
+site/v1/en/index/races.json
+site/v1/ru/index/races.json
+site/v1/en/race/nitol.json
+site/v1/ru/race/nitol.json
+```
+
+A Russian record that is missing a field falls back to English and is marked `"partial": true`,
+so the site can show the gap instead of presenting English as Russian. UI chrome of the
+generator itself is a Vue i18n concern in the site repo, not this export.
+
+The full design — the `translation` table, Forge's side-by-side editor, and why Foundry needs
+Babele for the same content — is in [localisation.md](localisation.md).
 
 ## Relationship to the other exports
 
 The site export is a **view**, exactly like the Markdown export. It is not a source of truth,
-it is not editable, and it does not round-trip. Slugs match across all four targets, so a race
+it is not editable, and it does not round-trip. Slugs match across all five targets, so a race
 on the website, a race in a Foundry compendium, and a race row in SQLite are the same entity.
 
 That is the payoff of [ADR-007](../research/05-decisions.md#adr-007--slug-identity-for-skills-and-specialisations)

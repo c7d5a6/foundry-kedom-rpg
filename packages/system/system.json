@@ -33,8 +33,26 @@
       "lang": "en",
       "name": "English",
       "path": "lang/en.json"
+    },
+    {
+      "lang": "ru",
+      "name": "Русский",
+      "path": "lang/ru.json"
     }
   ],
+
+  "relationships": {
+    "optional": [
+      {
+        "id": "babele",
+        "type": "module",
+        "compatibility": {
+          "minimum": "2.8.0",
+          "verified": "2.9.1"
+        }
+      }
+    ]
+  },
 
   "packs": [],
   "packFolders": [],

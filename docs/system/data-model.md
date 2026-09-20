@@ -29,6 +29,11 @@ fails silently when it does not.
 **Slugs, never display names.** See the section below. This is the one rule with no
 exceptions.
 
+**English names in the document, Russian via overlay.** Pack documents store English `name`
+and `system.description`. The sheet never reads those for closed vocabularies — it localises
+the slug through `game.i18n`. Content prose is overlaid at runtime by Babele from generated
+JSON. See [../forge/localisation.md](../forge/localisation.md).
+
 ## Actor types
 
 Two. Not five, not nine.

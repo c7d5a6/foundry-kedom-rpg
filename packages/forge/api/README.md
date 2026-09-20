@@ -4,6 +4,7 @@ The content-authoring backend. Go 1.26, SQLite, no cgo. Single user, runs on loc
 
 Schema reference: [../../../docs/forge/schema.md](../../../docs/forge/schema.md).
 Export behaviour: [../../../docs/forge/export-formats.md](../../../docs/forge/export-formats.md).
+Localisation: [../../../docs/forge/localisation.md](../../../docs/forge/localisation.md).
 
 ## Layering
 
@@ -18,7 +19,7 @@ same way.
 | `internal/repository` | SQL only, via sqlc-generated code | contain business rules |
 | `internal/model` | Domain types. No behaviour, no imports from the layers above | import anything from this module |
 | `internal/db` | Connection setup, pragmas, migration runner | know about domain types |
-| `internal/export` | YAML, JSON, and Markdown emitters | write to the database |
+| `internal/export` | YAML, Babele JSON, JSON, Markdown, site JSON emitters | write to the database |
 
 `internal/model` is the only package the others all import, and it is also the tygo input —
 which is why it must stay dependency-free.

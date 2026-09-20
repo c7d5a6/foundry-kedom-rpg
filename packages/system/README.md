@@ -34,7 +34,9 @@ src/
   migrations/            numbered, one class each
   styles/                tokens/, elements/, components/, sheets/
 templates/               Handlebars
-lang/en.json             all user-facing strings
+lang/en.json             English UI strings
+lang/ru.json             Russian UI strings
+lang/babele/ru/          generated Babele overlays -- do not hand-edit
 packs/_source/           YAML written by Forge -- generated, do not hand-edit
 ```
 

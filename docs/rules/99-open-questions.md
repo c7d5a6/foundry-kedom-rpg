@@ -257,19 +257,6 @@ rendered HTML with inline styles and theme-specific attributes, which does not t
 Storing Markdown in SQLite and rendering per target is the obvious answer, but it needs
 deciding before content is authored at volume.
 
-### Q27 — Content localisation
-
-The public site is **entirely in Russian**. The Foundry system is English-first with strings in
-`lang/en.json`. If both are fed by one Forge export, content needs a language dimension —
-either `label_en`/`label_ru` columns or a `translation` table keyed by slug and locale.
-
-This is worth settling early: retrofitting a locale dimension means touching every table that
-holds display text, and every export target at once.
-
-The class roster arrives named in Russian only (Воин, Эксперт, Кверанский арканист), so the
-English names in [30-character-creation.md](30-character-creation.md#classes) are translations
-this document chose, not source text.
-
 ### Q28 — Do specialisations have their own proficiency tiers?
 
 The rule is *"`2d10 + STAT + skill proficiency`, if no specialization proficiency/2"* — half
@@ -316,6 +303,21 @@ flag, simplifying
 [ADR-008](../research/05-decisions.md#adr-008--one-pure-tier-function-critical-as-an-orthogonal-flag).
 Note this concerns *critical success on skill checks*; critical **injuries** in
 [80-criticals.md](80-criticals.md) are a separate combat subsystem and are unaffected.
+
+### Q27 — Content localisation — **English canonical, Russian overlay**
+
+Author in English. Russian is a `translation` table, not `label_en` / `label_ru` columns.
+YAML packs stay English; Foundry content translation is Babele JSON; the site export is one
+tree per locale; UI strings are `lang/{en,ru}.json`. Babele is optional. Missing Russian
+falls back to English and is never faked by copying.
+
+[ADR-015](../research/05-decisions.md#adr-015--english-canonical-russian-as-an-overlay),
+design in [../forge/localisation.md](../forge/localisation.md).
+
+The class roster still arrives named in Russian only in the source note (Воин, Эксперт,
+Кверанский арканист). The English names in
+[30-character-creation.md](30-character-creation.md#classes) remain translations this
+document chose.
 
 ---
 

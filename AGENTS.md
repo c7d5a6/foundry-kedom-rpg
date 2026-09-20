@@ -19,6 +19,7 @@ implementation code has been written.
 | What are the game's rules? | [docs/rules/](docs/rules/) |
 | What is still undecided? | [docs/rules/99-open-questions.md](docs/rules/99-open-questions.md) |
 | How does content reach the website? | [docs/forge/public-site-export.md](docs/forge/public-site-export.md) |
+| How does English/Russian localisation work? | [docs/forge/localisation.md](docs/forge/localisation.md) |
 | How do I write code here? | [Style.md](Style.md) |
 
 The research documents are not background reading. They contain measurements that settled

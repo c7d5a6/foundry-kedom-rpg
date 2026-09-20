@@ -30,7 +30,14 @@ flowchart TD
   race_grant --> skill
   race_grant --> specialization
   race_grant --> attribute
+  translation -.-> skill
+  translation -.-> race
+  translation -.-> class
+  translation -.-> background
 ```
+
+`translation` is an overlay, not a parent. English `label` / `description` live on the entity;
+Russian lives in `translation`. See [localisation.md](localisation.md).
 
 ## Identity, and why it is separate from names
 
@@ -42,7 +49,7 @@ mistake this whole schema is designed to avoid:
 | `id` | never | SQLite primary key. Internal to Forge. |
 | `slug` | never | Cross-system identity. Referenced by the Foundry system and by exports. |
 | `foundry_id` | never | The 16-character Foundry document `_id`, stored so re-export does not regenerate it. |
-| `label` | freely | What humans read. Localisable. |
+| `label` | freely | What humans read. **English**, the canonical display name. Russian lives in `translation`. |
 
 Call of Cthulhu 7e, WFRP4e, and Star Wars FFG all use the display name as identity and parse
 it back out with string operations, so renaming a skill silently breaks references
@@ -220,6 +227,32 @@ Expressing this in YAML by hand is exactly where name-based references creep in,
 there is no constraint stopping you from writing a skill name that does not exist. Here a
 foreign key does.
 
+### `translation`
+
+The Russian overlay. English stays on the entity; this table never contains `locale = 'en'`.
+The full design is [localisation.md](localisation.md).
+
+```
+id
+entity_kind     'attribute' | 'skill' | 'specialization' | 'race' | 'class'
+                | 'background' | 'region' | 'focus' | 'power' | 'condition'
+                | 'injury'
+entity_id       INTEGER NOT NULL
+locale          TEXT NOT NULL        currently only 'ru'
+field           'label' | 'abbreviation' | 'description'
+value           TEXT NOT NULL
+UNIQUE(entity_kind, entity_id, locale, field)
+CHECK(locale != 'en')
+```
+
+One table rather than one per entity so completeness is a single query and a new kind is a
+new allowed value. The cost is that `entity_id` cannot be a real foreign key: a trigger
+rejects rows whose id is missing from the kind's table, and each parent deletes its
+translations on `DELETE`.
+
+A missing row means "fall back to English", not "this entity has no name". Empty `value` is
+rejected — omit the row instead, so completeness cannot be faked by storing a blank.
+
 ### `schema_migrations`
 
 ```
@@ -246,6 +279,9 @@ be bypassed:
 - `skill_choice.pick_count` is `CHECK`-constrained to be at least 1 and no greater than the
   option count — enforced by trigger, since a `CHECK` cannot count rows.
 - Every join table has a composite primary key, so a duplicate link is impossible.
+- `translation.locale` cannot be `'en'`, and `(entity_kind, entity_id, locale, field)` is
+  unique, so an entity cannot carry two Russian labels.
+- `translation.value` is `NOT NULL` and `CHECK(length(value) > 0)`.
 
 ## Known gaps
 

@@ -1,19 +1,21 @@
 # Forge export formats
 
-Four targets, one source. The pipeline they feed is described in
-[../system/compendium-pipeline.md](../system/compendium-pipeline.md).
+Five targets, one source. The pipeline they feed is described in
+[../system/compendium-pipeline.md](../system/compendium-pipeline.md). Localisation — which
+target carries which language — is in [localisation.md](localisation.md).
 
-| Target | Consumer | Committed? |
-|---|---|---|
-| **YAML** | `packages/system/packs/_source/` → LevelDB → Foundry | yes |
-| **JSON** | external tools, one-off scripts | no |
-| **Markdown** | the Obsidian vault, for reading and printing | no |
-| **Site JSON** | the public website's character generator | into the site repo |
+| Target | Consumer | Language | Committed? |
+|---|---|---|---|
+| **YAML** | `packages/system/packs/_source/` → LevelDB → Foundry | English | yes |
+| **Babele JSON** | Foundry runtime overlay, via the Babele module | Russian | yes |
+| **JSON** | external tools, one-off scripts | English | no |
+| **Markdown** | the Obsidian vault, for reading and printing | `--locale`, default English | no |
+| **Site JSON** | the public website's character generator | one tree per locale | into the site repo |
 
-The site target is designed but **not built**; see
-[public-site-export.md](public-site-export.md).
+The site target and the Babele overlay are designed but **not built**; see
+[public-site-export.md](public-site-export.md) and [localisation.md](localisation.md).
 
-## Rules that apply to all four
+## Rules that apply to all five
 
 **One direction only.** SQLite → files. Nothing reads files back into SQLite. The alternative
 creates two sources of truth for one record, and reconciling them means either building a diff
@@ -49,7 +51,7 @@ type: skill
 img: systems/kedom/assets/skills/survive.webp
 system:
   slug: survive
-  attribute: wis
+  attribute: foc
   description: <p>...</p>
   specializationMode: parameterized
   specializations:
@@ -93,6 +95,38 @@ slugs are unique.
 export as nested arrays on the owning document, matching the `grants` and `choices` shape in
 [../system/data-model.md](../system/data-model.md#references-between-documents).
 
+**YAML is English.** Russian does not belong here. A bilingual pack would make every content
+diff noise, and Foundry would still only display `name`. Russian content is the Babele
+overlay, next.
+
+## Babele JSON — the Foundry overlay
+
+One file per pack, keyed by the document's English `name` because that is Babele's contract,
+not ours:
+
+```
+packages/system/lang/babele/ru/kedom.skills.json
+```
+
+```json
+{
+  "label": "Skills",
+  "mapping": { "description": "system.description" },
+  "entries": {
+    "Survive": {
+      "name": "Выживание",
+      "description": "<p>...</p>"
+    }
+  }
+}
+```
+
+Documents with no Russian row are omitted, so Babele leaves the English original in place.
+Never emit an entry whose values are copies of English — that marks the translation complete
+when it is not. Full rules in [localisation.md](localisation.md#babele-json--the-foundry-overlay).
+
+Committed, generated, same as the YAML. Do not hand-edit.
+
 ## JSON — interchange
 
 The same document structures, emitted as one JSON file per pack rather than per document.
@@ -122,6 +156,9 @@ Front matter carries the slug so the vault can link by identity rather than file
 Gitignored: the vault is upstream brainstorming and these are a read-only view of downstream
 state. Writing them into the repo would blur which direction content flows.
 
+`pnpm forge:export:md --locale=ru` writes Russian overlays where they exist and English
+everywhere else. Default is English.
+
 ## Site JSON — the public character generator
 
 **Designed, not built.** Static JSON committed into the public site repo
@@ -132,7 +169,8 @@ entity carrying the prose. The site fetches an index on load and a detail file o
 selection, so a reader who never opens the generator downloads none of it.
 
 The full design, the measured payload, and what the existing WWN generator reveals about this
-schema are in [public-site-export.md](public-site-export.md).
+schema are in [public-site-export.md](public-site-export.md). Localisation — one tree per
+locale, English fallback marked `partial` — is in [localisation.md](localisation.md).
 
 ## `dump.sql` — the reviewable database
 

@@ -8,20 +8,22 @@ How authored content becomes a compendium pack. One direction, no round trip.
 flowchart LR
   forge["Kedom Forge UI"] --> sqlite["content.sqlite"]
   sqlite --> dump["dump.sql (review)"]
-  sqlite --> yaml["packs/_source/**.yml"]
+  sqlite --> yaml["packs/_source/**.yml (en)"]
   yaml --> ldb["packs/*/ LevelDB"]
   ldb --> foundry["Foundry"]
-  sqlite -.-> site["site/v1/**.json"]
+  sqlite --> babele["lang/babele/ru/**.json"]
+  babele -.-> foundry
+  sqlite -.-> site["site/v1/{en,ru}/**.json"]
   site -.-> web["Public site generator"]
 ```
 
 **SQLite is the source of truth.** Everything downstream is generated
 ([ADR-011](../research/05-decisions.md#adr-011--sqlite-is-the-content-source-of-truth-yaml-is-the-reviewable-artefact)).
 
-The dashed branch is the public website's character generator — designed but not built, and
-documented in [../forge/public-site-export.md](../forge/public-site-export.md). It matters here
-only because it is a second consumer of the same slugs, which is why identity has to be stable
-outside Foundry as well as inside it.
+The dashed branches are designed but not built. The site generator is
+[../forge/public-site-export.md](../forge/public-site-export.md); Babele overlays and the
+English-canonical / Russian-overlay split are [../forge/localisation.md](../forge/localisation.md).
+Both are consumers of the same slugs, which is why identity has to be stable outside Foundry.
 
 ## Why each stage exists
 
