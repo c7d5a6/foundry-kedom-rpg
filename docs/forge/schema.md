@@ -56,9 +56,10 @@ Slugs are enforced by a `CHECK` constraint: lower-case, `[a-z0-9]`, dot-separate
 
 ### `attribute`
 
-The seven primary attributes. Small, fixed, but a table rather than an enum because skills
-reference it and the set is still in flux
-([Q2](../rules/99-open-questions.md#q2--is-strength-separate-from-constitution)).
+The six primary attributes — Might, Dexterity, Knowledge, Focus, Presence, Luck. Small and
+fixed, but a table rather than an enum because skills reference it and the set has already
+changed once: strength and constitution merged into Might, dropping the count from seven
+([Q2](../rules/99-open-questions.md#q2--is-strength-separate-from-constitution--no)).
 
 ```
 id, slug, label, abbreviation, description, sort_order
@@ -162,10 +163,15 @@ The class list is a many-to-many with races because that is the main mechanical 
 choosing a race. `is_prefilled_slot` captures the Adventurer pattern: most non-human races can
 *only* be Adventurers with one of the two slots already filled.
 
-Classes are barely specified in the source
-([Q12](../rules/99-open-questions.md#q12--classes-are-not-specified)), so these columns will
-grow. `attack_progression` and `skill_points_per_level` are named after WWN's `classEdge`
-fields because those are known to be the right shape.
+The class roster is now fixed — five `core` and twelve `partial`, listed in
+[../rules/30-character-creation.md](../rules/30-character-creation.md#classes) — but none of
+the numbers exist yet
+([Q12](../rules/99-open-questions.md#q12--per-class-mechanics-are-unspecified)), so these
+columns will grow. `attack_progression` and `skill_points_per_level` are named after WWN's
+`classEdge` fields because those are known to be the right shape.
+
+Note that the five core classes are **also** selectable as partials, so `kind` cannot be a
+plain one-of; either it is a pair of booleans or partial availability is its own column.
 
 ### `region` and `region_race`
 
@@ -260,6 +266,12 @@ constrained unique. `pick_count` covers the separate two-skill quick list, not t
 **Wildcards are not modelled.** `any combat` and `any skill` appear throughout the generator's
 background tables. A wildcard is a real option kind, alongside `skill` and `specialization` in
 `skill_choice_option`, not an unresolved reference.
+
+**`granted_level` is now the wrong type.** Proficiency became a six-value tier rather than an
+integer level ([../rules/20-skills.md](../rules/20-skills.md#proficiency)), so
+`skill_choice_option.granted_level` and the grant columns should carry a tier slug. The
+`race_grant.level` column is unaffected — that one really is a character level, gating the
+Dwarf's level-2 ability.
 
 These are recorded, not fixed. Fixing them before the dice mechanic settles
 ([Q1](../rules/99-open-questions.md)) risks building the wrong shape twice.

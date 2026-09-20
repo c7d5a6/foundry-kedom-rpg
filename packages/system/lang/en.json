@@ -30,13 +30,12 @@
     },
 
     "Ability": {
-      "str": { "label": "Strength", "abbr": "STR" },
-      "con": { "label": "Constitution", "abbr": "CON" },
+      "mgh": { "label": "Might", "abbr": "MGH" },
       "dex": { "label": "Dexterity", "abbr": "DEX" },
-      "int": { "label": "Intelligence", "abbr": "INT" },
-      "wis": { "label": "Wisdom", "abbr": "WIS" },
-      "cha": { "label": "Charisma", "abbr": "CHA" },
-      "luck": { "label": "Luck", "abbr": "LCK" }
+      "kno": { "label": "Knowledge", "abbr": "KNO" },
+      "foc": { "label": "Focus", "abbr": "FOC" },
+      "pre": { "label": "Presence", "abbr": "PRE" },
+      "lck": { "label": "Luck", "abbr": "LCK" }
     },
 
     "Skill": {
@@ -49,7 +48,7 @@
       "guile": "Guile",
       "heal": "Heal",
       "investigate": "Investigate",
-      "know": "Know",
+      "lore": "Lore",
       "notice": "Notice",
       "prowl": "Prowl",
       "punch": "Punch",
@@ -70,18 +69,16 @@
       "legendary": "Legendary"
     },
 
-    "Tier": {
+    "Outcome": {
       "failure": "Failure",
       "cost": "Success at a Cost",
-      "success": "Success",
-      "critical": "Critical Success"
+      "success": "Success"
     },
 
     "Save": {
-      "physical": "Physical",
-      "mental": "Mental",
-      "evasion": "Evasion",
-      "luck": "Luck"
+      "reflex": "Reflex",
+      "fortitude": "Fortitude",
+      "will": "Will"
     },
 
     "Difficulty": {

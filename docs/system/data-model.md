@@ -37,16 +37,17 @@ Two. Not five, not nine.
 
 ```
 abilities:
-  str, con, dex, int, wis, cha, luck:
+  mgh, dex, kno, foc, pre, lck:
     value        persisted   3-18, rolled at creation
     baseMod      persisted   racial and permanent adjustments
-    mod          DERIVED     from value + baseMod
+    mod          DERIVED     from value + baseMod, on the -3..+3 band table
 
 attributes:
-  hp:      { value persisted, max DERIVED, temp persisted }
-  strain:  { value persisted, max DERIVED (= con.value) }
+  hp:      { value persisted, max DERIVED (class hit die + mgh.mod), temp persisted }
+  strain:  { value persisted, max DERIVED }
   wounds:  { value persisted }
   # wounded is DERIVED (wounds > 1), never stored -- see rules/50-wounds-strain.md
+  # the two corruption tracks are unshaped -- see rules/99-open-questions.md Q18
 
 combat:            all DERIVED, all zero-initialised
   ac, acMelee, acRanged
@@ -55,13 +56,13 @@ combat:            all DERIVED, all zero-initialised
   initiative
 
 saves:             all DERIVED targets, rolled against with 1d20
-  physical, mental, evasion, luck
+  reflex, fortitude, will
 
 movement:
   base:    { value persisted }
   current: DERIVED (injuries and encumbrance reduce it)
 
-encumbrance:       DERIVED from str
+encumbrance:       DERIVED from mgh
   readied: { value, max }
   stowed:  { value, max }
 
@@ -145,16 +146,21 @@ src/data/templates/
 ```
 skill item:
   slug             "survive"              immutable identity
-  attribute        "wis"
-  level            2                      -1 = untrained
+  attribute        "foc"
+  proficiency      "trained"              tier, not a number; bonus is DERIVED
   specializations:
     - slug         "survive.tracking"     immutable identity
       label        "Tracking"             display only, localisable
-      level        1
     - slug         "survive.environment.forest"
       label        "Forest"
-      level        0
 ```
+
+**Proficiency is a stored tier and a derived bonus.** The six tiers run Untrained (−2) to
+Legendary (+8) in steps of two, and the tier-to-bonus table lives in `src/config/` so it can
+be retuned without a migration. Whether specialisations carry tiers of their own, rather than
+merely gating the half-versus-full proficiency rule, is
+[Q28](../rules/99-open-questions.md#q28--do-specialisations-have-their-own-proficiency-tiers);
+this shape assumes they do not, which is the easier of the two to widen.
 
 ### Why slugs
 
@@ -205,8 +211,8 @@ Grants on `origin` and `focus` items are declarative arrays, and they reference 
 
 ```
 grants:
-  skills:          [ { slug, level } ]
-  specializations: [ { slug, level } ]
+  skills:          [ { slug, proficiency } ]
+  specializations: [ { slug } ]
   abilities:       [ { key, delta } ]
   choices:         [ { pick: 2, from: [ slug, ... ] } ]
   pools:           [ { slug, formula, progression } ]
@@ -234,12 +240,16 @@ DataModel does the same thing with validation instead of an untyped flag bag:
 check message:
   actorUuid, skillSlug, specializationSlug?
   modifiers: [ { label, value, source } ]
-  total, tier, margin, critical
+  total, outcome, margin
   difficulty
 ```
 
-Because the modifier list is persisted with labels, the card can explain itself — "12 = 7 (2d8)
-+ 2 (WIS) + 3 (Survive)" — without recomputing anything.
+`outcome` is one of three values — failure, success with a cost, success. There is no separate
+critical flag on skill checks; the revised rules dropped critical success
+([Q6](../rules/99-open-questions.md#q6--critical-success-versus-the-legendary-tier--critical-success-removed)).
+
+Because the modifier list is persisted with labels, the card can explain itself — "14 = 9
+(2d10) + 2 (Focus) + 2 (Trained, Survive)" — without recomputing anything.
 
 ## Active Effects
 
@@ -262,15 +272,15 @@ so it needs a migration.
 
 ```
 src/derivations/
-  modifiers.ts     ability score -> modifier
-  hp.ts            hit points from CON, hit die, level
-  ac.ts            armour class from armour items and DEX
-  saves.ts         save targets
+  modifiers.ts     ability score -> modifier, on the -3..+3 band table
+  hp.ts            hit points from class hit die, Might, level
+  ac.ts            armour class from armour items and Dexterity
+  saves.ts         reflex, fortitude, will targets
   attack.ts        attack bonus from class progression
-  encumbrance.ts   readied and stowed slots from STR
+  encumbrance.ts   readied and stowed slots from Might
   pools.ts         Effort from class grants minus commitments
   movement.ts      base movement less injury and encumbrance penalties
-  skills.ts        effective skill level including specialisation
+  skills.ts        proficiency tier -> bonus, halved without a specialisation
 ```
 
 Each file exports pure functions: data in, data out, no document reads, no I/O, no `game`

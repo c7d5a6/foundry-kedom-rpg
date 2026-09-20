@@ -5,9 +5,25 @@ through classes, racial grants, and Effort — but contain no magic system.
 
 ## What the sources establish
 
-**Traditions exist as classes.** High Mage, Elementalist, and Necromancer are separate
-mage classes; Priest is separate again; Mage Slayer and Rune Guardian are anti-magic or
-rune-based partial classes; Vowed and Beast suggest a non-arcane tradition.
+**Traditions exist as classes.** The roster is now fixed
+([30-character-creation.md](30-character-creation.md#classes)): **Queran Arcanist**,
+**Elementalist**, and **Necromancer** are full casting classes; **Priest**, **Rune Guardian**,
+**Wise**, and **Accursed** are magical partials. Mage Slayer, Vowed, Bard, and Artificer have
+been dropped, so there is no longer a dedicated anti-magic class.
+
+**Four candidate styles, none chosen.** The revised source lists what magic might be built
+from:
+
+- **Vancian** — prepared slots, marked with a question mark even in the source
+- **Ritual** — consumes real resources: money, materials, blood, strain
+- **A roll to cast** — casting as a skill check, presumably Arcana
+- **Limited-use abilities** — once per scene, once per session
+
+These are not exclusive, and the obvious reading is that different traditions use different
+ones: the Arcanist vancian, the Elementalist ability-based, ritual magic available to all.
+Note that **ritual magic spending strain** would wire magic directly into the corruption
+tracks ([50-wounds-strain.md](50-wounds-strain.md#the-two-corruption-tracks)), which is the
+link a low-fantasy game with necromancers wants.
 
 **Arts and Effort.** Inherited from WWN. Magical abilities are **arts**, and using one
 **commits Effort** for a duration: for the scene, for the day, or until released. Effort is a
@@ -37,13 +53,13 @@ which does not match — see
 Tracked as [Q19](99-open-questions.md#q19--the-magic-system-does-not-exist-yet). The
 significant choices:
 
-- Whether arcane magic is **art-based** (WWN Elementalist style: a small set of always-known
-  abilities powered by Effort) or **spell-slot based** (WWN High Mage style), or both by
-  tradition.
-- How **Effort** is granted and recovered, and what the commitment durations are.
-- Whether magic interacts with the **corruption track** named in
-  [10-attributes.md](10-attributes.md) — a low-fantasy system with a corruption stat and
-  necromancers is clearly inviting this.
+- **Which of the four styles each tradition uses.** This is now the central question: the
+  candidates are named but unassigned.
+- How **Effort** is granted and recovered, and what the commitment durations are — and whether
+  Effort survives at all, given that ritual magic proposes spending strain instead.
+- Whether magic feeds the **corruption tracks** in
+  [50-wounds-strain.md](50-wounds-strain.md#the-two-corruption-tracks). The ritual style
+  already spends strain, so the link is half-made.
 - The **pantheon list** and what Worship specialisation actually does.
 - Ritual or "Magical Working" style long-form magic. WWN has a `project` actor type for this;
   Kedom probably does not need a whole actor type.

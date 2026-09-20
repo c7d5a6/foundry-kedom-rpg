@@ -10,8 +10,10 @@ document records what Kedom needs to decide rather than what it has decided.
 unarmoured AC of 13. Melee and ranged AC are tracked separately — WWN does this, and the
 critical tables assume it.
 
-**Attack roll** is `1d20` plus attack bonus, compared to target AC. Note that attacks use
-**d20** while skill checks use `2d8` or `2d6`; this is inherited from WWN and is intentional.
+**Attack roll** is `1d20 + attribute modifier + proficiency`, compared to target AC. The
+revised source states the attack and save formula directly, and it is the same shape as a
+skill check with a different die: attacks and saves roll **`d20`**, skill checks roll a bell
+curve ([20-skills.md](20-skills.md#resolution)). Inherited from WWN and intentional.
 
 **Shock** damage applies to a miss against a low-AC target, per WWN. Weapons carry
 `shock.damage` and `shock.ac`.
@@ -30,7 +32,7 @@ reference them extensively. From the penalty-equivalence table in `WWN Kedom Hac
 | **Prone** | −4 own melee attacks; adjacent enemies +2 to hit; distant ranged −2 to hit |
 | **Blinded** | No ranged attacks; attackers have advantage; disadvantage on melee and sight-based saves |
 | **Deafened** | Cannot hear; immune to auditory effects |
-| **Ignited** | 1d6 damage per turn; Luck save or readied items take item damage |
+| **Ignited** | 1d6 damage per turn; save or readied items take item damage |
 | **Slowed** | Lose the Move action |
 | **Sickened** | Disease progression; see [50-wounds-strain.md](50-wounds-strain.md) |
 
@@ -38,20 +40,34 @@ Kedom uses **advantage/disadvantage** alongside flat numeric modifiers. The crit
 use both, sometimes in the same entry ("−2 to hit + disadvantage on saves and skill checks"),
 so both must exist in the modifier pipeline.
 
+> Ignited originally called for a **Luck save**, which no longer exists. Which of Reflex,
+> Fortitude, or Will replaces it is unassigned; the critical tables in
+> [80-criticals.md](80-criticals.md) name the retired saves throughout and need the same pass
+> ([Q23](99-open-questions.md#q23--critical-tables-use-retired-wound-and-save-vocabulary)).
+
 ## Saves
 
-Three saves plus Luck, mapped from other systems in the source:
+**Renamed to the classic three.** The revised source replaces the earlier
+Physical/Mental/Evasion/Luck set with:
 
-| Save | Covers |
-|---|---|
-| **Physical** | Fortitude, toughness, disease, poison |
-| **Mental** | Will, fear, domination |
-| **Evasion** | Reflex, area effects |
-| **Luck** | Fortune, the unlucky break |
+| Save | Covers | Also keys |
+|---|---|---|
+| **Reflex** | Area effects, dodging | — |
+| **Fortitude** | Toughness, disease, poison | the corruption / disease strain track |
+| **Will** | Fear, domination, mental assault | the sanity strain track |
 
-Saves are a **derived target** rolled against with `1d20`, following WWN, rather than a bonus
-added to a roll. WWN's PC formula is `16 + baseMod + saveMod − best(pair mods) − level`; the
-Kedom numbers are [Q13](99-open-questions.md#q13--save-target-formula).
+Two changes matter. **Luck is no longer a save** — it stays a primary attribute with unwritten
+rules ([Q4](99-open-questions.md#q4--luck-has-no-rules)) rather than a fourth save. And
+**Fortitude and Will now do double duty**, each anchoring one of the two strain tracks in
+[10-attributes.md](10-attributes.md#the-two-strain-tracks), which couples the save set to the
+corruption system more tightly than the old four-save set did.
+
+The source also floats folding saves into the skill system entirely — *"maybe saves as
+skills?"* — and admits *"I don't know how to setup dc for them"*. Saves are currently modelled
+WWN-style as a **derived target** rolled against with `1d20` rather than a bonus added to a
+roll. WWN's PC formula is `16 + baseMod + saveMod − best(pair mods) − level`; the Kedom numbers
+and the skills-versus-targets question are both
+[Q13](99-open-questions.md#q13--save-target-formula).
 
 ## Difficulty numbers
 
@@ -65,7 +81,7 @@ From the equivalence table, Kedom uses fixed difficulty numbers for saves and ch
 | Incredibly Hard | 12 |
 
 > These are **save/check DCs on a different scale** from the skill-check thresholds in
-> [20-skills.md](20-skills.md), which run 9/10-12/13-16/17+. Two difficulty scales coexist,
+> [20-skills.md](20-skills.md), which run 9−/10–12/13–16/17–20/21+. Two difficulty scales coexist,
 > inherited from WWN's split between skill checks and saves. Confusing but consistent with the
 > parent system. Tracked as [Q14](99-open-questions.md#q14--two-difficulty-scales).
 
@@ -81,7 +97,7 @@ Undecided. WWN uses `1d8 + DEX modifier` with optional group and side initiative
 - Movement rates and the base movement value. The tables use feet in 5-foot steps.
 - Ranges. WWN weapons carry short/medium/long; the Kedom values are unset.
 - Execution attacks, mentioned once in the wounds note with no rules.
-- Encumbrance thresholds, though STR-based readied/stowed slots are assumed from WWN.
+- Encumbrance thresholds, though Might-based readied/stowed slots are assumed from WWN.
 
 ## Implementation note
 

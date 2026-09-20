@@ -59,7 +59,7 @@ is [Q21](99-open-questions.md#q21--which-skill-rolls-for-travel-events).
 ## Not specified
 
 - Travel speeds, and whether the scale is hexes, miles, or days.
-- Encumbrance effects on travel, though STR-based slots exist.
+- Encumbrance effects on travel, though Might-based slots exist.
 - Rations, water, and foraging rates. Dwarves need half the usual food, water, and air, which
   implies these are tracked.
 - Getting lost, and what Orientation and Navigation actually do.

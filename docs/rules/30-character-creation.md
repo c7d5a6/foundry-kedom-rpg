@@ -15,6 +15,17 @@ Ported from `📥 inbox/WWN Kedom Hack.md`.
 Every race grants **Expert foci**. Each also restricts which classes are available, which is
 the main mechanical weight of the choice.
 
+> **Every racial attribute modifier below is stale.** They are quoted from
+> `WWN Kedom Hack.md` and use the pre-merge attribute set, so they adjust STR and CON
+> independently — the Halfling's "CON +1, STR −1" and the Dwarf's "CON +1". Both now target
+> **Might**, which means the Halfling's pair cancels to **±0** and the racial identity it
+> encoded is simply lost.
+>
+> This is the sharpest consequence of merging strength and constitution
+> ([Q2](99-open-questions.md#q2--is-strength-separate-from-constitution--no)), and the grants
+> need reassigning before any of them is entered into Forge. The class lists in this section
+> are also pre-revision; the current roster is [below](#classes).
+
 ### Human
 
 The most widespread of the civilised peoples, adaptable above all else.
@@ -108,20 +119,51 @@ has backgrounds, and each background offers skills to choose from. See
 
 ## Classes
 
-Referenced throughout but only partially specified. Named so far:
+**The roster is now fixed.** Five full classes, plus Adventurer as a hybrid chassis:
 
-**Core:** Warrior, Expert, Mage (High Mage, Elementalist, Necromancer), Priest, Adventurer
+| Class | Source name | Full | Partial |
+|---|---|---|---|
+| Warrior | Воин | yes | yes |
+| Expert | Эксперт | yes | yes |
+| Queran Arcanist | Кверанский арканист | yes | yes |
+| Elementalist | Элементалист | yes | yes |
+| Necromancer | Некромант | yes | yes |
+| Priest | Жрец | — | yes |
+| Wise | Ведун | — | yes |
+| Accursed | Проклятый | — | yes |
+| Duelist | Дуэлянт | — | yes |
+| Empath | Эмпат | — | yes |
+| Rune Guardian | Рунный защитник | — | yes |
+| Beast | Зверь | — | yes |
 
-**Partial / sub-classes:** Duelist, Bard, Empath, Vowed, Beast, Mage Slayer, Rune Guardian,
-Accursed, Wise, Artificer
+**Adventurer** (Приключенец) is not a class of its own; it is *two partials combined*, drawn
+from the twelve in the Partial column. Most non-human races can only be Adventurers, with one
+slot pre-filled by the race.
 
-The Priest has its own development note (`📥 inbox/WWN Kedom - Quilisa priest.md`), and
-`📥 inbox/WWN - Beast class.md` covers the Beast. Neither is ported yet —
-[Q12](99-open-questions.md#q12--classes-are-not-specified).
+Three things changed from the earlier notes, and all three are deletions worth noticing:
 
-**Adventurer** is the hybrid chassis: it takes two partial classes, and most non-human races
-can *only* be Adventurers with one slot pre-filled. It is the most mechanically load-bearing
-class and needs specifying first.
+- **"Mage" / "High Mage" is now specifically the Queran Arcanist**, tying the class to the
+  setting's lost magical empire rather than to a generic archetype.
+- **Priest is no longer a full class.** It exists only as a partial.
+- **Bard, Vowed, Mage Slayer, and Artificer are gone**, having appeared in earlier notes.
+
+### Independently confirmed by the WWN generator
+
+This roster matches the public site's character generator **exactly** — the same five full
+classes and the same twelve partials, with no additions or omissions on either side
+([../forge/public-site-export.md](../forge/public-site-export.md)).
+
+That is worth more than it looks. The generator also carries per-class `hd`, `ab`, `arts`, and
+foci values, and its `Summary.vue` implements the partial-combination maths: the better hit
+die of the two, a constrained attack bonus, and the union of arts. Those are WWN's numbers and
+need rebalancing for Kedom, but the **structure** of the hybrid chassis is already worked out
+and does not need inventing.
+
+What remains missing is per-class mechanics for Kedom: attack progressions, skill points per
+level, hit dice, and Effort pools —
+[Q12](99-open-questions.md#q12--per-class-mechanics-are-unspecified). The Priest and Beast have
+unported development notes (`📥 inbox/WWN Kedom - Quilisa priest.md`,
+`📥 inbox/WWN - Beast class.md`).
 
 ## Implementation note
 

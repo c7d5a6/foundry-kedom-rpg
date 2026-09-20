@@ -46,7 +46,8 @@ points**, and healing converts wounds into System Strain.
 
 ## System Strain
 
-Written **SS**. Maximum equals the Constitution score, per WWN. It is the universal currency of
+Written **SS**. Maximum equals the **Might** score, WWN's Constitution having been folded into
+Might ([10-attributes.md](10-attributes.md#primary-attributes)). It is the universal currency of
 attrition: magical healing, wound recovery, and cyberware-equivalents all cost Strain.
 
 A character at maximum Strain is **Strained** and cannot accept more. The critical tables in
@@ -56,16 +57,26 @@ group IV, `+1d6` at group V, and **maximum Strain** at group VI.
 Natural Strain recovery is blocked while Wounded. The base recovery rate is
 [Q17](99-open-questions.md#q17--system-strain-recovery-rate).
 
-## Other trackers
+## The two corruption tracks
 
-`Kedom RPG.md` names two more secondary attributes without specifying them:
+Strain now splits into two named sub-tracks. The revised `Kedom RPG.md` describes them twice,
+once under secondary attributes and once under "Other", and the two framings agree:
 
-- a **mental resilience / sanity** track derived from WIS
-- a **corruption / disease** track derived from CON
+| Track | Keyed to | Framed as |
+|---|---|---|
+| **Mental / sanity** | the **Will** save | corruption and madness — *mind alterations* |
+| **Corruption / disease** | the **Fortitude** save | corruption and disease — *body alterations* |
 
-WWN's equivalents are Alienation (WIS) and Stress (WIS). Whether Kedom keeps two separate
-tracks, and what drives them, is
-[Q18](99-open-questions.md#q18--sanity-and-corruption-tracks-are-unspecified).
+Two changes from the earlier notes. The tracks now hang off **saves rather than attributes**
+(they were WIS and CON before), which couples them to the new three-save set in
+[40-combat.md](40-combat.md#saves). And **"alteration" is the operative word** — both are
+framed as things that change the character permanently, not merely as depleting meters. That
+suggests each track should accumulate discrete named effects rather than a single number,
+which is a different data shape.
+
+WWN's equivalents are Alienation and Stress, both from WIS, and both simple counters. Kedom
+appears to want something else. Mechanics are unwritten —
+[Q18](99-open-questions.md#q18--the-two-corruption-tracks-are-unspecified).
 
 ## Disease
 

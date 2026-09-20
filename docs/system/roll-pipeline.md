@@ -97,35 +97,42 @@ ApplicationV2 dialog and it computes nothing.
 Sum the modifiers, build the formula, evaluate the `Roll`.
 
 The dice expression comes from `src/config/`, **not from a constant in this code**, because the
-core mechanic is unresolved — `2d8` in one source note and `2d6` in the other
+core mechanic is unresolved — the latest source says `2d10` in its body, `2d6` in its own front
+matter, and its threshold table was cut for `2d8`
 ([Q1](../rules/99-open-questions.md#q1--the-core-dice-mechanic)). Thresholds likewise. When the
 decision lands it is a config edit, not a refactor.
+
+What *is* settled is that skills and attacks use **different dice** — a bell curve for skills,
+flat `d20` for attacks and saves — so the expression is per-check-type, not global.
 
 ## Stage 5 — resolve the tier
 
 **One pure function. No exceptions.**
 
 ```
-resolveTier(input: {
+resolveOutcome(input: {
   total: number
   difficulty: ProficiencyTier
-  thresholds: TierThresholds     // from config
+  thresholds: OutcomeThresholds  // from config
 }): {
-  tier: "failure" | "cost" | "success"
+  outcome: "failure" | "cost" | "success"
   margin: number
-  critical: boolean
 }
 ```
 
-The outcome depends on `(total, difficulty)` together, not the total alone — a `2d8` total of
+The outcome depends on `(total, difficulty)` together, not the total alone — a total of
 11 is a clean success against an Easy task and a flat failure against a Legendary one. The
 table is in [../rules/20-skills.md](../rules/20-skills.md).
 
-**`critical` is a separate boolean, not a fourth tier value.** This follows WFRP4e, which
-keeps `isCriticalFumble` orthogonal to its Success Level bands, and it is the shape that
-resolves the contradiction in the source where 17+ is both "critical success" and "success at
-a cost against Legendary"
-([Q6](../rules/99-open-questions.md#q6--critical-success-versus-the-legendary-tier)).
+**There are exactly three outcomes and no critical flag.** An earlier draft carried
+`critical: boolean` orthogonally, WFRP4e-style, to resolve a contradiction between the ladder's
+"17+ is critical" and the table's "17–20 versus Legendary is success at a cost". The revised
+source removed critical success from skill checks altogether, so the flag has nothing left to
+represent
+([Q6](../rules/99-open-questions.md#q6--critical-success-versus-the-legendary-tier--critical-success-removed)).
+
+Critical **injuries** in [../rules/80-criticals.md](../rules/80-criticals.md) are unaffected —
+they are a combat subsystem keyed off attack rolls, not off this function.
 
 The function to **not** write is WFRP4e's `computeResult()`: ~200 lines interleaving margin
 maths, sign handling, setting-dependent variants, and description lookup. `resolveTier` takes
@@ -137,12 +144,12 @@ tests.
 ## Stage 6 — the chat card
 
 A typed `ChatMessage` DataModel — `check`, `attack`, or `damage` — persisting the full
-modifier list with labels, the total, the tier, the margin, and the critical flag.
+modifier list with labels, the total, the outcome, and the margin.
 
 Persisting the labelled modifiers means the card can explain itself without recomputing:
 
 ```
-12 = 7 (2d8) + 2 (WIS) + 3 (Survive)
+14 = 9 (2d10) + 2 (Focus) + 2 (Trained, Survive)
 Success at a Cost
 ```
 

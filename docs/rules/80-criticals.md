@@ -80,9 +80,12 @@ Instant death. No saves, no stabilisation. Describe it spectacularly.
 
 > The source uses WWN's **Mortally Wounded** and **Frail** terms throughout these tables,
 > but [50-wounds-strain.md](50-wounds-strain.md) replaced both with **wound points** and
-> **Wounded**. The text above has been translated; the per-location tables below still use
-> the original terms in places. Tracked as
-> [Q23](99-open-questions.md#q23--critical-tables-use-the-pre-rework-wound-vocabulary).
+> **Wounded**. The tables also call for **Luck** and **Physical** saves, both retired by the
+> move to Reflex/Fortitude/Will ([40-combat.md](40-combat.md#saves)).
+>
+> The text above has been translated; the per-location tables below still use the original
+> terms in places, and none of the save names has been reassigned. Tracked as
+> [Q23](99-open-questions.md#q23--critical-tables-use-retired-wound-and-save-vocabulary).
 
 ## By location
 
