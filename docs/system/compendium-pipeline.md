@@ -11,10 +11,17 @@ flowchart LR
   sqlite --> yaml["packs/_source/**.yml"]
   yaml --> ldb["packs/*/ LevelDB"]
   ldb --> foundry["Foundry"]
+  sqlite -.-> site["site/v1/**.json"]
+  site -.-> web["Public site generator"]
 ```
 
 **SQLite is the source of truth.** Everything downstream is generated
 ([ADR-011](../research/05-decisions.md#adr-011--sqlite-is-the-content-source-of-truth-yaml-is-the-reviewable-artefact)).
+
+The dashed branch is the public website's character generator — designed but not built, and
+documented in [../forge/public-site-export.md](../forge/public-site-export.md). It matters here
+only because it is a second consumer of the same slugs, which is why identity has to be stable
+outside Foundry as well as inside it.
 
 ## Why each stage exists
 

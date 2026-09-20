@@ -15,7 +15,10 @@ Pipeline: `docs/system/compendium-pipeline.md`. Schema: `docs/forge/schema.md`. 
 Forge UI -> content.sqlite -> dump.sql          (review)
                            -> packs/_source/**  (YAML, committed)
                            -> packs/*/          (LevelDB, gitignored)
+                           -> site/v1/**.json   (public site, designed not built)
 ```
+
+The public website's character generator is a fourth consumer, not a second source. Same invariants: slugs are identity across all of them, so a race on the site and a race in a compendium are the same entity. Design in `docs/forge/public-site-export.md`.
 
 **Do not hand-edit `packages/system/packs/_source/`.** It is generated. Edit in Forge and re-export; the next export overwrites anything you change.
 

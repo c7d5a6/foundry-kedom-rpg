@@ -241,6 +241,29 @@ be bypassed:
   option count — enforced by trigger, since a `CHECK` cannot count rows.
 - Every join table has a composite primary key, so a duplicate link is impossible.
 
+## Known gaps
+
+Found by reading the working WWN character generator on the public site, which implements this
+same content graph. Details and evidence in
+[public-site-export.md](public-site-export.md#what-it-confirms-about-the-forge-schema).
+
+**No roll weights.** A rollable list needs an integer weight per entry to build ranges — the
+generator gives Nitól 3/20 and Half-Orc 1/20 off a `toRoll` field. `region_race.prevalence` is
+a three-value enum and cannot reconstruct that. Anything that can be rolled on needs
+`weight INTEGER`.
+
+**`skill_choice_option` cannot express a roll table.** A background's `1d8` skill table is
+**ordered** and contains **deliberate duplicates** — `["pray", "pray"]` is how a background
+doubles the odds of that skill. That needs a `roll_index`, and the option list must not be
+constrained unique. `pick_count` covers the separate two-skill quick list, not this.
+
+**Wildcards are not modelled.** `any combat` and `any skill` appear throughout the generator's
+background tables. A wildcard is a real option kind, alongside `skill` and `specialization` in
+`skill_choice_option`, not an unresolved reference.
+
+These are recorded, not fixed. Fixing them before the dice mechanic settles
+([Q1](../rules/99-open-questions.md)) risks building the wrong shape twice.
+
 ## What is not in here
 
 **Setting text.** The vault has 161 notes on history, myth, calendar, weather, languages, and

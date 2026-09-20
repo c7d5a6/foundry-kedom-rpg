@@ -92,11 +92,13 @@ migration state on the document.
 
 ### Worth avoiding
 
-**RuleElements.** 38 builtin classes registered in
-`src/module/rules/rule-element/index.ts`, with priority ordering, a 20-collection
-`synthetics` bucket (`src/module/rules/synthetics.ts`), and grant-item chains. This is a
-framework inside a system. Kedom's equivalent need is met by a handful of pure functions that
-each return `Modifier[]`.
+**RuleElements.** 40 builtin classes registered in `RuleElements.builtin`
+(`src/module/rules/index.ts`), each a DataModel subclass of the 527-line
+`rule-element/base.ts` with ~10 optional lifecycle hooks, feeding a 25-collection
+`synthetics` bucket (`src/module/rules/synthetics.ts`), with predicate filtering and
+grant-item chains. ~11,346 lines in `src/module/rules/` alone. This is a framework inside a
+system. Kedom's equivalent need is met by a handful of pure functions that each return
+`Modifier[]`.
 
 **Roll options as string sets.** Hundreds of `self:`, `target:`, and `item:` strings drive all
 filtering through a predicate engine (`src/module/system/predication.ts`). Flexible, but every
@@ -124,7 +126,7 @@ update storms — an acknowledgement of the problem. The party sheet carries the
 |---|---|---|---|
 | Actor types | 5 | 9+ | 2 |
 | Item types | 15 | 28 | ~7 |
-| Rules engine | Activities + AppliedRules | 38 RuleElements | pure modifier collectors |
+| Rules engine | Activities + AppliedRules | 40 RuleElements | pure modifier collectors |
 | Migrations | 1 monolith | 120 numbered | numbered from day one |
 | Logic LOC | ~100k | ~124k | < 10k |
 

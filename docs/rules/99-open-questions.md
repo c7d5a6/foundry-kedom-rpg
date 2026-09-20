@@ -162,6 +162,14 @@ Ferori, Ñiziel). Whether human cultures carry mechanical differences or are pur
 open — it matters because the Forge schema models region → race → background, and human
 cultures would naturally sit at the race level.
 
+**Largely answered by the WWN generator.** The public site's character generator treats
+`niziel`, `ferori`, `nerland`, `half-elf`, and `half-orc` as five human sub-cultures, and gives
+**each its own background list and its own allowed-class list**. Sub-cultures are mechanical,
+they sit at the race level, and they differ by content rather than by statistics — no
+sub-culture grants an attribute or focus the others do not. What remains open is whether Kedom
+keeps that arrangement. See
+[../forge/public-site-export.md](../forge/public-site-export.md#what-it-confirms-about-the-forge-schema).
+
 ### Q14 — Two difficulty scales
 
 Skill checks use thresholds 9−/10–12/13–16/17+. Saves and the critical tables use fixed DCs of
@@ -196,6 +204,36 @@ The location tables in [80-criticals.md](80-criticals.md) still say "Mortally Wo
 ### Q24 — Execution attacks
 
 Named once in the wounds note with no rules.
+
+### Q25 — The WWN generator content needs remapping to Kedom skills
+
+The public site's character generator carries 204 background entries, 18 classes, and 13
+races, all authored against **WWN's** skill list — `administer`, `lead`, `pray`, `ride`,
+`sail`, `sneak`, `trade`, `work`. Kedom's nineteen ([20-skills.md](20-skills.md)) differ, and
+some WWN skills became specialisations: sneaking is Prowl/Sneak, not a skill.
+
+So the largest existing body of Kedom content cannot be imported as-is. Someone has to decide
+each mapping, and a few have no clean answer — WWN `pray` against Kedom's Worship and Conduct,
+for instance. Class `hd` and `ab` progressions are WWN's too. Until Q1 settles the dice
+mechanic, this cannot start.
+
+### Q26 — Description format for multi-target content
+
+Entity prose has to reach a Foundry compendium (wants HTML), the public website (wants
+theme-neutral markup), and the Obsidian export (wants Markdown). The existing generator stores
+rendered HTML with inline styles and theme-specific attributes, which does not travel.
+
+Storing Markdown in SQLite and rendering per target is the obvious answer, but it needs
+deciding before content is authored at volume.
+
+### Q27 — Content localisation
+
+The public site is **entirely in Russian**. The Foundry system is English-first with strings in
+`lang/en.json`. If both are fed by one Forge export, content needs a language dimension —
+either `label_en`/`label_ru` columns or a `translation` table keyed by slug and locale.
+
+This is worth settling early: retrofitting a locale dimension means touching every table that
+holds display text, and every export target at once.
 
 ---
 

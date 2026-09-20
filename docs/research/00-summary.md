@@ -51,7 +51,7 @@ Measured with `wc -l` over each checkout, excluding `node_modules`, `dist`, and 
 The spread is not explained by polish. It is explained by **scope**: how many actor types,
 item types, game lines, and rules subsystems each project carries. dnd5e is large because it
 has a 12-type Activities pseudo-document system and a full Advancement engine. pf2e is large
-because it has 38 RuleElement classes, 28 item types, and 34,331 compendium JSON files.
+because it has 40 RuleElement classes, 28 item types, and 34,331 compendium JSON files.
 
 **Kedom's budget: under 10,000 lines of logic for v1, plus 10,000-15,000 lines of CSS.**
 That is deliberately close to shadowdark's logic size and Tidy's CSS size.
@@ -98,7 +98,7 @@ Handlebars.
 
 - **dnd5e's Activities and Advancement subsystems.** Twelve activity types, each with data
   model, document, sheet, and usage dialog. Kedom has fixed progression and does not need it.
-- **pf2e's RuleElement framework and roll-option predicate graph.** 38 classes and
+- **pf2e's RuleElement framework and roll-option predicate graph.** 40 classes and
   stringly-typed option sets; a framework inside a system.
 - **pf2e's `getContextualClone()` on damage application.** Correct for immunity graphs,
   expensive, and unnecessary here.

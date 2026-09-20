@@ -68,7 +68,7 @@ framework, registering a priority, or learning a predicate language.
 
 ### Why not a rules engine
 
-pf2e has 38 `RuleElement` classes, a twenty-collection `synthetics` bucket, and a predicate
+pf2e has 40 `RuleElement` classes, a 25-collection `synthetics` bucket, and a predicate
 engine over stringly-typed roll options — "a framework inside a system", where every feature
 becomes an unchecked string. dnd5e's Activities mixin is ~1,400 lines for twelve activity
 types. Both are appropriate to their scale and neither is affordable against a 7,000-line

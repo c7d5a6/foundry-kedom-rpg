@@ -1,6 +1,6 @@
 # Forge export formats
 
-Three targets, one source. The pipeline they feed is described in
+Four targets, one source. The pipeline they feed is described in
 [../system/compendium-pipeline.md](../system/compendium-pipeline.md).
 
 | Target | Consumer | Committed? |
@@ -8,8 +8,12 @@ Three targets, one source. The pipeline they feed is described in
 | **YAML** | `packages/system/packs/_source/` → LevelDB → Foundry | yes |
 | **JSON** | external tools, one-off scripts | no |
 | **Markdown** | the Obsidian vault, for reading and printing | no |
+| **Site JSON** | the public website's character generator | into the site repo |
 
-## Rules that apply to all three
+The site target is designed but **not built**; see
+[public-site-export.md](public-site-export.md).
+
+## Rules that apply to all four
 
 **One direction only.** SQLite → files. Nothing reads files back into SQLite. The alternative
 creates two sources of truth for one record, and reconciling them means either building a diff
@@ -117,6 +121,18 @@ Front matter carries the slug so the vault can link by identity rather than file
 
 Gitignored: the vault is upstream brainstorming and these are a read-only view of downstream
 state. Writing them into the repo would blur which direction content flows.
+
+## Site JSON — the public character generator
+
+**Designed, not built.** Static JSON committed into the public site repo
+(`/home/c7d5a6/projects/rpg/kedom/`), fetched by a Vue character generator on GitHub Pages.
+
+Split into small index files that carry only what a picker renders, plus one detail file per
+entity carrying the prose. The site fetches an index on load and a detail file on each
+selection, so a reader who never opens the generator downloads none of it.
+
+The full design, the measured payload, and what the existing WWN generator reveals about this
+schema are in [public-site-export.md](public-site-export.md).
 
 ## `dump.sql` — the reviewable database
 

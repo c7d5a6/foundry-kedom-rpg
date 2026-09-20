@@ -18,6 +18,7 @@ implementation code has been written.
 | What was decided, and on what evidence? | [docs/research/05-decisions.md](docs/research/05-decisions.md) |
 | What are the game's rules? | [docs/rules/](docs/rules/) |
 | What is still undecided? | [docs/rules/99-open-questions.md](docs/rules/99-open-questions.md) |
+| How does content reach the website? | [docs/forge/public-site-export.md](docs/forge/public-site-export.md) |
 | How do I write code here? | [Style.md](Style.md) |
 
 The research documents are not background reading. They contain measurements that settled

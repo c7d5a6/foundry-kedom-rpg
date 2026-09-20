@@ -107,7 +107,7 @@ Pure functions are also directly unit-testable, which is how pf2e tests its rule
 `Modifier[]`. Adding a rule means adding a function. No RuleElement-style class hierarchy, no
 roll-option predicate graph.
 
-**Evidence.** pf2e has 38 RuleElement classes plus a 20-collection synthetics bucket plus a
+**Evidence.** pf2e has 40 RuleElement classes plus a 25-collection synthetics bucket plus a
 predicate engine — "a framework inside a system", and everything becomes stringly typed.
 dnd5e's Activities reach ~1,400 lines in the mixin alone for 12 activity types.
 
