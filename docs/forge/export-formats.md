@@ -39,7 +39,7 @@ must not be hand-edited.
 ## YAML — compendium sources
 
 The one that matters. Written into `packages/system/packs/_source/<pack>/`, one file per
-document, compiled to LevelDB by `pnpm packs:build`.
+document, compiled to LevelDB by `npm run packs:build`.
 
 The shape is a Foundry document, because that is what the CLI expects:
 
@@ -137,27 +137,28 @@ format and not a backup — `dump.sql` is the backup.
 
 ## Markdown — back to the vault
 
-Human-readable output for reading, printing, and cross-checking against the original notes:
+Human-readable output for reading, printing, and cross-checking against the original notes.
+For the current core-vocabulary slice this is a **barebones rulebook**, not finished prose:
 
 ```
 exports/markdown/
-  skills.md              one table, all skills and specialisations
-  races/<slug>.md         one page per race with its grants
-  backgrounds/<slug>.md
-  regions/<slug>.md       races, prevalence, and their backgrounds
+  rulebook.md            combined attributes + skills + classes
+  attributes.md
+  skills.md              skills with nested specialisations
+  classes.md
 ```
 
-The region page is the useful one, because it renders the whole authoring graph in one place —
-which is the fastest way to notice that a race has no backgrounds or a background offers a
-choice with only one option.
-
-Front matter carries the slug so the vault can link by identity rather than filename.
+Comments (author notes) are omitted. Empty descriptions render as `_(no description yet)_`.
 
 Gitignored: the vault is upstream brainstorming and these are a read-only view of downstream
 state. Writing them into the repo would blur which direction content flows.
 
-`pnpm forge:export:md --locale=ru` writes Russian overlays where they exist and English
-everywhere else. Default is English.
+```sh
+npm run forge:export:md                 # English → exports/markdown/
+npm run forge:export:md -- -locale=ru   # Russian overlays where present
+```
+
+Also available in the Forge UI (**Export MD**) and as `GET /api/export/markdown?locale=en|ru`.
 
 ## Site JSON — the public character generator
 
@@ -177,7 +178,7 @@ locale, English fallback marked `partial` — is in [localisation.md](localisati
 Not an export target in the same sense; it is how a binary file becomes reviewable.
 
 ```sh
-pnpm forge:dump     # -> packages/content/dump.sql
+npm run forge:dump     # -> packages/content/dump.sql
 ```
 
 Committed alongside `content.sqlite`. Rows ordered by primary key so the diff is stable, and

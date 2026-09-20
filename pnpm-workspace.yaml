@@ -1,8 +1,0 @@
-packages:
-  - "packages/system"
-  - "packages/forge/web"
-  - "packages/shared"
-
-# Pinned so the Foundry-facing build is reproducible. Bump deliberately.
-onlyBuiltDependencies:
-  - esbuild

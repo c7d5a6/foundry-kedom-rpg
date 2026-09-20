@@ -6,7 +6,7 @@ const root = import.meta.dirname;
 
 /**
  * Builds the system into `dist/`, which is what gets symlinked into
- * `Data/systems/kedom` by `pnpm system:link`. Building to a separate directory
+ * `Data/systems/kedom` by `npm run system:link`. Building to a separate directory
  * rather than in place keeps the repo clean; pf2e does the same.
  *
  * The three CSS entries exist because `system.json` assigns each to a different
@@ -68,7 +68,7 @@ export default defineConfig({
         // exist inside the packaged system, not just in the repo.
         { src: "README.md", dest: "." },
         { src: "../../LICENSE", dest: "." },
-        // Compiled LevelDB packs, produced by `pnpm packs:build` before this runs.
+        // Compiled LevelDB packs, produced by `npm run packs:build` before this runs.
         { src: "packs/*", dest: "packs", dev: { runOnServe: false } },
       ],
       silent: false,

@@ -27,11 +27,20 @@ which is why it must stay dependency-free.
 ## Running
 
 ```sh
-go run ./cmd/forge              # serves on :7777
-go build -o bin/forge ./cmd/forge
+# from repo root
+nvm use
+npm run forge:api              # :7777, migrates packages/content/content.sqlite
+npm run forge:web              # :5173, proxies /api → :7777
+npm run forge:dump             # regenerate packages/content/dump.sql
+npm run forge:export:md        # barebones rulebook → exports/markdown/
+npm run forge:export:md -- -locale=ru
+npm run forge:sqlc             # regenerate internal/repository/generated (gitignored)
 ```
 
 `CGO_ENABLED=0` works, which is the whole reason for `modernc.org/sqlite`.
+
+First boot applies `migrations/*.sql` in order. Seed data lives in `0002_seed_core_vocab.sql`.
+After editing content in the UI, run `npm run forge:dump` so the SQL dump stays reviewable.
 
 ## Generated code
 

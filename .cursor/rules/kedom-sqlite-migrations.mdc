@@ -54,4 +54,4 @@ DROP TABLE skill;
 - [ ] No dependence on `PRAGMA foreign_keys = OFF`
 - [ ] No `slug` or `foundry_id` values rewritten
 - [ ] `sqlc generate` still succeeds — it type-checks `query/*.sql` against these files
-- [ ] `pnpm forge:dump` re-run so `packages/content/dump.sql` matches
+- [ ] `npm run forge:dump` re-run so `packages/content/dump.sql` matches

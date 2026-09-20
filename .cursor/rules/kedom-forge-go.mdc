@@ -29,7 +29,7 @@ Dependency flow: `handler → service → repository`. One direction.
 3. `internal/model` imports nothing from this module. It is the tygo input, and a dependency there leaks into generated TypeScript.
 4. `internal/export` reads; it never writes to the database. Export is one-way by design — see `docs/forge/export-formats.md`.
 5. No hand-written SQL strings and no query builders. Queries live in `query/*.sql` and go through `sqlc`, which type-checks them against `migrations/`.
-6. Generated code (`internal/repository/generated/`, `packages/shared/src/generated/`) is gitignored and never hand-edited. Regenerate with `pnpm forge:sqlc` / `pnpm forge:types`.
+6. Generated code (`internal/repository/generated/`, `packages/shared/src/generated/`) is gitignored and never hand-edited. Regenerate with `npm run forge:sqlc` / `npm run forge:types`.
 7. `PRAGMA foreign_keys = ON` on every connection. Without it SQLite silently ignores foreign keys, which defeats the relational schema.
 8. Handlers are a **boundary**: log and return a status, never panic. Keep recover middleware installed in `cmd/forge`.
 9. `net/http` with `ServeMux` method-and-path patterns. No router framework — there are a few dozen routes.

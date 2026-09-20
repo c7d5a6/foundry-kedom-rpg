@@ -24,4 +24,4 @@ packages/content/dump.sql linguist-generated=true -diff
 # Compendium sources are content, not code.
 packages/system/packs/_source/** linguist-vendored=true
 
-pnpm-lock.yaml -diff linguist-generated=true
+package-lock.json -diff linguist-generated=true

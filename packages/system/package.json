@@ -9,10 +9,10 @@
     "build": "vite build",
     "watch": "vite build --watch",
     "typecheck": "tsc --noEmit",
-    "check": "pnpm run typecheck"
+    "check": "npm run typecheck"
   },
   "dependencies": {
-    "@kedom/shared": "workspace:*"
+    "@kedom/shared": "*"
   },
   "devDependencies": {
     "@foundryvtt/foundryvtt-cli": "^3.0.4",

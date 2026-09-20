@@ -5,7 +5,7 @@ Orientation for anyone — human or agent — working in this repository.
 ## What this is
 
 Kedom RPG: an OSR tabletop system, a Foundry VTT system implementing it, and the tooling to
-author its content. A pnpm monorepo with a Go component.
+author its content. An npm workspaces monorepo with a Go component.
 
 **Current state: scaffold.** Documentation, structure, and configuration exist. Almost no
 implementation code has been written.
@@ -58,8 +58,9 @@ Each has evidence behind it in `docs/research/`.
 ## Working here
 
 ```sh
-pnpm install
-pnpm check        # format, lint, typecheck, test -- run before committing
+nvm use
+npm install
+npm run check        # format, lint, typecheck, test -- run before committing
 ```
 
 - Code style is [Style.md](Style.md), enforced where machines can (`eslint`, `prettier`,
@@ -83,5 +84,5 @@ constants.
 
 ## Prerequisites
 
-Foundry 14.367+, Node 22 LTS, pnpm 10, Go 1.26. Optionally `golangci-lint`, `gofumpt`, and
+Foundry 14.367+, Node 22 LTS (nvm + npm), Go 1.26. Optionally `golangci-lint`, `gofumpt`, and
 `sqlc` for the full gate.

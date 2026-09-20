@@ -8,3 +8,5 @@
  * Add files under tokens/ and @import them here. See
  * docs/system/ui-design-system.md for the token taxonomy.
  */
+
+@import "./tokens/color.css";

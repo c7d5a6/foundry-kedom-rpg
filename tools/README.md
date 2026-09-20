@@ -3,10 +3,10 @@
 Repository tasks. TypeScript run through `tsx`, per [Style.md](../Style.md): typed and portable,
 where a shell script is neither. Keep the toolbox small.
 
-**None of these are implemented yet.** This file is the contract each one has to meet; the
-`package.json` scripts already point at them.
+**`dump-content.ts` is implemented.** The pack / unpack / link tools are not yet.
 
-## `pack.ts` — `pnpm packs:build`
+
+## `pack.ts` — `npm run packs:build`
 
 Compiles `packages/system/packs/_source/**/*.yml` into LevelDB packs under
 `packages/system/packs/<name>/`, using `@foundryvtt/foundryvtt-cli`. In the shape of
@@ -18,7 +18,7 @@ draw-steel's `tools/pullJSONtoLDB.mjs`.
 - Fails on a malformed document rather than skipping it, and reports every failure at once.
 - Output is gitignored.
 
-## `unpack.ts` — `pnpm packs:extract`
+## `unpack.ts` — `npm run packs:extract`
 
 The reverse: LevelDB back to YAML, for seeing what Foundry actually stored.
 
@@ -26,7 +26,7 @@ The reverse: LevelDB back to YAML, for seeing what Foundry actually stored.
 ([ADR-011](../docs/research/05-decisions.md#adr-011--sqlite-is-the-content-source-of-truth-yaml-is-the-reviewable-artefact)).
 Writes to a scratch directory, never over `packs/_source/`.
 
-## `link-foundry.ts` — `pnpm system:link`
+## `link-foundry.ts` — `npm run system:link`
 
 Symlinks `packages/system/dist` into `<dataPath>/Data/systems/kedom`, reading `dataPath` from
 `foundry-config.json` (gitignored; copy `foundry-config.example.json`).
@@ -37,7 +37,7 @@ Symlinks `packages/system/dist` into `<dataPath>/Data/systems/kedom`, reading `d
 
 Equivalent to pf2e's `build/link-foundry.ts` and draw-steel's `tools/create-symlinks.mjs`.
 
-## `dump-content.ts` — `pnpm forge:dump`
+## `dump-content.ts` — `npm run forge:dump`
 
 Dumps `packages/content/content.sqlite` to `packages/content/dump.sql` so content changes are
 reviewable in a pull request.

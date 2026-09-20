@@ -18,7 +18,7 @@ Both are committed. The database because it is the source of truth; the dump bec
 file in a pull request tells a reviewer nothing.
 
 ```sh
-pnpm forge:dump     # regenerate dump.sql from content.sqlite
+npm run forge:dump     # regenerate dump.sql from content.sqlite
 ```
 
 `dump.sql` is ordered by primary key with schema statements first, so diffs are stable and
@@ -29,8 +29,8 @@ structural changes show up before data changes.
 Edit through the Forge UI:
 
 ```sh
-pnpm forge:api      # :7777
-pnpm forge:web      # :5173
+npm run forge:api      # :7777
+npm run forge:web      # :5173
 ```
 
 The database enforces invariants that a hand-edit bypasses — foreign keys, slug patterns, the
@@ -58,7 +58,7 @@ applied.
 ## Reproducibility
 
 The whole chain must work from a fresh clone: migrations create the schema, `content.sqlite`
-holds the content, and `pnpm packs:build` produces the compendium packs.
+holds the content, and `npm run packs:build` produces the compendium packs.
 
 This is a deliberate response to `foundryvtt-wwn`, whose fourteen pack-generation scripts all
 point at a gitignored `/import-scripts/` directory, so nobody but its author can rebuild its

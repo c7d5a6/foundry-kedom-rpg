@@ -38,39 +38,42 @@ packs.
 ## Prerequisites
 
 - **Foundry VTT 14.367 or later.** v14 is required; the system does not support v13.
-- **Node 22 LTS** (`.nvmrc` pins the major) and **pnpm 10**.
+- **Node 22 LTS** via [nvm](https://github.com/nvm-sh/nvm) (`.nvmrc` pins the major) and **npm**
+  (ships with Node).
 - **Go 1.26** for the Forge API. No C toolchain needed — SQLite is pure Go.
 - Optional for the full lint gate: `golangci-lint`, `gofumpt`, `sqlc`.
 
 ## Getting started
 
 ```sh
-pnpm install
+nvm use
+npm install
 
 # Point the build at your Foundry user data directory.
 cp foundry-config.example.json foundry-config.json
 $EDITOR foundry-config.json
 
-pnpm system:link     # symlink packages/system/dist into Data/systems/kedom
-pnpm system:watch    # rebuild on change; Foundry hot-reloads CSS and templates
+npm run system:link     # symlink packages/system/dist into Data/systems/kedom
+npm run system:watch    # rebuild on change; Foundry hot-reloads CSS and templates
 ```
 
 For content authoring:
 
 ```sh
-pnpm forge:api       # Go API on :7777
-pnpm forge:web       # Svelte UI on :5173
+npm run forge:api       # Go API on :7777
+npm run forge:web       # Svelte UI on :5173
 ```
 
 ## Everyday commands
 
 ```sh
-pnpm check           # format, lint, typecheck, unit tests — run before committing
-pnpm test            # Vitest unit tests (rules arithmetic)
-pnpm test:e2e        # Playwright against a running Foundry instance
-pnpm packs:build     # compile packs/_source YAML into LevelDB packs
-pnpm packs:extract   # the reverse, for inspecting what Foundry wrote
-pnpm forge:types     # regenerate packages/shared types from the Go models
+npm run check           # format, lint, typecheck, unit tests — run before committing
+npm test                # Vitest unit tests (rules arithmetic)
+npm run test:e2e        # Playwright against a running Foundry instance
+npm run packs:build     # compile packs/_source YAML into LevelDB packs
+npm run packs:extract   # the reverse, for inspecting what Foundry wrote
+npm run forge:types     # regenerate packages/shared types from the Go models
+npm run forge:export:md # barebones markdown rulebook → exports/markdown/
 ```
 
 ## Licence

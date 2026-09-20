@@ -130,7 +130,7 @@ The data is not fetched at all today — it is **inside Vue components that
 into the app bundle, not a route chunk, so a reader who opens a lore page and never touches the
 generator very likely still downloads all 136 KB of it.
 
-That is worth verifying with `pnpm docs:build` and a look at the chunk graph before building
+That is worth verifying with `npm run docs:build` and a look at the chunk graph before building
 anything, but if it holds, it means:
 
 > **The first and largest win is getting the data out of the JS bundle entirely, not splitting

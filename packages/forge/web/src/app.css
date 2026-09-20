@@ -1,0 +1,114 @@
+@import "../../../system/src/styles/tokens/color.css";
+@import "tailwindcss";
+
+@theme {
+  --font-display: var(--kedom-font-display);
+  --font-body: var(--kedom-font-body);
+  --font-mono: var(--kedom-font-mono);
+
+  --color-sheet: var(--kedom-surface-sheet);
+  --color-raised: var(--kedom-surface-raised);
+  --color-sunken: var(--kedom-surface-sunken);
+  --color-ink: var(--kedom-text-primary);
+  --color-muted: var(--kedom-text-muted);
+  --color-inverse: var(--kedom-text-inverse);
+  --color-line: var(--kedom-border-subtle);
+  --color-line-strong: var(--kedom-border-strong);
+  --color-accent: var(--kedom-accent);
+  --color-accent-hover: var(--kedom-accent-hover);
+  --color-ok: var(--kedom-tier-success);
+  --color-warn: var(--kedom-tier-cost);
+  --color-danger: var(--kedom-color-blood-600);
+
+  --radius-sm: var(--kedom-radius-sm);
+  --radius-md: var(--kedom-radius-md);
+  --radius-lg: var(--kedom-radius-lg);
+
+  --shadow-panel: var(--kedom-shadow-2);
+}
+
+@layer base {
+  html {
+    color-scheme: light dark;
+  }
+
+  body {
+    @apply m-0 min-h-screen bg-sheet font-body text-ink antialiased;
+    background-image:
+      radial-gradient(ellipse at top left, color-mix(in srgb, var(--kedom-color-blood-500) 8%, transparent), transparent 45%),
+      radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--kedom-color-parchment-300) 55%, transparent), transparent 50%);
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--kedom-accent) 28%, transparent);
+  }
+}
+
+@layer components {
+  .forge-panel {
+    @apply rounded-lg border border-line bg-raised shadow-panel;
+  }
+
+  .forge-nav-btn {
+    @apply w-full rounded-md px-3 py-2 text-left text-sm text-ink transition;
+  }
+
+  .forge-nav-btn:hover {
+    @apply bg-sunken/60;
+  }
+
+  .forge-nav-btn[data-active="true"] {
+    @apply bg-accent/15 font-medium text-accent;
+  }
+
+  .forge-list-btn {
+    @apply block w-full border-b border-line px-3 py-2.5 text-left transition last:border-b-0;
+  }
+
+  .forge-list-btn:hover {
+    @apply bg-sunken/50;
+  }
+
+  .forge-list-btn[data-active="true"] {
+    @apply bg-accent/12;
+  }
+
+  .forge-field {
+    @apply mb-3 grid gap-1.5;
+  }
+
+  .forge-field label {
+    @apply text-xs font-medium tracking-wide text-muted uppercase;
+  }
+
+  .forge-input {
+    @apply w-full rounded-md border border-line bg-sheet px-3 py-2 text-ink outline-none transition;
+  }
+
+  .forge-input:focus {
+    @apply border-accent ring-2 ring-accent/20;
+  }
+
+  .forge-btn {
+    @apply cursor-pointer rounded-md border border-line bg-sheet px-3.5 py-2 text-sm transition;
+  }
+
+  .forge-btn:hover {
+    @apply bg-sunken;
+  }
+
+  .forge-btn-primary {
+    @apply border-accent bg-accent text-inverse;
+  }
+
+  .forge-btn-primary:hover {
+    @apply bg-accent-hover border-accent-hover;
+  }
+}

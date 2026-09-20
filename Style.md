@@ -343,7 +343,7 @@ which would defeat the entire point of the relational schema.
 | Strict types | `tsconfig.base.json` |
 
 ```sh
-pnpm check     # format, lint, typecheck, test
+npm run check     # format, lint, typecheck, test
 ```
 
 The rest stays documented prose, which means it is enforced in review.

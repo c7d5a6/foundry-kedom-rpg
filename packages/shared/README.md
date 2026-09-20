@@ -20,7 +20,7 @@ src/
 [tygo](../forge/api/tygo.yaml). It is gitignored and regenerated:
 
 ```sh
-pnpm forge:types
+npm run forge:types
 ```
 
 Everything else in `src/` is hand-written and covers what has no Go equivalent — the branded

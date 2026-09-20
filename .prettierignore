@@ -1,7 +1,7 @@
 node_modules/
 dist/
 build/
-pnpm-lock.yaml
+package-lock.json
 
 # Generated. Regenerate, do not format.
 packages/shared/src/generated/

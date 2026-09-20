@@ -55,6 +55,7 @@ Only display text.
 | `label` | yes | what humans read |
 | `abbreviation` | yes | Might → МЩ |
 | `description` | yes | flavour and rules prose |
+| `comment` | **never** | authoring note; one field for all languages |
 | `slug` | **never** | identity; `survive.tracking` in every language |
 | `foundry_id` | **never** | Foundry document identity |
 | numbers, weights, pick counts, grants | **never** | mechanics are language-independent |
@@ -179,7 +180,7 @@ instead of silently presenting them as Russian. Layout and lazy-loading are unch
 
 ### Markdown — `--locale`
 
-Defaults to English. `pnpm forge:export:md --locale=ru` writes the overlay where present.
+Defaults to English. `npm run forge:export:md -- -locale=ru` writes the overlay where present.
 Gitignored either way.
 
 ## Foundry

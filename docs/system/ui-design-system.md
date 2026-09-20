@@ -224,7 +224,7 @@ Taken from the Tidy analysis, in rough order of value per line:
 } }
 ```
 
-Foundry reloads CSS and templates in place. Combined with `pnpm system:watch`, editing a
+Foundry reloads CSS and templates in place. Combined with `npm run system:watch`, editing a
 component file shows up without a browser refresh. draw-steel does exactly this, and it is
 simpler than Tidy's dual-port proxy setup.
 

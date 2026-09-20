@@ -69,13 +69,15 @@ changed once: strength and constitution merged into Might, dropping the count fr
 ([Q2](../rules/99-open-questions.md#q2--is-strength-separate-from-constitution--no)).
 
 ```
-id, slug, label, abbreviation, description, sort_order
+id, slug, label, abbreviation, description, comment, sort_order
 ```
+
+`comment` is an authoring note shared across languages — not exported to play, not translated.
 
 ### `skill`
 
 ```
-id, slug, label, description
+id, slug, label, description, comment
 attribute_id            -> attribute      the usual governing attribute
 specialization_mode     'none' | 'fixed' | 'free' | 'parameterized'
 is_secondary            skills outside the core nineteen
@@ -94,7 +96,7 @@ foundry_id
 ### `specialization`
 
 ```
-id, slug, label, description
+id, slug, label, description, comment
 skill_id                -> skill
 parameter               nullable; 'environment', 'pantheon', 'culture'
 sort_order
@@ -161,24 +163,27 @@ re-derived.
 ### `class` and `race_class`
 
 ```
-class:       id, slug, label, description, kind ('core'|'partial'),
-             attack_progression, skill_points_per_level, hit_die, sort_order, foundry_id
+class:       id, slug, label, description, comment,
+             is_full (0|1), is_partial (0|1),
+             attack_progression, skill_points_per_level, hit_die,
+             sort_order, foundry_id
 race_class:  race_id, class_id, is_prefilled_slot
 ```
+
+`is_full` and `is_partial` are independent booleans because the five full classes are **also**
+selectable as Adventurer partials. At least one must be true. Adventurer itself is **not** a
+row — it is two partials combined at character creation.
 
 The class list is a many-to-many with races because that is the main mechanical weight of
 choosing a race. `is_prefilled_slot` captures the Adventurer pattern: most non-human races can
 *only* be Adventurers with one of the two slots already filled.
 
-The class roster is now fixed — five `core` and twelve `partial`, listed in
-[../rules/30-character-creation.md](../rules/30-character-creation.md#classes) — but none of
-the numbers exist yet
-([Q12](../rules/99-open-questions.md#q12--per-class-mechanics-are-unspecified)), so these
-columns will grow. `attack_progression` and `skill_points_per_level` are named after WWN's
-`classEdge` fields because those are known to be the right shape.
-
-Note that the five core classes are **also** selectable as partials, so `kind` cannot be a
-plain one-of; either it is a pair of booleans or partial availability is its own column.
+The class roster is now fixed — five with `is_full` and `is_partial`, plus seven partial-only,
+listed in [../rules/30-character-creation.md](../rules/30-character-creation.md#classes) —
+but none of the progression numbers exist yet
+([Q12](../rules/99-open-questions.md#q12--per-class-mechanics-are-unspecified)), so
+`attack_progression`, `skill_points_per_level`, and `hit_die` stay nullable. They are named
+after WWN's `classEdge` fields because those are known to be the right shape.
 
 ### `region` and `region_race`
 

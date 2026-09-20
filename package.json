@@ -5,32 +5,37 @@
   "description": "Kedom RPG: a Foundry VTT game system and its content-authoring toolchain.",
   "license": "MIT",
   "type": "module",
-  "packageManager": "pnpm@10.34.5",
   "engines": {
     "node": ">=22.12.0"
   },
+  "workspaces": [
+    "packages/system",
+    "packages/forge/web",
+    "packages/shared"
+  ],
   "scripts": {
-    "system:build": "pnpm --filter @kedom/system run build",
-    "system:watch": "pnpm --filter @kedom/system run watch",
+    "system:build": "npm run build -w @kedom/system",
+    "system:watch": "npm run watch -w @kedom/system",
     "system:link": "tsx tools/link-foundry.ts",
     "packs:build": "tsx tools/pack.ts",
     "packs:extract": "tsx tools/unpack.ts",
-    "forge:web": "pnpm --filter @kedom/forge-web run dev",
+    "forge:web": "npm run dev -w @kedom/forge-web",
     "forge:api": "go -C packages/forge/api run ./cmd/forge",
     "forge:types": "cd packages/forge/api && tygo generate",
     "forge:sqlc": "cd packages/forge/api && sqlc generate",
     "forge:dump": "tsx tools/dump-content.ts",
-    "lint": "pnpm run lint:ts && pnpm run lint:go",
+    "forge:export:md": "go -C packages/forge/api run ./cmd/forge export md",
+    "lint": "npm run lint:ts && npm run lint:go",
     "lint:ts": "eslint .",
     "lint:go": "cd packages/forge/api && golangci-lint run ./...",
     "lint:fix": "eslint . --fix && gofumpt -w packages/forge/api",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "pnpm -r --parallel run typecheck",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "check": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

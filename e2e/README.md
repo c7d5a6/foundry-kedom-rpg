@@ -8,10 +8,10 @@ Playwright tests against a running Foundry instance. Config:
 ## Prerequisites
 
 Foundry running at `FOUNDRY_URL` (default `http://localhost:30000`) with a Kedom world open and
-the system linked (`pnpm system:link`). The tests do not start Foundry.
+the system linked (`npm run system:link`). The tests do not start Foundry.
 
 ```sh
-pnpm test:e2e
+npm run test:e2e
 ```
 
 ## `setup.ts` — `globalSetup`

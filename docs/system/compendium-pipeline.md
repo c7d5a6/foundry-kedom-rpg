@@ -33,7 +33,7 @@ key graph, and expressing it in flat YAML means maintaining referential integrit
 See [../forge/schema.md](../forge/schema.md).
 
 **dump.sql**, because SQLite is binary and a binary file in a pull request tells you nothing.
-`pnpm forge:dump` writes a deterministic SQL dump so content changes are reviewable. This is
+`npm run forge:dump` writes a deterministic SQL dump so content changes are reviewable. This is
 the lesson from mothership, which commits binary LevelDB packs and consequently cannot diff
 its own content.
 
@@ -54,7 +54,7 @@ building for a single-author project.
 **So: do not hand-edit `packs/_source/`.** Edit in Forge and re-export. The generated YAML
 carries a header saying so.
 
-`pnpm packs:extract` exists, but only as a diagnostic — it dumps a compiled pack back to YAML
+`npm run packs:extract` exists, but only as a diagnostic — it dumps a compiled pack back to YAML
 so you can see what Foundry actually stored. Its output is not an input.
 
 ### The consequence to accept
@@ -67,10 +67,10 @@ because hot reload picks up pack changes without restarting.
 ## Commands
 
 ```sh
-pnpm forge:dump      # sqlite -> packages/content/dump.sql
+npm run forge:dump      # sqlite -> packages/content/dump.sql
                      # (export to YAML is triggered from the Forge UI or its CLI)
-pnpm packs:build     # packs/_source/**.yml -> packs/*/ LevelDB
-pnpm packs:extract   # packs/*/ -> YAML, for inspection only
+npm run packs:build     # packs/_source/**.yml -> packs/*/ LevelDB
+npm run packs:extract   # packs/*/ -> YAML, for inspection only
 ```
 
 `tools/pack.ts` and `tools/unpack.ts` wrap `@foundryvtt/foundryvtt-cli`, in the shape of

@@ -43,9 +43,9 @@ packs/_source/           YAML written by Forge -- generated, do not hand-edit
 ## Building
 
 ```sh
-pnpm --filter @kedom/system build     # or: pnpm system:build
-pnpm system:watch                     # rebuild on change
-pnpm system:link                      # symlink dist/ into Data/systems/kedom
+npm run system:build                     # or: npm run build -w @kedom/system
+npm run system:watch                     # rebuild on change
+npm run system:link                      # symlink dist/ into Data/systems/kedom
 ```
 
 `hotReload` is declared in the manifest, so Foundry picks up CSS, template, and language

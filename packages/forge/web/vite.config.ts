@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
+import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 
 const root = import.meta.dirname;
@@ -12,7 +13,7 @@ const root = import.meta.dirname;
 export default defineConfig({
   root,
 
-  plugins: [svelte()],
+  plugins: [tailwindcss(), svelte()],
 
   resolve: {
     alias: {

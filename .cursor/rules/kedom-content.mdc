@@ -25,11 +25,11 @@ The public website and the Babele overlay are additional consumers, not second s
 
 **Do not hand-edit `packages/system/lang/babele/`.** Same pipeline, different target. Russian content overlays.
 
-**Do not hand-edit `packages/content/dump.sql`.** Regenerate with `pnpm forge:dump`.
+**Do not hand-edit `packages/content/dump.sql`.** Regenerate with `npm run forge:dump`.
 
 ## One-way, always
 
-Export flows outward and never back. `pnpm packs:extract` exists only as a diagnostic — to see what Foundry actually stored. **Its output is never an input.**
+Export flows outward and never back. `npm run packs:extract` exists only as a diagnostic — to see what Foundry actually stored. **Its output is never an input.**
 
 Reversing this creates two sources of truth for one record, which means building either a diff UI or arbitrary conflict rules. Neither is worth it for a single-author project.
 

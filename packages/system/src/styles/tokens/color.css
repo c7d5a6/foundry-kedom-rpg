@@ -1,0 +1,65 @@
+/*
+ * Kedom colour primitives + semantic surfaces.
+ * Shared by Foundry sheets (cascade variables layer) and Forge UI.
+ * Taxonomy: docs/system/ui-design-system.md
+ */
+
+:root {
+  /* Primitives */
+  --kedom-color-ink-950: #120f0d;
+  --kedom-color-ink-900: #1c1612;
+  --kedom-color-ink-700: #3f342c;
+  --kedom-color-ink-500: #6b5b4f;
+  --kedom-color-parchment-50: #fbf7f0;
+  --kedom-color-parchment-100: #f3ebe0;
+  --kedom-color-parchment-200: #e5d6c4;
+  --kedom-color-parchment-300: #d0b99e;
+  --kedom-color-blood-600: #6f1f1f;
+  --kedom-color-blood-500: #8b2e2e;
+  --kedom-color-blood-400: #a84848;
+  --kedom-color-moss-600: #2f4a32;
+  --kedom-color-moss-500: #3d6342;
+  --kedom-color-amber-500: #b45309;
+
+  --kedom-font-display: "Cormorant Garamond", "Palatino Linotype", Palatino, Georgia, serif;
+  --kedom-font-body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --kedom-font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  --kedom-radius-sm: 0.25rem;
+  --kedom-radius-md: 0.5rem;
+  --kedom-radius-lg: 0.75rem;
+
+  --kedom-shadow-1: 0 1px 2px color-mix(in srgb, var(--kedom-color-ink-900) 12%, transparent);
+  --kedom-shadow-2: 0 8px 24px color-mix(in srgb, var(--kedom-color-ink-900) 10%, transparent);
+
+  /* Semantic (light) */
+  --kedom-surface-sheet: var(--kedom-color-parchment-100);
+  --kedom-surface-raised: var(--kedom-color-parchment-50);
+  --kedom-surface-sunken: var(--kedom-color-parchment-200);
+  --kedom-text-primary: var(--kedom-color-ink-900);
+  --kedom-text-muted: var(--kedom-color-ink-500);
+  --kedom-text-inverse: var(--kedom-color-parchment-50);
+  --kedom-border-subtle: var(--kedom-color-parchment-300);
+  --kedom-border-strong: var(--kedom-color-ink-700);
+  --kedom-accent: var(--kedom-color-blood-500);
+  --kedom-accent-hover: var(--kedom-color-blood-600);
+  --kedom-tier-failure: var(--kedom-color-ink-700);
+  --kedom-tier-cost: var(--kedom-color-amber-500);
+  --kedom-tier-success: var(--kedom-color-moss-500);
+  --kedom-tier-critical: var(--kedom-color-blood-400);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --kedom-surface-sheet: #1a1614;
+    --kedom-surface-raised: #241e1a;
+    --kedom-surface-sunken: #120f0d;
+    --kedom-text-primary: var(--kedom-color-parchment-100);
+    --kedom-text-muted: #a89888;
+    --kedom-text-inverse: var(--kedom-color-ink-900);
+    --kedom-border-subtle: #3a312a;
+    --kedom-border-strong: var(--kedom-color-parchment-300);
+    --kedom-accent: var(--kedom-color-blood-400);
+    --kedom-accent-hover: #c45c5c;
+  }
+}
