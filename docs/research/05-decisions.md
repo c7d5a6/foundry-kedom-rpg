@@ -1,7 +1,7 @@
 # Architecture decisions
 
 ADR-style log. Each entry states the decision, the evidence behind it, and what would make us
-revisit it. Dated September 2026.
+revisit it. Dated September 2026. Reviewed against Foundry-system priorities the same month.
 
 ---
 
@@ -33,7 +33,8 @@ types. `fvtt-types` at the v14 beta (`14.366.0-beta.*`).
 **Evidence.** pf2e, Lancer, and Tidy 5e are all TypeScript. dnd5e and draw-steel use `.mjs`
 with JSDoc, which the UI analysis flagged as "less ergonomic than TypeScript". The research
 also found that most of the assertion burden in the style guide can be discharged statically
-by the type system instead of at runtime — branded slug types being the key example.
+by the type system instead of at runtime — branded identity (`key`) types being the key
+example.
 
 **Risk accepted.** `fvtt-types` v14 support is in beta (PR #3626 open, beta packages published
 August 2026). Mitigation: types are a development aid, not a runtime dependency; if a
@@ -83,11 +84,16 @@ schema validation and manual migration patches.
 
 ---
 
-## ADR-005 — Pure `derivations/` with zero-initialised paths
+## ADR-005 — Pure functions for derivations, action pipelines, and calculated displays
 
-**Decision.** A `src/derivations/` directory of pure functions, one concern per file, called
-from `prepareBaseData` / `prepareDerivedData` on the DataModel. All derived paths are
-zero-initialised in `prepareBaseData` so Active Effects have stable targets.
+**Decision.** Prefer **pure functions** for anything that turns inputs into values:
+
+- `src/derivations/` — actor/item derived fields, called from `prepareBaseData` /
+  `prepareDerivedData`. One concern per file. All derived paths are zero-initialised in
+  `prepareBaseData` so Active Effects have stable targets.
+- **Action / roll pipelines** — gather, sum, and format without mutating documents mid-flight.
+- **Calculated display** — sheet and chat numbers computed from the same pure helpers the
+  pipeline uses, not duplicated ad-hoc in templates.
 
 **Evidence.** Lifted from `foundryvtt-wwn`, which separates `derivations/` (ac, saves,
 encumbrance, attack-bonus, hit-dice, initiative, resource-pools) from `helpers/`. The
@@ -101,33 +107,42 @@ Pure functions are also directly unit-testable, which is how pf2e tests its rule
 
 ---
 
-## ADR-006 — Modifier collectors instead of a rules engine
+## ADR-006 — Modifier collectors with retained source; no rules engine
 
 **Decision.** A roll gathers modifiers by calling independent pure functions that each return
 `Modifier[]`. Adding a rule means adding a function. No RuleElement-style class hierarchy, no
 roll-option predicate graph.
+
+Every modifier (and every applied change shown to the player) **retains its source**: a stable
+id plus a human-readable label (and optional document uuid). Chat cards and breakdowns can
+show where each bonus or penalty came from.
 
 **Evidence.** pf2e has 40 RuleElement classes plus a 25-collection synthetics bucket plus a
 predicate engine — "a framework inside a system", and everything becomes stringly typed.
 dnd5e's Activities reach ~1,400 lines in the mixin alone for 12 activity types.
 
 Against a 10,000-line budget, neither is affordable, and neither is needed: Kedom resolves a
-check by summing labelled modifiers and comparing a total to fixed thresholds.
+check by summing labelled, sourced modifiers and comparing a total to configured thresholds.
 
 **Consequence.** Complex conditional rules will need either a declarative effect definition or
-a named handler in the registry (see ADR-009).
+a named handler in the registry (see ADR-009). Chat and UI never invent attribution after the
+fact — the collector already carried it.
 
 ---
 
-## ADR-007 — Slug identity for skills and specialisations
+## ADR-007 — Immutable `key` identity for skills and specialisations
 
-**Decision.** Skills carry an immutable `slug`; specialisations are slug-identified
-sub-objects on the skill. All cross-references use slugs. Display labels are separate and
+**Decision.** Skills carry an immutable **`key`**; specialisations are key-identified
+sub-objects on the skill. All cross-references use keys. Display labels are separate and
 localisable.
 
 ```
-skill: { slug, attribute, level, specializations: [{ slug, label, level }] }
+skill: { key, attribute, level, specializations: [{ key, label, level }] }
 ```
+
+The word **key** is the project term for this identity string. The Forge SQLite column may
+still be named `slug` until a deliberate rename migration; treat that as a storage alias, not
+a second concept.
 
 **Evidence.** CoC7, WFRP4e, and StarWarsFFG **all** encode specialisation identity in the item
 display name and parse it back (`"Locksmith (Craft)"`, `"Sailing (Navigation)"`). WFRP4e
@@ -137,28 +152,29 @@ breakage on any missed path.
 
 This is the single most important mistake identified in the whole survey.
 
-**Consequence.** Slugs are assigned at authoring time in Forge and treated as immutable. A
-rename is a label change; changing a slug is a migration.
+**Consequence.** Keys are assigned at authoring time in Forge and treated as immutable. A
+rename is a label change; changing a key is a migration.
 
 ---
 
-## ADR-008 — One pure tier function; critical as an orthogonal flag
+## ADR-008 — Outcome banding deferred; collect values first
 
-**Decision.**
+**Status: deferred.** Not binding for current implementation.
 
-```
-resolveTier({ total, thresholds, proficiency }) -> { tier, margin, label }
-```
+**Intent (later).** Once rolls reliably produce a total and a full list of sourced modifiers,
+decide how to map totals onto the success ladder (`failure` / `cost` / `success`) and whether
+any orthogonal flags are needed. Skill critical success is already out of the rules — three
+outcomes only ([../rules/20-skills.md](../rules/20-skills.md)).
 
-with `critical` carried as a separate boolean rather than a fifth tier value.
+**For now.** Focus on gathering dice, attributes, proficiency, and sourced modifiers; render
+those clearly in chat. Threshold configuration stays in `src/config/` so banding can land
+without a pipeline rewrite.
 
-**Evidence.** WFRP4e's Success Level banding is the closest analogue to Kedom's ladder, and it
-keeps `isCriticalFumble` as a separate flag — the right shape. Its `computeResult()` is the
-warning: ~200 lines interleaving margin calculation, sign handling, setting-dependent
-variants, and description lookup.
+**Evidence (parked).** WFRP4e's Success Level banding is the closest analogue when we return to
+this. Its `computeResult()` (~200 lines) is the warning against mixing margin maths, settings,
+and description lookup in one place.
 
-CoC7's threshold-fractions model does not transfer, since Kedom compares a dice total to fixed
-thresholds rather than fractions of a skill value.
+**Revisit when** modifier attribution and chat breakdowns work end-to-end.
 
 ---
 
@@ -192,16 +208,19 @@ before the first schema.
 
 ---
 
-## ADR-011 — SQLite is the content source of truth; YAML is the reviewable artefact
+## ADR-011 — SQLite is the content source of truth; YAML is the reviewable pack artefact
 
 **Decision.** Content (attributes, skills, specialisations, races, backgrounds, regions) is
-authored in SQLite via Forge. Forge exports YAML into `packages/system/packs/_source/`, which
-is compiled to LevelDB by `@foundryvtt/foundryvtt-cli`. One-way.
+authored in SQLite via Forge. Forge exports **YAML** into `packages/system/packs/_source/`,
+which is compiled to LevelDB by `@foundryvtt/foundryvtt-cli`. One-way.
+
+YAML over JSON for pack sources: dnd5e's large `_source` corpus is the clearest precedent for
+reviewable diffs at volume; Kedom already documents that pipeline. JSON remains fine for
+interchange dumps and site export; it is not the pack authoring format.
 
 **Evidence.** dnd5e uses YAML sources (4,871 files) compiled with `foundryvtt-cli`; shadowdark
-uses per-document JSON via a `PackHandler`; draw-steel round-trips JSON with
-`pushLDBtoJSON` / `pullJSONtoLDB`. All of them keep content as reviewable text, and
-mothership — which commits binary LevelDB packs — cannot diff content at all.
+and draw-steel use JSON. All keep content as reviewable text; mothership — which commits
+binary LevelDB packs — cannot diff content at all.
 
 SQLite on top of that gives relational integrity for the nested authoring workflow (region →
 races → backgrounds → skill choices) that flat files cannot express.
@@ -220,6 +239,8 @@ re-export.
 SQL migrations run in a transaction, `handler → service → repository` layering. TypeScript
 types generated from the Go models with `tygo` into `packages/shared/`.
 
+**Status.** Already started (`packages/forge/api`, core vocabulary seed, markdown export).
+
 **Evidence.** Chosen by the project owner. `modernc.org/sqlite` is pure Go, so
 `CGO_ENABLED=0` builds and cross-compilation work with no C toolchain; it is somewhat slower
 than `mattn/go-sqlite3` on writes, which is irrelevant for a single-user authoring tool. The
@@ -233,36 +254,37 @@ Foundry system, rather than two hand-maintained copies.
 
 ## ADR-013 — Three CSS bundles on Foundry's cascade layers
 
-**Decision.** `tokens` → `variables` layer, `elements` → `elements` layer, and component plus
-sheet styles → `system` layer, declared in `system.json`. Dark mode via
-`@scope (.theme-dark) to (.themed)`. Budget: 10,000-15,000 lines.
+**Status: deferred.** Appearance work comes later; do not block system logic on the full token /
+elements / system cascade split.
 
-**Evidence.** draw-steel's architecture, which maps cleanly onto the cascade layers Foundry
-introduced in v13 and documents in the manifest `styles[]` `layer` key. The community wiki
-warns that relying on Foundry's own styles broke in v13 and that systems must own their
-theming through variables and layers.
+**Intended decision (when resumed).** `tokens` → `variables` layer, `elements` → `elements`
+layer, and component plus sheet styles → `system` layer, declared in `system.json`. Dark mode
+via `@scope (.theme-dark) to (.themed)`. Budget: 10,000-15,000 lines when “slick” is in scope.
 
-The budget comes from the measurement in ADR-003: Tidy spends 16,213 lines and dnd5e 15,469 to
-look the way they do, while draw-steel's plainer look costs 3,535.
+**Evidence.** draw-steel's architecture and the ADR-003 measurement (Tidy 16k / dnd5e 15k CSS
+lines). Kedom already seeds primitive colour tokens for Forge; Foundry sheet polish can adopt
+them later.
 
-**Consequence.** This is the largest single line-count item in the project, and deliberately
-so. It is where "slick" actually lives.
+**Revisit when** sheets exist and need a deliberate visual pass.
 
 ---
 
-## ADR-014 — Playwright e2e with an explicit ready signal
+## ADR-014 — Unit tests only; no Playwright e2e for now
 
-**Decision.** Playwright against a running Foundry instance, with `globalSetup` joining as
-Gamemaster and caching `storageState`, and a system-owned ready signal set on the `ready` hook.
-Wired into CI.
+**Decision.** Test rules maths, derivations, and pure pipeline helpers with **Vitest unit
+tests**. Do **not** require Playwright (or other) end-to-end tests against a running Foundry
+instance at this stage.
 
-**Evidence.** StarWarsFFG is the only one of the ten with e2e tests, and its Playwright setup
-is the usable half (Cypress is legacy there). Two flaws to fix rather than copy: it waits on
-`#destinyDark`, a system UI element standing in for a ready signal, and its CI never runs the
-tests.
+**Evidence.** StarWarsFFG's Playwright harness is the only e2e example among the surveyed
+systems, and it is heavy (shared world, auth state, ready-signal footguns). Kedom's binding
+logic is mostly pure functions — the same surface ADR-005 and ADR-006 already make
+unit-testable.
 
-**Consequence.** `fullyParallel` stays off while tests share one world, and each test cleans
-up after itself.
+**Consequence.** `npm test` / Vitest is the gate. An `e2e/` Playwright scaffold may remain in
+the tree as unused scaffolding but is not part of `check` or CI expectations until explicitly
+revived.
+
+**Revisit if** sheet integration bugs dominate and unit tests stop catching them.
 
 ---
 
@@ -300,11 +322,15 @@ script or fallback rules do not fit an overlay (right-to-left, for example).
 
 ---
 
-## Open question carried forward
+## Settled rules inputs (no longer an ADR open question)
 
-**The dice mechanic is unresolved.** `Kedom RPG.md` specifies `2d8 + STAT + level` with
-thresholds at 9-/10-12/13-16/17+ and a proficiency-tier table. `WWN Kedom Hack.md` specifies
-`2d6 + STAT MOD + SKILL LEVEL`. These are different probability curves and the system cannot
-implement both. Tracked in [../rules/99-open-questions.md](../rules/99-open-questions.md);
-the data model is being built so that thresholds and dice expression are configuration, not
-hard-coded, which keeps the decision cheap for now.
+**Dice and ladder are settled for now** — see [../rules/20-skills.md](../rules/20-skills.md):
+
+- Skills and saves: `2d10 + attribute + proficiency` (half proficiency on skills without a
+  relevant specialisation).
+- Attacks: `1d20 + attribute + proficiency`.
+- Ladder: ≤10 / 11–14 / 15–21 / 22–26 / 27+ → failure / success with a cost / success.
+
+Dice expression and thresholds remain **configuration** in `src/config/` so a later revision
+stays cheap. Outcome *application* in code waits on ADR-008's deferred banding work; collecting
+sourced modifiers (ADR-006) comes first.

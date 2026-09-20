@@ -297,7 +297,7 @@ outcome entirely**, leaving three: failure, success with a cost, success.
 
 The tier function therefore returns one of three outcomes and needs no orthogonal critical
 flag, simplifying
-[ADR-008](../research/05-decisions.md#adr-008--one-pure-tier-function-critical-as-an-orthogonal-flag).
+[ADR-008](../research/05-decisions.md#adr-008--outcome-banding-deferred-collect-values-first).
 Note this concerns *critical success on skill checks*; critical **injuries** in
 [80-criticals.md](80-criticals.md) are a separate combat subsystem and are unaffected.
 

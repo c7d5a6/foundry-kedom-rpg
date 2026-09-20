@@ -68,8 +68,7 @@ npm run forge:web       # Svelte UI on :5173
 
 ```sh
 npm run check           # format, lint, typecheck, unit tests — run before committing
-npm test                # Vitest unit tests (rules arithmetic)
-npm run test:e2e        # Playwright against a running Foundry instance
+npm test                # Vitest unit tests (rules / derivations)
 npm run packs:build     # compile packs/_source YAML into LevelDB packs
 npm run packs:extract   # the reverse, for inspecting what Foundry wrote
 npm run forge:types     # regenerate packages/shared types from the Go models

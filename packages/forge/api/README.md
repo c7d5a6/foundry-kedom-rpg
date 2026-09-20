@@ -70,7 +70,7 @@ go install github.com/gzuidhof/tygo@latest
 - Additive changes are safe. Renames and drops need a data-moving migration, because SQLite's
   `ALTER TABLE` is limited.
 - `id` and `slug` values are **identity** and never change in a migration. See
-  [ADR-007](../../../docs/research/05-decisions.md#adr-007--slug-identity-for-skills-and-specialisations).
+  [ADR-007](../../../docs/research/05-decisions.md#adr-007--immutable-key-identity-for-skills-and-specialisations).
 
 ## Error handling
 

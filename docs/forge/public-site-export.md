@@ -219,6 +219,6 @@ The site export is a **view**, exactly like the Markdown export. It is not a sou
 it is not editable, and it does not round-trip. Slugs match across all five targets, so a race
 on the website, a race in a Foundry compendium, and a race row in SQLite are the same entity.
 
-That is the payoff of [ADR-007](../research/05-decisions.md#adr-007--slug-identity-for-skills-and-specialisations)
+That is the payoff of [ADR-007](../research/05-decisions.md#adr-007--immutable-key-identity-for-skills-and-specialisations)
 reaching outside Foundry: the website can deep-link to `#/race/nitol` and the Foundry
 compendium can carry the same identifier without a mapping table between them.

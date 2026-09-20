@@ -49,11 +49,13 @@ Each has evidence behind it in `docs/research/`.
   16,213 lines of plain CSS against 6 lines of scoped Svelte CSS. Appearance is a CSS budget,
   not a framework. Svelte is for `forge/web` only.
 - **DataModels, never `template.json`.** It was removed in v14.
-- **Slugs are identity, labels are display.** Never parse a name for meaning.
-- **No rules engine.** Modifier collector functions, and one pure tier function.
+- **Keys are identity, labels are display.** Never parse a name for meaning. (Forge DB may
+  still store the column as `slug` — same concept.)
+- **No rules engine.** Modifier collectors that retain source for chat attribution.
 - **No user-authored JavaScript in content.** Declarative effects plus a named handler registry.
-- **SQLite is the content source of truth, export is one-way.**
-- **Under 10,000 lines of logic; 10,000-15,000 lines of CSS.** The asymmetry is the design.
+- **SQLite is the content source of truth, export is one-way** (YAML pack sources).
+- **Unit tests for pure logic; no Playwright e2e for now.**
+- **CSS slick / cascade layers deferred** until sheets need a visual pass.
 
 ## Working here
 
@@ -74,8 +76,8 @@ npm run check        # format, lint, typecheck, test -- run before committing
 
 ## When the game rules are unclear
 
-**Do not invent rules.** The design is genuinely incomplete — the core dice mechanic is
-unresolved, the background table does not exist, and classes are barely specified.
+**Do not invent rules.** The design is incomplete in places (backgrounds, class numbers,
+magic), but skill/save dice are settled — see [docs/rules/20-skills.md](docs/rules/20-skills.md).
 
 Add an entry to [docs/rules/99-open-questions.md](docs/rules/99-open-questions.md) instead, and
 where the code has to proceed anyway, put the uncertain value in `src/config/` so the decision
