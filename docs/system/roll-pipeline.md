@@ -96,14 +96,15 @@ ApplicationV2 dialog and it computes nothing.
 
 Sum the modifiers, build the formula, evaluate the `Roll`.
 
-The dice expression comes from `src/config/`, **not from a constant in this code**, because the
-core mechanic is unresolved — the latest source says `2d10` in its body, `2d6` in its own front
-matter, and its threshold table was cut for `2d8`
-([Q1](../rules/99-open-questions.md#q1--the-core-dice-mechanic)). Thresholds likewise. When the
-decision lands it is a config edit, not a refactor.
+The dice expression comes from `src/config/`, **not from a constant in this code**, so a later
+revision stays cheap. The settled defaults are:
 
-What *is* settled is that skills and attacks use **different dice** — a bell curve for skills,
-flat `d20` for attacks and saves — so the expression is per-check-type, not global.
+- skills and saves: `2d10 + attribute + proficiency`
+- attacks: `1d20 + attribute + proficiency`
+
+with the success ladder in [../rules/20-skills.md](../rules/20-skills.md)
+([Q1 resolved](../rules/99-open-questions.md#q1--the-core-dice-mechanic--settled-for-now)).
+The expression is per-check-type, not global.
 
 ## Stage 5 — resolve the tier
 

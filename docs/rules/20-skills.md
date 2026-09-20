@@ -5,35 +5,34 @@ from `📥 inbox/WWN Kedom Hack.md` noted.
 
 ## Resolution
 
-> **Still unresolved, but narrowed.** The revised source now says `2d10`, while its own front
-> matter still reads `dice: D20/2d6` and the threshold table below was generated for `2d8`.
-> The note's own caveat: *"I'm not sure if d10 will be the dice to use. Final decision tbd. As
-> well as DC for successes."* See [Q1](99-open-questions.md#q1--the-core-dice-mechanic). Dice
-> expression and thresholds stay **configuration**, so this decision remains cheap.
-
-**Skill checks:**
+**Skill checks and saves** use the same die and the proficiency ladder:
 
 ```
 2d10 + attribute modifier + proficiency
 ```
 
-**Attacks and saves** use a different die, deliberately:
+The source writes this as `2d10 + STAT + skill/save proficiency`. Saves share the skill die
+and the three-outcome ladder; they are not rolled on `d20` against a derived target.
+
+**Without a relevant specialisation, add half proficiency** instead of the full value (skills
+only — saves have no specialisations).
+
+**Attacks** use a different die, deliberately:
 
 ```
 1d20 + attribute modifier + proficiency
 ```
 
-The split is inherited from WWN and is intentional: a flat `d20` for opposed, high-variance
-rolls; a bell curve for skills, where competence should show. The source floats "maybe saves
-as skills?" without resolving it, noting *"I don't know how to setup dc for them"* —
-[Q13](99-open-questions.md#q13--save-target-formula).
+The split is intentional: a flat `d20` for opposed, high-variance attack rolls; a bell curve
+where competence should show on skills and saves.
 
-**Without a relevant specialisation, add half proficiency** instead of the full value.
+> Front matter of the source note still reads `dice: D20/2d6`. That is stale. The body is the
+> decision. Dice expression and thresholds remain **configuration** in `src/config/` so a later
+> revision stays cheap.
 
 ## Proficiency
 
-Six tiers, with a flat bonus, a point cost, and a character-level gate. **This is new** and
-closes what used to be Q7.
+Six tiers, with a flat bonus, a point cost, and a character-level gate.
 
 | Tier | Bonus | Cost to reach | Min. character level |
 |---|---|---|---|
@@ -51,51 +50,47 @@ Two consequences for implementation:
 
 - **Proficiency is a tier, not a number.** Store the tier; derive the bonus. The bonus table
   and the gates are configuration.
-- **Untrained is a real tier with a real penalty (−2)**, not the absence of a value. It is
-  also a change: the earlier note had untrained at −1.
+- **Untrained is a real tier with a real penalty (−2)**, not the absence of a value.
+
+If saves use this ladder, each class also designates a primary and secondary save with
+better progression — see [30-character-creation.md](30-character-creation.md#saves).
 
 ## The success ladder
 
 Outcomes are **failure**, **success with a cost**, and **success**. Difficulty is a tier, and
-the tier shifts what each band means — a total of 11 is a clean success against an easy task
+the tier shifts what each band means — a total of 12 is a clean success against an easy task
 and a flat failure against a legendary one.
 
 | Roll | Easy / Untrained | Trained / Expert | Hard / Master | Legendary |
 |---|---|---|---|---|
-| 9− | Failure | Failure | Failure | Failure |
-| 10–12 | Success | Success with a cost | Failure | Failure |
-| 13–16 | Success | Success | Success with a cost | Failure |
-| 17–20 | Success | Success | Success | Success with a cost |
-| 21+ | Success | Success | Success | Success |
+| ≤10 | Failure | Failure | Failure | Failure |
+| 11–14 | Success | Success with a cost | Failure | Failure |
+| 15–21 | Success | Success | Success with a cost | Failure |
+| 22–26 | Success | Success | Success | Success with a cost |
+| 27+ | Success | Success | Success | Success |
 
-> **The source flags this table as stale**: *"table needs a redo, it was generated for 2d8."*
-> Treat the bands as provisional.
+The source writes the first row as `-10`, read as **≤10**.
 
-**Critical success is gone.** The earlier ladder had "17+ = critical success", which
-contradicted the table's "17–20 versus Legendary = success with a cost". The revised source
-drops the critical outcome entirely, leaving three outcomes. That resolves what used to be Q6.
+**Critical success remains gone.** Three outcomes only. That still resolves what used to be
+Q6.
 
-### Why the table needs the redo
+### How the bands sit on 2d10
 
-The bands were cut for `2d8` (range 2–16). Under the proposed `2d10` (range 2–20) they land
-very differently. Unmodified:
+Unmodified `2d10` ranges 2–20 (mean 11). The top bands exist mainly for **modified** rolls —
+a Legendary specialist with an 18 is `2d10 + 11`, mean 22, and routinely reaches 22–26+.
+Unmodified:
 
-| Band | on 2d8 | on 2d10 |
-|---|---|---|
-| 9− | 56% | 36% |
-| 10–12 | 28% | 28% |
-| 13–16 | 16% | 26% |
-| 17–20 | 0% | 10% |
-| 21+ | 0% | 0% |
-
-Two things fall out. **The 21+ band is unreachable on the dice alone** under either die, so
-the top row only exists for modified rolls — fine, but deliberate. And under `2d8` the top
-*two* bands were dead without modifiers, which is presumably what prompted the note.
+| Band | on 2d10 (approx.) |
+|---|---|
+| ≤10 | ~45% |
+| 11–14 | ~36% |
+| 15–20 | ~19% |
+| 21+ | 0% without modifiers |
 
 For calibration at the extremes: an untrained character with a 0 attribute (−2 total) clears
-an Easy task 45% of the time, while a Legendary specialist with an 18 (+11 total) beats a
-Legendary task 64% of the time. Both feel about right for a low-fantasy game; neither is
-confirmed.
+an Easy task only on a high roll; a Legendary specialist with an 18 (+11) beats a Legendary
+task most of the time. Neither end is locked for balance, but the bands are continuous and
+implementable.
 
 ## The skill list
 

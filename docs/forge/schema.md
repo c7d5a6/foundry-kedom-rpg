@@ -314,8 +314,9 @@ integer level ([../rules/20-skills.md](../rules/20-skills.md#proficiency)), so
 `race_grant.level` column is unaffected — that one really is a character level, gating the
 Dwarf's level-2 ability.
 
-These are recorded, not fixed. Fixing them before the dice mechanic settles
-([Q1](../rules/99-open-questions.md)) risks building the wrong shape twice.
+These are recorded, not fixed. The skill/save die is settled (`2d10`); remaining open
+questions (backgrounds, class numbers, magic) still argue for keeping enums and progressions
+as data rather than code constants.
 
 ## What is not in here
 

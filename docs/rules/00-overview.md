@@ -17,10 +17,10 @@ Obsidian vault, which remains upstream for brainstorming:
 When the vault and these documents disagree, **these documents win**. When the vault contains
 something not yet ported, it is listed in [99-open-questions.md](99-open-questions.md).
 
-> **The core resolution mechanic is not settled.** The newest note says `2d10` in its body,
-> `2d6` in its own front matter, and its threshold table was cut for `2d8`. See
-> [99-open-questions.md](99-open-questions.md#q1--the-core-dice-mechanic) before implementing
-> anything that depends on it.
+> **Skill and save rolls are settled** for now: `2d10 + attribute + proficiency` (half
+> proficiency without a relevant specialisation). Attacks stay on `1d20`. The note's front
+> matter still says `dice: D20/2d6` — ignore it; the body is canonical. See
+> [20-skills.md](20-skills.md#resolution).
 
 ## Design intent
 
@@ -58,7 +58,8 @@ It deliberately diverges on:
 - **The attribute set.** Six attributes with strength and constitution merged into **Might**,
   on a wider `−3…+3` modifier curve than WWN's `−2…+2`.
 - **The resolution dice and the success ladder** (WWN is `2d6` pass/fail against a difficulty
-  number; Kedom uses a graded three-outcome ladder on a larger bell curve).
+  number; Kedom uses `2d10` with a graded three-outcome ladder for skills and saves, and
+  `1d20` for attacks).
 - **Proficiency as flat tiers** (−2 to +8 in steps of two) rather than WWN's skill levels.
 - **Skill specialisations** as a first-class mechanic.
 - **Wounds** replacing WWN's Mortally Wounded and Frail states — see

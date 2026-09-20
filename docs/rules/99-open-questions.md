@@ -11,34 +11,6 @@ does in the meantime. Nothing here has been silently resolved — answered quest
 
 ## Blocking
 
-### Q1 — The core dice mechanic
-
-**Three dice are now in play, two of them inside the same note.**
-
-- Body of `🗄️ slip-box/Kedom RPG.md` (newest): **`2d10 + STAT + proficiency`**, with half
-  proficiency when no specialisation applies.
-- Front matter of the *same file*: `dice: D20/2d6`.
-- The threshold table in that note: generated for **`2d8`**, and flagged by the author as
-  needing a redo.
-- `📥 inbox/WWN Kedom Hack.md` (oldest): `2d6 + STAT MOD + SKILL LEVEL`.
-
-The note says so itself: *"I'm not sure if d10 will be the dice to use. Final decision tbd. As
-well as DC for successes."*
-
-What is settled is the **shape**: a bell curve for skills, flat `d20` for attacks and saves.
-Only the size of the dice is open.
-
-The spreads differ enough to change every threshold — `2d6` averages 7, `2d8` averages 9,
-`2d10` averages 11. [20-skills.md](20-skills.md#why-the-table-needs-the-redo) works the band
-probabilities for the two live candidates.
-
-**Blocks:** the tier function, every threshold, the travel table (Q20), and all difficulty
-tuning.
-
-**Interim:** dice expression and thresholds are **configuration** in `src/config/`, not
-constants in the roll code, so switching costs one config edit. See
-[../system/roll-pipeline.md](../system/roll-pipeline.md).
-
 ### Q11 — The background table does not exist yet
 
 `WWN Kedom Hack.md` says: roll **2d8** for a background; it grants a free skill; then either
@@ -96,8 +68,10 @@ It governs **no skills**, and it is **no longer a save** — the save set is now
 Reflex/Fortitude/Will. So at present Luck is an attribute that does nothing at all.
 
 Two other secondary-attribute gaps remain, though the list is otherwise now specified: hit
-points are `class hit die + Might modifier` with no per-level progression given, and the three
-save formulas are unstated (Q13).
+points are `class hit die + Might modifier` with no per-level progression given, and which
+**attribute feeds each save** is unstated (Reflex / Fortitude / Will roll on `2d10` like
+skills — see [Q1 resolved](#q1--the-core-dice-mechanic--settled-for-now) — but the pairing is
+open under Q30).
 
 ### Q10 — Racial skill grants name skills that do not exist
 
@@ -113,16 +87,6 @@ than a design question.
 
 **Affects:** the grant resolution code, which must accept either a skill slug or a
 specialisation slug.
-
-### Q13 — Save target formula
-
-Saves are currently modelled WWN-style as derived targets rolled against with `1d20`, but no
-formula is given. WWN's PC formula is `16 + baseMod + saveMod − best(pair mods) − level`.
-
-The revised source also reopens the framing, asking *"maybe saves as skills?"* and admitting
-*"I don't know how to setup dc for them"*. Saves-as-skills would be the simpler system —
-one resolution mechanic instead of two — but it conflicts with saves being rolled on `d20`
-while skills use a bell curve.
 
 ### Q16 — Feats reference the removed Stabilize state
 
@@ -197,10 +161,10 @@ keeps that arrangement. See
 
 ### Q14 — Two difficulty scales
 
-Skill checks use thresholds 9−/10–12/13–16/17–20/21+. Saves and the critical tables use fixed
-DCs of 6/8/10/12. Both are inherited from WWN's split between skill checks and saves.
-Consistent with the parent system, but worth confirming as deliberate, because it will confuse
-players. Folding saves into skills (Q13) would collapse the two scales into one.
+Skill checks and saves share thresholds ≤10 / 11–14 / 15–21 / 22–26 / 27+. Critical tables
+and older notes still use fixed DCs of 6/8/10/12. Those fixed DCs are now a **legacy scale
+for unported content**, not a second way to roll saves. Whether the critical tables should be
+rewritten onto the graded ladder is open; until then both numbers appear in the docs.
 
 ### Q15 — Initiative
 
@@ -213,9 +177,9 @@ Recovery is blocked while Wounded, but the base rate is not given.
 ### Q20 — The travel table is on a 2d6 scale
 
 The journey-event table in [70-travel.md](70-travel.md) runs 2 to 12+ with single values at 5,
-6, and 11 — a `2d6` distribution. If Q1 settles on `2d10`, this table is badly wrong: every
-result above 12 collapses onto the top row, and Joyful Sight at 11 stops being rare. It needs
-rescaling to whatever Q1 chooses.
+6, and 11 — a `2d6` distribution. Now that skills settle on `2d10` (Q1), this table is badly
+wrong for any journey roll that reuses the core die: every result above 12 collapses onto the
+top row, and Joyful Sight at 11 stops being rare. It needs rescaling.
 
 ### Q21 — Which skill rolls for travel events?
 
@@ -245,8 +209,7 @@ some WWN skills became specialisations: sneaking is Prowl/Sneak, not a skill.
 
 So the largest existing body of Kedom content cannot be imported as-is. Someone has to decide
 each mapping, and a few have no clean answer — WWN `pray` against Kedom's Worship and Conduct,
-for instance. Class `hd` and `ab` progressions are WWN's too. Until Q1 settles the dice
-mechanic, this cannot start.
+for instance. Class `hd` and `ab` progressions are WWN's too.
 
 ### Q26 — Description format for multi-target content
 
@@ -259,8 +222,8 @@ deciding before content is authored at volume.
 
 ### Q28 — Do specialisations have their own proficiency tiers?
 
-The rule is *"`2d10 + STAT + skill proficiency`, if no specialization proficiency/2"* — half
-proficiency when no specialisation applies. That reads as **one tier per skill**, with
+The rule is *"`2d10 + STAT + skill/save proficiency`, if no specialization proficiency/2"* —
+half proficiency when no specialisation applies. That reads as **one tier per skill**, with
 specialisations acting as a yes/no gate on whether you get all of it.
 
 But the earlier design gave specialisations their own levels that stacked. If specialisations
@@ -269,11 +232,45 @@ whether they are bought at the same prices.
 
 The data model currently assumes the simpler reading, which is the cheaper one to widen later.
 
+### Q30 — Per-class primary and secondary saves
+
+Each class should have a **primary** and **secondary** save that progress better than the
+third. Adventurer takes both partials' primaries; if those collide, the player picks any other
+save as secondary. See [30-character-creation.md](30-character-creation.md#saves).
+
+Missing: which save is primary/secondary for each of the twelve classes, which **attribute**
+feeds Reflex / Fortitude / Will, and what the numerical "better progression" is (flat bonus
+per level? better tier costs? a separate save proficiency track?).
+
+**Blocks:** class items in Forge and anything `src/derivations/` computes from save grants.
+
 ---
 
 ## Recently resolved
 
 Kept for the record, because each shaped a decision already written into the docs.
+
+### Q1 — The core dice mechanic — **Settled for now**
+
+- **Skills and saves:** `2d10 + attribute modifier + proficiency` (half proficiency on skills
+  when no relevant specialisation).
+- **Attacks:** `1d20 + attribute modifier + proficiency`.
+- **Success ladder:** ≤10 / 11–14 / 15–21 / 22–26 / 27+, three outcomes, no critical success.
+  See [20-skills.md](20-skills.md#resolution).
+
+Front matter of the source note still says `dice: D20/2d6` — treat that as stale. Dice and
+thresholds stay in `src/config/` so a later change is cheap. The travel table (Q20) now needs
+rescaling to match.
+
+### Q13 — Save target formula — **Saves use the skill mechanic**
+
+Saves are not WWN-style derived targets on `d20`. They roll like skills: `2d10` + attribute +
+save proficiency, against the same graded ladder. Class primary/secondary progression and
+which attribute feeds each save remain under Q30.
+
+### Q29 — Success ladder gap at 17–22 — **Filled**
+
+The ladder is now continuous: ≤10 / 11–14 / 15–21 / 22–26 / 27+.
 
 ### Q2 — Is Strength separate from Constitution? — **No**
 

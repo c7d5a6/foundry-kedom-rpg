@@ -22,9 +22,9 @@ rolling the event directly without a skill check.
 Two observations that matter for implementation:
 
 1. **This table is on a `2d6` scale.** It runs 2 to 12+ with a single value at 5, 6, and 11,
-   which is the shape of a `2d6` distribution — not `2d8`. If the core mechanic settles on
-   `2d8` ([Q1](99-open-questions.md#q1--the-core-dice-mechanic)), this table needs rescaling
-   or it will produce Joyful Sight far too often.
+   which is the shape of a `2d6` distribution. Skills and saves now settle on `2d10`
+   ([20-skills.md](20-skills.md#resolution)), so this table needs rescaling or every result
+   above 12 collapses onto the top row.
 2. **The outcomes are narrative, not mechanical.** Terrible Misfortune and Joyful Sight have
    no defined effects. The table is a prompt list, which is fine for play but means the system
    should present it as a roll table with descriptive results rather than trying to automate

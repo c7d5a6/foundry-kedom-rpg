@@ -165,6 +165,24 @@ level, hit dice, and Effort pools —
 unported development notes (`📥 inbox/WWN Kedom - Quilisa priest.md`,
 `📥 inbox/WWN - Beast class.md`).
 
+### Saves
+
+**Each class has a primary and a secondary save.** Those two progress better than the third.
+The revised source states the rule without naming which save is primary for which class:
+
+> Should have 2 saves — primary and secondary. If Adventurer [is] used so 2 classes combined,
+> then two primaries [are] used; if they are the same, then [the] player can select any second
+> save. Progression for the 2 saves [is] better than for the other one.
+
+So for a full class: pick (or author) primary + secondary; the remaining save is tertiary.
+For Adventurer: take each partial's primary; if both partials share the same primary, the
+player chooses any other save as the secondary.
+
+Which save is primary/secondary per class, and what "better progression" means numerically,
+are [Q30](99-open-questions.md#q30--per-class-primary-and-secondary-saves). The three save
+names themselves are Reflex / Fortitude / Will —
+[40-combat.md](40-combat.md#saves).
+
 ## Implementation note
 
 Race, background, and class are all **items** on the actor, not enumerations, because each

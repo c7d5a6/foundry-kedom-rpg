@@ -10,10 +10,12 @@ document records what Kedom needs to decide rather than what it has decided.
 unarmoured AC of 13. Melee and ranged AC are tracked separately — WWN does this, and the
 critical tables assume it.
 
-**Attack roll** is `1d20 + attribute modifier + proficiency`, compared to target AC. The
-revised source states the attack and save formula directly, and it is the same shape as a
-skill check with a different die: attacks and saves roll **`d20`**, skill checks roll a bell
-curve ([20-skills.md](20-skills.md#resolution)). Inherited from WWN and intentional.
+**Attack roll** is `1d20 + attribute modifier + proficiency`, compared to target AC.
+
+**Saves** use the same formula and success ladder as skill checks:
+`2d10 + attribute modifier + save proficiency`
+([20-skills.md](20-skills.md#resolution)). They are not rolled on `d20` against a derived
+target.
 
 **Shock** damage applies to a miss against a low-AC target, per WWN. Weapons carry
 `shock.damage` and `shock.ac`.
@@ -62,12 +64,16 @@ rules ([Q4](99-open-questions.md#q4--luck-has-no-rules)) rather than a fourth sa
 [10-attributes.md](10-attributes.md#the-two-strain-tracks), which couples the save set to the
 corruption system more tightly than the old four-save set did.
 
-The source also floats folding saves into the skill system entirely — *"maybe saves as
-skills?"* — and admits *"I don't know how to setup dc for them"*. Saves are currently modelled
-WWN-style as a **derived target** rolled against with `1d20` rather than a bonus added to a
-roll. WWN's PC formula is `16 + baseMod + saveMod − best(pair mods) − level`; the Kedom numbers
-and the skills-versus-targets question are both
-[Q13](99-open-questions.md#q13--save-target-formula).
+**Saves share the skill resolution mechanic.** Roll `2d10 + attribute + save proficiency`
+against the same three-outcome ladder as skills
+([20-skills.md](20-skills.md#the-success-ladder)). This closes the older *"maybe saves as
+skills?"* question — they are.
+
+Each class designates a **primary and secondary save** with better progression than the
+third; Adventurer combines the two partials' primaries —
+[30-character-creation.md](30-character-creation.md#saves),
+[Q30](99-open-questions.md#q30--per-class-primary-and-secondary-saves). Which attribute feeds
+each save, and what the numerical progression is, remain open under Q30 / Q4's neighbours.
 
 ## Difficulty numbers
 
@@ -80,10 +86,11 @@ From the equivalence table, Kedom uses fixed difficulty numbers for saves and ch
 | Very Hard | 10 |
 | Incredibly Hard | 12 |
 
-> These are **save/check DCs on a different scale** from the skill-check thresholds in
-> [20-skills.md](20-skills.md), which run 9−/10–12/13–16/17–20/21+. Two difficulty scales coexist,
-> inherited from WWN's split between skill checks and saves. Confusing but consistent with the
-> parent system. Tracked as [Q14](99-open-questions.md#q14--two-difficulty-scales).
+> These are **legacy fixed DCs** from the older equivalence note (critical tables, infection
+> checks, and similar). Skill checks and saves now share the graded ladder in
+> [20-skills.md](20-skills.md#the-success-ladder) (≤10 / 11–14 / 15–21 / 22–26 / 27+). Whether
+> the critical tables should be rewritten onto that ladder is
+> [Q14](99-open-questions.md#q14--two-difficulty-scales).
 
 ## Initiative
 

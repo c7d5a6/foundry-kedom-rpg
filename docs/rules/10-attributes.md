@@ -54,9 +54,9 @@ Derived, never stored. Each is computed by a pure function in `src/derivations/`
 | Armour class | Dexterity + armour | Ascending AC |
 | Melee damage bonus | Might | |
 | Attack bonus | Might or Dexterity + class progression | |
-| Reflex save | — | Formula unstated ([Q13](99-open-questions.md#q13--save-target-formula)) |
-| Fortitude save | — | Formula unstated |
-| Will save | — | Formula unstated |
+| Reflex save | — | Roll `2d10` + save proficiency ([20-skills.md](20-skills.md#resolution)); which attribute feeds each save, and class primary/secondary, still open ([Q30](99-open-questions.md#q30--per-class-primary-and-secondary-saves)) |
+| Fortitude save | — | same |
+| Will save | — | same |
 
 > **The source's secondary section still uses the old attribute names** — it says `strain
 > (wisdom)`, `melee damage bonus (str)`, `attack bonus (str/dex)` while the primary list above
