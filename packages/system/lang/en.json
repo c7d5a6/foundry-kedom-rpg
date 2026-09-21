@@ -23,21 +23,36 @@
       "injury": "Injury"
     }
   },
-
   "KEDOM": {
     "System": {
       "Title": "Kedom RPG"
     },
-
     "Ability": {
-      "mgh": { "label": "Might", "abbr": "MGH" },
-      "dex": { "label": "Dexterity", "abbr": "DEX" },
-      "kno": { "label": "Knowledge", "abbr": "KNO" },
-      "foc": { "label": "Focus", "abbr": "FOC" },
-      "pre": { "label": "Presence", "abbr": "PRE" },
-      "lck": { "label": "Luck", "abbr": "LCK" }
+      "mgh": {
+        "label": "Might",
+        "abbr": "MGH"
+      },
+      "dex": {
+        "label": "Dexterity",
+        "abbr": "DEX"
+      },
+      "kno": {
+        "label": "Knowledge",
+        "abbr": "KNO"
+      },
+      "foc": {
+        "label": "Focus",
+        "abbr": "FOC"
+      },
+      "pre": {
+        "label": "Presence",
+        "abbr": "PRE"
+      },
+      "lck": {
+        "label": "Luck",
+        "abbr": "LCK"
+      }
     },
-
     "Skill": {
       "arcana": "Arcana",
       "conduct": "Conduct",
@@ -59,7 +74,6 @@
       "work": "Work",
       "worship": "Worship"
     },
-
     "Proficiency": {
       "untrained": "Untrained",
       "apprentice": "Apprentice",
@@ -68,13 +82,11 @@
       "master": "Master",
       "legendary": "Legendary"
     },
-
     "Outcome": {
       "failure": "Failure",
       "cost": "Success at a Cost",
       "success": "Success"
     },
-
     "Sheet": {
       "Character": "Kedom Character Sheet",
       "Abilities": "Abilities",
@@ -103,31 +115,30 @@
         "edit": "Edit",
         "delete": "Delete",
         "equip": "Equip",
-        "unequip": "Unequip"
+        "unequip": "Unequip",
+        "addSpecialization": "Add specialization to {skill}",
+        "addSpecializationShort": "+ Specialization"
       },
-      "searchPlaceholder": "Search"
+      "searchPlaceholder": "Search",
+      "SpecializationLabel": "Specialization"
     },
-
     "Chat": {
       "Dice": "dice",
       "Total": "Total",
       "UnknownSkill": "Unknown skill: {skill}",
       "MissingSkillData": "Character data missing ability or skill."
     },
-
     "Save": {
       "reflex": "Reflex",
       "fortitude": "Fortitude",
       "will": "Will"
     },
-
     "Difficulty": {
       "challenging": "Challenging",
       "hard": "Hard",
       "veryHard": "Very Hard",
       "incrediblyHard": "Incredibly Hard"
     },
-
     "Attributes": {
       "hp": "Hit Points",
       "hpShort": "HP",
@@ -145,7 +156,6 @@
       "level": "Level",
       "experience": "Experience"
     },
-
     "Condition": {
       "stunned": "Stunned",
       "paralyzed": "Paralyzed",
@@ -158,7 +168,6 @@
       "wounded": "Wounded",
       "strained": "Strained"
     },
-
     "Injury": {
       "Severity": {
         "minor": "Minor",
@@ -183,7 +192,6 @@
         "explosion": "Explosion"
       }
     },
-
     "Roll": {
       "Modifier": {
         "ability": "{ability} modifier",
@@ -192,7 +200,8 @@
         "untrained": "Untrained",
         "armorPenalty": "Armor penalty",
         "situational": "Situational",
-        "effect": "{effect}"
+        "effect": "{effect}",
+        "halfProficiency": "{proficiency} (half)"
       },
       "Dialog": {
         "title": "Configure Roll",
@@ -201,17 +210,92 @@
         "submit": "Roll"
       }
     },
-
     "Error": {
       "SheetRender": "The Kedom sheet failed to render. See the console for details.",
       "UnknownSkillSlug": "No skill is registered with the slug \"{slug}\".",
       "UnknownSpecializationSlug": "No specialization is registered with the slug \"{slug}\"."
     },
-
     "Settings": {
       "MigrationVersion": {
         "name": "Last migration version",
         "hint": "Internal. The system data version this world was last migrated to."
+      }
+    },
+    "Specialization": {
+      "conduct": {
+        "bureaucracy": "Bureaucracy",
+        "etiquette": "Etiquette",
+        "law": "Law",
+        "organizations": "Organizations",
+        "politics": "Politics",
+        "rumors": "Rumors",
+        "streetwise": "Streetwise"
+      },
+      "convince": {
+        "charm": "Charm",
+        "command": "Command",
+        "deception": "Deception",
+        "haggle": "Haggle",
+        "intimidation": "Intimidation",
+        "performance": "Performance",
+        "persuasion": "Persuasion"
+      },
+      "guile": {
+        "disguise": "Disguise",
+        "forgery": "Forgery",
+        "fraud": "Fraud",
+        "gambling": "Gambling",
+        "poisons": "Poisons",
+        "traps": "Traps"
+      },
+      "heal": {
+        "diagnosis": "Diagnosis",
+        "firstAid": "First Aid",
+        "pharmacology": "Pharmacology",
+        "psychology": "Psychology",
+        "rehabilitation": "Rehabilitation",
+        "surgery": "Surgery",
+        "toxicology": "Toxicology"
+      },
+      "investigate": {
+        "appraisal": "Appraisal",
+        "cryptography": "Cryptography",
+        "investigation": "Investigation",
+        "libraryUse": "Library Use",
+        "research": "Research",
+        "search": "Search"
+      },
+      "notice": {
+        "anomalies": "Anomalies",
+        "awareness": "Awareness",
+        "detail": "Detail",
+        "farsight": "Farsight",
+        "hidden": "Hidden",
+        "insight": "Insight",
+        "listen": "Listen"
+      },
+      "prowl": {
+        "backstabbing": "Backstabbing",
+        "climbing": "Climbing",
+        "hide": "Hide",
+        "lockpicking": "Lockpicking",
+        "sleightOfHand": "Sleight of Hand",
+        "sneaking": "Sneaking"
+      },
+      "survive": {
+        "foraging": "Foraging",
+        "scouting": "Scouting",
+        "shelter": "Shelter",
+        "tracking": "Tracking"
+      },
+      "travel": {
+        "hiking": "Hiking",
+        "riding": "Riding",
+        "driving": "Driving",
+        "sailing": "Sailing",
+        "exotic": "Exotic",
+        "navigation": "Navigation",
+        "orientation": "Orientation"
       }
     }
   }

@@ -7,12 +7,19 @@ import {
   type ProficiencyTier,
   type SkillKey,
 } from "../config/kedom.ts";
-import type { CharacterData } from "../data/actor/character.ts";
+import { SKILL_SPECIALIZATION_KIND } from "../config/specializations.ts";
+import type { CharacterData, SkillFields } from "../data/actor/character.ts";
+import { appliedProficiencyBonus } from "../derivations/skill-proficiency.ts";
 import { collectSkillCheckModifiers } from "./collectors.ts";
 import { labeledCheckFormula } from "./labeled-formula.ts";
 import { resolveOutcome } from "./resolve-outcome.ts";
 
 const CHECK_TEMPLATE = "systems/kedom/templates/chat/check.hbs";
+
+export type SkillCheckOptions = {
+  /** When set, full proficiency; otherwise half (unless the skill has no specialisations). */
+  specializationSlug?: string;
+};
 
 function localize(path: string, fallback: string): string {
   const v = game.i18n.localize(path);
@@ -31,7 +38,6 @@ function verdictFor(outcome: GradedOutcome): {
       iconKind: "failure",
     };
   }
-  // Success and success-at-a-cost both read as Success; cost uses fail icons.
   return {
     verdictKind: "success",
     verdictLabel: localize("KEDOM.Outcome.success", "Success"),
@@ -58,7 +64,11 @@ export function placeCheckDegreeIcons(html: HTMLElement): void {
   total.insertAdjacentElement("beforebegin", degrees);
 }
 
-export async function rollSkillCheck(actor: Actor.Implementation, skillKey: string): Promise<void> {
+export async function rollSkillCheck(
+  actor: Actor.Implementation,
+  skillKey: string,
+  options: SkillCheckOptions = {},
+): Promise<void> {
   if (!(skillKey in SKILL_ABILITY)) {
     ui.notifications.error(game.i18n.format("KEDOM.Chat.UnknownSkill", { skill: skillKey }));
     return;
@@ -73,18 +83,43 @@ export async function rollSkillCheck(actor: Actor.Implementation, skillKey: stri
 
   const system = actor.system as CharacterData;
   const ability = (system.abilities as Record<string, { mod?: number }>)[abilityKey];
-  const skill = (system.skills as Record<SkillKey, { proficiency: string }>)[key];
+  const skill = (system.skills as Record<SkillKey, SkillFields>)[key];
   if (!ability || !skill) {
     ui.notifications.error(game.i18n.localize("KEDOM.Chat.MissingSkillData"));
     return;
   }
 
+  const kind = SKILL_SPECIALIZATION_KIND[key];
+  const specializationSlug = options.specializationSlug;
+  let specializationLabel: string | null = null;
+  let specialized = kind === "none";
+
+  if (specializationSlug !== undefined) {
+    const found = skill.specializations.find((s) => s.slug === specializationSlug);
+    if (!found) {
+      ui.notifications.error(
+        game.i18n.format("KEDOM.Error.UnknownSpecializationSlug", { slug: specializationSlug }),
+      );
+      return;
+    }
+    specialized = true;
+    specializationLabel = found.label;
+  }
+
   const proficiency = skill.proficiency as ProficiencyTier;
-  const proficiencyBonus = PROFICIENCY_BONUS[proficiency] ?? -2;
+  const tierBonus = PROFICIENCY_BONUS[proficiency] ?? -2;
+  const proficiencyBonus = appliedProficiencyBonus({ tierBonus, specialized });
 
   const skillLabel = localize(`KEDOM.Skill.${key}`, key);
   const abilityLabel = localize(`KEDOM.Ability.${abilityKey}.label`, abilityKey);
-  const proficiencyLabel = localize(`KEDOM.Proficiency.${proficiency}`, proficiency);
+  const tierLabel = localize(`KEDOM.Proficiency.${proficiency}`, proficiency);
+  const proficiencyLabel = specialized
+    ? specializationLabel !== null
+      ? game.i18n.format("KEDOM.Roll.Modifier.specialization", {
+          specialization: specializationLabel,
+        })
+      : tierLabel
+    : game.i18n.format("KEDOM.Roll.Modifier.halfProficiency", { proficiency: tierLabel });
   const abilityMod = ability.mod ?? 0;
 
   const modifiers = collectSkillCheckModifiers({
@@ -96,9 +131,14 @@ export async function rollSkillCheck(actor: Actor.Implementation, skillKey: stri
     proficiency,
     proficiencyBonus,
     proficiencyLabel,
+    specialized,
+    specializationSlug: specializationSlug ?? null,
+    specializationLabel,
   });
 
-  const formula = labeledCheckFormula(SKILL_CHECK_DICE, skillLabel, modifiers);
+  const formulaLabel =
+    specializationLabel !== null ? `${skillLabel} (${specializationLabel})` : skillLabel;
+  const formula = labeledCheckFormula(SKILL_CHECK_DICE, formulaLabel, modifiers);
   const roll = await new Roll(formula).evaluate();
   const total = roll.total ?? 0;
   const outcome = resolveOutcome({ total, difficulty: DEFAULT_DIFFICULTY });
@@ -109,14 +149,12 @@ export async function rollSkillCheck(actor: Actor.Implementation, skillKey: stri
     verdictKind: verdict.verdictKind,
     verdictLabel: verdict.verdictLabel,
     degreeIcons: degreeIcons(outcome.degree, verdict.iconKind),
-    // Custom HTML content prevents core from appending roll.render() itself
-    // (ChatMessage#renderRollContent only injects when content has no elements).
     rollHTML: await roll.render(),
   });
 
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: actor as Actor.Stored }),
-    flavor: skillLabel,
+    flavor: formulaLabel,
     content,
     rolls: [roll],
     sound: CONFIG.sounds.dice,

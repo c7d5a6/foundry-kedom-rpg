@@ -29,16 +29,86 @@
     <h2>{{localize "KEDOM.Sheet.Skills"}}</h2>
     <div class="skill-list">
       {{#each skills}}
-        <div class="skill-row">
-          <span>{{label}} <small>({{abilityAbbr}})</small></span>
-          <select name="system.skills.{{key}}.proficiency">
-            {{#each proficiencyOptions}}
-              <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
-            {{/each}}
-          </select>
-          <button type="button" data-action="rollSkill" data-skill-key="{{key}}">
-            {{localize "KEDOM.Sheet.Roll"}}
-          </button>
+        <div class="kedom-skill {{proficiencyClass}}">
+          <div class="kedom-skill__row">
+            <button
+              type="button"
+              class="kedom-skill__name"
+              data-action="rollSkill"
+              data-skill-key="{{key}}"
+            >
+              {{label}}
+              <small>({{abilityAbbr}})</small>
+            </button>
+            <select name="system.skills.{{key}}.proficiency">
+              {{#each proficiencyOptions}}
+                {{#if selected}}
+                  <option value="{{value}}" selected>{{label}}</option>
+                {{else}}
+                  <option value="{{value}}">{{label}}</option>
+                {{/if}}
+              {{/each}}
+            </select>
+          </div>
+
+          {{#if allowsSpecialization}}
+            <ul class="kedom-skill__specs">
+              {{#each specializations}}
+                <li class="kedom-skill__spec">
+                  <button
+                    type="button"
+                    class="kedom-skill__spec-name"
+                    data-action="rollSpecialization"
+                    data-skill-key="{{skillKey}}"
+                    data-specialization-slug="{{slug}}"
+                  >
+                    {{label}}
+                  </button>
+                  <button
+                    type="button"
+                    class="kedom-skill__spec-remove"
+                    data-action="removeSpecialization"
+                    data-skill-key="{{skillKey}}"
+                    data-specialization-slug="{{slug}}"
+                    title="{{localize 'KEDOM.Sheet.Action.delete'}}"
+                  >
+                    ×
+                  </button>
+                </li>
+              {{/each}}
+            </ul>
+
+            {{#if isFree}}
+              <button
+                type="button"
+                class="kedom-skill__add"
+                data-action="addSpecialization"
+                data-skill-key="{{key}}"
+              >
+                {{localize "KEDOM.Sheet.Action.addSpecializationShort"}}
+              </button>
+            {{/if}}
+
+            {{#if isFixed}}
+              {{#if availableFixed.length}}
+                <div class="kedom-skill__fixed-add">
+                  <select class="kedom-skill__fixed-select" data-skill-key="{{key}}">
+                    {{#each availableFixed}}
+                      <option value="{{leaf}}">{{label}}</option>
+                    {{/each}}
+                  </select>
+                  <button
+                    type="button"
+                    class="kedom-skill__add"
+                    data-action="addSpecialization"
+                    data-skill-key="{{key}}"
+                  >
+                    +
+                  </button>
+                </div>
+              {{/if}}
+            {{/if}}
+          {{/if}}
         </div>
       {{/each}}
     </div>

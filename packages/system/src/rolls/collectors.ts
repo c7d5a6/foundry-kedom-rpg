@@ -19,6 +19,9 @@ export type SkillCheckContext = {
   proficiency: string;
   proficiencyBonus: number;
   proficiencyLabel: string;
+  specialized: boolean;
+  specializationSlug: string | null;
+  specializationLabel: string | null;
 };
 
 export function collectAbilityModifier(ctx: SkillCheckContext): Modifier[] {
@@ -33,6 +36,19 @@ export function collectAbilityModifier(ctx: SkillCheckContext): Modifier[] {
 }
 
 export function collectProficiency(ctx: SkillCheckContext): Modifier[] {
+  if (ctx.specialized && ctx.specializationSlug !== null && ctx.specializationLabel !== null) {
+    return [
+      {
+        label: ctx.proficiencyLabel,
+        value: ctx.proficiencyBonus,
+        source: {
+          id: `skill.${ctx.skillKey}.specialization.${ctx.specializationSlug}`,
+          label: ctx.specializationLabel,
+        },
+        kind: "specialization",
+      },
+    ];
+  }
   return [
     {
       label: ctx.proficiencyLabel,

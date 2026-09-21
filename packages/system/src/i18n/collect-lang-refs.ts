@@ -1,4 +1,15 @@
 import { ABILITY_KEYS, OUTCOME_KINDS, PROFICIENCY_TIERS, SKILL_KEYS } from "../config/kedom.ts";
+import { SKILL_FIXED_SPECIALIZATIONS } from "../config/specializations.ts";
+
+function fixedSpecializationLangKeys(): string[] {
+  const keys: string[] = [];
+  for (const [skill, leaves] of Object.entries(SKILL_FIXED_SPECIALIZATIONS)) {
+    for (const leaf of leaves ?? []) {
+      keys.push(`KEDOM.Specialization.${skill}.${leaf}`);
+    }
+  }
+  return keys;
+}
 
 /** Static `"KEDOM.…"` / `"TYPES.…"` string literals (quotes or backticks without `${`). */
 const STATIC_KEY = /(?<!\$\{)["'`]((?:KEDOM|TYPES)(?:\.[A-Za-z_][A-Za-z0-9_]*)+)["'`]/g;
@@ -34,6 +45,10 @@ const TEMPLATE_EXPANDERS: {
     pattern: /^KEDOM\.Outcome\.\$\{[^}]+\}$/,
     expand: () => OUTCOME_KINDS.map((o) => `KEDOM.Outcome.${o}`),
   },
+  {
+    pattern: /^KEDOM\.Specialization\.\$\{[^}]+\}\.\$\{[^}]+\}$/,
+    expand: () => fixedSpecializationLangKeys(),
+  },
 ];
 
 /** Keys every config enum must have labels for, even before first reference. */
@@ -43,6 +58,7 @@ export function configDrivenLangKeys(): string[] {
     ...SKILL_KEYS.map((k) => `KEDOM.Skill.${k}`),
     ...PROFICIENCY_TIERS.map((t) => `KEDOM.Proficiency.${t}`),
     ...OUTCOME_KINDS.map((o) => `KEDOM.Outcome.${o}`),
+    ...fixedSpecializationLangKeys(),
   ];
 }
 

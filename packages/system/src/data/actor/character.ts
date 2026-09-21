@@ -7,7 +7,7 @@ import {
 } from "../../config/kedom.ts";
 import { abilityModifier } from "../../derivations/ability-mod.ts";
 
-const { NumberField, SchemaField, StringField } = foundry.data.fields;
+const { ArrayField, NumberField, SchemaField, StringField } = foundry.data.fields;
 
 function abilitySchema() {
   return new SchemaField({
@@ -28,6 +28,13 @@ function abilitySchema() {
   });
 }
 
+function specializationSchema() {
+  return new SchemaField({
+    slug: new StringField({ required: true, nullable: false, blank: false }),
+    label: new StringField({ required: true, nullable: false, blank: false }),
+  });
+}
+
 function skillSchema() {
   return new SchemaField({
     proficiency: new StringField({
@@ -37,6 +44,7 @@ function skillSchema() {
       choices: [...PROFICIENCY_TIERS],
       initial: "untrained",
     }),
+    specializations: new ArrayField(specializationSchema(), { initial: [] }),
   });
 }
 
@@ -60,6 +68,13 @@ function characterSchema() {
 export type CharacterSchema = ReturnType<typeof characterSchema>;
 
 type AbilityFields = { value: number; baseMod: number; mod?: number };
+
+export type SkillSpecialization = { slug: string; label: string };
+
+export type SkillFields = {
+  proficiency: string;
+  specializations: SkillSpecialization[];
+};
 
 export class CharacterData extends foundry.abstract.TypeDataModel<
   CharacterSchema,

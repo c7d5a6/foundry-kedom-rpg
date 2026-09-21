@@ -23,21 +23,36 @@
       "injury": "Травма"
     }
   },
-
   "KEDOM": {
     "System": {
       "Title": "Kedom RPG"
     },
-
     "Ability": {
-      "mgh": { "label": "Мощь", "abbr": "МЩ" },
-      "dex": { "label": "Ловкость", "abbr": "ЛВК" },
-      "kno": { "label": "Знание", "abbr": "ЗНН" },
-      "foc": { "label": "Средоточие", "abbr": "СРД" },
-      "pre": { "label": "Присутствие", "abbr": "ПРС" },
-      "lck": { "label": "Удача", "abbr": "УДЧ" }
+      "mgh": {
+        "label": "Мощь",
+        "abbr": "МЩ"
+      },
+      "dex": {
+        "label": "Ловкость",
+        "abbr": "ЛВК"
+      },
+      "kno": {
+        "label": "Знание",
+        "abbr": "ЗНН"
+      },
+      "foc": {
+        "label": "Средоточие",
+        "abbr": "СРД"
+      },
+      "pre": {
+        "label": "Присутствие",
+        "abbr": "ПРС"
+      },
+      "lck": {
+        "label": "Удача",
+        "abbr": "УДЧ"
+      }
     },
-
     "Skill": {
       "arcana": "Аркана",
       "conduct": "Обхождение",
@@ -59,7 +74,6 @@
       "work": "Труд",
       "worship": "Поклонение"
     },
-
     "Proficiency": {
       "untrained": "Необученный",
       "apprentice": "Ученик",
@@ -68,13 +82,11 @@
       "master": "Мастер",
       "legendary": "Легендарный"
     },
-
     "Outcome": {
       "failure": "Провал",
       "cost": "Успех ценой",
       "success": "Успех"
     },
-
     "Sheet": {
       "Character": "Лист персонажа Kedom",
       "Abilities": "Характеристики",
@@ -103,31 +115,30 @@
         "edit": "Изменить",
         "delete": "Удалить",
         "equip": "Надеть",
-        "unequip": "Снять"
+        "unequip": "Снять",
+        "addSpecialization": "Добавить специализацию к «{skill}»",
+        "addSpecializationShort": "+ Специализация"
       },
-      "searchPlaceholder": "Поиск"
+      "searchPlaceholder": "Поиск",
+      "SpecializationLabel": "Специализация"
     },
-
     "Chat": {
       "Dice": "кости",
       "Total": "Итого",
       "UnknownSkill": "Неизвестный навык: {skill}",
       "MissingSkillData": "У персонажа нет характеристики или навыка."
     },
-
     "Save": {
       "reflex": "Реакция",
       "fortitude": "Стойкость",
       "will": "Воля"
     },
-
     "Difficulty": {
       "challenging": "Сложно",
       "hard": "Трудно",
       "veryHard": "Очень трудно",
       "incrediblyHard": "Невероятно трудно"
     },
-
     "Attributes": {
       "hp": "Пункты здоровья",
       "hpShort": "ПЗ",
@@ -145,7 +156,6 @@
       "level": "Уровень",
       "experience": "Опыт"
     },
-
     "Condition": {
       "stunned": "Оглушён",
       "paralyzed": "Парализован",
@@ -158,7 +168,6 @@
       "wounded": "Ранен",
       "strained": "Перенапряжён"
     },
-
     "Injury": {
       "Severity": {
         "minor": "Лёгкая",
@@ -183,7 +192,6 @@
         "explosion": "Взрыв"
       }
     },
-
     "Roll": {
       "Modifier": {
         "ability": "модификатор {ability}",
@@ -192,7 +200,8 @@
         "untrained": "Необученный",
         "armorPenalty": "Штраф доспеха",
         "situational": "Ситуативный",
-        "effect": "{effect}"
+        "effect": "{effect}",
+        "halfProficiency": "{proficiency} (половина)"
       },
       "Dialog": {
         "title": "Настройка броска",
@@ -201,17 +210,92 @@
         "submit": "Бросок"
       }
     },
-
     "Error": {
       "SheetRender": "Лист Kedom не удалось отрисовать. Подробности в консоли.",
       "UnknownSkillSlug": "Навык со слагом «{slug}» не зарегистрирован.",
       "UnknownSpecializationSlug": "Специализация со слагом «{slug}» не зарегистрирована."
     },
-
     "Settings": {
       "MigrationVersion": {
         "name": "Версия последней миграции",
         "hint": "Служебное. Версия данных системы, до которой этот мир уже мигрирован."
+      }
+    },
+    "Specialization": {
+      "conduct": {
+        "bureaucracy": "Бюрократия",
+        "etiquette": "Этикет",
+        "law": "Право",
+        "organizations": "Организации",
+        "politics": "Политика",
+        "rumors": "Слухи",
+        "streetwise": "Улица"
+      },
+      "convince": {
+        "charm": "Обаяние",
+        "command": "Команда",
+        "deception": "Обман",
+        "haggle": "Торг",
+        "intimidation": "Запугивание",
+        "performance": "Выступление",
+        "persuasion": "Убеждение"
+      },
+      "guile": {
+        "disguise": "Маскировка",
+        "forgery": "Подделка",
+        "fraud": "Мошенничество",
+        "gambling": "Азартные игры",
+        "poisons": "Яды",
+        "traps": "Ловушки"
+      },
+      "heal": {
+        "diagnosis": "Диагностика",
+        "firstAid": "Первая помощь",
+        "pharmacology": "Фармакология",
+        "psychology": "Психология",
+        "rehabilitation": "Реабилитация",
+        "surgery": "Хирургия",
+        "toxicology": "Токсикология"
+      },
+      "investigate": {
+        "appraisal": "Оценка",
+        "cryptography": "Криптография",
+        "investigation": "Следствие",
+        "libraryUse": "Работа с библиотекой",
+        "research": "Исследование",
+        "search": "Поиск"
+      },
+      "notice": {
+        "anomalies": "Аномалии",
+        "awareness": "Настороженность",
+        "detail": "Детали",
+        "farsight": "Дальнозоркость",
+        "hidden": "Скрытое",
+        "insight": "Проницательность",
+        "listen": "Слух"
+      },
+      "prowl": {
+        "backstabbing": "Удар в спину",
+        "climbing": "Лазание",
+        "hide": "Укрытие",
+        "lockpicking": "Взлом замков",
+        "sleightOfHand": "Ловкость рук",
+        "sneaking": "Крадучись"
+      },
+      "survive": {
+        "foraging": "Добыча пищи",
+        "scouting": "Разведка",
+        "shelter": "Укрытие",
+        "tracking": "Выслеживание"
+      },
+      "travel": {
+        "hiking": "Пеший ход",
+        "riding": "Верховая езда",
+        "driving": "Вождение",
+        "sailing": "Парус",
+        "exotic": "Экзотика",
+        "navigation": "Навигация",
+        "orientation": "Ориентирование"
       }
     }
   }
