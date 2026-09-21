@@ -64,6 +64,7 @@ export default defineConfig({
         { src: "system.json", dest: "." },
         { src: "lang", dest: "." },
         { src: "templates", dest: "." },
+        { src: "assets", dest: "." },
         { src: "README.md", dest: "." },
         { src: "../../LICENSE", dest: "." },
       ],
