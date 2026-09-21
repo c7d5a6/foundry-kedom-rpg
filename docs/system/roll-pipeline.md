@@ -113,23 +113,22 @@ The expression is per-check-type, not global.
 
 **ADR-008 is deferred:** implement banding once sourced modifiers and chat breakdowns work.
 Until then, evaluate the roll total and show the modifier list; mapping onto
-`failure | cost | success` can call a thin config-driven helper when ready.
+`{ kind, degree }` can call the pure helper in `rolls/resolve-outcome.ts`.
 
-Intended shape (not binding yet):
+Intended shape (now matching the helper):
 
 ```
 resolveOutcome(input: {
   total: number
-  difficulty: ProficiencyTier
-  thresholds: OutcomeThresholds  // from config
+  difficulty: DifficultyColumn
 }): {
-  outcome: "failure" | "cost" | "success"
-  margin: number
+  kind: "failure" | "cost" | "success"
+  degree: number
 }
 ```
 
-The rules ladder is in [../rules/20-skills.md](../rules/20-skills.md) — three outcomes, no
-skill critical success
+The rules ladder is in [../rules/20-skills.md](../rules/20-skills.md) — three kinds with
+degree stored per cell, no skill critical-success kind
 ([Q6](../rules/99-open-questions.md#q6--critical-success-versus-the-legendary-tier--critical-success-removed)).
 Critical **injuries** ([../rules/80-criticals.md](../rules/80-criticals.md)) are a separate
 combat subsystem.

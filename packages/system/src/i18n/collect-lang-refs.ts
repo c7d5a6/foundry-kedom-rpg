@@ -1,6 +1,4 @@
-import { ABILITY_KEYS, PROFICIENCY_TIERS, SKILL_KEYS } from "../config/kedom.ts";
-
-const OUTCOME_KEYS = ["failure", "cost", "success"] as const;
+import { ABILITY_KEYS, OUTCOME_KINDS, PROFICIENCY_TIERS, SKILL_KEYS } from "../config/kedom.ts";
 
 /** Static `"KEDOM.…"` / `"TYPES.…"` string literals (quotes or backticks without `${`). */
 const STATIC_KEY = /(?<!\$\{)["'`]((?:KEDOM|TYPES)(?:\.[A-Za-z_][A-Za-z0-9_]*)+)["'`]/g;
@@ -34,7 +32,7 @@ const TEMPLATE_EXPANDERS: {
   },
   {
     pattern: /^KEDOM\.Outcome\.\$\{[^}]+\}$/,
-    expand: () => OUTCOME_KEYS.map((o) => `KEDOM.Outcome.${o}`),
+    expand: () => OUTCOME_KINDS.map((o) => `KEDOM.Outcome.${o}`),
   },
 ];
 
@@ -44,7 +42,7 @@ export function configDrivenLangKeys(): string[] {
     ...ABILITY_KEYS.flatMap((k) => [`KEDOM.Ability.${k}.label`, `KEDOM.Ability.${k}.abbr`]),
     ...SKILL_KEYS.map((k) => `KEDOM.Skill.${k}`),
     ...PROFICIENCY_TIERS.map((t) => `KEDOM.Proficiency.${t}`),
-    ...OUTCOME_KEYS.map((o) => `KEDOM.Outcome.${o}`),
+    ...OUTCOME_KINDS.map((o) => `KEDOM.Outcome.${o}`),
   ];
 }
 

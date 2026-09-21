@@ -255,7 +255,8 @@ Kept for the record, because each shaped a decision already written into the doc
 - **Skills and saves:** `2d10 + attribute modifier + proficiency` (half proficiency on skills
   when no relevant specialisation).
 - **Attacks:** `1d20 + attribute modifier + proficiency`.
-- **Success ladder:** ≤10 / 11–14 / 15–21 / 22–26 / 27+, three outcomes, no critical success.
+- **Success ladder:** ≤10 / 11–14 / 15–21 / 22–26 / 27+, three kinds with stored degrees, no
+  critical-success kind.
   See [20-skills.md](20-skills.md#resolution).
 
 Front matter of the source note still says `dice: D20/2d6` — treat that as stale. Dice and
@@ -293,9 +294,14 @@ racial modifier needs rechecking against the merge.
 
 The contradiction was between a ladder saying "17+ is a critical success" and a table saying
 "17–20 versus Legendary is success with a cost". The revised source **drops the critical
-outcome entirely**, leaving three: failure, success with a cost, success.
+outcome as a separate kind**, leaving three kinds: failure, success with a cost, success.
 
-The tier function therefore returns one of three outcomes and needs no orthogonal critical
+Degrees of failure and success are stored beside the kind in the same breakpoints (Failure
+1…n, Success 1…n, cost always degree 1). They are not a fourth kind and do not restore
+"critical success" as a label — see
+[20-skills.md](20-skills.md#the-success-ladder).
+
+The resolve helper looks up `{ kind, degree }` from the table and needs no orthogonal critical
 flag, simplifying
 [ADR-008](../research/05-decisions.md#adr-008--outcome-banding-deferred-collect-values-first).
 Note this concerns *critical success on skill checks*; critical **injuries** in

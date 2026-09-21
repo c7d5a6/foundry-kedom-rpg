@@ -28,7 +28,8 @@ something not yet ported, it is listed in [99-open-questions.md](99-open-questio
 - **Skills over classes.** A character is defined mainly by what they can do, through a broad
   skill list with narrow specialisations.
 - **Graded outcomes.** A roll is not pass or fail. The ladder runs failure → success with a
-  cost → success, so partial success drives the fiction.
+  cost → success, each cell carrying a **degree**, so partial success and strong results both
+  drive the fiction.
 - **Attrition, not hit-point inflation.** Wounds, System Strain, and encumbrance are the
   pressure. Healing is slow.
 - **OSR procedure.** Exploration and travel are structured with real decisions and real

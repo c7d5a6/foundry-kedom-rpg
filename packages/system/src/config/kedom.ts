@@ -68,14 +68,26 @@ export type DifficultyColumn = (typeof DIFFICULTY_COLUMNS)[number];
 /** Default until the check dialog can pick another column. */
 export const DEFAULT_DIFFICULTY: DifficultyColumn = "trained";
 
-type Outcome = "failure" | "cost" | "success";
-type OutcomeBand = { max: number | null } & Record<DifficultyColumn, Outcome>;
+export const OUTCOME_KINDS = ["failure", "cost", "success"] as const;
+export type OutcomeKind = (typeof OUTCOME_KINDS)[number];
 
-/** Ladder bands for optional outcome label (ADR-008 deferred; still useful in chat). */
+export interface GradedOutcome {
+  kind: OutcomeKind;
+  /** Strength of that kind; cost is always 1. */
+  degree: number;
+}
+
+type OutcomeBand = { max: number | null } & Record<DifficultyColumn, GradedOutcome>;
+
+const F = (degree: number): GradedOutcome => ({ kind: "failure", degree });
+const C: GradedOutcome = { kind: "cost", degree: 1 };
+const S = (degree: number): GradedOutcome => ({ kind: "success", degree });
+
+/** Ladder bands: roll ceiling → kind and degree per difficulty column. */
 export const OUTCOME_BANDS: readonly OutcomeBand[] = [
-  { max: 10, easy: "failure", trained: "failure", hard: "failure", legendary: "failure" },
-  { max: 14, easy: "success", trained: "cost", hard: "failure", legendary: "failure" },
-  { max: 21, easy: "success", trained: "success", hard: "cost", legendary: "failure" },
-  { max: 26, easy: "success", trained: "success", hard: "success", legendary: "cost" },
-  { max: null, easy: "success", trained: "success", hard: "success", legendary: "success" },
+  { max: 10, easy: F(1), trained: F(1), hard: F(2), legendary: F(3) },
+  { max: 14, easy: S(1), trained: C, hard: F(1), legendary: F(2) },
+  { max: 21, easy: S(2), trained: S(1), hard: C, legendary: F(1) },
+  { max: 26, easy: S(3), trained: S(2), hard: S(1), legendary: C },
+  { max: null, easy: S(4), trained: S(3), hard: S(2), legendary: S(1) },
 ];

@@ -57,22 +57,25 @@ better progression — see [30-character-creation.md](30-character-creation.md#s
 
 ## The success ladder
 
-Outcomes are **failure**, **success with a cost**, and **success**. Difficulty is a tier, and
-the tier shifts what each band means — a total of 12 is a clean success against an easy task
-and a flat failure against a legendary one.
+Outcomes are a **kind** plus a **degree**: failure, success with a cost, or success. Difficulty
+is a column on the table; each cell stores both the kind and the degree — a total of 12 is
+Success 1 against an easy task and Failure 2 against a legendary one. Cost is always degree 1.
 
 | Roll | Easy / Untrained | Trained / Expert | Hard / Master | Legendary |
 |---|---|---|---|---|
-| ≤10 | Failure | Failure | Failure | Failure |
-| 11–14 | Success | Success with a cost | Failure | Failure |
-| 15–21 | Success | Success | Success with a cost | Failure |
-| 22–26 | Success | Success | Success | Success with a cost |
-| 27+ | Success | Success | Success | Success |
+| ≤10 | Failure 1 | Failure 1 | Failure 2 | Failure 3 |
+| 11–14 | Success 1 | Success at a cost | Failure 1 | Failure 2 |
+| 15–21 | Success 2 | Success 1 | Success at a cost | Failure 1 |
+| 22–26 | Success 3 | Success 2 | Success 1 | Success at a cost |
+| 27+ | Success 4 | Success 3 | Success 2 | Success 1 |
 
-The source writes the first row as `-10`, read as **≤10**.
+The source writes the first row as `-10`, read as **≤10**. The table is configuration in
+`src/config/` (`OUTCOME_BANDS`); retuning a cell does not change the resolve helper.
 
-**Critical success remains gone.** Three outcomes only. That still resolves what used to be
-Q6.
+There is still no separate “critical success” kind — higher success degrees are just stronger
+successes on this table. That keeps
+[Q6](99-open-questions.md#q6--critical-success-versus-the-legendary-tier--critical-success-removed)
+settled.
 
 ### How the bands sit on 2d10
 

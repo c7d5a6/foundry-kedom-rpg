@@ -249,8 +249,9 @@ check message:
   difficulty
 ```
 
-`outcome` is one of three values — failure, success with a cost, success. There is no separate
-critical flag on skill checks; the revised rules dropped critical success
+`outcome` is `{ kind, degree }` looked up from the difficulty column of the success ladder
+(see [../rules/20-skills.md](../rules/20-skills.md#the-success-ladder)). There is no separate
+critical flag on skill checks; the revised rules dropped critical success as a kind
 ([Q6](../rules/99-open-questions.md#q6--critical-success-versus-the-legendary-tier--critical-success-removed)).
 
 Because the modifier list is persisted with labels, the card can explain itself — "14 = 9

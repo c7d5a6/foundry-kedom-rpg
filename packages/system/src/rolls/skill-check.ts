@@ -1,26 +1,28 @@
 import {
   DEFAULT_DIFFICULTY,
-  OUTCOME_BANDS,
   PROFICIENCY_BONUS,
   SKILL_ABILITY,
   SKILL_CHECK_DICE,
-  type DifficultyColumn,
+  type GradedOutcome,
   type ProficiencyTier,
   type SkillKey,
 } from "../config/kedom.ts";
 import type { CharacterData } from "../data/actor/character.ts";
 import { collectSkillCheckModifiers, type Modifier } from "./collectors.ts";
-
-function outcomeForTotal(total: number, column: DifficultyColumn): "failure" | "cost" | "success" {
-  for (const band of OUTCOME_BANDS) {
-    if (band.max === null || total <= band.max) return band[column];
-  }
-  return "success";
-}
+import { resolveOutcome } from "./resolve-outcome.ts";
 
 function localize(path: string, fallback: string): string {
   const v = game.i18n.localize(path);
   return !v || v === path ? fallback : v;
+}
+
+function outcomeLabel(outcome: GradedOutcome): string {
+  if (outcome.kind === "cost") {
+    return localize("KEDOM.Outcome.cost", "Success at a Cost");
+  }
+  return game.i18n.format(`KEDOM.Outcome.${outcome.kind}`, {
+    degree: outcome.degree,
+  });
 }
 
 export async function rollSkillCheck(actor: Actor.Implementation, skillKey: string): Promise<void> {
@@ -68,8 +70,8 @@ export async function rollSkillCheck(actor: Actor.Implementation, skillKey: stri
   const roll = await new Roll(formula).evaluate();
   const total = roll.total ?? 0;
   const column = DEFAULT_DIFFICULTY;
-  const outcome = outcomeForTotal(total, column);
-  const outcomeLabel = localize(`KEDOM.Outcome.${outcome}`, outcome);
+  const outcome = resolveOutcome({ total, difficulty: column });
+  const labeled = outcomeLabel(outcome);
 
   const diceTerm = roll.terms.find((t) => "results" in t);
   const diceTotal =
@@ -84,7 +86,7 @@ export async function rollSkillCheck(actor: Actor.Implementation, skillKey: stri
     diceTotal,
     modifiers,
     total,
-    outcomeLabel,
+    outcomeLabel: labeled,
   });
 
   await ChatMessage.create({
