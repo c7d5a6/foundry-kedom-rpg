@@ -61,14 +61,18 @@ export type SkillKey = (typeof SKILL_KEYS)[number];
 
 export const SKILL_CHECK_DICE = "2d10";
 
+/** Task difficulty columns on the success ladder — not the character's proficiency. */
+export const DIFFICULTY_COLUMNS = ["easy", "trained", "hard", "legendary"] as const;
+export type DifficultyColumn = (typeof DIFFICULTY_COLUMNS)[number];
+
+/** Default until the check dialog can pick another column. */
+export const DEFAULT_DIFFICULTY: DifficultyColumn = "trained";
+
+type Outcome = "failure" | "cost" | "success";
+type OutcomeBand = { max: number | null } & Record<DifficultyColumn, Outcome>;
+
 /** Ladder bands for optional outcome label (ADR-008 deferred; still useful in chat). */
-export const OUTCOME_BANDS: ReadonlyArray<{
-  max: number | null;
-  easy: "failure" | "cost" | "success";
-  trained: "failure" | "cost" | "success";
-  hard: "failure" | "cost" | "success";
-  legendary: "failure" | "cost" | "success";
-}> = [
+export const OUTCOME_BANDS: readonly OutcomeBand[] = [
   { max: 10, easy: "failure", trained: "failure", hard: "failure", legendary: "failure" },
   { max: 14, easy: "success", trained: "cost", hard: "failure", legendary: "failure" },
   { max: 21, easy: "success", trained: "success", hard: "cost", legendary: "failure" },

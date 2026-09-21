@@ -1,30 +1,15 @@
 import {
+  DEFAULT_DIFFICULTY,
   OUTCOME_BANDS,
   PROFICIENCY_BONUS,
   SKILL_ABILITY,
   SKILL_CHECK_DICE,
+  type DifficultyColumn,
   type ProficiencyTier,
   type SkillKey,
 } from "../config/kedom.ts";
 import type { CharacterData } from "../data/actor/character.ts";
 import { collectSkillCheckModifiers, type Modifier } from "./collectors.ts";
-
-type DifficultyColumn = "easy" | "trained" | "hard" | "legendary";
-
-function difficultyForProficiency(tier: ProficiencyTier): DifficultyColumn {
-  switch (tier) {
-    case "untrained":
-    case "apprentice":
-      return "easy";
-    case "trained":
-    case "expert":
-      return "trained";
-    case "master":
-      return "hard";
-    case "legendary":
-      return "legendary";
-  }
-}
 
 function outcomeForTotal(total: number, column: DifficultyColumn): "failure" | "cost" | "success" {
   for (const band of OUTCOME_BANDS) {
@@ -82,13 +67,15 @@ export async function rollSkillCheck(actor: Actor.Implementation, skillKey: stri
   const formula = [SKILL_CHECK_DICE, ...modTerms].join(" ");
   const roll = await new Roll(formula).evaluate();
   const total = roll.total ?? 0;
-  const column = difficultyForProficiency(proficiency);
+  const column = DEFAULT_DIFFICULTY;
   const outcome = outcomeForTotal(total, column);
   const outcomeLabel = localize(`KEDOM.Outcome.${outcome}`, outcome);
 
   const diceTerm = roll.terms.find((t) => "results" in t);
   const diceTotal =
-    diceTerm && "total" in diceTerm && typeof diceTerm.total === "number" ? diceTerm.total : undefined;
+    diceTerm && "total" in diceTerm && typeof diceTerm.total === "number"
+      ? diceTerm.total
+      : undefined;
 
   const content = renderCheckCard({
     actorName: actor.name ?? "Character",
