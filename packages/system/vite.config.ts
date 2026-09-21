@@ -64,12 +64,8 @@ export default defineConfig({
         { src: "system.json", dest: "." },
         { src: "lang", dest: "." },
         { src: "templates", dest: "." },
-        // Referenced by system.json's `license` and `readme` keys, so they must
-        // exist inside the packaged system, not just in the repo.
         { src: "README.md", dest: "." },
         { src: "../../LICENSE", dest: "." },
-        // Compiled LevelDB packs, produced by `npm run packs:build` before this runs.
-        { src: "packs/*", dest: "packs", dev: { runOnServe: false } },
       ],
       silent: false,
     }),

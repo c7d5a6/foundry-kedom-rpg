@@ -75,6 +75,21 @@
       "success": "Success"
     },
 
+    "Sheet": {
+      "Character": "Kedom Character Sheet",
+      "Abilities": "Abilities",
+      "Skills": "Skills",
+      "Mod": "Mod",
+      "Roll": "Roll"
+    },
+
+    "Chat": {
+      "Dice": "dice",
+      "Total": "Total",
+      "UnknownSkill": "Unknown skill: {skill}",
+      "MissingSkillData": "Character data missing ability or skill."
+    },
+
     "Save": {
       "reflex": "Reflex",
       "fortitude": "Fortitude",

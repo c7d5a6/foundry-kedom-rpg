@@ -3,7 +3,7 @@
 Repository tasks. TypeScript run through `tsx`, per [Style.md](../Style.md): typed and portable,
 where a shell script is neither. Keep the toolbox small.
 
-**`dump-content.ts` is implemented.** The pack / unpack / link tools are not yet.
+**`dump-content.ts` and `link-foundry.ts` are implemented.** The pack / unpack tools are not yet.
 
 
 ## `pack.ts` — `npm run packs:build`
@@ -28,12 +28,14 @@ Writes to a scratch directory, never over `packs/_source/`.
 
 ## `link-foundry.ts` — `npm run system:link`
 
-Symlinks `packages/system/dist` into `<dataPath>/Data/systems/kedom`, reading `dataPath` from
-`foundry-config.json` (gitignored; copy `foundry-config.example.json`).
+**Implemented.** Symlinks `packages/system/dist` into `<dataPath>/Data/systems/kedom`, reading
+`dataPath` from `foundry-config.json` (gitignored; copy `foundry-config.example.json`).
 
+- Resolves relative `dataPath` against the **repo root** (not the tools directory).
+- Creates `Data/systems` if missing.
 - Refuses to run if the target exists and is **not** a symlink, so it can never delete a real
   system directory.
-- Idempotent.
+- Idempotent (replaces an existing symlink).
 
 Equivalent to pf2e's `build/link-foundry.ts` and draw-steel's `tools/create-symlinks.mjs`.
 

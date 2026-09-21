@@ -2,7 +2,7 @@
   "id": "kedom",
   "title": "Kedom RPG",
   "description": "A low-fantasy OSR system in the Worlds Without Number tradition, set in the world of Kedom.",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "compatibility": {
     "minimum": "14.367",
     "verified": "14"
@@ -41,19 +41,6 @@
     }
   ],
 
-  "relationships": {
-    "optional": [
-      {
-        "id": "babele",
-        "type": "module",
-        "compatibility": {
-          "minimum": "2.8.0",
-          "verified": "2.9.1"
-        }
-      }
-    ]
-  },
-
   "packs": [],
   "packFolders": [],
 
@@ -62,38 +49,13 @@
     "units": "ft"
   },
 
-  "primaryTokenAttribute": "attributes.hp",
-  "secondaryTokenAttribute": "attributes.strain",
-
   "documentTypes": {
     "Actor": {
-      "character": {},
-      "npc": {}
-    },
-    "Item": {
-      "skill": {},
-      "weapon": {},
-      "armor": {},
-      "gear": {},
-      "focus": {},
-      "power": {},
-      "origin": {}
-    },
-    "ChatMessage": {
-      "check": {},
-      "attack": {},
-      "damage": {}
-    },
-    "ActiveEffect": {
-      "condition": {},
-      "injury": {}
+      "character": {}
     }
   },
 
   "flags": {
-    "kedom": {
-      "needsMigrationVersion": "0.0.0"
-    },
     "hotReload": {
       "extensions": ["css", "hbs", "json"],
       "paths": ["css", "templates", "lang"]

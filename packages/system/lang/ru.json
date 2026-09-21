@@ -75,6 +75,21 @@
       "success": "Успех"
     },
 
+    "Sheet": {
+      "Character": "Лист персонажа Kedom",
+      "Abilities": "Характеристики",
+      "Skills": "Навыки",
+      "Mod": "Мод",
+      "Roll": "Бросок"
+    },
+
+    "Chat": {
+      "Dice": "кости",
+      "Total": "Итого",
+      "UnknownSkill": "Неизвестный навык: {skill}",
+      "MissingSkillData": "У персонажа нет характеристики или навыка."
+    },
+
     "Save": {
       "reflex": "Реакция",
       "fortitude": "Стойкость",

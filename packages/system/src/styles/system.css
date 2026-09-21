@@ -1,10 +1,70 @@
 /*
- * Barrel for the `system` cascade layer.
- *
- * Components first, then per-surface sheet styles, because sheets legitimately
- * need to override component defaults and cascade order is the cheapest way to
- * let them.
- *
- * Add files under components/ and sheets/ and @import them here, components
- * before sheets. See docs/system/ui-design-system.md.
+ * Minimal sheet styles for the barebone character sheet.
+ * Full cascade / tokens polish is deferred (ADR-013).
  */
+
+.kedom.sheet.actor {
+  min-width: 32rem;
+  min-height: 28rem;
+}
+
+.kedom.sheet .sheet-header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.kedom.sheet .ability-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.kedom.sheet .ability {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--color-border-light-tertiary, #999);
+  border-radius: 0.25rem;
+}
+
+.kedom.sheet .ability .mod {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+.kedom.sheet .skill-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.kedom.sheet .skill-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.kedom.sheet .skill-row select {
+  max-width: 9rem;
+}
+
+.kedom-chat-check {
+  font-size: 0.95em;
+}
+
+.kedom-chat-check .formula {
+  font-family: var(--font-mono, monospace);
+}
+
+.kedom-chat-check .mods {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.kedom-chat-check .total {
+  margin-top: 0.5rem;
+  font-weight: 600;
+}

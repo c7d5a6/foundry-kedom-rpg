@@ -1,6 +1,6 @@
 {
-  "$comment": "Copy to foundry-config.json (gitignored) and set your own paths. Used by tools/link-foundry.ts and the Playwright setup.",
-  "dataPath": "/home/c7d5a6/projects/rpg/foundrydata/Data",
+  "$comment": "Copy to foundry-config.json (gitignored). dataPath is the Foundry user-data root (contains Data/), relative to the repo root.",
+  "dataPath": "../foundrydata",
   "foundryUrl": "http://localhost:30000",
   "gamemasterUser": "Gamemaster"
 }

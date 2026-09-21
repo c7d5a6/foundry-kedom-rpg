@@ -7,11 +7,15 @@
     // ambiently. It is a v14 beta; if a declaration is wrong, widen at the call site
     // rather than disabling strict mode. See ADR-002.
     "types": ["fvtt-types", "vite/client"],
+    "allowImportingTsExtensions": true,
+    // Bundle-only package; .d.ts emit fights HandlebarsApplicationMixin / SchemaField inference.
+    "declaration": false,
+    "declarationMap": false,
     "paths": {
       "@kedom/shared": ["../shared/src/index.ts"],
       "@kedom/shared/*": ["../shared/src/*"]
     }
   },
-  "include": ["src/**/*.ts", "vite.config.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

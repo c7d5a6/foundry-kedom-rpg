@@ -1,0 +1,46 @@
+<form class="{{cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <h1>
+      <input name="name" type="text" value="{{actor.name}}" placeholder="Name" />
+    </h1>
+  </header>
+
+  <section class="abilities">
+    <h2>{{localize "KEDOM.Sheet.Abilities"}}</h2>
+    <div class="ability-grid">
+      {{#each abilities}}
+        <div class="ability">
+          <label for="ability-{{key}}">{{label}} ({{abbr}})</label>
+          <input
+            id="ability-{{key}}"
+            name="system.abilities.{{key}}.value"
+            type="number"
+            value="{{value}}"
+            min="3"
+            max="18"
+          />
+          <span class="mod">{{localize "KEDOM.Sheet.Mod"}} {{modSigned}}</span>
+        </div>
+      {{/each}}
+    </div>
+  </section>
+
+  <section class="skills">
+    <h2>{{localize "KEDOM.Sheet.Skills"}}</h2>
+    <div class="skill-list">
+      {{#each skills}}
+        <div class="skill-row">
+          <span>{{label}} <small>({{abilityAbbr}})</small></span>
+          <select name="system.skills.{{key}}.proficiency">
+            {{#each proficiencyOptions}}
+              <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+            {{/each}}
+          </select>
+          <button type="button" data-action="rollSkill" data-skill-key="{{key}}">
+            {{localize "KEDOM.Sheet.Roll"}}
+          </button>
+        </div>
+      {{/each}}
+    </div>
+  </section>
+</form>

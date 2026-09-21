@@ -3,12 +3,35 @@
 A low-fantasy OSR system in the Worlds Without Number tradition. **Requires Foundry v14.367 or
 later**; there is no v13 support.
 
-**Status: scaffold.** The manifest, build, and directory structure exist. Implementation has
-not started.
+**Status: barebone playable.** Character actors with six abilities, nineteen skills, and skill
+checks that post `2d10` + attribute mod + proficiency to chat. No NPCs, items, packs, or
+migrations yet.
+
+## Getting it into Foundry
+
+Foundry loads systems from `<User Data>/Data/systems/<id>/`. The build writes to
+`packages/system/dist/`; you symlink that into Foundry.
+
+1. Copy [`foundry-config.example.json`](../../foundry-config.example.json) → `foundry-config.json`
+   at the repo root. Set `dataPath` to the Foundry user-data root (the folder that contains
+   `Data/`), as a **path relative to the repo root** — e.g. `../foundrydata`.
+2. `nvm use && npm install`
+3. `npm run system:build` — emits `dist/` (`kedom.mjs`, CSS, `system.json`, `lang/`, `templates/`).
+4. `npm run system:link` — symlinks `dist/` → `{dataPath}/Data/systems/kedom`.
+5. Start Foundry **v14.367+**, create/open a world, enable **Kedom RPG**.
+
+Dev loop: `npm run system:watch` plus Foundry `hotReload` for CSS/HBS/lang; reload the page for
+JS changes.
+
+Manual fallback (from repo root; adjust `dataPath`):
+
+```sh
+ln -sfn "$(pwd)/packages/system/dist" "../foundrydata/Data/systems/kedom"
+```
 
 ## Design documentation
 
-- [Data model](../../docs/system/data-model.md) — actor and item types, the slug-based skill
+- [Data model](../../docs/system/data-model.md) — actor and item types, the key-based skill
   and specialisation model
 - [Roll pipeline](../../docs/system/roll-pipeline.md) — modifier collectors and the pure tier
   function
@@ -25,19 +48,15 @@ system.json              v14 manifest; declares the three CSS cascade layers
 vite.config.ts           builds to dist/, which is what gets symlinked
 src/
   kedom.ts               entry: register data models and sheets on init
-  config/                the KEDOM config object -- dice, thresholds, skills
-  data/                  TypeDataModels: actor/, item/, chat-message/, templates/
-  documents/             document subclasses
-  derivations/           pure functions; no game, no I/O, no document reads
-  rolls/                 modifier collectors and the tier function
-  applications/          api/ (sheet base), sheets/, dialogs/
-  migrations/            numbered, one class each
-  styles/                tokens/, elements/, components/, sheets/
+  config/                dice, proficiency table, skill→ability map, outcome bands
+  data/actor/            Character TypeDataModel
+  derivations/           pure ability-mod (no game / I/O)
+  rolls/                 modifier collectors + skill check → ChatMessage
+  applications/sheets/   CharacterSheet (ApplicationV2 + Handlebars)
+  styles/                tokens / elements / system CSS entries
 templates/               Handlebars
 lang/en.json             English UI strings
 lang/ru.json             Russian UI strings
-lang/babele/ru/          generated Babele overlays -- do not hand-edit
-packs/_source/           YAML written by Forge -- generated, do not hand-edit
 ```
 
 ## Building
@@ -60,5 +79,5 @@ In short:
 - TypeDataModels only; `template.json` was removed in v14.
 - Derivations are pure. `prepareDerivedData` runs on every actor update.
 - Every derived path is zero-initialised so Active Effects have stable targets.
-- Slugs are identity; display labels are not. Never parse a name for meaning.
+- Keys are identity; display labels are not. Never parse a name for meaning.
 - Under 10,000 lines of logic.
