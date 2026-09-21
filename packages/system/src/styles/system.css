@@ -3,6 +3,39 @@
  * Full cascade / tokens polish is deferred (ADR-013).
  */
 
+.kedom-chat-check {
+  font-size: 0.95em;
+}
+
+.kedom-chat-check__verdict {
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.kedom-chat-check__verdict--success {
+  color: var(--kedom-tier-success, #2e7d32);
+}
+
+.kedom-chat-check__verdict--failure {
+  color: var(--kedom-tier-failure, #c62828);
+}
+
+.kedom-chat-check__degrees {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.2rem;
+  margin: 0 0 0.15rem;
+  line-height: 1;
+}
+
+.kedom-chat-check__degree--success {
+  color: var(--kedom-tier-success, #2e7d32);
+}
+
+.kedom-chat-check__degree--failure {
+  color: var(--kedom-tier-failure, #c62828);
+}
+
 .kedom.sheet.actor {
   min-width: 32rem;
   min-height: 28rem;
@@ -49,22 +82,4 @@
 
 .kedom.sheet .skill-row select {
   max-width: 9rem;
-}
-
-.kedom-chat-check {
-  font-size: 0.95em;
-}
-
-.kedom-chat-check .formula {
-  font-family: var(--font-mono, monospace);
-}
-
-.kedom-chat-check .mods {
-  margin: 0.35rem 0 0;
-  padding-left: 1.1rem;
-}
-
-.kedom-chat-check .total {
-  margin-top: 0.5rem;
-  font-weight: 600;
 }

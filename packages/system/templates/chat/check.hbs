@@ -1,0 +1,20 @@
+<div
+  class="kedom-chat-check"
+  data-outcome-kind="{{outcome.kind}}"
+  data-outcome-degree="{{outcome.degree}}"
+>
+  <div class="kedom-chat-check__verdict kedom-chat-check__verdict--{{verdictKind}}">
+    {{verdictLabel}}
+  </div>
+  <div class="kedom-chat-check__degrees" aria-hidden="true">
+    {{#each degreeIcons}}
+      <i
+        class="fas
+          {{this.cssClass}}
+          kedom-chat-check__degree kedom-chat-check__degree--{{this.kind}}"
+      ></i>
+    {{/each}}
+  </div>
+  {{! Core only auto-injects roll HTML when content has no element children. }}
+  {{{rollHTML}}}
+</div>

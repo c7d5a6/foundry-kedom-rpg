@@ -70,9 +70,9 @@
     },
 
     "Outcome": {
-      "failure": "Провал {degree}",
+      "failure": "Провал",
       "cost": "Успех ценой",
-      "success": "Успех {degree}"
+      "success": "Успех"
     },
 
     "Sheet": {

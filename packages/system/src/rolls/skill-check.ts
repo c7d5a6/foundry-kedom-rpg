@@ -8,21 +8,54 @@ import {
   type SkillKey,
 } from "../config/kedom.ts";
 import type { CharacterData } from "../data/actor/character.ts";
-import { collectSkillCheckModifiers, type Modifier } from "./collectors.ts";
+import { collectSkillCheckModifiers } from "./collectors.ts";
+import { labeledCheckFormula } from "./labeled-formula.ts";
 import { resolveOutcome } from "./resolve-outcome.ts";
+
+const CHECK_TEMPLATE = "systems/kedom/templates/chat/check.hbs";
 
 function localize(path: string, fallback: string): string {
   const v = game.i18n.localize(path);
   return !v || v === path ? fallback : v;
 }
 
-function outcomeLabel(outcome: GradedOutcome): string {
-  if (outcome.kind === "cost") {
-    return localize("KEDOM.Outcome.cost", "Success at a Cost");
+function verdictFor(outcome: GradedOutcome): {
+  verdictKind: "success" | "failure";
+  verdictLabel: string;
+  iconKind: "success" | "failure";
+} {
+  if (outcome.kind === "failure") {
+    return {
+      verdictKind: "failure",
+      verdictLabel: localize("KEDOM.Outcome.failure", "Failure"),
+      iconKind: "failure",
+    };
   }
-  return game.i18n.format(`KEDOM.Outcome.${outcome.kind}`, {
-    degree: outcome.degree,
-  });
+  // Success and success-at-a-cost both read as Success; cost uses fail icons.
+  return {
+    verdictKind: "success",
+    verdictLabel: localize("KEDOM.Outcome.success", "Success"),
+    iconKind: outcome.kind === "cost" ? "failure" : "success",
+  };
+}
+
+function degreeIcons(
+  degree: number,
+  iconKind: "success" | "failure",
+): { cssClass: string; kind: string }[] {
+  const cssClass = iconKind === "success" ? "fa-check" : "fa-times";
+  return Array.from({ length: degree }, () => ({ cssClass, kind: iconKind }));
+}
+
+/** Move degree icons to sit directly above Foundry's `.dice-total`. */
+export function placeCheckDegreeIcons(html: HTMLElement): void {
+  const check = html.querySelector(".kedom-chat-check");
+  if (!(check instanceof HTMLElement)) return;
+  const degrees = check.querySelector(".kedom-chat-check__degrees");
+  const total = html.querySelector(".dice-total");
+  if (!(degrees instanceof HTMLElement) || !(total instanceof HTMLElement)) return;
+  if (degrees.nextElementSibling === total) return;
+  total.insertAdjacentElement("beforebegin", degrees);
 }
 
 export async function rollSkillCheck(actor: Actor.Implementation, skillKey: string): Promise<void> {
@@ -65,28 +98,20 @@ export async function rollSkillCheck(actor: Actor.Implementation, skillKey: stri
     proficiencyLabel,
   });
 
-  const modTerms = modifiers.map((m) => (m.value >= 0 ? `+ ${m.value}` : `- ${Math.abs(m.value)}`));
-  const formula = [SKILL_CHECK_DICE, ...modTerms].join(" ");
+  const formula = labeledCheckFormula(SKILL_CHECK_DICE, skillLabel, modifiers);
   const roll = await new Roll(formula).evaluate();
   const total = roll.total ?? 0;
-  const column = DEFAULT_DIFFICULTY;
-  const outcome = resolveOutcome({ total, difficulty: column });
-  const labeled = outcomeLabel(outcome);
+  const outcome = resolveOutcome({ total, difficulty: DEFAULT_DIFFICULTY });
+  const verdict = verdictFor(outcome);
 
-  const diceTerm = roll.terms.find((t) => "results" in t);
-  const diceTotal =
-    diceTerm && "total" in diceTerm && typeof diceTerm.total === "number"
-      ? diceTerm.total
-      : undefined;
-
-  const content = renderCheckCard({
-    actorName: actor.name ?? "Character",
-    skillLabel,
-    formula: roll.formula,
-    diceTotal,
-    modifiers,
-    total,
-    outcomeLabel: labeled,
+  const content = await foundry.applications.handlebars.renderTemplate(CHECK_TEMPLATE, {
+    outcome,
+    verdictKind: verdict.verdictKind,
+    verdictLabel: verdict.verdictLabel,
+    degreeIcons: degreeIcons(outcome.degree, verdict.iconKind),
+    // Custom HTML content prevents core from appending roll.render() itself
+    // (ChatMessage#renderRollContent only injects when content has no elements).
+    rollHTML: await roll.render(),
   });
 
   await ChatMessage.create({
@@ -96,35 +121,4 @@ export async function rollSkillCheck(actor: Actor.Implementation, skillKey: stri
     rolls: [roll],
     sound: CONFIG.sounds.dice,
   });
-}
-
-function renderCheckCard(opts: {
-  actorName: string;
-  skillLabel: string;
-  formula: string;
-  diceTotal: number | undefined;
-  modifiers: Modifier[];
-  total: number;
-  outcomeLabel: string;
-}): string {
-  const mods = opts.modifiers
-    .map(
-      (m) =>
-        `<li><strong>${m.value >= 0 ? `+${m.value}` : m.value}</strong> ${m.label} <em>(${m.source.label})</em></li>`,
-    )
-    .join("");
-  const dice = opts.diceTotal !== undefined ? String(opts.diceTotal) : "?";
-  const diceLabel = game.i18n.localize("KEDOM.Chat.Dice");
-  const totalLabel = game.i18n.localize("KEDOM.Chat.Total");
-  return `
-    <div class="kedom-chat-check">
-      <div><strong>${opts.actorName}</strong> — ${opts.skillLabel}</div>
-      <div class="formula">${opts.formula}</div>
-      <ul class="mods">
-        <li>${dice} (${diceLabel})</li>
-        ${mods}
-      </ul>
-      <div class="total">${totalLabel} ${opts.total} — ${opts.outcomeLabel}</div>
-    </div>
-  `;
 }
