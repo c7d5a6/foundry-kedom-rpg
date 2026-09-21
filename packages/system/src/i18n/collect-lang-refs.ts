@@ -1,4 +1,10 @@
-import { ABILITY_KEYS, OUTCOME_KINDS, PROFICIENCY_TIERS, SKILL_KEYS } from "../config/kedom.ts";
+import {
+  ABILITY_KEYS,
+  DIFFICULTY_COLUMNS,
+  OUTCOME_KINDS,
+  PROFICIENCY_TIERS,
+  SKILL_KEYS,
+} from "../config/kedom.ts";
 import { SKILL_FIXED_SPECIALIZATIONS } from "../config/specializations.ts";
 
 function fixedSpecializationLangKeys(): string[] {
@@ -46,6 +52,10 @@ const TEMPLATE_EXPANDERS: {
     expand: () => OUTCOME_KINDS.map((o) => `KEDOM.Outcome.${o}`),
   },
   {
+    pattern: /^KEDOM\.DifficultyColumn\.\$\{[^}]+\}$/,
+    expand: () => DIFFICULTY_COLUMNS.map((d) => `KEDOM.DifficultyColumn.${d}`),
+  },
+  {
     pattern: /^KEDOM\.Specialization\.\$\{[^}]+\}\.\$\{[^}]+\}$/,
     expand: () => fixedSpecializationLangKeys(),
   },
@@ -58,6 +68,7 @@ export function configDrivenLangKeys(): string[] {
     ...SKILL_KEYS.map((k) => `KEDOM.Skill.${k}`),
     ...PROFICIENCY_TIERS.map((t) => `KEDOM.Proficiency.${t}`),
     ...OUTCOME_KINDS.map((o) => `KEDOM.Outcome.${o}`),
+    ...DIFFICULTY_COLUMNS.map((d) => `KEDOM.DifficultyColumn.${d}`),
     ...fixedSpecializationLangKeys(),
   ];
 }

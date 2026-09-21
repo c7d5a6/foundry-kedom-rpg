@@ -126,10 +126,27 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     });
 
     return Object.assign(context, {
+      actor: this.actor,
       system,
       abilities,
       skills,
     });
+  }
+
+  /**
+   * Actor.name is required and blank:false — an empty string cleans to undefined and
+   * blows up submitOnChange. Never send a blank name wipe from incidental form submits.
+   */
+  protected override _processFormData(
+    event: SubmitEvent | null,
+    form: HTMLFormElement,
+    formData: FormDataExtended,
+  ) {
+    const data = super._processFormData(event, form, formData) as Record<string, unknown>;
+    if (typeof data.name !== "string" || data.name.trim() === "") {
+      delete data.name;
+    }
+    return data;
   }
 
   static async #onRollSkill(

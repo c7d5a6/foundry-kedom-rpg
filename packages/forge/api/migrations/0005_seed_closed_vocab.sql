@@ -48,7 +48,7 @@ INSERT INTO translation (entity_kind, entity_id, locale, field, value)
 SELECT 'outcome', id, 'ru', 'label',
 	CASE slug
 		WHEN 'failure' THEN 'Провал'
-		WHEN 'cost' THEN 'Успех ценой'
+		WHEN 'cost' THEN 'Успех с последствиями'
 		WHEN 'success' THEN 'Успех'
 	END
 FROM vocab WHERE kind = 'outcome';

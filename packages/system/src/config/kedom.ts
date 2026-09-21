@@ -86,7 +86,7 @@ const S = (degree: number): GradedOutcome => ({ kind: "success", degree });
 /** Ladder bands: roll ceiling → kind and degree per difficulty column. */
 export const OUTCOME_BANDS: readonly OutcomeBand[] = [
   { max: 10, easy: F(1), trained: F(1), hard: F(2), legendary: F(3) },
-  { max: 14, easy: S(1), trained: C, hard: F(1), legendary: F(2) },
+  { max: 15, easy: S(1), trained: C, hard: F(1), legendary: F(2) },
   { max: 21, easy: S(2), trained: S(1), hard: C, legendary: F(1) },
   { max: 26, easy: S(3), trained: S(2), hard: S(1), legendary: C },
   { max: null, easy: S(4), trained: S(3), hard: S(2), legendary: S(1) },

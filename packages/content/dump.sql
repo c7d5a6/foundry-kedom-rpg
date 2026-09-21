@@ -347,7 +347,7 @@ INSERT INTO translation VALUES(120,'proficiency',6,'ru','label','Легенда�
 INSERT INTO translation VALUES(121,'proficiency',5,'ru','label','Мастер');
 INSERT INTO translation VALUES(122,'proficiency',3,'ru','label','Обученный');
 INSERT INTO translation VALUES(123,'proficiency',1,'ru','label','Необученный');
-INSERT INTO translation VALUES(124,'outcome',8,'ru','label','Успех ценой');
+INSERT INTO translation VALUES(124,'outcome',8,'ru','label','Успех с последствиями');
 INSERT INTO translation VALUES(125,'outcome',7,'ru','label','Провал');
 INSERT INTO translation VALUES(126,'outcome',9,'ru','label','Успех');
 INSERT INTO translation VALUES(127,'save',11,'ru','label','Стойкость');

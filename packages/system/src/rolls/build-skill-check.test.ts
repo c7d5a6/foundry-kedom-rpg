@@ -25,7 +25,7 @@ describe("buildSkillCheck", () => {
     abilityLabel: "Focus",
     abilityMod: 2,
     proficiency: "trained" as const,
-    proficiencyLabel: "Trained (half)",
+    proficiencyLabel: "Trained (no specialization)",
     specializationSlug: null,
     specializationLabel: null,
   };

@@ -1,6 +1,6 @@
 import { CharacterData } from "./data/actor/character.ts";
 import { CharacterSheet } from "./applications/sheets/character-sheet.ts";
-import { placeCheckDegreeIcons } from "./rolls/skill-check.ts";
+import { decorateChatMessageHeader } from "./chat/decorate-message-header.ts";
 
 Hooks.once("init", () => {
   CONFIG.Actor.dataModels.character = CharacterData;
@@ -16,6 +16,6 @@ Hooks.once("init", () => {
   console.log("Kedom RPG | initialized (barebone character + skill checks)");
 });
 
-Hooks.on("renderChatMessageHTML", (_message, html) => {
-  placeCheckDegreeIcons(html);
+Hooks.on("renderChatMessageHTML", (message, html) => {
+  decorateChatMessageHeader(message, html);
 });

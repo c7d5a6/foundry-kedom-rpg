@@ -3,18 +3,10 @@
   data-outcome-kind="{{outcome.kind}}"
   data-outcome-degree="{{outcome.degree}}"
 >
-  <div class="kedom-chat-check__verdict kedom-chat-check__verdict--{{verdictKind}}">
-    {{verdictLabel}}
-  </div>
-  <div class="kedom-chat-check__degrees" aria-hidden="true">
-    {{#each degreeIcons}}
-      <i
-        class="fas
-          {{this.cssClass}}
-          kedom-chat-check__degree kedom-chat-check__degree--{{this.kind}}"
-      ></i>
-    {{/each}}
-  </div>
-  {{! Core only auto-injects roll HTML when content has no element children. }}
+  {{!
+    CoC-like layout: Foundry .dice-roll[data-action=expandRoll] with
+    .dice-formula as the success/fail panel, tooltip for dice+labels, .dice-total for the number.
+    Flavor on the ChatMessage is the short description above this card.
+  }}
   {{{rollHTML}}}
 </div>

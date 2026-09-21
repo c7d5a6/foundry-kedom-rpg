@@ -3,37 +3,155 @@
  * Full cascade / tokens polish is deferred (ADR-013).
  */
 
-.kedom-chat-check {
-  font-size: 0.95em;
+/* PF2e-inspired chat header: portrait + character name + player name; tall art fades into flavor */
+.chat-message .message-header.with-image {
+  display: grid;
+  grid-template:
+    "img name details" 1.375rem
+    "img user details" 1.125rem
+    "gap gap gap" 0.25rem
+    "whisper whisper whisper" min-content
+    "flavor flavor flavor" 1fr
+    / 2.75rem 1fr min-content;
+  justify-content: stretch;
+  width: 100%;
 }
 
-.kedom-chat-check__verdict {
-  font-weight: 700;
-  margin-bottom: 0.35rem;
+.chat-message .message-header.with-image .kedom-chat-portrait {
+  grid-area: img;
+  grid-row: 1 / -1;
+  align-self: start;
+  z-index: 1;
+  padding: 0.125rem 0.125rem 0 0;
+  pointer-events: none;
+  max-height: 5.5rem;
+  overflow: hidden;
 }
 
-.kedom-chat-check__verdict--success {
+.chat-message .message-header.with-image .kedom-chat-portrait img {
+  border: none;
+  display: block;
+  width: 2.75rem;
+  height: 5rem;
+  object-fit: cover;
+  object-position: top center;
+  /* Narrow/tall art softens into the flavor row */
+  mask-image: linear-gradient(to bottom, #000 45%, transparent 95%);
+}
+
+.chat-message .message-header.with-image .kedom-chat-portrait.token img {
+  object-fit: contain;
+  height: 2.5rem;
+  mask-image: none;
+}
+
+.chat-message .message-header.with-image h4.message-sender {
+  grid-area: name;
+  align-self: end;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  color: var(--color-text-secondary, inherit);
+}
+
+.chat-message .message-header.with-image .kedom-chat-user {
+  grid-area: user;
+  align-self: center;
+  font-size: var(--font-size-12, 0.75rem);
+  opacity: 0.85;
+}
+
+.chat-message .message-header.with-image .message-metadata {
+  grid-area: details;
+  white-space: nowrap;
+}
+
+.chat-message .message-header.with-image .whisper-to {
+  grid-area: whisper;
+}
+
+.chat-message .message-header.with-image .flavor-text {
+  grid-area: flavor;
+  position: relative;
+  z-index: 0;
+  align-self: end;
+  margin-block: 0;
+}
+
+/* CoC-like skill check: flavor (small) → clickable verdict panel → total */
+.kedom-chat-check .dice-roll {
+  cursor: pointer;
+}
+
+.kedom-chat-check .dice-formula {
+  font-weight: 600;
+  text-align: center;
+}
+
+.kedom-chat-check .dice-formula.success {
   color: var(--kedom-tier-success, #2e7d32);
 }
 
-.kedom-chat-check__verdict--failure {
+.kedom-chat-check .dice-formula.failure {
   color: var(--kedom-tier-failure, #c62828);
 }
 
-.kedom-chat-check__degrees {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.2rem;
-  margin: 0 0 0.15rem;
-  line-height: 1;
+.kedom-chat-check .dice-formula.cost {
+  color: var(--kedom-tier-cost, #b36b00);
+}
+
+.kedom-chat-check .dice-formula .kedom-chat-check__roll-icons {
+  margin-inline-start: 0.25rem;
+}
+
+.kedom-chat-check .dice-formula .kedom-chat-check__roll-icons i {
+  margin-inline: 0.05rem;
+}
+
+.kedom-chat-check .dice-formula.success .kedom-chat-check__roll-icons {
+  color: var(--kedom-tier-success-icon, goldenrod);
+}
+
+.kedom-chat-check .dice-formula.failure .kedom-chat-check__roll-icons {
+  color: var(--kedom-tier-failure-icon, crimson);
+}
+
+.kedom-chat-check .dice-formula.cost .kedom-chat-check__roll-icons {
+  color: var(--kedom-tier-cost-icon, #c47a00);
+}
+
+.kedom-chat-check .dice-total.success {
+  color: var(--kedom-tier-success, #2e7d32);
+}
+
+.kedom-chat-check .dice-total.failure {
+  color: var(--kedom-tier-failure, #c62828);
+}
+
+.kedom-chat-check .dice-total.cost {
+  color: var(--kedom-tier-cost, #b36b00);
+  background-color: var(--kedom-tier-cost-bg, #fff3e0);
+}
+
+.kedom-chat-check__summary {
+  margin-top: 0.35rem;
+  font-size: 0.9em;
+  opacity: 0.9;
+}
+
+.kedom-chat-check__modifier .part-flavor {
+  margin-inline: 0.35rem;
+  opacity: 0.85;
 }
 
 .kedom-chat-check__degree--success {
-  color: var(--kedom-tier-success, #2e7d32);
+  color: inherit;
+  font-weight: 500;
 }
 
 .kedom-chat-check__degree--failure {
-  color: var(--kedom-tier-failure, #c62828);
+  color: inherit;
 }
 
 .kedom.sheet.actor {
@@ -47,9 +165,32 @@
   min-height: 0;
 }
 
+.kedom.sheet .sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.kedom.sheet .sheet-header .profile-img {
+  flex: 0 0 auto;
+  width: 5.5rem;
+  height: 5.5rem;
+  object-fit: cover;
+  object-position: top center;
+  border: 1px solid var(--color-border-light-tertiary, #999);
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
 .kedom.sheet .sheet-header h1 {
+  flex: 1;
   margin: 0;
   font-size: 1.4rem;
+}
+
+.kedom.sheet .sheet-header h1 input {
+  width: 100%;
 }
 
 .kedom.sheet .ability-grid {

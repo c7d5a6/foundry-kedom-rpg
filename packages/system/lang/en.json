@@ -93,6 +93,7 @@
       "Skills": "Skills",
       "Mod": "Mod",
       "Roll": "Roll",
+      "EditPortrait": "Edit character artwork",
       "Tab": {
         "biography": "Biography",
         "description": "Description",
@@ -125,6 +126,7 @@
     "Chat": {
       "Dice": "dice",
       "MissingSkillData": "Character data missing ability or skill.",
+      "SkillCheckFlavor": "{skill} — {difficulty}",
       "Total": "Total",
       "UnknownSkill": "Unknown skill: {skill}"
     },
@@ -138,6 +140,12 @@
       "hard": "Hard",
       "incrediblyHard": "Incredibly Hard",
       "veryHard": "Very Hard"
+    },
+    "DifficultyColumn": {
+      "easy": "Easy",
+      "trained": "Trained",
+      "hard": "Hard",
+      "legendary": "Legendary"
     },
     "Attributes": {
       "ac": "Armor Class",
@@ -203,14 +211,14 @@
         "ability": "{ability} modifier",
         "armorPenalty": "Armor penalty",
         "effect": "{effect}",
-        "halfProficiency": "{proficiency} (half)",
+        "halfProficiency": "{proficiency} (no specialization)",
         "situational": "Situational"
       },
       "modifier": {
         "ability": "{ability} modifier",
         "armorPenalty": "Armor penalty",
         "effect": "{effect}",
-        "halfProficiency": "{proficiency} (half)",
+        "halfProficiency": "{proficiency} (no specialization)",
         "situational": "Situational",
         "skillLevel": "{skill} level",
         "specialization": "{specialization}",

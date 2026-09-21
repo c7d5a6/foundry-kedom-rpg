@@ -83,7 +83,7 @@
       "untrained": "Необученный"
     },
     "Outcome": {
-      "cost": "Успех ценой",
+      "cost": "Успех с последствиями",
       "failure": "Провал",
       "success": "Успех"
     },
@@ -93,6 +93,7 @@
       "Skills": "Навыки",
       "Mod": "Мод",
       "Roll": "Бросок",
+      "EditPortrait": "Изменить портрет персонажа",
       "Tab": {
         "biography": "Биография",
         "description": "Описание",
@@ -125,6 +126,7 @@
     "Chat": {
       "Dice": "кости",
       "MissingSkillData": "У персонажа нет характеристики или навыка.",
+      "SkillCheckFlavor": "{skill} — {difficulty}",
       "Total": "Итого",
       "UnknownSkill": "Неизвестный навык: {skill}"
     },
@@ -138,6 +140,12 @@
       "hard": "Трудно",
       "incrediblyHard": "Невероятно трудно",
       "veryHard": "Очень трудно"
+    },
+    "DifficultyColumn": {
+      "easy": "Лёгкая",
+      "trained": "Обычная",
+      "hard": "Трудная",
+      "legendary": "Легендарная"
     },
     "Attributes": {
       "ac": "Класс брони",
@@ -203,14 +211,14 @@
         "ability": "модификатор {ability}",
         "armorPenalty": "Штраф доспеха",
         "effect": "{effect}",
-        "halfProficiency": "{proficiency} (половина)",
+        "halfProficiency": "{proficiency} (без специализации)",
         "situational": "Ситуативный"
       },
       "modifier": {
         "ability": "модификатор {ability}",
         "armorPenalty": "Штраф доспеха",
         "effect": "{effect}",
-        "halfProficiency": "{proficiency} (половина)",
+        "halfProficiency": "{proficiency} (без специализации)",
         "situational": "Ситуативный",
         "skillLevel": "навык {skill}",
         "specialization": "{specialization}",
