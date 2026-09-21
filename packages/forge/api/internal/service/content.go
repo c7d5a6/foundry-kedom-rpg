@@ -185,18 +185,39 @@ func (c *Content) GetSkill(ctx context.Context, id int64, locale model.Locale) (
 }
 
 type UpdateSkillInput struct {
-	Label       string `json:"label"`
-	Description string `json:"description"`
-	Comment     string `json:"comment"`
-	SortOrder   int64  `json:"sort_order"`
+	Label              string `json:"label"`
+	Description        string `json:"description"`
+	Comment            string `json:"comment"`
+	SortOrder          int64  `json:"sort_order"`
+	AttributeID        int64  `json:"attribute_id"`
+	SpecializationMode string `json:"specialization_mode"`
+}
+
+var allowedSpecializationModes = map[string]bool{
+	"none": true, "fixed": true, "free": true, "parameterized": true,
 }
 
 func (c *Content) UpdateSkill(ctx context.Context, id int64, in UpdateSkillInput, locale model.Locale) (SkillDTO, error) {
 	if strings.TrimSpace(in.Label) == "" {
 		return SkillDTO{}, fmt.Errorf("%w: label required", ErrInvalid)
 	}
+	if in.AttributeID <= 0 {
+		return SkillDTO{}, fmt.Errorf("%w: attribute_id required", ErrInvalid)
+	}
+	if !allowedSpecializationModes[in.SpecializationMode] {
+		return SkillDTO{}, fmt.Errorf("%w: invalid specialization_mode %q", ErrInvalid, in.SpecializationMode)
+	}
+	if _, err := c.q.GetAttribute(ctx, in.AttributeID); err != nil {
+		return SkillDTO{}, fmt.Errorf("%w: attribute_id not found", ErrInvalid)
+	}
 	_, err := c.q.UpdateSkill(ctx, generated.UpdateSkillParams{
-		Label: in.Label, Description: in.Description, Comment: in.Comment, SortOrder: in.SortOrder, ID: id,
+		Label:              in.Label,
+		Description:        in.Description,
+		Comment:            in.Comment,
+		SortOrder:          in.SortOrder,
+		AttributeID:        in.AttributeID,
+		SpecializationMode: in.SpecializationMode,
+		ID:                 id,
 	})
 	if err != nil {
 		return SkillDTO{}, mapNotFound(err)

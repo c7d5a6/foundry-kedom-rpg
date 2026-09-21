@@ -1,7 +1,7 @@
 import type { SkillKey } from "./kedom.ts";
 
 /** How a skill takes specialisations (docs/rules/20-skills.md). */
-export type SpecializationKind = "none" | "free" | "fixed";
+export type SpecializationKind = "none" | "free" | "fixed" | "parameterized";
 
 export const SKILL_SPECIALIZATION_KIND: Record<SkillKey, SpecializationKind> = {
   arcana: "free",
@@ -19,10 +19,18 @@ export const SKILL_SPECIALIZATION_KIND: Record<SkillKey, SpecializationKind> = {
   punch: "none",
   shoot: "none",
   stab: "none",
-  survive: "fixed",
+  survive: "parameterized",
   travel: "fixed",
   work: "free",
   worship: "free",
+};
+
+/**
+ * Open parameter segment for parameterized skills (e.g. Survive environments).
+ * Free-form labels become `${skill}.${parameter}.${leaf}`.
+ */
+export const SKILL_FREE_PARAMETER: Partial<Record<SkillKey, string>> = {
+  survive: "environment",
 };
 
 /** Fixed specialisation leaf keys per skill (slug = `${skill}.${leaf}`). */
@@ -58,12 +66,34 @@ export function specializationSlug(skillKey: SkillKey, leaf: string): string {
   return `${skillKey}.${leaf}`;
 }
 
-/** Slug for a free-form specialisation label; frozen after creation. */
-export function freeSpecializationSlug(skillKey: SkillKey, label: string): string {
-  const leaf = label
+function slugifyLeaf(label: string): string {
+  return label
     .trim()
     .toLowerCase()
     .replaceAll(/[^a-z0-9]+/g, ".")
     .replaceAll(/^\.+|\.+$/g, "");
+}
+
+/** Slug for a free-form specialisation label; frozen after creation. */
+export function freeSpecializationSlug(skillKey: SkillKey, label: string): string {
+  const leaf = slugifyLeaf(label);
   return specializationSlug(skillKey, leaf === "" ? "custom" : leaf);
+}
+
+/** Free-form label under a parameterized skill's open parameter (e.g. environment). */
+export function freeParameterSpecializationSlug(
+  skillKey: SkillKey,
+  parameter: string,
+  label: string,
+): string {
+  const leaf = slugifyLeaf(label);
+  return `${skillKey}.${parameter}.${leaf === "" ? "custom" : leaf}`;
+}
+
+export function allowsFreeSpecialization(kind: SpecializationKind): boolean {
+  return kind === "free" || kind === "parameterized";
+}
+
+export function hasFixedSpecializationCatalog(kind: SpecializationKind): boolean {
+  return kind === "fixed" || kind === "parameterized";
 }

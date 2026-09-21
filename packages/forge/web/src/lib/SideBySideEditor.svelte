@@ -16,6 +16,12 @@
     translations: TranslationMap;
     showAbbreviation?: boolean;
     showDescription?: boolean;
+    /** When editing a skill: governing attribute + specialization mode. */
+    skillControls?: {
+      attribute_id: number;
+      specialization_mode: string;
+      attributes: { id: number; slug: string; label: string }[];
+    };
     onSaved: () => void | Promise<void>;
   };
 
@@ -27,6 +33,7 @@
     translations,
     showAbbreviation = false,
     showDescription = true,
+    skillControls = undefined,
     onSaved,
   }: Props = $props();
 
@@ -35,6 +42,8 @@
   let enDesc = $state("");
   let enComment = $state("");
   let enSort = $state(0);
+  let skillAttributeId = $state(0);
+  let skillMode = $state("fixed");
   let ruLabel = $state("");
   let ruAbbr = $state("");
   let ruDesc = $state("");
@@ -47,6 +56,8 @@
     enDesc = en.description ?? "";
     enComment = en.comment ?? "";
     enSort = en.sort_order;
+    skillAttributeId = skillControls?.attribute_id ?? 0;
+    skillMode = skillControls?.specialization_mode ?? "fixed";
     ruLabel = translations.label ?? "";
     ruAbbr = translations.abbreviation ?? "";
     ruDesc = translations.description ?? "";
@@ -90,7 +101,11 @@
           abbreviation: enAbbr,
         });
       } else if (kind === "skill") {
-        await api.patchSkill(id, shared);
+        await api.patchSkill(id, {
+          ...shared,
+          attribute_id: Number(skillAttributeId),
+          specialization_mode: skillMode,
+        });
       } else if (kind === "specialization") {
         await api.patchSpecialization(id, shared);
       } else if (kind === "class") {
@@ -160,6 +175,25 @@
         <label for="en-sort">Sort order</label>
         <input id="en-sort" class="forge-input max-w-32" type="number" bind:value={enSort} />
       </div>
+      {#if kind === "skill" && skillControls}
+        <div class="forge-field">
+          <label for="skill-attr">Governing attribute</label>
+          <select id="skill-attr" class="forge-input" bind:value={skillAttributeId}>
+            {#each skillControls.attributes as attr (attr.id)}
+              <option value={attr.id}>{attr.label} ({attr.slug})</option>
+            {/each}
+          </select>
+        </div>
+        <div class="forge-field">
+          <label for="skill-mode">Specialization mode</label>
+          <select id="skill-mode" class="forge-input" bind:value={skillMode}>
+            <option value="none">none</option>
+            <option value="fixed">fixed</option>
+            <option value="free">free</option>
+            <option value="parameterized">parameterized</option>
+          </select>
+        </div>
+      {/if}
     </section>
 
     <section>

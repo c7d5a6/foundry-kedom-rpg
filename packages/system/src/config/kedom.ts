@@ -61,7 +61,7 @@ export const SKILL_ABILITY: Record<string, AbilityKey> = {
   shoot: "dex",
   stab: "mgh",
   survive: "foc",
-  travel: "mgh",
+  travel: "foc",
   work: "mgh",
   worship: "pre",
 };

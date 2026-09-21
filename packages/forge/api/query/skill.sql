@@ -18,6 +18,6 @@ WHERE s.id = ?;
 
 -- name: UpdateSkill :one
 UPDATE skill
-SET label = ?, description = ?, comment = ?, sort_order = ?
+SET label = ?, description = ?, comment = ?, sort_order = ?, attribute_id = ?, specialization_mode = ?
 WHERE id = ?
 RETURNING id, slug, label, description, comment, attribute_id, specialization_mode, is_secondary, sort_order, foundry_id;

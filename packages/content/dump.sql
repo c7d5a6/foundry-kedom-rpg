@@ -12,6 +12,7 @@ INSERT INTO schema_migrations VALUES('0003_entity_comment','2026-09-20T20:59:42Z
 INSERT INTO schema_migrations VALUES('0004_vocab','2026-09-21T09:52:16Z');
 INSERT INTO schema_migrations VALUES('0005_seed_closed_vocab','2026-09-21T09:52:16Z');
 INSERT INTO schema_migrations VALUES('0006_outcome_cost_ru','2026-09-21T18:18:05Z');
+INSERT INTO schema_migrations VALUES('0007_travel_focus','2026-09-21T19:08:31Z');
 CREATE TABLE attribute (
 	id           INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug         TEXT NOT NULL UNIQUE
@@ -57,7 +58,7 @@ INSERT INTO skill VALUES(13,'punch','Punch','',1,'none',0,13,'kdmskl000punch00',
 INSERT INTO skill VALUES(14,'shoot','Shoot','',2,'none',0,14,'kdmskl000shoot00','');
 INSERT INTO skill VALUES(15,'stab','Stab','',1,'none',0,15,'kdmskl0000stab00','');
 INSERT INTO skill VALUES(16,'survive','Survive','',4,'parameterized',0,16,'kdmskl0survive00','');
-INSERT INTO skill VALUES(17,'travel','Travel','',1,'parameterized',0,17,'kdmskl00travel00','');
+INSERT INTO skill VALUES(17,'travel','Travel','',4,'fixed',0,17,'kdmskl00travel00','');
 INSERT INTO skill VALUES(18,'work','Work','',1,'free',0,18,'kdmskl0000work00','');
 INSERT INTO skill VALUES(19,'worship','Worship','',5,'free',0,19,'kdmskl0worship00','');
 CREATE TABLE specialization (

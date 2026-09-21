@@ -90,8 +90,14 @@ foundry_id
 
 - `fixed` — options come from `specialization` rows authored here
 - `free` — the player writes a label at character creation; Forge stores no options
-- `parameterized` — options are grouped under a named parameter (Survive's Environment,
-  Worship's pantheon, Connect's culture)
+- `parameterized` — closed `specialization` rows **plus** an open parameter the player fills
+  free-form (Survive's Environment). Authored rows have `parameter` null; free-form play
+  labels use slugs like `survive.environment.forest`.
+
+Governing `attribute_id` and `specialization_mode` are editable in the Forge Skills editor
+(PATCH `/api/skills/{id}`). The Foundry system still mirrors ability links in
+`packages/system/src/config/kedom.ts` (`SKILL_ABILITY`) until pack export generates that
+config — after changing an attribute in Forge, update `SKILL_ABILITY` to match.
 
 ### `specialization`
 

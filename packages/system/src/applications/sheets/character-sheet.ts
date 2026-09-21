@@ -9,8 +9,12 @@ import {
 } from "../../config/kedom.ts";
 import {
   SKILL_FIXED_SPECIALIZATIONS,
+  SKILL_FREE_PARAMETER,
   SKILL_SPECIALIZATION_KIND,
+  allowsFreeSpecialization,
+  freeParameterSpecializationSlug,
   freeSpecializationSlug,
+  hasFixedSpecializationCatalog,
   specializationSlug,
 } from "../../config/specializations.ts";
 import type {
@@ -153,7 +157,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       };
 
       let specializationTags: SpecTag[] = [];
-      if (kind === "fixed") {
+      if (hasFixedSpecializationCatalog(kind)) {
         specializationTags = fixedLeaves.map((leaf) => {
           const slug = specializationSlug(key, leaf);
           const owned = ownedBySlug.get(slug);
@@ -173,14 +177,17 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             canSelect: selected || canSelectMore,
           };
         });
-      } else if (kind === "free") {
-        specializationTags = skill.specializations.map((s) => {
+      }
+      if (allowsFreeSpecialization(kind)) {
+        const fixedSlugs = new Set(specializationTags.map((t) => t.slug));
+        for (const s of skill.specializations) {
+          if (fixedSlugs.has(s.slug)) continue;
           const selected = isSpecializationSelected(s);
           const specCheck =
             selected && this.actor
               ? prepareSkillCheck(this.actor, key, { specializationSlug: s.slug })
               : null;
-          return {
+          specializationTags.push({
             slug: s.slug,
             label: s.label,
             skillKey: key,
@@ -188,8 +195,8 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             isFree: true,
             bonusSigned: specCheck !== null ? formatSignedBonus(specCheck.bonus) : null,
             canSelect: selected || canSelectMore,
-          };
-        });
+          });
+        }
       }
 
       specializationTags.sort((a, b) => {
@@ -213,8 +220,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         proficiencyClass: `kedom-skill--${proficiency}`,
         bonusSigned,
         allowsSpecialization: kind !== "none",
+        allowsFreeAdd: allowsFreeSpecialization(kind),
         isFree: kind === "free",
         isFixed: kind === "fixed",
+        isParameterized: kind === "parameterized",
         specializationTags: tagsWithMod,
         specializationSlots: slots,
         specializationSelectedCount: selectedCount,
@@ -351,11 +360,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (!skill) return;
 
     const kind = SKILL_SPECIALIZATION_KIND[skillKey];
+    const isFreeForm = target.dataset.free === "1";
     const existing = skill.specializations.find((s) => s.slug === slug);
     const currentlySelected = existing !== undefined && isSpecializationSelected(existing);
 
     if (currentlySelected) {
-      if (kind === "fixed") {
+      if (kind === "fixed" || (kind === "parameterized" && !isFreeForm)) {
         await this.actor.update({
           [`system.skills.${skillKey}.specializations`]: skill.specializations.filter(
             (s) => s.slug !== slug,
@@ -381,7 +391,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       return;
     }
 
-    if (kind === "fixed") {
+    if (kind === "fixed" || (kind === "parameterized" && !isFreeForm)) {
       const leaf = target.dataset.specializationLeaf;
       if (!leaf) return;
       const label = localizeSpecLabel(skillKey, leaf);
@@ -404,11 +414,15 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const skillKey = target.dataset.skillKey as SkillKey | undefined;
     if (!skillKey || !this.actor || !this.isEditMode) return;
     const kind = SKILL_SPECIALIZATION_KIND[skillKey];
-    if (kind !== "free") return;
+    if (!allowsFreeSpecialization(kind)) return;
 
     const label = await CharacterSheet.#promptFreeLabel(skillKey);
     if (label === null) return;
-    const slug = freeSpecializationSlug(skillKey, label);
+    const parameter = SKILL_FREE_PARAMETER[skillKey];
+    const slug =
+      parameter !== undefined
+        ? freeParameterSpecializationSlug(skillKey, parameter, label)
+        : freeSpecializationSlug(skillKey, label);
     const system = this.actor.system as CharacterData;
     const skill = (system.skills as Record<SkillKey, SkillFields>)[skillKey];
     if (!skill) return;
@@ -427,7 +441,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const skillKey = target.dataset.skillKey as SkillKey | undefined;
     const slug = target.dataset.specializationSlug;
     if (!skillKey || !slug || !this.actor) return;
-    if (SKILL_SPECIALIZATION_KIND[skillKey] !== "free") return;
+    if (!allowsFreeSpecialization(SKILL_SPECIALIZATION_KIND[skillKey])) return;
     const system = this.actor.system as CharacterData;
     const skill = (system.skills as Record<SkillKey, SkillFields>)[skillKey];
     if (!skill) return;

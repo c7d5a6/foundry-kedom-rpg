@@ -31,7 +31,7 @@ INSERT INTO skill (id, slug, label, description, attribute_id, specialization_mo
 	(14, 'shoot',       'Shoot',       '', 2, 'none',          0, 14, 'kdmskl000shoot00'),
 	(15, 'stab',        'Stab',        '', 1, 'none',          0, 15, 'kdmskl0000stab00'),
 	(16, 'survive',     'Survive',     '', 4, 'parameterized', 0, 16, 'kdmskl0survive00'),
-	(17, 'travel',      'Travel',      '', 1, 'parameterized', 0, 17, 'kdmskl00travel00'),
+	(17, 'travel',      'Travel',      '', 4, 'fixed',         0, 17, 'kdmskl00travel00'),
 	(18, 'work',        'Work',        '', 1, 'free',          0, 18, 'kdmskl0000work00'),
 	(19, 'worship',     'Worship',     '', 5, 'free',          0, 19, 'kdmskl0worship00');
 

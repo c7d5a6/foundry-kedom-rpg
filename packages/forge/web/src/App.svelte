@@ -114,8 +114,10 @@
     loadError = "";
     try {
       if (next === "attributes") await loadAttributes();
-      else if (next === "skills") await loadSkills();
-      else if (next === "classes") await loadClasses();
+      else if (next === "skills") {
+        await loadAttributes();
+        await loadSkills();
+      } else if (next === "classes") await loadClasses();
       else if (next === "vocab") await loadVocab();
       else if (next === "completeness") await loadCompleteness();
       else await loadExportPreview();
@@ -267,6 +269,15 @@
               sort_order: selectedSkill.sort_order,
             }}
             translations={selectedSkill.translations ?? {}}
+            skillControls={{
+              attribute_id: selectedSkill.attribute_id,
+              specialization_mode: selectedSkill.specialization_mode,
+              attributes: attributes.map((a) => ({
+                id: a.id,
+                slug: a.slug,
+                label: a.label,
+              })),
+            }}
             onSaved={loadSkills}
           />
         {/if}

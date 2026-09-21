@@ -123,6 +123,7 @@
                           data-skill-key="{{skillKey}}"
                           data-specialization-slug="{{slug}}"
                           {{#if leaf}}data-specialization-leaf="{{leaf}}"{{/if}}
+                          {{#if isFree}}data-free="1"{{/if}}
                           title="{{#if selected}}{{localize "KEDOM.Sheet.Action.deselectSpecialization"}}{{else}}{{localize "KEDOM.Sheet.Action.selectSpecialization"}}{{/if}}"
                         >
                           <i class="fa-{{#if selected}}solid{{else}}regular{{/if}} fa-diamond kedom-skill__tag-mark" inert></i>
@@ -170,7 +171,7 @@
                     {{/if}}
                   {{/each}}
 
-                  {{#if isFree}}
+                  {{#if allowsFreeAdd}}
                     {{#if @root.isEdit}}
                       <button
                         type="button"
