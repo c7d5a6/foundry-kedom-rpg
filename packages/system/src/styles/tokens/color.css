@@ -20,6 +20,12 @@
   --kedom-color-moss-600: #2f4a32;
   --kedom-color-moss-500: #3d6342;
   --kedom-color-amber-500: #b45309;
+  --kedom-color-proficiency-untrained: #171717;
+  --kedom-color-proficiency-apprentice: #414141;
+  --kedom-color-proficiency-trained: #59634a;
+  --kedom-color-proficiency-expert: #a47a3c;
+  --kedom-color-proficiency-master: #c05a3d;
+  --kedom-color-proficiency-legendary: #5c1717;
 
   --kedom-font-display: "Cormorant Garamond", "Palatino Linotype", Palatino, Georgia, serif;
   --kedom-font-body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
@@ -47,6 +53,12 @@
   --kedom-tier-cost: var(--kedom-color-amber-500);
   --kedom-tier-success: var(--kedom-color-moss-500);
   --kedom-tier-critical: var(--kedom-color-blood-400);
+  --kedom-proficiency-untrained: var(--kedom-color-proficiency-untrained);
+  --kedom-proficiency-apprentice: var(--kedom-color-proficiency-apprentice);
+  --kedom-proficiency-trained: var(--kedom-color-proficiency-trained);
+  --kedom-proficiency-expert: var(--kedom-color-proficiency-expert);
+  --kedom-proficiency-master: var(--kedom-color-proficiency-master);
+  --kedom-proficiency-legendary: var(--kedom-color-proficiency-legendary);
 }
 
 @media (prefers-color-scheme: dark) {
