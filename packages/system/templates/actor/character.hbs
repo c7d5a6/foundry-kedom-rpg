@@ -1,4 +1,4 @@
-<form class="{{cssClass}}" autocomplete="off">
+<div class="kedom-sheet-body">
   <header class="sheet-header">
     <h1>
       <input name="name" type="text" value="{{actor.name}}" placeholder="Name" />
@@ -37,8 +37,11 @@
               data-action="rollSkill"
               data-skill-key="{{key}}"
             >
-              {{label}}
-              <small>({{abilityAbbr}})</small>
+              <span class="kedom-skill__label">
+                {{label}}
+                <small>({{abilityAbbr}})</small>
+              </span>
+              <span class="kedom-skill__bonus">{{bonusSigned}}</span>
             </button>
             <select name="system.skills.{{key}}.proficiency">
               {{#each proficiencyOptions}}
@@ -62,7 +65,8 @@
                     data-skill-key="{{skillKey}}"
                     data-specialization-slug="{{slug}}"
                   >
-                    {{label}}
+                    <span class="kedom-skill__label">{{label}}</span>
+                    <span class="kedom-skill__bonus">{{bonusSigned}}</span>
                   </button>
                   <button
                     type="button"
@@ -113,4 +117,4 @@
       {{/each}}
     </div>
   </section>
-</form>
+</div>

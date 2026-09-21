@@ -1,6 +1,5 @@
 import {
   DEFAULT_DIFFICULTY,
-  PROFICIENCY_BONUS,
   SKILL_ABILITY,
   SKILL_CHECK_DICE,
   type GradedOutcome,
@@ -9,8 +8,7 @@ import {
 } from "../config/kedom.ts";
 import { SKILL_SPECIALIZATION_KIND } from "../config/specializations.ts";
 import type { CharacterData, SkillFields } from "../data/actor/character.ts";
-import { appliedProficiencyBonus } from "../derivations/skill-proficiency.ts";
-import { collectSkillCheckModifiers } from "./collectors.ts";
+import { buildSkillCheck, skillCheckIsSpecialized } from "./build-skill-check.ts";
 import { labeledCheckFormula } from "./labeled-formula.ts";
 import { resolveOutcome } from "./resolve-outcome.ts";
 
@@ -64,6 +62,94 @@ export function placeCheckDegreeIcons(html: HTMLElement): void {
   total.insertAdjacentElement("beforebegin", degrees);
 }
 
+function proficiencyLabels(input: {
+  specialized: boolean;
+  tierLabel: string;
+  specializationLabel: string | null;
+}): string {
+  if (!input.specialized) {
+    return game.i18n.format("KEDOM.Roll.Modifier.halfProficiency", {
+      proficiency: input.tierLabel,
+    });
+  }
+  if (input.specializationLabel !== null) {
+    return game.i18n.format("KEDOM.Roll.Modifier.specialization", {
+      specialization: input.specializationLabel,
+    });
+  }
+  return input.tierLabel;
+}
+
+/**
+ * Shared preparation for sheet totals and chat rolls.
+ * Returns null when the skill or ability data is missing.
+ */
+export function prepareSkillCheck(
+  actor: Actor.Implementation,
+  skillKey: SkillKey,
+  options: SkillCheckOptions = {},
+): {
+  modifiers: ReturnType<typeof buildSkillCheck>["modifiers"];
+  bonus: number;
+  skillLabel: string;
+  formulaLabel: string;
+  specializationLabel: string | null;
+} | null {
+  const abilityKey = SKILL_ABILITY[skillKey];
+  if (abilityKey === undefined) return null;
+
+  const system = actor.system as CharacterData;
+  const ability = (system.abilities as Record<string, { mod?: number }>)[abilityKey];
+  const skill = (system.skills as Record<SkillKey, SkillFields>)[skillKey];
+  if (!ability || !skill) return null;
+
+  const kind = SKILL_SPECIALIZATION_KIND[skillKey];
+  let specializationLabel: string | null = null;
+  let specializationSlug: string | null = null;
+
+  if (options.specializationSlug !== undefined) {
+    const found = skill.specializations.find((s) => s.slug === options.specializationSlug);
+    if (!found) return null;
+    specializationSlug = found.slug;
+    specializationLabel = found.label;
+  }
+
+  const specialized = skillCheckIsSpecialized(kind, specializationSlug !== null);
+  const proficiency = skill.proficiency as ProficiencyTier;
+  const skillLabel = localize(`KEDOM.Skill.${skillKey}`, skillKey);
+  const abilityLabel = localize(`KEDOM.Ability.${abilityKey}.label`, abilityKey);
+  const tierLabel = localize(`KEDOM.Proficiency.${proficiency}`, proficiency);
+  const abilityMod = ability.mod ?? 0;
+
+  const built = buildSkillCheck({
+    skillKey,
+    skillLabel,
+    abilityKey,
+    abilityLabel,
+    abilityMod,
+    proficiency,
+    specialized,
+    proficiencyLabel: proficiencyLabels({
+      specialized,
+      tierLabel,
+      specializationLabel,
+    }),
+    specializationSlug,
+    specializationLabel,
+  });
+
+  const formulaLabel =
+    specializationLabel !== null ? `${skillLabel} (${specializationLabel})` : skillLabel;
+
+  return {
+    modifiers: built.modifiers,
+    bonus: built.bonus,
+    skillLabel,
+    formulaLabel,
+    specializationLabel,
+  };
+}
+
 export async function rollSkillCheck(
   actor: Actor.Implementation,
   skillKey: string,
@@ -75,69 +161,21 @@ export async function rollSkillCheck(
   }
 
   const key = skillKey as SkillKey;
-  const abilityKey = SKILL_ABILITY[key];
-  if (!abilityKey) {
-    ui.notifications.error(game.i18n.format("KEDOM.Chat.UnknownSkill", { skill: skillKey }));
-    return;
-  }
-
-  const system = actor.system as CharacterData;
-  const ability = (system.abilities as Record<string, { mod?: number }>)[abilityKey];
-  const skill = (system.skills as Record<SkillKey, SkillFields>)[key];
-  if (!ability || !skill) {
+  const prepared = prepareSkillCheck(actor, key, options);
+  if (!prepared) {
+    if (options.specializationSlug !== undefined) {
+      ui.notifications.error(
+        game.i18n.format("KEDOM.Error.UnknownSpecializationSlug", {
+          slug: options.specializationSlug,
+        }),
+      );
+      return;
+    }
     ui.notifications.error(game.i18n.localize("KEDOM.Chat.MissingSkillData"));
     return;
   }
 
-  const kind = SKILL_SPECIALIZATION_KIND[key];
-  const specializationSlug = options.specializationSlug;
-  let specializationLabel: string | null = null;
-  let specialized = kind === "none";
-
-  if (specializationSlug !== undefined) {
-    const found = skill.specializations.find((s) => s.slug === specializationSlug);
-    if (!found) {
-      ui.notifications.error(
-        game.i18n.format("KEDOM.Error.UnknownSpecializationSlug", { slug: specializationSlug }),
-      );
-      return;
-    }
-    specialized = true;
-    specializationLabel = found.label;
-  }
-
-  const proficiency = skill.proficiency as ProficiencyTier;
-  const tierBonus = PROFICIENCY_BONUS[proficiency] ?? -2;
-  const proficiencyBonus = appliedProficiencyBonus({ tierBonus, specialized });
-
-  const skillLabel = localize(`KEDOM.Skill.${key}`, key);
-  const abilityLabel = localize(`KEDOM.Ability.${abilityKey}.label`, abilityKey);
-  const tierLabel = localize(`KEDOM.Proficiency.${proficiency}`, proficiency);
-  const proficiencyLabel = specialized
-    ? specializationLabel !== null
-      ? game.i18n.format("KEDOM.Roll.Modifier.specialization", {
-          specialization: specializationLabel,
-        })
-      : tierLabel
-    : game.i18n.format("KEDOM.Roll.Modifier.halfProficiency", { proficiency: tierLabel });
-  const abilityMod = ability.mod ?? 0;
-
-  const modifiers = collectSkillCheckModifiers({
-    skillKey: key,
-    skillLabel,
-    abilityKey,
-    abilityLabel,
-    abilityMod,
-    proficiency,
-    proficiencyBonus,
-    proficiencyLabel,
-    specialized,
-    specializationSlug: specializationSlug ?? null,
-    specializationLabel,
-  });
-
-  const formulaLabel =
-    specializationLabel !== null ? `${skillLabel} (${specializationLabel})` : skillLabel;
+  const { modifiers, formulaLabel } = prepared;
   const formula = labeledCheckFormula(SKILL_CHECK_DICE, formulaLabel, modifiers);
   const roll = await new Roll(formula).evaluate();
   const total = roll.total ?? 0;

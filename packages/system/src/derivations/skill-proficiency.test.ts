@@ -7,10 +7,10 @@ describe("appliedProficiencyBonus", () => {
     expect(appliedProficiencyBonus({ tierBonus: -2, specialized: true })).toBe(-2);
   });
 
-  it("halves toward zero when unspecialized", () => {
+  it("halves only positive bonuses when unspecialized", () => {
     expect(appliedProficiencyBonus({ tierBonus: 4, specialized: false })).toBe(2);
     expect(appliedProficiencyBonus({ tierBonus: 2, specialized: false })).toBe(1);
     expect(appliedProficiencyBonus({ tierBonus: 0, specialized: false })).toBe(0);
-    expect(appliedProficiencyBonus({ tierBonus: -2, specialized: false })).toBe(-1);
+    expect(appliedProficiencyBonus({ tierBonus: -2, specialized: false })).toBe(-2);
   });
 });

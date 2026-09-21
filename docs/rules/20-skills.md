@@ -15,7 +15,8 @@ The source writes this as `2d10 + STAT + skill/save proficiency`. Saves share th
 and the three-outcome ladder; they are not rolled on `d20` against a derived target.
 
 **Without a relevant specialisation, add half proficiency** instead of the full value (skills
-only — saves have no specialisations).
+only — saves have no specialisations). Half applies only to **positive** proficiency bonuses;
+Untrained (−2) and Apprentice (0) are unchanged when unspecialised.
 
 **Attacks** use a different die, deliberately:
 

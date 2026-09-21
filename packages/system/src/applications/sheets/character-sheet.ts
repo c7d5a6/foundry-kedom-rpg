@@ -12,7 +12,8 @@ import {
   specializationSlug,
 } from "../../config/specializations.ts";
 import type { CharacterData, SkillFields } from "../../data/actor/character.ts";
-import { rollSkillCheck } from "../../rolls/skill-check.ts";
+import { formatSignedBonus } from "../../rolls/build-skill-check.ts";
+import { prepareSkillCheck, rollSkillCheck } from "../../rolls/skill-check.ts";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -31,6 +32,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ...ActorSheetV2.DEFAULT_OPTIONS,
     classes: ["kedom", "sheet", "actor", "character"],
     position: { width: 560, height: 720 },
+    window: {
+      ...ActorSheetV2.DEFAULT_OPTIONS.window,
+      resizable: true,
+    },
     form: {
       submitOnChange: true,
       closeOnSubmit: false,
@@ -46,7 +51,8 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static override PARTS = {
     body: {
       template: "systems/kedom/templates/actor/character.hbs",
-      root: true,
+      classes: ["scrollable", "kedom-sheet-body"],
+      scrollable: [""],
     },
   };
 
@@ -86,6 +92,9 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           label: localizeSpecLabel(key, leaf),
         }));
 
+      const skillCheck = this.actor ? prepareSkillCheck(this.actor, key) : null;
+      const bonusSigned = skillCheck !== null ? formatSignedBonus(skillCheck.bonus) : "+0";
+
       return {
         key,
         label: game.i18n.localize(`KEDOM.Skill.${key}`),
@@ -93,13 +102,20 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         abilityAbbr: game.i18n.localize(`KEDOM.Ability.${abilityKey}.abbr`),
         proficiency,
         proficiencyClass: `kedom-skill--${proficiency}`,
+        bonusSigned,
         allowsSpecialization: kind !== "none",
         isFree: kind === "free",
         isFixed: kind === "fixed",
-        specializations: skill.specializations.map((s) => ({
-          ...s,
-          skillKey: key,
-        })),
+        specializations: skill.specializations.map((s) => {
+          const specCheck = this.actor
+            ? prepareSkillCheck(this.actor, key, { specializationSlug: s.slug })
+            : null;
+          return {
+            ...s,
+            skillKey: key,
+            bonusSigned: specCheck !== null ? formatSignedBonus(specCheck.bonus) : "+0",
+          };
+        }),
         availableFixed,
         proficiencyOptions: PROFICIENCY_TIERS.map((value) => ({
           value,
@@ -113,7 +129,6 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       system,
       abilities,
       skills,
-      cssClass: this.options.classes?.join(" ") ?? "kedom sheet actor character",
     });
   }
 
