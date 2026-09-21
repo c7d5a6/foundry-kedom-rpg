@@ -9,12 +9,13 @@
     en: {
       label: string;
       abbreviation?: string;
-      description: string;
+      description?: string;
       comment: string;
       sort_order: number;
     };
     translations: TranslationMap;
     showAbbreviation?: boolean;
+    showDescription?: boolean;
     onSaved: () => void | Promise<void>;
   };
 
@@ -25,6 +26,7 @@
     en,
     translations,
     showAbbreviation = false,
+    showDescription = true,
     onSaved,
   }: Props = $props();
 
@@ -42,7 +44,7 @@
   $effect(() => {
     enLabel = en.label;
     enAbbr = en.abbreviation ?? "";
-    enDesc = en.description;
+    enDesc = en.description ?? "";
     enComment = en.comment ?? "";
     enSort = en.sort_order;
     ruLabel = translations.label ?? "";
@@ -91,15 +93,24 @@
         await api.patchSkill(id, shared);
       } else if (kind === "specialization") {
         await api.patchSpecialization(id, shared);
-      } else {
+      } else if (kind === "class") {
         await api.patchClass(id, shared);
+      } else {
+        await api.patchVocab(id, {
+          label: enLabel,
+          abbreviation: enAbbr,
+          comment: enComment,
+          sort_order: enSort,
+        });
       }
 
       await saveOverlay("label", ruLabel);
       if (showAbbreviation) {
         await saveOverlay("abbreviation", ruAbbr);
       }
-      await saveOverlay("description", ruDesc);
+      if (showDescription) {
+        await saveOverlay("description", ruDesc);
+      }
 
       status = "Saved";
       await onSaved();
@@ -139,10 +150,12 @@
           <input id="en-abbr" class="forge-input" bind:value={enAbbr} />
         </div>
       {/if}
-      <div class="forge-field">
-        <label for="en-desc">Description</label>
-        <textarea id="en-desc" class="forge-input min-h-28 resize-y" bind:value={enDesc}></textarea>
-      </div>
+      {#if showDescription}
+        <div class="forge-field">
+          <label for="en-desc">Description</label>
+          <textarea id="en-desc" class="forge-input min-h-28 resize-y" bind:value={enDesc}></textarea>
+        </div>
+      {/if}
       <div class="forge-field">
         <label for="en-sort">Sort order</label>
         <input id="en-sort" class="forge-input max-w-32" type="number" bind:value={enSort} />
@@ -171,15 +184,17 @@
           />
         </div>
       {/if}
-      <div class="forge-field">
-        <label for="ru-desc">Description</label>
-        <textarea
-          id="ru-desc"
-          class="forge-input min-h-28 resize-y"
-          bind:value={ruDesc}
-          placeholder="(empty = fall back to English)"
-        ></textarea>
-      </div>
+      {#if showDescription}
+        <div class="forge-field">
+          <label for="ru-desc">Description</label>
+          <textarea
+            id="ru-desc"
+            class="forge-input min-h-28 resize-y"
+            bind:value={ruDesc}
+            placeholder="(empty = fall back to English)"
+          ></textarea>
+        </div>
+      {/if}
     </section>
   </div>
 

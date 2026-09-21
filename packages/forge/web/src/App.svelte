@@ -2,15 +2,18 @@
   import { onMount } from "svelte";
   import {
     api,
+    VOCAB_KINDS,
     type Attribute,
     type ClassRow,
     type CompletenessItem,
     type Skill,
     type Specialization,
+    type Vocab,
+    type VocabKind,
   } from "$lib/api";
   import SideBySideEditor from "$lib/SideBySideEditor.svelte";
 
-  type Page = "attributes" | "skills" | "classes" | "completeness" | "export";
+  type Page = "attributes" | "skills" | "classes" | "vocab" | "completeness" | "export";
 
   let page = $state<Page>("attributes");
   let loadError = $state("");
@@ -28,6 +31,10 @@
 
   let classes = $state<ClassRow[]>([]);
   let selectedClass = $state<ClassRow | null>(null);
+
+  let vocabKind = $state<VocabKind>("proficiency");
+  let vocabRows = $state<Vocab[]>([]);
+  let selectedVocab = $state<Vocab | null>(null);
 
   let completeness = $state<CompletenessItem[]>([]);
 
@@ -66,6 +73,15 @@
     }
   }
 
+  async function loadVocab() {
+    vocabRows = await api.vocab(vocabKind);
+    if (selectedVocab) {
+      selectedVocab = vocabRows.find((v) => v.id === selectedVocab!.id) ?? vocabRows[0] ?? null;
+    } else {
+      selectedVocab = vocabRows[0] ?? null;
+    }
+  }
+
   async function loadCompleteness() {
     completeness = await api.completeness();
   }
@@ -100,6 +116,7 @@
       if (next === "attributes") await loadAttributes();
       else if (next === "skills") await loadSkills();
       else if (next === "classes") await loadClasses();
+      else if (next === "vocab") await loadVocab();
       else if (next === "completeness") await loadCompleteness();
       else await loadExportPreview();
     } catch (e) {
@@ -127,6 +144,9 @@
       >
       <button type="button" class="forge-nav-btn" data-active={page === "classes"} onclick={() => go("classes")}
         >Classes</button
+      >
+      <button type="button" class="forge-nav-btn" data-active={page === "vocab"} onclick={() => go("vocab")}
+        >Vocabulary</button
       >
       <button
         type="button"
@@ -281,6 +301,58 @@
             }}
             translations={selectedClass.translations ?? {}}
             onSaved={loadClasses}
+          />
+        {/if}
+      </div>
+    {:else if page === "vocab"}
+      <div class="mb-4 flex flex-wrap items-center gap-2">
+        <label class="text-xs tracking-wide text-muted uppercase" for="vocab-kind">Kind</label>
+        <select
+          id="vocab-kind"
+          class="forge-input w-auto py-1.5"
+          bind:value={vocabKind}
+          onchange={() => {
+            selectedVocab = null;
+            void loadVocab();
+          }}
+        >
+          {#each VOCAB_KINDS as k (k.kind)}
+            <option value={k.kind}>{k.label}</option>
+          {/each}
+        </select>
+        <p class="text-sm text-muted">
+          Closed-vocab labels for Foundry <code class="font-mono">lang/*.json</code>.
+        </p>
+      </div>
+      <div class="grid gap-4 xl:grid-cols-[16rem_1fr]">
+        <div class="forge-panel max-h-[calc(100vh-6rem)] overflow-auto">
+          {#each vocabRows as v (v.id)}
+            <button
+              type="button"
+              class="forge-list-btn"
+              data-active={selectedVocab?.id === v.id}
+              onclick={() => (selectedVocab = v)}
+            >
+              <span class="block font-medium">{v.label}</span>
+              <span class="mt-0.5 block font-mono text-xs text-muted">{v.slug}</span>
+            </button>
+          {/each}
+        </div>
+        {#if selectedVocab}
+          <SideBySideEditor
+            kind={selectedVocab.kind}
+            id={selectedVocab.id}
+            slug={selectedVocab.slug}
+            showAbbreviation={selectedVocab.abbreviation !== ""}
+            showDescription={false}
+            en={{
+              label: selectedVocab.label,
+              abbreviation: selectedVocab.abbreviation,
+              comment: selectedVocab.comment,
+              sort_order: selectedVocab.sort_order,
+            }}
+            translations={selectedVocab.translations ?? {}}
+            onSaved={loadVocab}
           />
         {/if}
       </div>

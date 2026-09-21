@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/c7d5a6/foundry-kedom-rpg/packages/forge/api/internal/model"
 	"github.com/c7d5a6/foundry-kedom-rpg/packages/forge/api/internal/service"
@@ -39,6 +40,9 @@ func (a *API) Mount(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/classes", a.listClasses)
 	mux.HandleFunc("GET /api/classes/{id}", a.getClass)
 	mux.HandleFunc("PATCH /api/classes/{id}", a.patchClass)
+	mux.HandleFunc("GET /api/vocab", a.listVocab)
+	mux.HandleFunc("GET /api/vocab/{id}", a.getVocab)
+	mux.HandleFunc("PATCH /api/vocab/{id}", a.patchVocab)
 	mux.HandleFunc("PUT /api/translations", a.putTranslation)
 	mux.HandleFunc("DELETE /api/translations", a.deleteTranslation)
 	mux.HandleFunc("GET /api/completeness", a.completeness)
@@ -163,6 +167,39 @@ func (a *API) patchClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	row, err := a.content.UpdateClass(r.Context(), id, in, locale(r))
+	a.respond(w, row, err)
+}
+
+func (a *API) listVocab(w http.ResponseWriter, r *http.Request) {
+	kind := strings.TrimSpace(r.URL.Query().Get("kind"))
+	if kind == "" {
+		rows, err := a.content.ListVocab(r.Context(), locale(r))
+		a.respond(w, rows, err)
+		return
+	}
+	rows, err := a.content.ListVocabByKind(r.Context(), model.EntityKind(kind), locale(r))
+	a.respond(w, rows, err)
+}
+
+func (a *API) getVocab(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+	row, err := a.content.GetVocab(r.Context(), id, locale(r))
+	a.respond(w, row, err)
+}
+
+func (a *API) patchVocab(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+	var in service.UpdateVocabInput
+	if !decode(w, r, &in) {
+		return
+	}
+	row, err := a.content.UpdateVocab(r.Context(), id, in, locale(r))
 	a.respond(w, row, err)
 }
 

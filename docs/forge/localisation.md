@@ -21,9 +21,10 @@ Mixing the two is the usual failure. Putting race descriptions in `lang/ru.json`
 compendium still shows English when opened, and putting "Roll" in the database means the
 sheet cannot switch language without a re-export. Keep them apart.
 
-System UI strings are **hand-authored** in the two JSON files and reviewed like any other
-source. Content translations are **authored in Forge** against the English row, stored in
-SQLite, and exported.
+System UI strings land in the two JSON files. **Closed vocabulary** (ability/skill names,
+proficiency, outcomes, …) is authored in Forge and written by `forge export lang`.
+**Sheet chrome** (tabs, buttons, errors) stays hand-authored. Content translations are
+authored in Forge against the English row, stored in SQLite, and exported (Babele when built).
 
 ## English is canonical, Russian is an overlay
 
@@ -75,7 +76,8 @@ translation:
   id
   entity_kind     'attribute' | 'skill' | 'specialization' | 'race' | 'class'
                   | 'background' | 'region' | 'focus' | 'power' | 'condition'
-                  | 'injury'
+                  | 'injury' | 'proficiency' | 'outcome' | 'save' | 'difficulty'
+                  | 'derived' | 'injury_severity' | 'injury_location' | 'injury_weapon'
   entity_id       INTEGER NOT NULL     the id in that kind's table
   locale          TEXT NOT NULL        BCP 47; currently 'ru'
   field           'label' | 'abbreviation' | 'description'
@@ -234,23 +236,25 @@ reading the item's `name`. The item's `name` is content, comes from the pack, an
 Babele overlays. The localisation key is the slug, which does not change. This is why slugs
 exist, and it is the same rule as ADR-007 applied to languages.
 
-## Closed vocabularies are in both places
+## Closed vocabularies are authored in Forge, generated into lang JSON
 
-Attributes, the nineteen skills, proficiency tiers, saves, and conditions appear **twice**:
-as UI strings in `lang/{en,ru}.json`, and as content rows with translations in SQLite.
+Attributes, the nineteen skills, proficiency tiers, outcomes, saves, difficulty labels,
+derived combat labels (`KEDOM.Attributes`), conditions, and injury axes live in SQLite
+(`attribute` / `skill` / `vocab`) with Russian in `translation`.
 
-That is deliberate, not drift waiting to happen.
+`npm run forge:export:lang` regenerates those closed sections in
+`packages/system/lang/{en,ru}.json`. Sheet chrome (`TYPES`, `System`, `Sheet`, `Chat`,
+`Roll`, `Error`, `Settings`) stays hand-authored and is preserved across exports.
 
-- The sheet, the roll dialog, and the config object must resolve a name **without loading an
-  item**. That is what `lang/*.json` is for, and it is keyed by slug.
-- The sidebar, the compendium browser, and a dragged-out skill item display `document.name`,
-  which Babele overlays from the database export.
+That is deliberate:
 
-The two must say the same thing. The invariant is "the Russian label of skill `survive` in
-SQLite equals `KEDOM.Skill.survive` in `lang/ru.json`". Forge can check it at export time;
-until then it is a review concern. Generating `lang/ru.json` from SQLite is a later
-convenience, not a v1 requirement — the file also holds sheet chrome that has no database
-row.
+- The sheet and roll pipeline must resolve a name **without loading an item** — that is
+  what `lang/*.json` is for, keyed by slug.
+- The sidebar / compendium still use `document.name` (Babele) once packs exist.
+
+Edit labels in Forge (Attributes, Skills, or Vocabulary), then re-export lang. Do not
+hand-edit closed sections in the JSON files. When YAML pack export lands, it will call the
+same lang emitter first so packs and UI strings stay aligned.
 
 ## Completeness, not blocking
 

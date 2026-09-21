@@ -25,6 +25,7 @@
     "forge:sqlc": "cd packages/forge/api && sqlc generate",
     "forge:dump": "tsx tools/dump-content.ts",
     "forge:export:md": "go -C packages/forge/api run ./cmd/forge export md",
+    "forge:export:lang": "go -C packages/forge/api run ./cmd/forge export lang",
     "lint": "npm run lint:ts && npm run lint:go",
     "lint:ts": "eslint .",
     "lint:go": "cd packages/forge/api && golangci-lint run ./...",

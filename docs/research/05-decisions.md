@@ -295,7 +295,9 @@ export, and the Foundry system. A third locale is new rows, not new columns.
 
 Two channels, because Foundry forces the split:
 
-1. **UI strings** — `lang/en.json` and `lang/ru.json`, native Foundry `languages`. Hand-authored.
+1. **UI strings** — `lang/en.json` and `lang/ru.json`, native Foundry `languages`.
+   Closed vocabulary (abilities, skills, proficiency, outcomes, saves, …) is **generated**
+   from Forge via `forge export lang`. Sheet chrome remains hand-authored.
 2. **Content** — English `label` / `description` on the entity table; Russian in a
    `translation` table keyed by `(entity_kind, entity_id, locale, field)`. YAML packs stay
    English. Forge emits Babele JSON for the Russian overlay. The system registers Babele if
@@ -312,8 +314,8 @@ across every table, which is the retrofit this decision exists to prevent.
 **Consequence.** Babele is an optional relationship, not a hard dependency. A Russian client
 without it still gets a Russian sheet and English compendia. Incomplete Russian is a
 fallback, never an export failure, and never a copy of English pretending to be complete.
-Closed vocabularies (skills, attributes, saves) appear both in `lang/*.json` and in SQLite;
-Forge should eventually check they match.
+Closed vocabularies (skills, attributes, saves, …) are authored in Forge and written into
+`lang/*.json` by `forge export lang`; chrome strings stay hand-authored.
 
 Full design: [../forge/localisation.md](../forge/localisation.md). Closes Q27.
 

@@ -1,26 +1,26 @@
 {
   "TYPES": {
+    "ActiveEffect": {
+      "condition": "Condition",
+      "injury": "Injury"
+    },
     "Actor": {
       "character": "Character",
       "npc": "NPC"
     },
-    "Item": {
-      "skill": "Skill",
-      "weapon": "Weapon",
-      "armor": "Armor",
-      "gear": "Gear",
-      "focus": "Focus",
-      "power": "Power",
-      "origin": "Origin"
-    },
     "ChatMessage": {
-      "check": "Skill Check",
       "attack": "Attack",
+      "check": "Skill Check",
       "damage": "Damage"
     },
-    "ActiveEffect": {
-      "condition": "Condition",
-      "injury": "Injury"
+    "Item": {
+      "armor": "Armor",
+      "focus": "Focus",
+      "gear": "Gear",
+      "origin": "Origin",
+      "power": "Power",
+      "skill": "Skill",
+      "weapon": "Weapon"
     }
   },
   "KEDOM": {
@@ -28,29 +28,29 @@
       "Title": "Kedom RPG"
     },
     "Ability": {
-      "mgh": {
-        "label": "Might",
-        "abbr": "MGH"
-      },
       "dex": {
         "label": "Dexterity",
         "abbr": "DEX"
-      },
-      "kno": {
-        "label": "Knowledge",
-        "abbr": "KNO"
       },
       "foc": {
         "label": "Focus",
         "abbr": "FOC"
       },
-      "pre": {
-        "label": "Presence",
-        "abbr": "PRE"
+      "kno": {
+        "label": "Knowledge",
+        "abbr": "KNO"
       },
       "lck": {
         "label": "Luck",
         "abbr": "LCK"
+      },
+      "mgh": {
+        "label": "Might",
+        "abbr": "MGH"
+      },
+      "pre": {
+        "label": "Presence",
+        "abbr": "PRE"
       }
     },
     "Skill": {
@@ -75,16 +75,16 @@
       "worship": "Worship"
     },
     "Proficiency": {
-      "untrained": "Untrained",
       "apprentice": "Apprentice",
-      "trained": "Trained",
       "expert": "Expert",
+      "legendary": "Legendary",
       "master": "Master",
-      "legendary": "Legendary"
+      "trained": "Trained",
+      "untrained": "Untrained"
     },
     "Outcome": {
-      "failure": "Failure",
       "cost": "Success at a Cost",
+      "failure": "Failure",
       "success": "Success"
     },
     "Sheet": {
@@ -94,120 +94,127 @@
       "Mod": "Mod",
       "Roll": "Roll",
       "Tab": {
-        "stats": "Stats",
-        "skills": "Skills",
-        "inventory": "Inventory",
-        "powers": "Powers",
-        "effects": "Effects",
         "biography": "Biography",
         "description": "Description",
-        "details": "Details"
+        "details": "Details",
+        "effects": "Effects",
+        "inventory": "Inventory",
+        "powers": "Powers",
+        "skills": "Skills",
+        "stats": "Stats"
       },
       "Mode": {
-        "play": "Play Mode",
         "edit": "Edit Mode",
+        "play": "Play Mode",
         "toggleHint": "Switch between play and edit mode"
       },
       "Action": {
+        "addSpecialization": "Add specialization to {skill}",
+        "addSpecializationShort": "+ Specialization",
+        "create": "Create",
+        "delete": "Delete",
+        "edit": "Edit",
+        "equip": "Equip",
         "roll": "Roll",
         "rollSkill": "Roll {skill}",
-        "create": "Create",
-        "edit": "Edit",
-        "delete": "Delete",
-        "equip": "Equip",
-        "unequip": "Unequip",
-        "addSpecialization": "Add specialization to {skill}",
-        "addSpecializationShort": "+ Specialization"
+        "unequip": "Unequip"
       },
       "searchPlaceholder": "Search",
       "SpecializationLabel": "Specialization"
     },
     "Chat": {
       "Dice": "dice",
+      "MissingSkillData": "Character data missing ability or skill.",
       "Total": "Total",
-      "UnknownSkill": "Unknown skill: {skill}",
-      "MissingSkillData": "Character data missing ability or skill."
+      "UnknownSkill": "Unknown skill: {skill}"
     },
     "Save": {
-      "reflex": "Reflex",
       "fortitude": "Fortitude",
+      "reflex": "Reflex",
       "will": "Will"
     },
     "Difficulty": {
       "challenging": "Challenging",
       "hard": "Hard",
-      "veryHard": "Very Hard",
-      "incrediblyHard": "Incredibly Hard"
+      "incrediblyHard": "Incredibly Hard",
+      "veryHard": "Very Hard"
     },
     "Attributes": {
-      "hp": "Hit Points",
-      "hpShort": "HP",
-      "strain": "System Strain",
-      "strainShort": "SS",
-      "wounds": "Wounds",
       "ac": "Armor Class",
-      "acShort": "AC",
       "acMelee": "Melee AC",
       "acRanged": "Ranged AC",
+      "acShort": "AC",
       "attackBonus": "Attack Bonus",
-      "initiative": "Initiative",
-      "movement": "Movement",
       "encumbrance": "Encumbrance",
+      "experience": "Experience",
+      "hp": "Hit Points",
+      "hpShort": "HP",
+      "initiative": "Initiative",
       "level": "Level",
-      "experience": "Experience"
+      "movement": "Movement",
+      "strain": "System Strain",
+      "strainShort": "SS",
+      "wounds": "Wounds"
     },
     "Condition": {
-      "stunned": "Stunned",
-      "paralyzed": "Paralyzed",
-      "prone": "Prone",
       "blinded": "Blinded",
       "deafened": "Deafened",
       "ignited": "Ignited",
-      "slowed": "Slowed",
+      "paralyzed": "Paralyzed",
+      "prone": "Prone",
       "sickened": "Sickened",
-      "wounded": "Wounded",
-      "strained": "Strained"
+      "slowed": "Slowed",
+      "strained": "Strained",
+      "stunned": "Stunned",
+      "wounded": "Wounded"
     },
     "Injury": {
       "Severity": {
-        "minor": "Minor",
         "major": "Major",
+        "minor": "Minor",
         "severe": "Severe"
       },
       "Location": {
-        "head": "Head",
-        "body": "Body",
         "arms": "Arms",
-        "legs": "Legs",
-        "bleed": "Bleeding"
+        "bleed": "Bleeding",
+        "body": "Body",
+        "head": "Head",
+        "legs": "Legs"
       },
       "WeaponType": {
         "arrow": "Arrow",
-        "bullet": "Bullet",
         "blunt": "Blunt",
+        "bullet": "Bullet",
         "claws": "Claws",
         "cutting": "Cutting",
+        "explosion": "Explosion",
         "flame": "Flame",
-        "piercing": "Piercing",
-        "explosion": "Explosion"
+        "piercing": "Piercing"
       }
     },
     "Roll": {
+      "Dialog": {
+        "difficultyLabel": "Difficulty",
+        "situationalLabel": "Situational modifier",
+        "submit": "Roll",
+        "title": "Configure Roll"
+      },
       "Modifier": {
         "ability": "{ability} modifier",
+        "armorPenalty": "Armor penalty",
+        "effect": "{effect}",
+        "halfProficiency": "{proficiency} (half)",
+        "situational": "Situational"
+      },
+      "modifier": {
+        "ability": "{ability} modifier",
+        "armorPenalty": "Armor penalty",
+        "effect": "{effect}",
+        "halfProficiency": "{proficiency} (half)",
+        "situational": "Situational",
         "skillLevel": "{skill} level",
         "specialization": "{specialization}",
-        "untrained": "Untrained",
-        "armorPenalty": "Armor penalty",
-        "situational": "Situational",
-        "effect": "{effect}",
-        "halfProficiency": "{proficiency} (half)"
-      },
-      "Dialog": {
-        "title": "Configure Roll",
-        "situationalLabel": "Situational modifier",
-        "difficultyLabel": "Difficulty",
-        "submit": "Roll"
+        "untrained": "Untrained"
       }
     },
     "Error": {
@@ -217,8 +224,8 @@
     },
     "Settings": {
       "MigrationVersion": {
-        "name": "Last migration version",
-        "hint": "Internal. The system data version this world was last migrated to."
+        "hint": "Internal. The system data version this world was last migrated to.",
+        "name": "Last migration version"
       }
     },
     "Specialization": {
@@ -289,13 +296,13 @@
         "tracking": "Tracking"
       },
       "travel": {
-        "hiking": "Hiking",
-        "riding": "Riding",
         "driving": "Driving",
-        "sailing": "Sailing",
         "exotic": "Exotic",
+        "hiking": "Hiking",
         "navigation": "Navigation",
-        "orientation": "Orientation"
+        "orientation": "Orientation",
+        "riding": "Riding",
+        "sailing": "Sailing"
       }
     }
   }

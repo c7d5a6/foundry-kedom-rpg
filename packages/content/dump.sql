@@ -9,6 +9,8 @@ CREATE TABLE schema_migrations (
 INSERT INTO schema_migrations VALUES('0001_core_vocab','2026-09-20T19:14:04Z');
 INSERT INTO schema_migrations VALUES('0002_seed_core_vocab','2026-09-20T19:14:04Z');
 INSERT INTO schema_migrations VALUES('0003_entity_comment','2026-09-20T20:59:42Z');
+INSERT INTO schema_migrations VALUES('0004_vocab','2026-09-21T09:52:16Z');
+INSERT INTO schema_migrations VALUES('0005_seed_closed_vocab','2026-09-21T09:52:16Z');
 CREATE TABLE attribute (
 	id           INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug         TEXT NOT NULL UNIQUE
@@ -153,12 +155,86 @@ INSERT INTO class VALUES(9,'duelist','Duelist','',0,1,NULL,NULL,NULL,9,'kdmcls0d
 INSERT INTO class VALUES(10,'empath','Empath','',0,1,NULL,NULL,NULL,10,'kdmcls00empath00','');
 INSERT INTO class VALUES(11,'rune-guardian','Rune Guardian','',0,1,NULL,NULL,NULL,11,'kdmcls0runeguard','');
 INSERT INTO class VALUES(12,'beast','Beast','',0,1,NULL,NULL,NULL,12,'kdmcls000beast00','');
-CREATE TABLE translation (
+CREATE TABLE vocab (
+	id           INTEGER PRIMARY KEY AUTOINCREMENT,
+	kind         TEXT NOT NULL
+		CHECK (kind IN (
+			'proficiency', 'outcome', 'save', 'difficulty', 'derived',
+			'condition', 'injury_severity', 'injury_location', 'injury_weapon'
+		)),
+	slug         TEXT NOT NULL
+		CHECK (length(slug) > 0 AND slug NOT GLOB '*[^a-zA-Z0-9]*'),
+	label        TEXT NOT NULL CHECK (length(label) > 0),
+	abbreviation TEXT NOT NULL DEFAULT '',
+	sort_order   INTEGER NOT NULL DEFAULT 0,
+	comment      TEXT NOT NULL DEFAULT '',
+	UNIQUE (kind, slug)
+);
+INSERT INTO vocab VALUES(1,'proficiency','untrained','Untrained','',1,'');
+INSERT INTO vocab VALUES(2,'proficiency','apprentice','Apprentice','',2,'');
+INSERT INTO vocab VALUES(3,'proficiency','trained','Trained','',3,'');
+INSERT INTO vocab VALUES(4,'proficiency','expert','Expert','',4,'');
+INSERT INTO vocab VALUES(5,'proficiency','master','Master','',5,'');
+INSERT INTO vocab VALUES(6,'proficiency','legendary','Legendary','',6,'');
+INSERT INTO vocab VALUES(7,'outcome','failure','Failure','',1,'');
+INSERT INTO vocab VALUES(8,'outcome','cost','Success at a Cost','',2,'');
+INSERT INTO vocab VALUES(9,'outcome','success','Success','',3,'');
+INSERT INTO vocab VALUES(10,'save','reflex','Reflex','',1,'');
+INSERT INTO vocab VALUES(11,'save','fortitude','Fortitude','',2,'');
+INSERT INTO vocab VALUES(12,'save','will','Will','',3,'');
+INSERT INTO vocab VALUES(13,'difficulty','challenging','Challenging','',1,'');
+INSERT INTO vocab VALUES(14,'difficulty','hard','Hard','',2,'');
+INSERT INTO vocab VALUES(15,'difficulty','veryHard','Very Hard','',3,'');
+INSERT INTO vocab VALUES(16,'difficulty','incrediblyHard','Incredibly Hard','',4,'');
+INSERT INTO vocab VALUES(17,'derived','hp','Hit Points','',1,'');
+INSERT INTO vocab VALUES(18,'derived','hpShort','HP','',2,'');
+INSERT INTO vocab VALUES(19,'derived','strain','System Strain','',3,'');
+INSERT INTO vocab VALUES(20,'derived','strainShort','SS','',4,'');
+INSERT INTO vocab VALUES(21,'derived','wounds','Wounds','',5,'');
+INSERT INTO vocab VALUES(22,'derived','ac','Armor Class','',6,'');
+INSERT INTO vocab VALUES(23,'derived','acShort','AC','',7,'');
+INSERT INTO vocab VALUES(24,'derived','acMelee','Melee AC','',8,'');
+INSERT INTO vocab VALUES(25,'derived','acRanged','Ranged AC','',9,'');
+INSERT INTO vocab VALUES(26,'derived','attackBonus','Attack Bonus','',10,'');
+INSERT INTO vocab VALUES(27,'derived','initiative','Initiative','',11,'');
+INSERT INTO vocab VALUES(28,'derived','movement','Movement','',12,'');
+INSERT INTO vocab VALUES(29,'derived','encumbrance','Encumbrance','',13,'');
+INSERT INTO vocab VALUES(30,'derived','level','Level','',14,'');
+INSERT INTO vocab VALUES(31,'derived','experience','Experience','',15,'');
+INSERT INTO vocab VALUES(32,'condition','stunned','Stunned','',1,'');
+INSERT INTO vocab VALUES(33,'condition','paralyzed','Paralyzed','',2,'');
+INSERT INTO vocab VALUES(34,'condition','prone','Prone','',3,'');
+INSERT INTO vocab VALUES(35,'condition','blinded','Blinded','',4,'');
+INSERT INTO vocab VALUES(36,'condition','deafened','Deafened','',5,'');
+INSERT INTO vocab VALUES(37,'condition','ignited','Ignited','',6,'');
+INSERT INTO vocab VALUES(38,'condition','slowed','Slowed','',7,'');
+INSERT INTO vocab VALUES(39,'condition','sickened','Sickened','',8,'');
+INSERT INTO vocab VALUES(40,'condition','wounded','Wounded','',9,'');
+INSERT INTO vocab VALUES(41,'condition','strained','Strained','',10,'');
+INSERT INTO vocab VALUES(42,'injury_severity','minor','Minor','',1,'');
+INSERT INTO vocab VALUES(43,'injury_severity','major','Major','',2,'');
+INSERT INTO vocab VALUES(44,'injury_severity','severe','Severe','',3,'');
+INSERT INTO vocab VALUES(45,'injury_location','head','Head','',1,'');
+INSERT INTO vocab VALUES(46,'injury_location','body','Body','',2,'');
+INSERT INTO vocab VALUES(47,'injury_location','arms','Arms','',3,'');
+INSERT INTO vocab VALUES(48,'injury_location','legs','Legs','',4,'');
+INSERT INTO vocab VALUES(49,'injury_location','bleed','Bleeding','',5,'');
+INSERT INTO vocab VALUES(50,'injury_weapon','arrow','Arrow','',1,'');
+INSERT INTO vocab VALUES(51,'injury_weapon','bullet','Bullet','',2,'');
+INSERT INTO vocab VALUES(52,'injury_weapon','blunt','Blunt','',3,'');
+INSERT INTO vocab VALUES(53,'injury_weapon','claws','Claws','',4,'');
+INSERT INTO vocab VALUES(54,'injury_weapon','cutting','Cutting','',5,'');
+INSERT INTO vocab VALUES(55,'injury_weapon','flame','Flame','',6,'');
+INSERT INTO vocab VALUES(56,'injury_weapon','piercing','Piercing','',7,'');
+INSERT INTO vocab VALUES(57,'injury_weapon','explosion','Explosion','',8,'');
+CREATE TABLE IF NOT EXISTS "translation" (
 	id          INTEGER PRIMARY KEY AUTOINCREMENT,
 	entity_kind TEXT NOT NULL
 		CHECK (entity_kind IN (
 			'attribute', 'skill', 'specialization', 'class',
-			'background', 'region', 'focus', 'power', 'condition', 'injury', 'race'
+			'background', 'region', 'focus', 'power', 'condition', 'injury', 'race',
+			'proficiency', 'outcome', 'save', 'difficulty', 'derived',
+			'injury_severity', 'injury_location', 'injury_weapon'
 		)),
 	entity_id   INTEGER NOT NULL,
 	locale      TEXT NOT NULL CHECK (locale != 'en' AND length(locale) > 0),
@@ -171,32 +247,32 @@ INSERT INTO translation VALUES(2,'attribute',1,'ru','abbreviation','МЩ');
 INSERT INTO translation VALUES(3,'attribute',2,'ru','label','Ловкость');
 INSERT INTO translation VALUES(4,'attribute',2,'ru','abbreviation','ЛВК');
 INSERT INTO translation VALUES(5,'attribute',3,'ru','label','Знание');
-INSERT INTO translation VALUES(6,'attribute',3,'ru','abbreviation','ЗНН');
-INSERT INTO translation VALUES(7,'attribute',4,'ru','label','Фокус');
-INSERT INTO translation VALUES(8,'attribute',4,'ru','abbreviation','ФКС');
-INSERT INTO translation VALUES(9,'attribute',5,'ru','label','Присутствие');
-INSERT INTO translation VALUES(10,'attribute',5,'ru','abbreviation','ПРС');
+INSERT INTO translation VALUES(6,'attribute',3,'ru','abbreviation','ЗНА');
+INSERT INTO translation VALUES(7,'attribute',4,'ru','label','Средоточие');
+INSERT INTO translation VALUES(8,'attribute',4,'ru','abbreviation','СРД');
+INSERT INTO translation VALUES(9,'attribute',5,'ru','label','Обаяние');
+INSERT INTO translation VALUES(10,'attribute',5,'ru','abbreviation','Об');
 INSERT INTO translation VALUES(11,'attribute',6,'ru','label','Удача');
 INSERT INTO translation VALUES(12,'attribute',6,'ru','abbreviation','УДЧ');
 INSERT INTO translation VALUES(13,'skill',1,'ru','label','Аркана');
-INSERT INTO translation VALUES(14,'skill',2,'ru','label','Связи');
+INSERT INTO translation VALUES(14,'skill',2,'ru','label','Контакт');
 INSERT INTO translation VALUES(15,'skill',3,'ru','label','Обхождение');
-INSERT INTO translation VALUES(16,'skill',4,'ru','label','Убеждение');
+INSERT INTO translation VALUES(16,'skill',4,'ru','label','Влияние');
 INSERT INTO translation VALUES(17,'skill',5,'ru','label','Ремесло');
-INSERT INTO translation VALUES(18,'skill',6,'ru','label','Натуга');
-INSERT INTO translation VALUES(19,'skill',7,'ru','label','Хитрость');
-INSERT INTO translation VALUES(20,'skill',8,'ru','label','Лечение');
-INSERT INTO translation VALUES(21,'skill',9,'ru','label','Расследование');
+INSERT INTO translation VALUES(18,'skill',6,'ru','label','Атлетика');
+INSERT INTO translation VALUES(19,'skill',7,'ru','label','Лукавство');
+INSERT INTO translation VALUES(20,'skill',8,'ru','label','Врачевание');
+INSERT INTO translation VALUES(21,'skill',9,'ru','label','Исследование');
 INSERT INTO translation VALUES(22,'skill',10,'ru','label','Предания');
 INSERT INTO translation VALUES(23,'skill',11,'ru','label','Внимательность');
 INSERT INTO translation VALUES(24,'skill',12,'ru','label','Скрытность');
-INSERT INTO translation VALUES(25,'skill',13,'ru','label','Кулачный бой');
+INSERT INTO translation VALUES(25,'skill',13,'ru','label','Удар');
 INSERT INTO translation VALUES(26,'skill',14,'ru','label','Стрельба');
 INSERT INTO translation VALUES(27,'skill',15,'ru','label','Холодное оружие');
 INSERT INTO translation VALUES(28,'skill',16,'ru','label','Выживание');
 INSERT INTO translation VALUES(29,'skill',17,'ru','label','Путешествия');
 INSERT INTO translation VALUES(30,'skill',18,'ru','label','Труд');
-INSERT INTO translation VALUES(31,'skill',19,'ru','label','Поклонение');
+INSERT INTO translation VALUES(31,'skill',19,'ru','label','Вероучение');
 INSERT INTO translation VALUES(32,'class',1,'ru','label','Воин');
 INSERT INTO translation VALUES(33,'class',2,'ru','label','Эксперт');
 INSERT INTO translation VALUES(34,'class',3,'ru','label','Кверанский арканист');
@@ -209,6 +285,119 @@ INSERT INTO translation VALUES(40,'class',9,'ru','label','Дуэлянт');
 INSERT INTO translation VALUES(41,'class',10,'ru','label','Эмпат');
 INSERT INTO translation VALUES(42,'class',11,'ru','label','Рунный защитник');
 INSERT INTO translation VALUES(43,'class',12,'ru','label','Зверь');
+INSERT INTO translation VALUES(52,'specialization',1,'ru','label','Бюрократия');
+INSERT INTO translation VALUES(53,'specialization',2,'ru','label','Этикет');
+INSERT INTO translation VALUES(54,'specialization',3,'ru','label','Право');
+INSERT INTO translation VALUES(55,'specialization',4,'ru','label','Организации');
+INSERT INTO translation VALUES(56,'specialization',5,'ru','label','Политика');
+INSERT INTO translation VALUES(57,'specialization',6,'ru','label','Слухи');
+INSERT INTO translation VALUES(58,'specialization',7,'ru','label','Уличные порядки');
+INSERT INTO translation VALUES(59,'specialization',8,'ru','label','Обаяние');
+INSERT INTO translation VALUES(60,'specialization',9,'ru','label','Приказ');
+INSERT INTO translation VALUES(61,'specialization',10,'ru','label','Обман');
+INSERT INTO translation VALUES(62,'specialization',11,'ru','label','Торг');
+INSERT INTO translation VALUES(63,'specialization',12,'ru','label','Запугивание');
+INSERT INTO translation VALUES(64,'specialization',14,'ru','label','Убеждение');
+INSERT INTO translation VALUES(65,'specialization',13,'ru','label','Представление');
+INSERT INTO translation VALUES(68,'specialization',15,'ru','label','Маскировка');
+INSERT INTO translation VALUES(69,'specialization',16,'ru','label','Подделка');
+INSERT INTO translation VALUES(70,'specialization',17,'ru','label','Мошенничество');
+INSERT INTO translation VALUES(71,'specialization',19,'ru','label','Яды');
+INSERT INTO translation VALUES(72,'specialization',18,'ru','label','Азартные игры');
+INSERT INTO translation VALUES(73,'specialization',20,'ru','label','Ловушки');
+INSERT INTO translation VALUES(75,'specialization',21,'ru','label','Диагностика');
+INSERT INTO translation VALUES(76,'specialization',22,'ru','label','Первая помощь');
+INSERT INTO translation VALUES(77,'specialization',23,'ru','label','Фармакология');
+INSERT INTO translation VALUES(78,'specialization',24,'ru','label','Психология');
+INSERT INTO translation VALUES(79,'specialization',25,'ru','label','Восстановление');
+INSERT INTO translation VALUES(80,'specialization',26,'ru','label','Хирургия');
+INSERT INTO translation VALUES(81,'specialization',27,'ru','label','Токсикология');
+INSERT INTO translation VALUES(83,'specialization',28,'ru','label','Оценка');
+INSERT INTO translation VALUES(84,'specialization',30,'ru','label','Расследование');
+INSERT INTO translation VALUES(85,'specialization',31,'ru','label','Письмена');
+INSERT INTO translation VALUES(86,'specialization',32,'ru','label','Изыскания');
+INSERT INTO translation VALUES(87,'specialization',33,'ru','label','Обыск');
+INSERT INTO translation VALUES(88,'specialization',34,'ru','label','Аномалии');
+INSERT INTO translation VALUES(89,'specialization',35,'ru','label','Чуткость');
+INSERT INTO translation VALUES(90,'specialization',36,'ru','label','Детали');
+INSERT INTO translation VALUES(91,'specialization',37,'ru','label','Дальнозоркость');
+INSERT INTO translation VALUES(92,'specialization',38,'ru','label','Скрытое');
+INSERT INTO translation VALUES(93,'specialization',39,'ru','label','Проницательность');
+INSERT INTO translation VALUES(94,'specialization',40,'ru','label','Слух');
+INSERT INTO translation VALUES(95,'specialization',41,'ru','label','Удар в спину');
+INSERT INTO translation VALUES(96,'specialization',42,'ru','label','Лазание');
+INSERT INTO translation VALUES(97,'specialization',43,'ru','label','Укрытие');
+INSERT INTO translation VALUES(98,'specialization',44,'ru','label','Взлом замков');
+INSERT INTO translation VALUES(99,'specialization',45,'ru','label','Ловкость рук');
+INSERT INTO translation VALUES(100,'specialization',46,'ru','label','Крадущийся шаг');
+INSERT INTO translation VALUES(103,'specialization',48,'ru','label','Разведка');
+INSERT INTO translation VALUES(104,'specialization',49,'ru','label','Укрытие');
+INSERT INTO translation VALUES(105,'specialization',50,'ru','label','Следопытство');
+INSERT INTO translation VALUES(106,'specialization',51,'ru','label','Пеший ход');
+INSERT INTO translation VALUES(107,'specialization',52,'ru','label','Верховая езда');
+INSERT INTO translation VALUES(108,'specialization',53,'ru','label','Вождение');
+INSERT INTO translation VALUES(109,'specialization',54,'ru','label','Мореплавание');
+INSERT INTO translation VALUES(110,'specialization',55,'ru','label','Навигация');
+INSERT INTO translation VALUES(111,'specialization',56,'ru','label','Ориентирование');
+INSERT INTO translation VALUES(114,'specialization',29,'ru','label','Шифры');
+INSERT INTO translation VALUES(117,'specialization',47,'ru','label','Промысел');
+INSERT INTO translation VALUES(118,'proficiency',2,'ru','label','Ученик');
+INSERT INTO translation VALUES(119,'proficiency',4,'ru','label','Эксперт');
+INSERT INTO translation VALUES(120,'proficiency',6,'ru','label','Легендарный');
+INSERT INTO translation VALUES(121,'proficiency',5,'ru','label','Мастер');
+INSERT INTO translation VALUES(122,'proficiency',3,'ru','label','Обученный');
+INSERT INTO translation VALUES(123,'proficiency',1,'ru','label','Необученный');
+INSERT INTO translation VALUES(124,'outcome',8,'ru','label','Успех ценой');
+INSERT INTO translation VALUES(125,'outcome',7,'ru','label','Провал');
+INSERT INTO translation VALUES(126,'outcome',9,'ru','label','Успех');
+INSERT INTO translation VALUES(127,'save',11,'ru','label','Стойкость');
+INSERT INTO translation VALUES(128,'save',10,'ru','label','Реакция');
+INSERT INTO translation VALUES(129,'save',12,'ru','label','Воля');
+INSERT INTO translation VALUES(130,'difficulty',13,'ru','label','Сложно');
+INSERT INTO translation VALUES(131,'difficulty',14,'ru','label','Трудно');
+INSERT INTO translation VALUES(132,'difficulty',16,'ru','label','Невероятно трудно');
+INSERT INTO translation VALUES(133,'difficulty',15,'ru','label','Очень трудно');
+INSERT INTO translation VALUES(134,'derived',22,'ru','label','Класс брони');
+INSERT INTO translation VALUES(135,'derived',24,'ru','label','КБ в ближнем бою');
+INSERT INTO translation VALUES(136,'derived',25,'ru','label','КБ против стрельбы');
+INSERT INTO translation VALUES(137,'derived',23,'ru','label','КБ');
+INSERT INTO translation VALUES(138,'derived',26,'ru','label','Бонус атаки');
+INSERT INTO translation VALUES(139,'derived',29,'ru','label','Нагрузка');
+INSERT INTO translation VALUES(140,'derived',31,'ru','label','Опыт');
+INSERT INTO translation VALUES(141,'derived',17,'ru','label','Пункты здоровья');
+INSERT INTO translation VALUES(142,'derived',18,'ru','label','ПЗ');
+INSERT INTO translation VALUES(143,'derived',27,'ru','label','Инициатива');
+INSERT INTO translation VALUES(144,'derived',30,'ru','label','Уровень');
+INSERT INTO translation VALUES(145,'derived',28,'ru','label','Перемещение');
+INSERT INTO translation VALUES(146,'derived',19,'ru','label','Системное напряжение');
+INSERT INTO translation VALUES(147,'derived',20,'ru','label','СН');
+INSERT INTO translation VALUES(148,'derived',21,'ru','label','Раны');
+INSERT INTO translation VALUES(149,'condition',35,'ru','label','Ослеплён');
+INSERT INTO translation VALUES(150,'condition',36,'ru','label','Оглох');
+INSERT INTO translation VALUES(151,'condition',37,'ru','label','Горит');
+INSERT INTO translation VALUES(152,'condition',33,'ru','label','Парализован');
+INSERT INTO translation VALUES(153,'condition',34,'ru','label','Лежит');
+INSERT INTO translation VALUES(154,'condition',39,'ru','label','Болен');
+INSERT INTO translation VALUES(155,'condition',38,'ru','label','Замедлён');
+INSERT INTO translation VALUES(156,'condition',41,'ru','label','Перенапряжён');
+INSERT INTO translation VALUES(157,'condition',32,'ru','label','Оглушён');
+INSERT INTO translation VALUES(158,'condition',40,'ru','label','Ранен');
+INSERT INTO translation VALUES(159,'injury_severity',43,'ru','label','Серьёзная');
+INSERT INTO translation VALUES(160,'injury_severity',42,'ru','label','Лёгкая');
+INSERT INTO translation VALUES(161,'injury_severity',44,'ru','label','Тяжёлая');
+INSERT INTO translation VALUES(162,'injury_location',47,'ru','label','Руки');
+INSERT INTO translation VALUES(163,'injury_location',49,'ru','label','Кровотечение');
+INSERT INTO translation VALUES(164,'injury_location',46,'ru','label','Туловище');
+INSERT INTO translation VALUES(165,'injury_location',45,'ru','label','Голова');
+INSERT INTO translation VALUES(166,'injury_location',48,'ru','label','Ноги');
+INSERT INTO translation VALUES(167,'injury_weapon',50,'ru','label','Стрела');
+INSERT INTO translation VALUES(168,'injury_weapon',52,'ru','label','Дробящее');
+INSERT INTO translation VALUES(169,'injury_weapon',51,'ru','label','Пуля');
+INSERT INTO translation VALUES(170,'injury_weapon',53,'ru','label','Когти');
+INSERT INTO translation VALUES(171,'injury_weapon',54,'ru','label','Режущее');
+INSERT INTO translation VALUES(172,'injury_weapon',57,'ru','label','Взрыв');
+INSERT INTO translation VALUES(173,'injury_weapon',55,'ru','label','Пламя');
+INSERT INTO translation VALUES(174,'injury_weapon',56,'ru','label','Колющее');
 CREATE TRIGGER translation_insert_entity_exists
 BEFORE INSERT ON translation
 BEGIN
@@ -225,6 +414,14 @@ BEGIN
 		WHEN NEW.entity_kind = 'class'
 			AND NOT EXISTS (SELECT 1 FROM class WHERE id = NEW.entity_id)
 			THEN RAISE(ABORT, 'translation.entity_id: class not found')
+		WHEN NEW.entity_kind IN (
+				'proficiency', 'outcome', 'save', 'difficulty', 'derived',
+				'condition', 'injury_severity', 'injury_location', 'injury_weapon'
+			)
+			AND NOT EXISTS (
+				SELECT 1 FROM vocab WHERE id = NEW.entity_id AND kind = NEW.entity_kind
+			)
+			THEN RAISE(ABORT, 'translation.entity_id: vocab not found')
 	END;
 END;
 CREATE TRIGGER translation_update_entity_exists
@@ -243,6 +440,14 @@ BEGIN
 		WHEN NEW.entity_kind = 'class'
 			AND NOT EXISTS (SELECT 1 FROM class WHERE id = NEW.entity_id)
 			THEN RAISE(ABORT, 'translation.entity_id: class not found')
+		WHEN NEW.entity_kind IN (
+				'proficiency', 'outcome', 'save', 'difficulty', 'derived',
+				'condition', 'injury_severity', 'injury_location', 'injury_weapon'
+			)
+			AND NOT EXISTS (
+				SELECT 1 FROM vocab WHERE id = NEW.entity_id AND kind = NEW.entity_kind
+			)
+			THEN RAISE(ABORT, 'translation.entity_id: vocab not found')
 	END;
 END;
 CREATE TRIGGER attribute_delete_translations
@@ -264,6 +469,11 @@ CREATE TRIGGER class_delete_translations
 AFTER DELETE ON class
 BEGIN
 	DELETE FROM translation WHERE entity_kind = 'class' AND entity_id = OLD.id;
+END;
+CREATE TRIGGER vocab_delete_translations
+AFTER DELETE ON vocab
+BEGIN
+	DELETE FROM translation WHERE entity_kind = OLD.kind AND entity_id = OLD.id;
 END;
 
 COMMIT;

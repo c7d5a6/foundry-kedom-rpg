@@ -1,5 +1,30 @@
 export type TranslationMap = Partial<Record<"label" | "abbreviation" | "description", string>>;
 
+export type VocabKind =
+  | "proficiency"
+  | "outcome"
+  | "save"
+  | "difficulty"
+  | "derived"
+  | "condition"
+  | "injury_severity"
+  | "injury_location"
+  | "injury_weapon";
+
+export type EntityKind = "attribute" | "skill" | "specialization" | "class" | VocabKind;
+
+export const VOCAB_KINDS: { kind: VocabKind; label: string }[] = [
+  { kind: "proficiency", label: "Proficiency" },
+  { kind: "outcome", label: "Outcome" },
+  { kind: "save", label: "Save" },
+  { kind: "difficulty", label: "Difficulty" },
+  { kind: "derived", label: "Derived stats" },
+  { kind: "condition", label: "Condition" },
+  { kind: "injury_severity", label: "Injury severity" },
+  { kind: "injury_location", label: "Injury location" },
+  { kind: "injury_weapon", label: "Injury weapon" },
+];
+
 export type Attribute = {
   id: number;
   slug: string;
@@ -53,6 +78,17 @@ export type ClassRow = {
   translations: TranslationMap;
 };
 
+export type Vocab = {
+  id: number;
+  kind: VocabKind;
+  slug: string;
+  label: string;
+  abbreviation: string;
+  sort_order: number;
+  comment: string;
+  translations: TranslationMap;
+};
+
 export type CompletenessItem = {
   entity_kind: string;
   entity_id: number;
@@ -61,7 +97,6 @@ export type CompletenessItem = {
   missing: string[];
 };
 
-export type EntityKind = "attribute" | "skill" | "specialization" | "class";
 export type TranslationField = "label" | "abbreviation" | "description";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -124,6 +159,16 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
+  vocab: (kind?: VocabKind) => {
+    const q = kind ? `?locale=ru&kind=${kind}` : "?locale=ru";
+    return request<Vocab[]>(`/api/vocab${q}`);
+  },
+  patchVocab: (id: number, body: object) =>
+    request<Vocab>(`/api/vocab/${id}?locale=ru`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+
   putTranslation: (body: {
     entity_kind: EntityKind;
     entity_id: number;
@@ -153,7 +198,6 @@ export const api = {
 
   completeness: () => request<CompletenessItem[]>("/api/completeness?locale=ru"),
 
-  /** Download barebones rulebook markdown (en|ru). */
   exportMarkdown: async (locale: "en" | "ru" = "en") => {
     const res = await fetch(`/api/export/markdown?locale=${locale}`);
     if (!res.ok) {

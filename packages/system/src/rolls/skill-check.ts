@@ -68,12 +68,12 @@ function proficiencyLabels(input: {
   specializationLabel: string | null;
 }): string {
   if (!input.specialized) {
-    return game.i18n.format("KEDOM.Roll.Modifier.halfProficiency", {
+    return game.i18n.format("KEDOM.Roll.modifier.halfProficiency", {
       proficiency: input.tierLabel,
     });
   }
   if (input.specializationLabel !== null) {
-    return game.i18n.format("KEDOM.Roll.Modifier.specialization", {
+    return game.i18n.format("KEDOM.Roll.modifier.specialization", {
       specialization: input.specializationLabel,
     });
   }

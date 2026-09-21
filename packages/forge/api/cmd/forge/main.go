@@ -51,6 +51,7 @@ func printUsage() {
 Usage:
   forge serve  [options]          start the authoring API (default)
   forge export md [options]       write barebones markdown rulebook
+  forge export lang [options]     regenerate closed-vocab sections in lang/{en,ru}.json
 
 serve options:
   -addr string         listen address (default ":7777")
@@ -60,6 +61,11 @@ serve options:
 export md options:
   -locale string       en|ru (default "en")
   -out string          output directory (default "exports/markdown")
+  -db string           path to content.sqlite
+  -migrations string   path to migrations dir
+
+export lang options:
+  -out string          lang directory (default "packages/system/lang")
   -db string           path to content.sqlite
   -migrations string   path to migrations dir
 `)
@@ -95,16 +101,26 @@ func runServe(args []string) error {
 }
 
 func runExport(args []string) error {
-	if len(args) == 0 || args[0] != "md" {
-		return fmt.Errorf("usage: forge export md [-locale=en] [-out=exports/markdown]")
+	if len(args) == 0 {
+		return fmt.Errorf("usage: forge export md|lang …")
 	}
+	switch args[0] {
+	case "md":
+		return runExportMarkdown(args[1:])
+	case "lang":
+		return runExportLang(args[1:])
+	default:
+		return fmt.Errorf("usage: forge export md|lang …")
+	}
+}
 
+func runExportMarkdown(args []string) error {
 	fs := flag.NewFlagSet("export md", flag.ContinueOnError)
 	locale := fs.String("locale", "en", "locale (en or ru)")
 	out := fs.String("out", "", "output directory")
 	dbPath := fs.String("db", "", "path to content.sqlite")
 	migrations := fs.String("migrations", "", "path to migrations dir")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := fs.Parse(args); err != nil {
 		return err
 	}
 
@@ -132,6 +148,37 @@ func runExport(args []string) error {
 		return err
 	}
 	fmt.Printf("wrote markdown to %s (locale=%s)\n", outDir, loc)
+	return nil
+}
+
+func runExportLang(args []string) error {
+	fs := flag.NewFlagSet("export lang", flag.ContinueOnError)
+	out := fs.String("out", "", "lang directory")
+	dbPath := fs.String("db", "", "path to content.sqlite")
+	migrations := fs.String("migrations", "", "path to migrations dir")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	repoRoot, database, _, err := openDB(*dbPath, *migrations)
+	if err != nil {
+		return err
+	}
+	defer database.Close()
+
+	langDir := *out
+	if langDir == "" {
+		langDir = filepath.Join(repoRoot, "packages", "system", "lang")
+	}
+	if !filepath.IsAbs(langDir) {
+		langDir = filepath.Join(repoRoot, langDir)
+	}
+
+	content := service.New(database)
+	if err := content.ExportLang(context.Background(), langDir); err != nil {
+		return err
+	}
+	fmt.Printf("wrote closed vocab into %s/{en,ru}.json\n", langDir)
 	return nil
 }
 

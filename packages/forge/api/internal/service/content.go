@@ -476,6 +476,29 @@ func (c *Content) Completeness(ctx context.Context, locale model.Locale) ([]Comp
 		}
 	}
 
+	vocabRows, err := c.q.ListVocab(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range vocabRows {
+		kind := model.EntityKind(v.Kind)
+		tr, err := c.translations(ctx, kind, v.ID, locale)
+		if err != nil {
+			return nil, err
+		}
+		want := []model.TranslationField{model.FieldLabel}
+		if v.Abbreviation != "" {
+			want = append(want, model.FieldAbbreviation)
+		}
+		missing := missingFields(want, tr, true)
+		if len(missing) > 0 {
+			items = append(items, CompletenessItem{
+				EntityKind: string(kind), EntityID: v.ID,
+				Slug: v.Slug, Label: v.Label, Missing: missing,
+			})
+		}
+	}
+
 	return items, nil
 }
 
@@ -524,7 +547,7 @@ func validKind(k model.EntityKind) bool {
 	case model.EntityAttribute, model.EntitySkill, model.EntitySpecialization, model.EntityClass:
 		return true
 	default:
-		return false
+		return model.IsVocabKind(k)
 	}
 }
 

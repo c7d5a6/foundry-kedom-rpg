@@ -8,12 +8,15 @@ target carries which language — is in [localisation.md](localisation.md).
 |---|---|---|---|
 | **YAML** | `packages/system/packs/_source/` → LevelDB → Foundry | English | yes |
 | **Babele JSON** | Foundry runtime overlay, via the Babele module | Russian | yes |
+| **lang JSON** | Foundry `languages` closed-vocab sections | en + ru | yes |
 | **JSON** | external tools, one-off scripts | English | no |
 | **Markdown** | the Obsidian vault, for reading and printing | `--locale`, default English | no |
 | **Site JSON** | the public website's character generator | one tree per locale | into the site repo |
 
 The site target and the Babele overlay are designed but **not built**; see
 [public-site-export.md](public-site-export.md) and [localisation.md](localisation.md).
+**lang JSON** closed-vocab export is implemented (`npm run forge:export:lang`). Future YAML
+export will invoke it first so UI labels stay aligned with pack English names.
 
 ## Rules that apply to all five
 

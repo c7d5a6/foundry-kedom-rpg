@@ -1,26 +1,26 @@
 {
   "TYPES": {
+    "ActiveEffect": {
+      "condition": "Состояние",
+      "injury": "Травма"
+    },
     "Actor": {
       "character": "Персонаж",
       "npc": "НПС"
     },
-    "Item": {
-      "skill": "Навык",
-      "weapon": "Оружие",
-      "armor": "Доспех",
-      "gear": "Снаряжение",
-      "focus": "Фокус",
-      "power": "Способность",
-      "origin": "Происхождение"
-    },
     "ChatMessage": {
-      "check": "Проверка навыка",
       "attack": "Атака",
+      "check": "Проверка навыка",
       "damage": "Урон"
     },
-    "ActiveEffect": {
-      "condition": "Состояние",
-      "injury": "Травма"
+    "Item": {
+      "armor": "Доспех",
+      "focus": "Фокус",
+      "gear": "Снаряжение",
+      "origin": "Происхождение",
+      "power": "Способность",
+      "skill": "Навык",
+      "weapon": "Оружие"
     }
   },
   "KEDOM": {
@@ -28,63 +28,63 @@
       "Title": "Kedom RPG"
     },
     "Ability": {
-      "mgh": {
-        "label": "Мощь",
-        "abbr": "МЩ"
-      },
       "dex": {
         "label": "Ловкость",
         "abbr": "ЛВК"
-      },
-      "kno": {
-        "label": "Знание",
-        "abbr": "ЗНН"
       },
       "foc": {
         "label": "Средоточие",
         "abbr": "СРД"
       },
-      "pre": {
-        "label": "Присутствие",
-        "abbr": "ПРС"
+      "kno": {
+        "label": "Знание",
+        "abbr": "ЗНА"
       },
       "lck": {
         "label": "Удача",
         "abbr": "УДЧ"
+      },
+      "mgh": {
+        "label": "Мощь",
+        "abbr": "МЩ"
+      },
+      "pre": {
+        "label": "Обаяние",
+        "abbr": "Об"
       }
     },
     "Skill": {
       "arcana": "Аркана",
       "conduct": "Обхождение",
-      "connect": "Связи",
-      "convince": "Убеждение",
+      "connect": "Контакт",
+      "convince": "Влияние",
       "craft": "Ремесло",
-      "exert": "Натуга",
-      "guile": "Хитрость",
-      "heal": "Лечение",
-      "investigate": "Расследование",
+      "exert": "Атлетика",
+      "guile": "Лукавство",
+      "heal": "Врачевание",
+      "investigate": "Исследование",
       "lore": "Предания",
       "notice": "Внимательность",
       "prowl": "Скрытность",
-      "punch": "Кулачный бой",
+      "punch": "Удар",
       "shoot": "Стрельба",
       "stab": "Холодное оружие",
       "survive": "Выживание",
       "travel": "Путешествия",
       "work": "Труд",
-      "worship": "Поклонение"
+      "worship": "Вероучение"
     },
     "Proficiency": {
-      "untrained": "Необученный",
       "apprentice": "Ученик",
-      "trained": "Обученный",
       "expert": "Эксперт",
+      "legendary": "Легендарный",
       "master": "Мастер",
-      "legendary": "Легендарный"
+      "trained": "Обученный",
+      "untrained": "Необученный"
     },
     "Outcome": {
-      "failure": "Провал",
       "cost": "Успех ценой",
+      "failure": "Провал",
       "success": "Успех"
     },
     "Sheet": {
@@ -94,120 +94,127 @@
       "Mod": "Мод",
       "Roll": "Бросок",
       "Tab": {
-        "stats": "Характеристики",
-        "skills": "Навыки",
-        "inventory": "Инвентарь",
-        "powers": "Способности",
-        "effects": "Эффекты",
         "biography": "Биография",
         "description": "Описание",
-        "details": "Сведения"
+        "details": "Сведения",
+        "effects": "Эффекты",
+        "inventory": "Инвентарь",
+        "powers": "Способности",
+        "skills": "Навыки",
+        "stats": "Характеристики"
       },
       "Mode": {
-        "play": "Режим игры",
         "edit": "Режим правки",
+        "play": "Режим игры",
         "toggleHint": "Переключить режим игры и правки"
       },
       "Action": {
+        "addSpecialization": "Добавить специализацию к «{skill}»",
+        "addSpecializationShort": "+ Специализация",
+        "create": "Создать",
+        "delete": "Удалить",
+        "edit": "Изменить",
+        "equip": "Надеть",
         "roll": "Бросок",
         "rollSkill": "Бросок: {skill}",
-        "create": "Создать",
-        "edit": "Изменить",
-        "delete": "Удалить",
-        "equip": "Надеть",
-        "unequip": "Снять",
-        "addSpecialization": "Добавить специализацию к «{skill}»",
-        "addSpecializationShort": "+ Специализация"
+        "unequip": "Снять"
       },
       "searchPlaceholder": "Поиск",
       "SpecializationLabel": "Специализация"
     },
     "Chat": {
       "Dice": "кости",
+      "MissingSkillData": "У персонажа нет характеристики или навыка.",
       "Total": "Итого",
-      "UnknownSkill": "Неизвестный навык: {skill}",
-      "MissingSkillData": "У персонажа нет характеристики или навыка."
+      "UnknownSkill": "Неизвестный навык: {skill}"
     },
     "Save": {
-      "reflex": "Реакция",
       "fortitude": "Стойкость",
+      "reflex": "Реакция",
       "will": "Воля"
     },
     "Difficulty": {
       "challenging": "Сложно",
       "hard": "Трудно",
-      "veryHard": "Очень трудно",
-      "incrediblyHard": "Невероятно трудно"
+      "incrediblyHard": "Невероятно трудно",
+      "veryHard": "Очень трудно"
     },
     "Attributes": {
-      "hp": "Пункты здоровья",
-      "hpShort": "ПЗ",
-      "strain": "Системное напряжение",
-      "strainShort": "СН",
-      "wounds": "Раны",
       "ac": "Класс брони",
-      "acShort": "КБ",
       "acMelee": "КБ в ближнем бою",
       "acRanged": "КБ против стрельбы",
+      "acShort": "КБ",
       "attackBonus": "Бонус атаки",
-      "initiative": "Инициатива",
-      "movement": "Перемещение",
       "encumbrance": "Нагрузка",
+      "experience": "Опыт",
+      "hp": "Пункты здоровья",
+      "hpShort": "ПЗ",
+      "initiative": "Инициатива",
       "level": "Уровень",
-      "experience": "Опыт"
+      "movement": "Перемещение",
+      "strain": "Системное напряжение",
+      "strainShort": "СН",
+      "wounds": "Раны"
     },
     "Condition": {
-      "stunned": "Оглушён",
-      "paralyzed": "Парализован",
-      "prone": "Лежит",
       "blinded": "Ослеплён",
       "deafened": "Оглох",
       "ignited": "Горит",
-      "slowed": "Замедлён",
+      "paralyzed": "Парализован",
+      "prone": "Лежит",
       "sickened": "Болен",
-      "wounded": "Ранен",
-      "strained": "Перенапряжён"
+      "slowed": "Замедлён",
+      "strained": "Перенапряжён",
+      "stunned": "Оглушён",
+      "wounded": "Ранен"
     },
     "Injury": {
       "Severity": {
-        "minor": "Лёгкая",
         "major": "Серьёзная",
+        "minor": "Лёгкая",
         "severe": "Тяжёлая"
       },
       "Location": {
-        "head": "Голова",
-        "body": "Туловище",
         "arms": "Руки",
-        "legs": "Ноги",
-        "bleed": "Кровотечение"
+        "bleed": "Кровотечение",
+        "body": "Туловище",
+        "head": "Голова",
+        "legs": "Ноги"
       },
       "WeaponType": {
         "arrow": "Стрела",
-        "bullet": "Пуля",
         "blunt": "Дробящее",
+        "bullet": "Пуля",
         "claws": "Когти",
         "cutting": "Режущее",
+        "explosion": "Взрыв",
         "flame": "Пламя",
-        "piercing": "Колющее",
-        "explosion": "Взрыв"
+        "piercing": "Колющее"
       }
     },
     "Roll": {
+      "Dialog": {
+        "difficultyLabel": "Сложность",
+        "situationalLabel": "Ситуативный модификатор",
+        "submit": "Бросок",
+        "title": "Настройка броска"
+      },
       "Modifier": {
         "ability": "модификатор {ability}",
+        "armorPenalty": "Штраф доспеха",
+        "effect": "{effect}",
+        "halfProficiency": "{proficiency} (половина)",
+        "situational": "Ситуативный"
+      },
+      "modifier": {
+        "ability": "модификатор {ability}",
+        "armorPenalty": "Штраф доспеха",
+        "effect": "{effect}",
+        "halfProficiency": "{proficiency} (половина)",
+        "situational": "Ситуативный",
         "skillLevel": "навык {skill}",
         "specialization": "{specialization}",
-        "untrained": "Необученный",
-        "armorPenalty": "Штраф доспеха",
-        "situational": "Ситуативный",
-        "effect": "{effect}",
-        "halfProficiency": "{proficiency} (половина)"
-      },
-      "Dialog": {
-        "title": "Настройка броска",
-        "situationalLabel": "Ситуативный модификатор",
-        "difficultyLabel": "Сложность",
-        "submit": "Бросок"
+        "untrained": "Необученный"
       }
     },
     "Error": {
@@ -217,8 +224,8 @@
     },
     "Settings": {
       "MigrationVersion": {
-        "name": "Версия последней миграции",
-        "hint": "Служебное. Версия данных системы, до которой этот мир уже мигрирован."
+        "hint": "Служебное. Версия данных системы, до которой этот мир уже мигрирован.",
+        "name": "Версия последней миграции"
       }
     },
     "Specialization": {
@@ -289,13 +296,13 @@
         "tracking": "Выслеживание"
       },
       "travel": {
-        "hiking": "Пеший ход",
-        "riding": "Верховая езда",
         "driving": "Вождение",
-        "sailing": "Парус",
         "exotic": "Экзотика",
+        "hiking": "Пеший ход",
         "navigation": "Навигация",
-        "orientation": "Ориентирование"
+        "orientation": "Ориентирование",
+        "riding": "Верховая езда",
+        "sailing": "Парус"
       }
     }
   }
