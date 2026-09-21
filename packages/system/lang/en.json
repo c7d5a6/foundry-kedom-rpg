@@ -80,7 +80,32 @@
       "Abilities": "Abilities",
       "Skills": "Skills",
       "Mod": "Mod",
-      "Roll": "Roll"
+      "Roll": "Roll",
+      "Tab": {
+        "stats": "Stats",
+        "skills": "Skills",
+        "inventory": "Inventory",
+        "powers": "Powers",
+        "effects": "Effects",
+        "biography": "Biography",
+        "description": "Description",
+        "details": "Details"
+      },
+      "Mode": {
+        "play": "Play Mode",
+        "edit": "Edit Mode",
+        "toggleHint": "Switch between play and edit mode"
+      },
+      "Action": {
+        "roll": "Roll",
+        "rollSkill": "Roll {skill}",
+        "create": "Create",
+        "edit": "Edit",
+        "delete": "Delete",
+        "equip": "Equip",
+        "unequip": "Unequip"
+      },
+      "searchPlaceholder": "Search"
     },
 
     "Chat": {
@@ -157,34 +182,6 @@
         "piercing": "Piercing",
         "explosion": "Explosion"
       }
-    },
-
-    "Sheet": {
-      "Tab": {
-        "stats": "Stats",
-        "skills": "Skills",
-        "inventory": "Inventory",
-        "powers": "Powers",
-        "effects": "Effects",
-        "biography": "Biography",
-        "description": "Description",
-        "details": "Details"
-      },
-      "Mode": {
-        "play": "Play Mode",
-        "edit": "Edit Mode",
-        "toggleHint": "Switch between play and edit mode"
-      },
-      "Action": {
-        "roll": "Roll",
-        "rollSkill": "Roll {skill}",
-        "create": "Create",
-        "edit": "Edit",
-        "delete": "Delete",
-        "equip": "Equip",
-        "unequip": "Unequip"
-      },
-      "searchPlaceholder": "Search"
     },
 
     "Roll": {

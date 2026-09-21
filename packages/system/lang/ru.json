@@ -80,7 +80,32 @@
       "Abilities": "Характеристики",
       "Skills": "Навыки",
       "Mod": "Мод",
-      "Roll": "Бросок"
+      "Roll": "Бросок",
+      "Tab": {
+        "stats": "Характеристики",
+        "skills": "Навыки",
+        "inventory": "Инвентарь",
+        "powers": "Способности",
+        "effects": "Эффекты",
+        "biography": "Биография",
+        "description": "Описание",
+        "details": "Сведения"
+      },
+      "Mode": {
+        "play": "Режим игры",
+        "edit": "Режим правки",
+        "toggleHint": "Переключить режим игры и правки"
+      },
+      "Action": {
+        "roll": "Бросок",
+        "rollSkill": "Бросок: {skill}",
+        "create": "Создать",
+        "edit": "Изменить",
+        "delete": "Удалить",
+        "equip": "Надеть",
+        "unequip": "Снять"
+      },
+      "searchPlaceholder": "Поиск"
     },
 
     "Chat": {
@@ -157,34 +182,6 @@
         "piercing": "Колющее",
         "explosion": "Взрыв"
       }
-    },
-
-    "Sheet": {
-      "Tab": {
-        "stats": "Характеристики",
-        "skills": "Навыки",
-        "inventory": "Инвентарь",
-        "powers": "Способности",
-        "effects": "Эффекты",
-        "biography": "Биография",
-        "description": "Описание",
-        "details": "Сведения"
-      },
-      "Mode": {
-        "play": "Режим игры",
-        "edit": "Режим правки",
-        "toggleHint": "Переключить режим игры и правки"
-      },
-      "Action": {
-        "roll": "Бросок",
-        "rollSkill": "Бросок: {skill}",
-        "create": "Создать",
-        "edit": "Изменить",
-        "delete": "Удалить",
-        "equip": "Надеть",
-        "unequip": "Снять"
-      },
-      "searchPlaceholder": "Поиск"
     },
 
     "Roll": {

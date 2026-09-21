@@ -1,0 +1,32 @@
+---
+description: System UI strings must be localised; every KEDOM/TYPES key needs en+ru and the lang-keys gate
+globs: packages/system/**/*.{ts,hbs,json}
+alwaysApply: false
+---
+# System localisation
+
+UI strings live in `packages/system/lang/{en,ru}.json`. Content translations are Forge/SQLite
+— see `docs/forge/localisation.md`. Do not mix them.
+
+## Hard rules
+
+- **No hard-coded user-facing English** in `.ts` or `.hbs`. Use `game.i18n.localize` /
+  `format`, or the Handlebars `localize` helper, with a `KEDOM.…` (or Foundry `TYPES.…`) key.
+- **Add the key to both `en.json` and `ru.json` in the same change.** English is canonical;
+  Russian is required for system UI, not optional.
+- **Never duplicate a JSON object key** (e.g. two `"Sheet"` siblings). The later one silently
+  wins and drops the earlier labels.
+- **Keys are identity.** Prefer `KEDOM.Chat.UnknownSkill`, not concatenating display words.
+
+## Config-driven labels
+
+When a key is built from a closed enum (`ABILITY_KEYS`, `SKILL_KEYS`, `PROFICIENCY_TIERS`,
+outcomes), every enum member must have a leaf string. If you introduce a new
+`` `KEDOM.Foo.${x}` `` pattern, add an expander in
+`packages/system/src/i18n/collect-lang-refs.ts`.
+
+## Gate
+
+`packages/system/src/i18n/lang-keys.test.ts` (via `npm test`) fails when a referenced key is
+missing or empty in en/ru, when en/ru key sets diverge, or when a template key has no
+expander. Run it after adding strings; do not skip it.
