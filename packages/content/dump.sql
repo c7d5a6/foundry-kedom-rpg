@@ -11,6 +11,7 @@ INSERT INTO schema_migrations VALUES('0002_seed_core_vocab','2026-09-20T19:14:04
 INSERT INTO schema_migrations VALUES('0003_entity_comment','2026-09-20T20:59:42Z');
 INSERT INTO schema_migrations VALUES('0004_vocab','2026-09-21T09:52:16Z');
 INSERT INTO schema_migrations VALUES('0005_seed_closed_vocab','2026-09-21T09:52:16Z');
+INSERT INTO schema_migrations VALUES('0006_outcome_cost_ru','2026-09-21T18:18:05Z');
 CREATE TABLE attribute (
 	id           INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug         TEXT NOT NULL UNIQUE
@@ -245,15 +246,15 @@ CREATE TABLE IF NOT EXISTS "translation" (
 INSERT INTO translation VALUES(1,'attribute',1,'ru','label','Мощь');
 INSERT INTO translation VALUES(2,'attribute',1,'ru','abbreviation','МЩ');
 INSERT INTO translation VALUES(3,'attribute',2,'ru','label','Ловкость');
-INSERT INTO translation VALUES(4,'attribute',2,'ru','abbreviation','ЛВК');
+INSERT INTO translation VALUES(4,'attribute',2,'ru','abbreviation','ЛВ');
 INSERT INTO translation VALUES(5,'attribute',3,'ru','label','Знание');
-INSERT INTO translation VALUES(6,'attribute',3,'ru','abbreviation','ЗНА');
-INSERT INTO translation VALUES(7,'attribute',4,'ru','label','Средоточие');
-INSERT INTO translation VALUES(8,'attribute',4,'ru','abbreviation','СРД');
-INSERT INTO translation VALUES(9,'attribute',5,'ru','label','Обаяние');
-INSERT INTO translation VALUES(10,'attribute',5,'ru','abbreviation','Об');
+INSERT INTO translation VALUES(6,'attribute',3,'ru','abbreviation','ЗН');
+INSERT INTO translation VALUES(7,'attribute',4,'ru','label','Фокус');
+INSERT INTO translation VALUES(8,'attribute',4,'ru','abbreviation','ФК');
+INSERT INTO translation VALUES(9,'attribute',5,'ru','label','Харизма');
+INSERT INTO translation VALUES(10,'attribute',5,'ru','abbreviation','ХР');
 INSERT INTO translation VALUES(11,'attribute',6,'ru','label','Удача');
-INSERT INTO translation VALUES(12,'attribute',6,'ru','abbreviation','УДЧ');
+INSERT INTO translation VALUES(12,'attribute',6,'ru','abbreviation','УД');
 INSERT INTO translation VALUES(13,'skill',1,'ru','label','Аркана');
 INSERT INTO translation VALUES(14,'skill',2,'ru','label','Контакт');
 INSERT INTO translation VALUES(15,'skill',3,'ru','label','Обхождение');

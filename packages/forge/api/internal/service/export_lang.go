@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/c7d5a6/foundry-kedom-rpg/packages/forge/api/internal/export"
 	"github.com/c7d5a6/foundry-kedom-rpg/packages/forge/api/internal/model"
@@ -64,6 +65,7 @@ func (c *Content) langClosed(ctx context.Context, locale model.Locale) (export.L
 			Location:   map[string]string{},
 			WeaponType: map[string]string{},
 		},
+		Specialization: map[string]map[string]string{},
 	}
 
 	for _, a := range attrs {
@@ -100,5 +102,34 @@ func (c *Content) langClosed(ctx context.Context, locale model.Locale) (export.L
 		}
 	}
 
+	specs, err := c.ListSpecializations(ctx, overlayLocale)
+	if err != nil {
+		return export.LangClosedInput{}, err
+	}
+	for _, sp := range specs {
+		leaf := specializationLeaf(sp.Slug, sp.SkillSlug)
+		if leaf == "" {
+			continue
+		}
+		bySkill, ok := out.Specialization[sp.SkillSlug]
+		if !ok {
+			bySkill = map[string]string{}
+			out.Specialization[sp.SkillSlug] = bySkill
+		}
+		bySkill[leaf] = overlay(sp.Label, sp.Translations, model.FieldLabel)
+	}
+
 	return out, nil
+}
+
+// specializationLeaf returns the Foundry leaf key for slug `skill.leaf`.
+func specializationLeaf(slug, skillSlug string) string {
+	prefix := skillSlug + "."
+	if strings.HasPrefix(slug, prefix) {
+		return strings.TrimPrefix(slug, prefix)
+	}
+	if i := strings.IndexByte(slug, '.'); i >= 0 && i+1 < len(slug) {
+		return slug[i+1:]
+	}
+	return ""
 }

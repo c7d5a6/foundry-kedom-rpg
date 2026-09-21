@@ -10,5 +10,5 @@ Emitters from SQLite to reviewable artefacts.
 | Babele JSON | (planned) | not built |
 
 Lang export rewrites only closed `KEDOM.*` sections in `packages/system/lang/{en,ru}.json`
-(Ability, Skill, Proficiency, Outcome, Save, Difficulty, Attributes, Condition, Injury).
-Sheet chrome is preserved.
+(Ability, Skill, Proficiency, Outcome, Save, Difficulty, Attributes, Condition, Injury,
+Specialization). Sheet chrome is preserved.

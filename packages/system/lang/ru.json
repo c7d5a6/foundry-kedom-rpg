@@ -30,27 +30,27 @@
     "Ability": {
       "dex": {
         "label": "Ловкость",
-        "abbr": "ЛВК"
+        "abbr": "ЛВ"
       },
       "foc": {
-        "label": "Средоточие",
-        "abbr": "СРД"
+        "label": "Фокус",
+        "abbr": "ФК"
       },
       "kno": {
         "label": "Знание",
-        "abbr": "ЗНА"
+        "abbr": "ЗН"
       },
       "lck": {
         "label": "Удача",
-        "abbr": "УДЧ"
+        "abbr": "УД"
       },
       "mgh": {
         "label": "Мощь",
         "abbr": "МЩ"
       },
       "pre": {
-        "label": "Обаяние",
-        "abbr": "Об"
+        "label": "Харизма",
+        "abbr": "ХР"
       }
     },
     "Skill": {
@@ -93,7 +93,6 @@
       "Skills": "Навыки",
       "Mod": "Мод",
       "Roll": "Бросок",
-      "EditPortrait": "Изменить портрет персонажа",
       "Tab": {
         "biography": "Биография",
         "description": "Описание",
@@ -114,14 +113,20 @@
         "addSpecializationShort": "+ Специализация",
         "create": "Создать",
         "delete": "Удалить",
+        "deselectSpecialization": "Снять специализацию",
         "edit": "Изменить",
         "equip": "Надеть",
         "roll": "Бросок",
         "rollSkill": "Бросок: {skill}",
+        "selectSpecialization": "Выбрать специализацию",
         "unequip": "Снять"
       },
       "searchPlaceholder": "Поиск",
-      "SpecializationLabel": "Специализация"
+      "EditPortrait": "Изменить портрет персонажа",
+      "Proficiency": "Владение",
+      "SpecializationLabel": "Специализация",
+      "SpecializationOverLimit": "Выбрано слишком много специализаций ({selected}/{slots}). Снимите лишние, прежде чем выбирать другие.",
+      "SpecializationSelectBlocked": "При уровне «{proficiency}» доступно только {slots} специализаци(й)."
     },
     "Chat": {
       "Dice": "кости",
@@ -140,12 +145,6 @@
       "hard": "Трудно",
       "incrediblyHard": "Невероятно трудно",
       "veryHard": "Очень трудно"
-    },
-    "DifficultyColumn": {
-      "easy": "Лёгкая",
-      "trained": "Обычная",
-      "hard": "Трудная",
-      "legendary": "Легендарная"
     },
     "Attributes": {
       "ac": "Класс брони",
@@ -244,15 +243,15 @@
         "organizations": "Организации",
         "politics": "Политика",
         "rumors": "Слухи",
-        "streetwise": "Улица"
+        "streetwise": "Уличные порядки"
       },
       "convince": {
         "charm": "Обаяние",
-        "command": "Команда",
+        "command": "Приказ",
         "deception": "Обман",
         "haggle": "Торг",
         "intimidation": "Запугивание",
-        "performance": "Выступление",
+        "performance": "Представление",
         "persuasion": "Убеждение"
       },
       "guile": {
@@ -265,24 +264,24 @@
       },
       "heal": {
         "diagnosis": "Диагностика",
-        "firstAid": "Первая помощь",
+        "firstaid": "Первая помощь",
         "pharmacology": "Фармакология",
         "psychology": "Психология",
-        "rehabilitation": "Реабилитация",
+        "rehabilitation": "Восстановление",
         "surgery": "Хирургия",
         "toxicology": "Токсикология"
       },
       "investigate": {
         "appraisal": "Оценка",
-        "cryptography": "Криптография",
-        "investigation": "Следствие",
-        "libraryUse": "Работа с библиотекой",
-        "research": "Исследование",
-        "search": "Поиск"
+        "cryptography": "Шифры",
+        "investigation": "Расследование",
+        "libraryuse": "Письмена",
+        "research": "Изыскания",
+        "search": "Обыск"
       },
       "notice": {
         "anomalies": "Аномалии",
-        "awareness": "Настороженность",
+        "awareness": "Чуткость",
         "detail": "Детали",
         "farsight": "Дальнозоркость",
         "hidden": "Скрытое",
@@ -294,24 +293,29 @@
         "climbing": "Лазание",
         "hide": "Укрытие",
         "lockpicking": "Взлом замков",
-        "sleightOfHand": "Ловкость рук",
-        "sneaking": "Крадучись"
+        "sleightofhand": "Ловкость рук",
+        "sneaking": "Крадущийся шаг"
       },
       "survive": {
-        "foraging": "Добыча пищи",
+        "foraging": "Промысел",
         "scouting": "Разведка",
         "shelter": "Укрытие",
-        "tracking": "Выслеживание"
+        "tracking": "Следопытство"
       },
       "travel": {
         "driving": "Вождение",
-        "exotic": "Экзотика",
         "hiking": "Пеший ход",
         "navigation": "Навигация",
         "orientation": "Ориентирование",
         "riding": "Верховая езда",
-        "sailing": "Парус"
+        "sailing": "Мореплавание"
       }
+    },
+    "DifficultyColumn": {
+      "easy": "Лёгкая",
+      "hard": "Трудная",
+      "legendary": "Легендарная",
+      "trained": "Обычная"
     }
   }
 }

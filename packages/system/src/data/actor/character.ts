@@ -7,7 +7,7 @@ import {
 } from "../../config/kedom.ts";
 import { abilityModifier } from "../../derivations/ability-mod.ts";
 
-const { ArrayField, NumberField, SchemaField, StringField } = foundry.data.fields;
+const { ArrayField, BooleanField, NumberField, SchemaField, StringField } = foundry.data.fields;
 
 function abilitySchema() {
   return new SchemaField({
@@ -32,6 +32,8 @@ function specializationSchema() {
   return new SchemaField({
     slug: new StringField({ required: true, nullable: false, blank: false }),
     label: new StringField({ required: true, nullable: false, blank: false }),
+    /** False = listed but not counting toward proficiency slots (free specs). */
+    selected: new BooleanField({ required: true, nullable: false, initial: true }),
   });
 }
 
@@ -69,7 +71,7 @@ export type CharacterSchema = ReturnType<typeof characterSchema>;
 
 type AbilityFields = { value: number; baseMod: number; mod?: number };
 
-export type SkillSpecialization = { slug: string; label: string };
+export type SkillSpecialization = { slug: string; label: string; selected: boolean };
 
 export type SkillFields = {
   proficiency: string;

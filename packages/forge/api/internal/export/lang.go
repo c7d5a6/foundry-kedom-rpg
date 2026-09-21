@@ -12,15 +12,16 @@ import (
 
 // LangClosedInput is closed-vocabulary data for Foundry lang JSON.
 type LangClosedInput struct {
-	Ability     map[string]AbilityLabel
-	Skill       map[string]string
-	Proficiency map[string]string
-	Outcome     map[string]string
-	Save        map[string]string
-	Difficulty  map[string]string
-	Attributes  map[string]string
-	Condition   map[string]string
-	Injury      InjuryLabels
+	Ability        map[string]AbilityLabel
+	Skill          map[string]string
+	Proficiency    map[string]string
+	Outcome        map[string]string
+	Save           map[string]string
+	Difficulty     map[string]string
+	Attributes     map[string]string
+	Condition      map[string]string
+	Injury         InjuryLabels
+	Specialization map[string]map[string]string // skill slug → leaf → label
 }
 
 // AbilityLabel is the Foundry Ability i18n shape.
@@ -56,7 +57,7 @@ var kedomKeyOrder = []string{
 	"Ability", "Skill", "Proficiency", "Outcome",
 	"Sheet", "Chat",
 	"Save", "Difficulty", "Attributes", "Condition", "Injury",
-	"Roll", "Error", "Settings",
+	"Roll", "Error", "Settings", "Specialization",
 }
 
 // WriteLangFile merges closed vocab into an existing lang JSON file.
@@ -97,6 +98,7 @@ func WriteLangFile(path string, closed LangClosedInput) error {
 		{k: "Location", v: stringMapToOrdered(closed.Injury.Location)},
 		{k: "WeaponType", v: stringMapToOrdered(closed.Injury.WeaponType)},
 	})
+	kedom["Specialization"] = specializationToOrdered(closed.Specialization)
 
 	root["KEDOM"] = kedom
 
@@ -274,6 +276,15 @@ func stringMapToOrdered(m map[string]string) orderedObject {
 	out := make(orderedObject, 0, len(keys))
 	for _, k := range keys {
 		out = append(out, kv{k: k, v: m[k]})
+	}
+	return out
+}
+
+func specializationToOrdered(m map[string]map[string]string) orderedObject {
+	skills := sortedStringKeys(m)
+	out := make(orderedObject, 0, len(skills))
+	for _, skill := range skills {
+		out = append(out, kv{k: skill, v: stringMapToOrdered(m[skill])})
 	}
 	return out
 }

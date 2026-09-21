@@ -40,18 +40,18 @@ export const SKILL_FIXED_SPECIALIZATIONS: Partial<Record<SkillKey, readonly stri
   guile: ["disguise", "forgery", "fraud", "gambling", "poisons", "traps"],
   heal: [
     "diagnosis",
-    "firstAid",
+    "firstaid",
     "pharmacology",
     "psychology",
     "rehabilitation",
     "surgery",
     "toxicology",
   ],
-  investigate: ["appraisal", "cryptography", "investigation", "libraryUse", "research", "search"],
+  investigate: ["appraisal", "cryptography", "investigation", "libraryuse", "research", "search"],
   notice: ["anomalies", "awareness", "detail", "farsight", "hidden", "insight", "listen"],
-  prowl: ["backstabbing", "climbing", "hide", "lockpicking", "sleightOfHand", "sneaking"],
+  prowl: ["backstabbing", "climbing", "hide", "lockpicking", "sleightofhand", "sneaking"],
   survive: ["foraging", "scouting", "shelter", "tracking"],
-  travel: ["hiking", "riding", "driving", "sailing", "exotic", "navigation", "orientation"],
+  travel: ["hiking", "riding", "driving", "sailing", "navigation", "orientation"],
 };
 
 export function specializationSlug(skillKey: SkillKey, leaf: string): string {

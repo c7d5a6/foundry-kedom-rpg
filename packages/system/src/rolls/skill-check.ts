@@ -224,7 +224,7 @@ export function prepareSkillCheck(
 
   if (options.specializationSlug !== undefined) {
     const found = skill.specializations.find((s) => s.slug === options.specializationSlug);
-    if (!found) return null;
+    if (!found || found.selected === false) return null;
     specializationSlug = found.slug;
     specializationLabel = found.label;
   }

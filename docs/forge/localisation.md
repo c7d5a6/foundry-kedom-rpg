@@ -238,9 +238,9 @@ exist, and it is the same rule as ADR-007 applied to languages.
 
 ## Closed vocabularies are authored in Forge, generated into lang JSON
 
-Attributes, the nineteen skills, proficiency tiers, outcomes, saves, difficulty labels,
+Attributes, the nineteen skills, fixed skill specializations, proficiency tiers, outcomes, saves, difficulty labels,
 derived combat labels (`KEDOM.Attributes`), conditions, and injury axes live in SQLite
-(`attribute` / `skill` / `vocab`) with Russian in `translation`.
+(`attribute` / `skill` / `specialization` / `vocab`) with Russian in `translation`.
 
 `npm run forge:export:lang` regenerates those closed sections in
 `packages/system/lang/{en,ru}.json`. Sheet chrome (`TYPES`, `System`, `Sheet`, `Chat`,
@@ -252,7 +252,7 @@ That is deliberate:
   what `lang/*.json` is for, keyed by slug.
 - The sidebar / compendium still use `document.name` (Babele) once packs exist.
 
-Edit labels in Forge (Attributes, Skills, or Vocabulary), then re-export lang. Do not
+Edit labels in Forge (Attributes, Skills, Specializations, or Vocabulary), then re-export lang. Do not
 hand-edit closed sections in the JSON files. When YAML pack export lands, it will call the
 same lang emitter first so packs and UI strings stay aligned.
 

@@ -33,6 +33,16 @@ export const PROFICIENCY_BONUS: Record<ProficiencyTier, number> = {
   legendary: 8,
 };
 
+/** How many specializations may be selected at each proficiency tier. */
+export const PROFICIENCY_SPECIALIZATION_SLOTS: Record<ProficiencyTier, number> = {
+  untrained: 0,
+  apprentice: 1,
+  trained: 2,
+  expert: 3,
+  master: 4,
+  legendary: 5,
+};
+
 /** Skill key → governing ability. */
 export const SKILL_ABILITY: Record<string, AbilityKey> = {
   arcana: "kno",

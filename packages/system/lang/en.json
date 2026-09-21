@@ -93,7 +93,6 @@
       "Skills": "Skills",
       "Mod": "Mod",
       "Roll": "Roll",
-      "EditPortrait": "Edit character artwork",
       "Tab": {
         "biography": "Biography",
         "description": "Description",
@@ -114,14 +113,20 @@
         "addSpecializationShort": "+ Specialization",
         "create": "Create",
         "delete": "Delete",
+        "deselectSpecialization": "Deselect specialization",
         "edit": "Edit",
         "equip": "Equip",
         "roll": "Roll",
         "rollSkill": "Roll {skill}",
+        "selectSpecialization": "Select specialization",
         "unequip": "Unequip"
       },
       "searchPlaceholder": "Search",
-      "SpecializationLabel": "Specialization"
+      "EditPortrait": "Edit character artwork",
+      "Proficiency": "Proficiency",
+      "SpecializationLabel": "Specialization",
+      "SpecializationOverLimit": "Too many specializations selected ({selected}/{slots}). Deselect some before choosing others.",
+      "SpecializationSelectBlocked": "Only {slots} specialization(s) allowed at {proficiency}."
     },
     "Chat": {
       "Dice": "dice",
@@ -140,12 +145,6 @@
       "hard": "Hard",
       "incrediblyHard": "Incredibly Hard",
       "veryHard": "Very Hard"
-    },
-    "DifficultyColumn": {
-      "easy": "Easy",
-      "trained": "Trained",
-      "hard": "Hard",
-      "legendary": "Legendary"
     },
     "Attributes": {
       "ac": "Armor Class",
@@ -265,7 +264,7 @@
       },
       "heal": {
         "diagnosis": "Diagnosis",
-        "firstAid": "First Aid",
+        "firstaid": "First Aid",
         "pharmacology": "Pharmacology",
         "psychology": "Psychology",
         "rehabilitation": "Rehabilitation",
@@ -276,7 +275,7 @@
         "appraisal": "Appraisal",
         "cryptography": "Cryptography",
         "investigation": "Investigation",
-        "libraryUse": "Library Use",
+        "libraryuse": "Library Use",
         "research": "Research",
         "search": "Search"
       },
@@ -294,7 +293,7 @@
         "climbing": "Climbing",
         "hide": "Hide",
         "lockpicking": "Lockpicking",
-        "sleightOfHand": "Sleight of Hand",
+        "sleightofhand": "Sleight of Hand",
         "sneaking": "Sneaking"
       },
       "survive": {
@@ -305,13 +304,18 @@
       },
       "travel": {
         "driving": "Driving",
-        "exotic": "Exotic",
         "hiking": "Hiking",
         "navigation": "Navigation",
         "orientation": "Orientation",
         "riding": "Riding",
         "sailing": "Sailing"
       }
+    },
+    "DifficultyColumn": {
+      "easy": "Easy",
+      "hard": "Hard",
+      "legendary": "Legendary",
+      "trained": "Trained"
     }
   }
 }
