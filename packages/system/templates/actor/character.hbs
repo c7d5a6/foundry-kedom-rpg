@@ -1,29 +1,5 @@
-<div class="kedom-sheet-body">
-  <header class="sheet-header">
-    <img
-      class="profile-img"
-      src="{{actor.img}}"
-      alt="{{actor.name}}"
-      {{#if isEdit}}
-        data-action="editImage"
-        data-edit="img"
-        title="{{localize "KEDOM.Sheet.EditPortrait"}}"
-      {{else}}
-        data-action="showPortraitArtwork"
-        title="{{actor.name}}"
-      {{/if}}
-    />
-    <h1 class="document-name">
-      {{#if isEdit}}
-        {{formInput fields.name value=source.name placeholder=(localize "DOCUMENT.FIELDS.name.label")}}
-      {{else}}
-        {{actor.name}}
-      {{/if}}
-    </h1>
-  </header>
-
-  <section class="abilities">
-    <h2>{{localize "KEDOM.Sheet.Abilities"}}</h2>
+<div class="kedom-sheet-panels">
+  <aside class="kedom-sheet-aside">
     <div class="ability-grid">
       {{#each abilities}}
         <div class="ability">
@@ -46,151 +22,12 @@
         </div>
       {{/each}}
     </div>
-  </section>
+  </aside>
 
-  <section class="skills">
-    <h2>{{localize "KEDOM.Sheet.Skills"}}</h2>
+  <section class="kedom-sheet-main">
     <div class="skill-list">
       {{#each skills}}
-        <article class="kedom-skill {{proficiencyClass}}{{#if specializationOverLimit}} is-over-limit{{/if}}">
-          <div class="kedom-skill__main">
-            {{#if @root.isEdit}}
-              <div
-                class="kedom-skill__rank-radios"
-                role="radiogroup"
-                aria-label="{{label}} — {{localize "KEDOM.Sheet.Proficiency"}}"
-              >
-                {{#each proficiencyOptions}}
-                  <label
-                    class="kedom-skill__rank-option {{rankClass}}{{#if selected}} is-selected{{/if}}"
-                    title="{{label}}"
-                  >
-                    <input
-                      type="radio"
-                      name="system.skills.{{../key}}.proficiency"
-                      value="{{value}}"
-                      {{#if selected}}checked{{/if}}
-                    />
-                    <span class="kedom-skill__rank-mark" aria-hidden="true">
-                      <span class="kedom-skill__rank-letter">{{letter}}</span>
-                    </span>
-                    <span class="sr-only">{{label}}</span>
-                  </label>
-                {{/each}}
-              </div>
-            {{else}}
-              <span class="kedom-skill__rank" title="{{proficiencyLabel}}">
-                <span class="kedom-skill__rank-mark">
-                  <span class="kedom-skill__rank-letter">{{proficiencyLetter}}</span>
-                </span>
-              </span>
-            {{/if}}
-
-            <div class="kedom-skill__body">
-              <div class="kedom-skill__headline">
-                <div class="kedom-skill__title">
-                  <span class="kedom-skill__name">{{label}}</span>
-                  {{#if @root.isEdit}}
-                    <span class="kedom-skill__ability">{{abilityAbbr}}</span>
-                  {{/if}}
-                </div>
-                <span class="kedom-skill__mod">{{bonusSigned}}</span>
-                {{#unless @root.isEdit}}
-                  <button
-                    type="button"
-                    class="kedom-skill__roll"
-                    data-action="rollSkill"
-                    data-skill-key="{{key}}"
-                    title="{{localize "KEDOM.Sheet.Action.rollSkill" skill=label}}"
-                    aria-label="{{localize "KEDOM.Sheet.Action.rollSkill" skill=label}}"
-                  >
-                    <i class="fa-solid fa-dice-d20" inert></i>
-                  </button>
-                {{/unless}}
-              </div>
-
-              {{#if specializationOverLimit}}
-                <p class="kedom-skill__alert" role="alert">{{specializationOverLimitMessage}}</p>
-              {{/if}}
-
-              {{#if allowsSpecialization}}
-                <div class="kedom-skill__tags">
-                  {{#each specializationTags}}
-                    {{#if @root.isEdit}}
-                      <span class="kedom-skill__tag-group">
-                        <button
-                          type="button"
-                          class="kedom-skill__tag{{#if selected}} is-selected{{/if}}{{#unless canSelect}} is-blocked{{/unless}}"
-                          data-action="toggleSpecialization"
-                          data-skill-key="{{skillKey}}"
-                          data-specialization-slug="{{slug}}"
-                          {{#if leaf}}data-specialization-leaf="{{leaf}}"{{/if}}
-                          {{#if isFree}}data-free="1"{{/if}}
-                          title="{{#if selected}}{{localize "KEDOM.Sheet.Action.deselectSpecialization"}}{{else}}{{localize "KEDOM.Sheet.Action.selectSpecialization"}}{{/if}}"
-                        >
-                          <i class="fa-{{#if selected}}solid{{else}}regular{{/if}} fa-diamond kedom-skill__tag-mark" inert></i>
-                          <span class="kedom-skill__tag-label">{{label}}</span>
-                        </button>
-                        {{#if isFree}}
-                          <button
-                            type="button"
-                            class="kedom-skill__tag-remove"
-                            data-action="removeSpecialization"
-                            data-skill-key="{{skillKey}}"
-                            data-specialization-slug="{{slug}}"
-                            title="{{localize "KEDOM.Sheet.Action.delete"}}"
-                            aria-label="{{localize "KEDOM.Sheet.Action.delete"}}"
-                          >
-                            <i class="fa-solid fa-trash" inert></i>
-                          </button>
-                        {{/if}}
-                        {{#if showMod}}
-                          {{#if bonusSigned}}
-                            <span class="kedom-skill__tag-mod">{{bonusSigned}}</span>
-                          {{/if}}
-                        {{/if}}
-                      </span>
-                    {{else}}
-                      {{#if selected}}
-                        <span class="kedom-skill__tag-group">
-                          <button
-                            type="button"
-                            class="kedom-skill__tag is-selected"
-                            data-action="rollSpecialization"
-                            data-skill-key="{{skillKey}}"
-                            data-specialization-slug="{{slug}}"
-                          >
-                            <i class="fa-solid fa-diamond kedom-skill__tag-mark" inert></i>
-                            <span class="kedom-skill__tag-label">{{label}}</span>
-                          </button>
-                          {{#if showMod}}
-                            {{#if bonusSigned}}
-                              <span class="kedom-skill__tag-mod">{{bonusSigned}}</span>
-                            {{/if}}
-                          {{/if}}
-                        </span>
-                      {{/if}}
-                    {{/if}}
-                  {{/each}}
-
-                  {{#if allowsFreeAdd}}
-                    {{#if @root.isEdit}}
-                      <button
-                        type="button"
-                        class="kedom-skill__tag kedom-skill__tag--add"
-                        data-action="addSpecialization"
-                        data-skill-key="{{key}}"
-                        title="{{localize "KEDOM.Sheet.Action.addSpecializationShort"}}"
-                      >
-                        +
-                      </button>
-                    {{/if}}
-                  {{/if}}
-                </div>
-              {{/if}}
-            </div>
-          </div>
-        </article>
+        {{> "systems/kedom/templates/actor/partials/skill.hbs"}}
       {{/each}}
     </div>
   </section>

@@ -2,7 +2,7 @@
  * Kedom colour palette — primitive swatches only.
  *
  * Semantic tokens in color.css pick from these; unused steps are intentional.
- * Families: primary (violet), gold, proficiency (text / disabled / bg).
+ * Families: primary (violet), secondary (ember), gold, proficiency (text / disabled / bg).
  */
 
 :root {
@@ -15,6 +15,16 @@
   --kedom-color-primary-500: #251a31;
   --kedom-color-primary-600: #14101a;
 
+  /* Secondary — light → dark */
+  --kedom-color-secondary-50: #f6ffff;
+  --kedom-color-secondary-100: #fbf236;
+  --kedom-color-secondary-200: #fdbb42;
+  --kedom-color-secondary-300: #df7126;
+  --kedom-color-secondary-400: #882525;
+  --kedom-color-secondary-500: #51001e;
+  --kedom-color-secondary-600: #3b0707;
+  --kedom-color-secondary-700: #250d12;
+
   /* Gold — light → dark */
   --kedom-color-gold-50: #f8f7f7;
   --kedom-color-gold-100: #faf591;
@@ -24,6 +34,47 @@
   --kedom-color-gold-500: #73362d;
   --kedom-color-gold-600: #4d243a;
   --kedom-color-gold-700: #12111a;
+
+  /* Gold chrome gradient (stops / angle are tunable) */
+  --kedom-gradient-gold: linear-gradient(
+    135deg,
+    /* Lead-in: 400 → 50 = reverse of post-50→400, half width */
+    var(--kedom-color-gold-400) 0%,
+    var(--kedom-color-gold-600) 4%,
+    var(--kedom-color-gold-300) 9%,
+    var(--kedom-color-gold-200) 13%,
+    var(--kedom-color-gold-100) 18%,
+    var(--kedom-color-gold-100) 26%,
+    var(--kedom-color-gold-50) 27%,
+    /* After 50 — same relative proportions, remaining 73% */
+    var(--kedom-color-gold-100) 28.5%,
+    var(--kedom-color-gold-100) 40%,
+    var(--kedom-color-gold-200) 47.5%,
+    var(--kedom-color-gold-300) 53%,
+    var(--kedom-color-gold-600) 60.5%,
+    var(--kedom-color-gold-400) 66.5%,
+    var(--kedom-color-gold-500) 72%,
+    var(--kedom-color-gold-200) 78%,
+    var(--kedom-color-gold-500) 82.5%,
+    var(--kedom-color-gold-600) 91%,
+    var(--kedom-color-gold-700) 100%
+  );
+
+  /*
+   * Compact gold for small chrome (chevron rims): each step once, light → dark.
+   * Weight mid golds (100–300) for a metallic read at ~1.5rem.
+   */
+  --kedom-gradient-gold-chevron: linear-gradient(
+    135deg,
+    var(--kedom-color-gold-50) 0%,
+    var(--kedom-color-gold-100) 12%,
+    var(--kedom-color-gold-200) 32%,
+    var(--kedom-color-gold-300) 52%,
+    var(--kedom-color-gold-400) 68%,
+    var(--kedom-color-gold-500) 80%,
+    var(--kedom-color-gold-600) 90%,
+    var(--kedom-color-gold-700) 100%
+  );
 
   /* Proficiency — text, disabled text, background */
   --kedom-color-proficiency-untrained-text: #978387;

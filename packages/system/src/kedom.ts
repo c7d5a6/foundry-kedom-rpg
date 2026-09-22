@@ -11,7 +11,10 @@ Hooks.once("init", () => {
     label: "KEDOM.Sheet.Character",
   });
 
-  void foundry.applications.handlebars.loadTemplates(["systems/kedom/templates/chat/check.hbs"]);
+  void foundry.applications.handlebars.loadTemplates([
+    "systems/kedom/templates/chat/check.hbs",
+    "systems/kedom/templates/actor/partials/skill.hbs",
+  ]);
 
   console.log("Kedom RPG | initialized (barebone character + skill checks)");
 });

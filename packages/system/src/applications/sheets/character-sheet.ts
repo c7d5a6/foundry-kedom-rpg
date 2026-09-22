@@ -75,7 +75,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static override DEFAULT_OPTIONS = {
     ...ActorSheetV2.DEFAULT_OPTIONS,
     classes: ["kedom", "sheet", "actor", "character"],
-    position: { width: 720, height: 720 },
+    position: { width: 800, height: 740 },
     window: {
       ...ActorSheetV2.DEFAULT_OPTIONS.window,
       resizable: true,
@@ -95,10 +95,13 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   };
 
   static override PARTS = {
+    header: {
+      template: "systems/kedom/templates/actor/character-header.hbs",
+      classes: ["kedom-sheet-header-part"],
+    },
     body: {
       template: "systems/kedom/templates/actor/character.hbs",
-      classes: ["scrollable", "kedom-sheet-body"],
-      scrollable: [""],
+      classes: ["kedom-sheet-body"],
     },
   };
 
@@ -267,12 +270,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.#renderModeToggle();
   }
 
-  /** dnd5e-style play/edit slider in the sheet window header. */
+  /** Tidy-style lock/feather play/edit toggle in the sheet window header. */
   #renderModeToggle(): void {
     const header = this.element.querySelector(".window-header");
     if (!(header instanceof HTMLElement)) return;
 
-    let toggle = header.querySelector<HTMLButtonElement>(".kedom-mode-slider");
+    let toggle = header.querySelector<HTMLButtonElement>(".kedom-mode-toggle");
     if (!this.isEditable) {
       toggle?.remove();
       return;
@@ -281,11 +284,11 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (!toggle) {
       toggle = document.createElement("button");
       toggle.type = "button";
-      toggle.className = "kedom-mode-slider";
+      toggle.className = "kedom-mode-toggle header-control";
       toggle.dataset.action = "toggleMode";
       toggle.innerHTML =
-        '<span class="kedom-mode-slider__track" aria-hidden="true">' +
-        '<span class="kedom-mode-slider__thumb"><i class="fa-solid fa-wrench"></i></span>' +
+        '<span class="kedom-mode-toggle__track" aria-hidden="true">' +
+        '<span class="kedom-mode-toggle__thumb"><i class="fa-solid fa-lock"></i></span>' +
         "</span>";
       toggle.addEventListener("dblclick", (event) => event.stopPropagation());
       toggle.addEventListener("pointerdown", (event) => event.stopPropagation());
@@ -297,6 +300,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     toggle.setAttribute("aria-label", hint);
     toggle.setAttribute("aria-pressed", this.isEditMode ? "true" : "false");
     toggle.classList.toggle("is-edit", this.isEditMode);
+    const icon = toggle.querySelector(".kedom-mode-toggle__thumb i");
+    if (icon) {
+      icon.className = this.isEditMode ? "fa-solid fa-feather" : "fa-solid fa-lock";
+    }
   }
 
   /**

@@ -3,7 +3,7 @@
  * Primitives live in palette.css. Components should use these names, not raw
  * --kedom-color-* steps. Taxonomy: docs/system/ui-design-system.md
  *
- * Default theme is dark (primary-500/600 surfaces, primary-50 text).
+ * Default theme is dark (primary-600 surfaces, primary-50 text).
  */
 
 @import "./palette.css";
@@ -21,7 +21,7 @@
   --kedom-shadow-2: 0 8px 24px color-mix(in srgb, var(--kedom-color-primary-600) 55%, transparent);
 
   /* Semantic (dark default) */
-  --kedom-surface-sheet: var(--kedom-color-primary-500);
+  --kedom-surface-sheet: var(--kedom-color-primary-600);
   --kedom-surface-raised: var(--kedom-color-primary-400);
   --kedom-surface-sunken: var(--kedom-color-primary-600);
   --kedom-text-primary: var(--kedom-color-primary-50);
