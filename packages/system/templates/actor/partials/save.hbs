@@ -1,0 +1,55 @@
+<article class="kedom-skill kedom-save {{proficiencyClass}}">
+  <div class="kedom-skill__main">
+    {{#if @root.isEdit}}
+      <div
+        class="kedom-skill__rank-radios"
+        role="radiogroup"
+        aria-label="{{label}} — {{localize "KEDOM.Sheet.Proficiency"}}"
+      >
+        {{#each proficiencyOptions}}
+          <label
+            class="kedom-skill__rank-option {{rankClass}}{{#if selected}} is-selected{{/if}}"
+            title="{{label}}"
+          >
+            <input
+              type="radio"
+              name="system.saves.{{../key}}.proficiency"
+              value="{{value}}"
+              {{#if selected}}checked{{/if}}
+            />
+            <span class="kedom-skill__rank-mark" aria-hidden="true">
+              <span class="kedom-skill__rank-letter">{{letter}}</span>
+            </span>
+            <span class="sr-only">{{label}}</span>
+          </label>
+        {{/each}}
+      </div>
+    {{/if}}
+
+    <div class="kedom-skill__body">
+      <div class="kedom-skill__headline">
+        <div class="kedom-skill__title">
+          <span class="kedom-skill__name">{{label}}</span>
+          {{#if @root.isEdit}}
+            <span class="kedom-skill__ability">{{abilityAbbr}}</span>
+          {{/if}}
+        </div>
+        <span class="kedom-skill__mod">{{bonusSigned}}</span>
+        {{#unless @root.isEdit}}
+          <button
+            type="button"
+            class="kedom-skill__roll"
+            data-action="rollSave"
+            data-save-key="{{key}}"
+            title="{{proficiencyLabel}} — {{localize "KEDOM.Sheet.Action.rollSave" save=label}}"
+            aria-label="{{localize "KEDOM.Sheet.Action.rollSave" save=label}}"
+          >
+            <span class="kedom-skill__rank-mark" aria-hidden="true">
+              <i class="fa-solid fa-dice-d20" inert></i>
+            </span>
+          </button>
+        {{/unless}}
+      </div>
+    </div>
+  </div>
+</article>

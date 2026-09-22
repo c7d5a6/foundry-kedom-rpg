@@ -1,19 +1,121 @@
 <header class="sheet-header">
-  <div class="kedom-portrait">
-    <img
-      class="profile-img"
-      src="{{actor.img}}"
-      alt="{{actor.name}}"
-      {{#if isEdit}}
-        data-action="editImage"
-        data-edit="img"
-        title="{{localize "KEDOM.Sheet.EditPortrait"}}"
-      {{else}}
-        data-action="showPortraitArtwork"
-        title="{{actor.name}}"
-      {{/if}}
-    />
+  <div class="kedom-portrait-stack">
+    <div class="kedom-portrait">
+      <img
+        class="profile-img"
+        src="{{actor.img}}"
+        alt="{{actor.name}}"
+        {{#if isEdit}}
+          data-action="editImage"
+          data-edit="img"
+          title="{{localize "KEDOM.Sheet.EditPortrait"}}"
+        {{else}}
+          data-action="showPortraitArtwork"
+          title="{{actor.name}}"
+        {{/if}}
+      />
+    </div>
+
+    <div class="kedom-meters">
+      <div
+        class="kedom-meter kedom-meter--hp kedom-meter--{{resources.hp.band}}"
+        data-resource="hp"
+        data-action="editResource"
+        title="{{localize "KEDOM.Attributes.hp"}}"
+      >
+        <div
+          class="kedom-meter__track"
+          role="meter"
+          aria-valuemin="0"
+          aria-valuemax="{{resources.hp.max}}"
+          aria-valuenow="{{resources.hp.value}}"
+          aria-label="{{localize "KEDOM.Attributes.hp"}}"
+        >
+          <div class="kedom-meter__fill" style="--kedom-meter-pct: {{resources.hp.pct}}%;"></div>
+        </div>
+        <div class="kedom-meter__content">
+          <span class="kedom-meter__name">{{localize "KEDOM.Attributes.hpShort"}}</span>
+          <span class="kedom-meter__value">{{resources.hp.value}}</span>
+          <input
+            class="kedom-meter__edit-value"
+            type="number"
+            name="system.attributes.hp.value"
+            value="{{resources.hp.value}}"
+            min="0"
+            aria-label="{{localize "KEDOM.Attributes.hp"}}"
+          />
+          <span class="kedom-meter__sep">/</span>
+          {{#if isEdit}}
+            <input
+              class="kedom-meter__max-input"
+              type="number"
+              name="system.attributes.hp.max"
+              value="{{resources.hp.max}}"
+              min="0"
+              data-action=""
+              aria-label="{{localize "KEDOM.Attributes.hp"}} max"
+            />
+          {{else}}
+            <span class="kedom-meter__max">{{resources.hp.max}}</span>
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="kedom-meter-strain-row">
+        <div
+          class="kedom-meter kedom-meter--strain"
+          data-resource="strain"
+          data-action="editResource"
+          title="{{localize "KEDOM.Attributes.strain"}}"
+        >
+          <div
+            class="kedom-meter__track"
+            role="meter"
+            aria-valuemin="0"
+            aria-valuemax="{{resources.strain.limit}}"
+            aria-valuenow="{{resources.strain.value}}"
+            aria-label="{{localize "KEDOM.Attributes.strain"}}"
+          >
+            <div class="kedom-meter__fill" style="--kedom-meter-pct: {{resources.strain.pct}}%;"></div>
+          </div>
+          <div class="kedom-meter__content">
+            <span class="kedom-meter__name">{{localize "KEDOM.Attributes.strainShort"}}</span>
+            <span class="kedom-meter__value">{{resources.strain.value}}</span>
+            <input
+              class="kedom-meter__edit-value"
+              type="number"
+              name="system.attributes.strain.value"
+              value="{{resources.strain.value}}"
+              min="0"
+              max="{{resources.strain.limit}}"
+              aria-label="{{localize "KEDOM.Attributes.strain"}}"
+            />
+            <span class="kedom-meter__sep">/</span>
+            <span class="kedom-meter__max" title="{{localize "KEDOM.Attributes.strainLimit"}}">{{resources.strain.limit}}</span>
+          </div>
+        </div>
+
+        <span
+          class="kedom-resolve"
+          title="{{localize "KEDOM.Sheet.ResolveHint"}}"
+        >
+          <span class="kedom-resolve__abbr">{{localize "KEDOM.Attributes.resolveShort"}}</span>
+          <span class="kedom-resolve__value">{{resources.resolve}}</span>
+        </span>
+
+        <button
+          type="button"
+          class="kedom-strain-roll"
+          data-action="rollStrainSave"
+          title="{{localize "KEDOM.Sheet.Action.rollStrainSave"}}"
+          aria-label="{{localize "KEDOM.Sheet.Action.rollStrainSave"}}"
+        >
+          <i class="fa-solid fa-dice-d20" inert></i>
+        </button>
+      </div>
+    </div>
   </div>
+
   <h1 class="document-name">
     {{#if isEdit}}
       {{formInput fields.name value=source.name placeholder=(localize "DOCUMENT.FIELDS.name.label")}}

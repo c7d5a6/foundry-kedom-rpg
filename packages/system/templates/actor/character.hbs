@@ -1,5 +1,30 @@
 <div class="kedom-sheet-panels">
   <aside class="kedom-sheet-aside">
+    <div class="kedom-combat-stubs">
+      <div class="kedom-combat-stubs__item">
+        <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.acShort"}}</span>
+        <span class="kedom-combat-stubs__value">{{combat.ac}}</span>
+      </div>
+      <div class="kedom-combat-stubs__item">
+        <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.meleeDamage"}}</span>
+        <span class="kedom-combat-stubs__value">{{combat.meleeDamageSigned}}</span>
+      </div>
+      <div class="kedom-wounds">
+        <label class="kedom-wounds__label" for="kedom-wounds">{{localize "KEDOM.Attributes.wounds"}}</label>
+        {{#if @root.isEdit}}
+          <input
+            id="kedom-wounds"
+            type="number"
+            name="system.attributes.wounds.value"
+            value="{{resources.wounds}}"
+            min="0"
+          />
+        {{else}}
+          <span class="kedom-wounds__value">{{resources.wounds}}</span>
+        {{/if}}
+      </div>
+    </div>
+
     <div class="ability-grid">
       {{#each abilities}}
         <div class="ability">
@@ -20,6 +45,12 @@
             <div class="ability__score">{{value}}</div>
           {{/if}}
         </div>
+      {{/each}}
+    </div>
+
+    <div class="save-list">
+      {{#each saves}}
+        {{> "systems/kedom/templates/actor/partials/save.hbs"}}
       {{/each}}
     </div>
   </aside>

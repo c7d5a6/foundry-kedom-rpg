@@ -46,9 +46,20 @@ points**, and healing converts wounds into System Strain.
 
 ## System Strain
 
-Written **SS**. Maximum equals the **Might** score, WWN's Constitution having been folded into
-Might ([10-attributes.md](10-attributes.md#primary-attributes)). It is the universal currency of
-attrition: magical healing, wound recovery, and cyberware-equivalents all cost Strain.
+Written **SS** on the sheet short form; full label **System Strain**.
+
+| Stat | Meaning |
+|---|---|
+| **Strain Limit** | Maximum Strain; equals Focus **score** ([10-attributes.md](10-attributes.md)) |
+| **Strain** | Current System Strain (attrition currency) |
+| **Resolve** | `20 − Focus score` — high threshold for the Strain Save |
+
+Earlier notes equated maximum Strain to Might (WWN Constitution). **That is superseded:** the
+cap is Focus score. Magical healing, wound recovery, and similar costs still spend Strain.
+
+**Strain Save** (`d20`): Harm if `d20 <= min(Resolve, Strain)`; Success if
+`d20 > max(Resolve, Strain)`; Failure otherwise. Harm’s mechanical payload is unwritten —
+do not auto-apply wounds from the save yet.
 
 A character at maximum Strain is **Strained** and cannot accept more. The critical tables in
 [80-criticals.md](80-criticals.md) award Strain by severity: `+1` at group III, `+1d4` at

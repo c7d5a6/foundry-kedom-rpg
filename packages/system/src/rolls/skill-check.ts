@@ -174,6 +174,17 @@ export function styleCheckRollHTML(
     }
   }
 
+  /* CoC order: formula → tooltip → total (Foundry sometimes puts total before tooltip). */
+  const result = root.querySelector(".dice-result");
+  const tooltipEl = root.querySelector(".dice-tooltip");
+  if (
+    result instanceof HTMLElement &&
+    tooltipEl instanceof HTMLElement &&
+    total instanceof HTMLElement
+  ) {
+    result.append(tooltipEl, total);
+  }
+
   return root.outerHTML;
 }
 

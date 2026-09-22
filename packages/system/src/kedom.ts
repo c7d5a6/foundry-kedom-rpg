@@ -14,6 +14,7 @@ Hooks.once("init", () => {
   void foundry.applications.handlebars.loadTemplates([
     "systems/kedom/templates/chat/check.hbs",
     "systems/kedom/templates/actor/partials/skill.hbs",
+    "systems/kedom/templates/actor/partials/save.hbs",
   ]);
 
   console.log("Kedom RPG | initialized (barebone character + skill checks)");

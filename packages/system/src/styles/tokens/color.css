@@ -35,6 +35,12 @@
   --kedom-tier-cost: var(--kedom-color-gold-300);
   --kedom-tier-success: var(--kedom-color-proficiency-apprentice-text);
   --kedom-tier-critical: var(--kedom-color-primary-200);
+  --kedom-tier-success-icon: var(--kedom-color-gold-200);
+  --kedom-tier-failure-icon: var(--kedom-color-proficiency-legendary-text);
+  --kedom-tier-cost-icon: var(--kedom-color-gold-200);
+  --kedom-tier-cost-bg: var(--kedom-color-secondary-600);
+  --kedom-tier-success-bg: var(--kedom-color-proficiency-apprentice-bg);
+  --kedom-tier-failure-bg: var(--kedom-color-proficiency-legendary-bg);
 
   /* Proficiency: bare name = fill; -text / -disabled for letter states */
   --kedom-proficiency-untrained: var(--kedom-color-proficiency-untrained-bg);

@@ -45,35 +45,56 @@ proficiency bonus running −2…+8 ([20-skills.md](20-skills.md)). A Legendary 
 
 ## Secondary attributes
 
-Derived, never stored. Each is computed by a pure function in `src/derivations/`.
+Mostly **entered or proficiency-gated**, with a few pure Focus-score derivations. Combat
+numbers that still lack class formulas are **stubs** (zero until rules land).
 
-| Secondary | Derived from | Status |
+| Secondary | Source | Persistence |
 |---|---|---|
-| Hit points | class hit die + Might modifier | Progression per level still unstated |
-| Strain | Focus | Two sub-tracks, below |
-| Armour class | Dexterity + armour | Ascending AC |
-| Melee damage bonus | Might | |
-| Attack bonus | Might or Dexterity + class progression | |
-| Reflex save | — | Roll `2d10` + save proficiency ([20-skills.md](20-skills.md#resolution)); which attribute feeds each save, and class primary/secondary, still open ([Q30](99-open-questions.md#q30--per-class-primary-and-secondary-saves)) |
-| Fortitude save | — | same |
-| Will save | — | same |
+| **Hit Points** | Entered current / max (class HD derivation deferred) | Both persisted; initial `0` / `0` |
+| **Wounds** | Entered wound-point count | Persisted; initial `0` |
+| **Strain** | Entered current System Strain | Persisted |
+| **Strain Limit** | Focus **score** | Derived only |
+| **Resolve** | `20 − Focus score` | Derived only |
+| Armour class | Dexterity + armour (stub) | Derived path, zero-init |
+| Melee damage bonus | Might (stub) | Derived path, zero-init |
+| Attack bonus | Might or Dexterity + class (stub) | Derived path, zero-init |
+| **Reflex** save | Dexterity mod + **save proficiency** | Proficiency persisted |
+| **Fortitude** save | Might mod + **save proficiency** | Proficiency persisted |
+| **Will** save | Focus mod + **save proficiency** | Proficiency persisted |
 
-> **The source's secondary section still uses the old attribute names** — it says `strain
-> (wisdom)`, `melee damage bonus (str)`, `attack bonus (str/dex)` while the primary list above
-> has already been renamed. The table translates them: wisdom → Focus, str → Might. This is
-> almost certainly staleness rather than intent, but it is an assumption, not a quotation.
+Saves use the **same proficiency ladder as skills** (`2d10 + attribute mod + proficiency`),
+with **no specialisations** and therefore always the full tier bonus
+([20-skills.md](20-skills.md#resolution)). Class primary/secondary save *progression* remains
+open ([Q30](99-open-questions.md#q30--per-class-primary-and-secondary-saves)).
 
-### The two strain tracks
+### Strain triad and Strain Save
 
-Strain splits into two named sub-tracks, each keyed to a save rather than directly to an
-attribute:
+| Stat | Meaning |
+|---|---|
+| **Strain Limit** | Maximum Strain the character can hold; equals current Focus **score** |
+| **Strain** | Current System Strain (attrition currency) |
+| **Resolve** | Strain Save high threshold; `20 − Focus score` |
+
+**Strain Save** is a `d20` check against Resolve and current Strain (not the skill `2d10`
+ladder):
+
+| Result | Condition |
+|---|---|
+| **Harm** | `d20 <= min(Resolve, Strain)` — also when `Resolve == Strain` and the roll is `<=` that value |
+| **Success** | `d20 > max(Resolve, Strain)` |
+| **Failure** | otherwise (strictly between the two when they differ) |
+
+What Harm applies (wound points, permanent alteration, etc.) is **not yet specified**. Do not
+auto-increment wounds from the save until that lands.
+
+### Corruption tracks (still open)
+
+Strain still conceptually splits into two named sub-tracks for permanent alteration:
 
 - **Mental / sanity**, keyed to **Will**
 - **Corruption / disease**, keyed to **Fortitude**
 
-The "Other" section of the source frames the same split as body versus mind: *corruption and
-disease as body alterations*, *corruption and madness as mind alterations*. Two tracks, one
-physical and one mental, both called corruption. Mechanics remain unwritten
+Mechanics remain unwritten
 ([Q18](99-open-questions.md#q18--the-two-corruption-tracks-are-unspecified)).
 
 ## Which attribute each skill uses
@@ -99,22 +120,28 @@ Worship
 **Mixed:** Craft (mental > physical), Prowl (physical > mental), Survive, Travel, Work
 
 > **Focus is thin.** It covers intuition, perception, will, *and* wisdom, yet drives only two
-> skills — while also carrying Strain and the Will save. Either it is under-used as a skill
-> attribute or it is over-loaded as a defensive one.
+> skills in the source tally (Notice, Survive — Travel is Focus in the live system) — while also
+> carrying Strain Limit, Resolve, and the Will save.
 > [Q5](99-open-questions.md#q5--focus-governs-only-two-skills) tracks it.
 
 ## Implementation note
 
-Attributes are a fixed schema field on the character DataModel:
+Primary attributes are a fixed schema field on the character DataModel:
 
 ```
 abilities: { mgh: { value, baseMod }, dex: { ... }, kno, foc, pre, lck }
 ```
 
-with `mod` derived, never persisted — following `foundryvtt-wwn`'s
-`module/derivations/modifiers.mjs`. Secondary attributes are derived paths
-**zero-initialised in `prepareBaseData`** so Active Effects can target them reliably. See
-[../system/data-model.md](../system/data-model.md).
+with `mod` derived, never persisted. Secondary paths:
+
+```
+attributes: { hp: { value, max }, strain: { value }, wounds: { value },
+              strainLimit DERIVED, resolve DERIVED }
+saves: { reflex, fortitude, will: { proficiency } }  # bonus DERIVED
+```
+
+Derived secondaries are **zero-initialised in `prepareBaseData`** so Active Effects can target
+them. See [../system/data-model.md](../system/data-model.md).
 
 The modifier table is **configuration**, not a `switch` in the derivation. It is a small
 ordered list of `{ max, mod }` bands in `src/config/`, so revising it is a data edit.

@@ -76,6 +76,17 @@
     var(--kedom-color-gold-700) 100%
   );
 
+  /* Brighter rim for hover — compresses toward light golds */
+  --kedom-gradient-gold-chevron-bright: linear-gradient(
+    135deg,
+    var(--kedom-color-gold-50) 0%,
+    var(--kedom-color-gold-100) 22%,
+    var(--kedom-color-gold-200) 48%,
+    var(--kedom-color-gold-100) 62%,
+    var(--kedom-color-gold-200) 78%,
+    var(--kedom-color-gold-300) 100%
+  );
+
   /* Proficiency — text, disabled text, background */
   --kedom-color-proficiency-untrained-text: #978387;
   --kedom-color-proficiency-untrained-disabled: #726668;

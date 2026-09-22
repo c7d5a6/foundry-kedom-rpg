@@ -3,7 +3,31 @@
  * Full cascade / tokens polish is deferred (ADR-013).
  */
 
-/* PF2e-inspired chat header: character artwork + names; art fades into flavor */
+/* -------------------------------------------------------------------------- */
+/* Chat — dnd5e-inspired fancy shell, Kedom palette, CoC check structure      */
+/* -------------------------------------------------------------------------- */
+
+.chat-message:has(.kedom-chat-check) {
+  border: none;
+  border-radius: var(--kedom-radius-md, 0.5rem);
+  background: var(--kedom-color-primary-600, #14101a);
+  box-shadow: var(--kedom-shadow-2, 0 8px 24px color-mix(in srgb, black 45%, transparent));
+  color: var(--kedom-text-primary, var(--kedom-color-primary-50, #fff4e1));
+  overflow: hidden;
+}
+
+.chat-message:has(.kedom-chat-check) .message-header {
+  margin: 0;
+  padding: 0.45rem 0.55rem 0.35rem;
+  border: none;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--kedom-color-primary-500, #251a31) 85%, transparent),
+    transparent
+  );
+}
+
+/* PF2e-inspired header: character artwork + names; art fades into flavor */
 .chat-message .message-header.with-image {
   display: grid;
   grid-template:
@@ -29,6 +53,7 @@
   padding: 0;
   pointer-events: none;
   overflow: hidden;
+  border-radius: var(--kedom-radius-sm, 0.25rem) 0 0 0;
 }
 
 .chat-message .message-header.with-image .kedom-chat-portrait img {
@@ -39,7 +64,6 @@
   min-height: 5.5rem;
   object-fit: cover;
   object-position: top center;
-  /* Full-column art; lower portion dissolves into the card */
   mask-image: linear-gradient(
     to bottom,
     #000 0%,
@@ -52,23 +76,32 @@
 .chat-message .message-header.with-image h4.message-sender {
   grid-area: name;
   align-self: end;
+  margin: 0;
+  font-family: var(--kedom-font-display, Georgia, serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   line-height: 1;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 500;
-  color: var(--color-text-secondary, inherit);
+  color: var(--kedom-text-primary, var(--kedom-color-primary-50, #fff4e1));
+  text-shadow: 0 1px 2px color-mix(in srgb, black 55%, transparent);
 }
 
 .chat-message .message-header.with-image .kedom-chat-user {
   grid-area: user;
   align-self: center;
+  font-family: var(--kedom-font-body, Georgia, serif);
   font-size: var(--font-size-12, 0.75rem);
-  opacity: 0.85;
+  color: var(--kedom-color-gold-100, #faf591);
+  opacity: 0.9;
 }
 
 .chat-message .message-header.with-image .message-metadata {
   grid-area: details;
   white-space: nowrap;
+  color: var(--kedom-color-gold-300, #df7126);
+  opacity: 0.85;
 }
 
 .chat-message .message-header.with-image .whisper-to {
@@ -80,73 +113,259 @@
   position: relative;
   z-index: 0;
   align-self: end;
-  margin-block: 0;
+  margin-block: 0.15rem 0;
+  font-family: var(--kedom-font-display, Georgia, serif);
+  font-size: 0.95rem;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--kedom-color-gold-200, #fdbb42);
+  text-shadow: 0 1px 2px color-mix(in srgb, black 50%, transparent);
 }
 
-/* CoC-like skill check: flavor (small) → clickable verdict panel → total */
+.chat-message:has(.kedom-chat-check) .message-content {
+  padding: 0.35rem 0.55rem 0.65rem;
+}
+
+/* CoC-like skill check: flavor → clickable verdict → expand → total */
+.kedom-chat-check {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
 .kedom-chat-check .dice-roll {
   cursor: pointer;
+  margin: 0;
+}
+
+.kedom-chat-check .dice-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .kedom-chat-check .dice-formula {
-  font-weight: 600;
+  order: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.35rem;
+  margin: 0;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: var(--kedom-radius-sm, 0.25rem);
+  background:
+    linear-gradient(var(--kedom-color-primary-500, #251a31), var(--kedom-color-primary-500, #251a31))
+      padding-box,
+    var(--kedom-gradient-gold-chevron) border-box;
+  font-family: var(--kedom-font-display, Georgia, serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   text-align: center;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 0.75rem color-mix(in srgb, black 35%, transparent);
+  transition: box-shadow 0.15s ease;
+}
+
+.kedom-chat-check .dice-roll:hover .dice-formula {
+  box-shadow:
+    inset 0 0 0.75rem color-mix(in srgb, black 35%, transparent),
+    0 0 0.55rem color-mix(in srgb, var(--kedom-color-gold-200, #fdbb42) 35%, transparent);
 }
 
 .kedom-chat-check .dice-formula.success {
-  color: var(--kedom-tier-success, #2e7d32);
+  color: var(--kedom-tier-success);
+  background:
+    linear-gradient(
+      160deg,
+      var(--kedom-tier-success-bg) 0%,
+      var(--kedom-color-primary-500, #251a31) 70%
+    )
+      padding-box,
+    var(--kedom-gradient-gold-chevron) border-box;
 }
 
 .kedom-chat-check .dice-formula.failure {
-  color: var(--kedom-tier-failure, #c62828);
+  color: var(--kedom-tier-failure);
+  background:
+    linear-gradient(
+      160deg,
+      var(--kedom-tier-failure-bg) 0%,
+      var(--kedom-color-primary-500, #251a31) 70%
+    )
+      padding-box,
+    var(--kedom-gradient-gold-chevron) border-box;
 }
 
 .kedom-chat-check .dice-formula.cost {
-  color: var(--kedom-tier-cost, #b36b00);
+  color: var(--kedom-tier-cost);
+  background:
+    linear-gradient(
+      160deg,
+      var(--kedom-tier-cost-bg) 0%,
+      var(--kedom-color-primary-500, #251a31) 70%
+    )
+      padding-box,
+    var(--kedom-gradient-gold-chevron) border-box;
+}
+
+.kedom-chat-check .dice-formula .kedom-chat-check__verdict-text {
+  line-height: 1.2;
+  max-width: 100%;
 }
 
 .kedom-chat-check .dice-formula .kedom-chat-check__roll-icons {
-  margin-inline-start: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.12rem;
+  flex-shrink: 0;
 }
 
 .kedom-chat-check .dice-formula .kedom-chat-check__roll-icons i {
-  margin-inline: 0.05rem;
+  font-size: 0.85em;
 }
 
 .kedom-chat-check .dice-formula.success .kedom-chat-check__roll-icons {
-  color: var(--kedom-tier-success-icon, goldenrod);
+  color: var(--kedom-tier-success-icon);
 }
 
 .kedom-chat-check .dice-formula.failure .kedom-chat-check__roll-icons {
-  color: var(--kedom-tier-failure-icon, crimson);
+  color: var(--kedom-tier-failure-icon);
 }
 
 .kedom-chat-check .dice-formula.cost .kedom-chat-check__roll-icons {
-  color: var(--kedom-tier-cost-icon, #c47a00);
+  color: var(--kedom-tier-cost-icon);
+}
+
+/* Collapsed until Foundry adds .expanded on the roll */
+.kedom-chat-check .dice-tooltip {
+  order: 2;
+  display: none;
+  margin: 0;
+  padding: 0.45rem 0.5rem;
+  border: 1px dashed color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 70%, transparent);
+  border-radius: var(--kedom-radius-sm, 0.25rem);
+  background: var(--kedom-color-primary-500, #251a31);
+  box-shadow: inset 0 0 0.5rem color-mix(in srgb, black 30%, transparent);
+}
+
+.kedom-chat-check .dice-roll.expanded .dice-tooltip {
+  display: block;
+}
+
+/* Total with dnd5e-style gold flare lines — always after tooltip */
+.kedom-chat-check .dice-total {
+  order: 3;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  isolation: isolate;
+  margin: 0.15rem auto 0;
+  min-width: 2.75rem;
+  padding: 0.2rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: var(--kedom-radius-sm, 0.25rem);
+  background:
+    linear-gradient(var(--kedom-color-primary-600, #14101a), var(--kedom-color-primary-600, #14101a))
+      padding-box,
+    var(--kedom-gradient-gold-chevron) border-box;
+  font-family: var(--kedom-font-display, Georgia, serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  color: var(--kedom-text-primary, var(--kedom-color-primary-50, #fff4e1));
+}
+
+.kedom-chat-check .dice-total::before,
+.kedom-chat-check .dice-total::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 1.75rem;
+  height: 1px;
+  pointer-events: none;
+}
+
+.kedom-chat-check .dice-total::before {
+  right: 100%;
+  margin-right: 0.35rem;
+  background: linear-gradient(
+    to left,
+    var(--kedom-color-gold-200, #fdbb42),
+    transparent
+  );
+}
+
+.kedom-chat-check .dice-total::after {
+  left: 100%;
+  margin-left: 0.35rem;
+  background: linear-gradient(
+    to right,
+    var(--kedom-color-gold-200, #fdbb42),
+    transparent
+  );
 }
 
 .kedom-chat-check .dice-total.success {
-  color: var(--kedom-tier-success, #2e7d32);
+  color: var(--kedom-tier-success);
+  background:
+    linear-gradient(var(--kedom-color-primary-600, #14101a), var(--kedom-color-primary-600, #14101a))
+      padding-box,
+    var(--kedom-gradient-gold-chevron) border-box;
 }
 
 .kedom-chat-check .dice-total.failure {
-  color: var(--kedom-tier-failure, #c62828);
+  color: var(--kedom-tier-failure);
+  background:
+    linear-gradient(var(--kedom-color-primary-600, #14101a), var(--kedom-color-primary-600, #14101a))
+      padding-box,
+    var(--kedom-gradient-gold-chevron) border-box;
 }
 
 .kedom-chat-check .dice-total.cost {
-  color: var(--kedom-tier-cost, #b36b00);
-  background-color: var(--kedom-tier-cost-bg, #fff3e0);
+  color: var(--kedom-tier-cost);
+  background:
+    linear-gradient(var(--kedom-tier-cost-bg), var(--kedom-tier-cost-bg)) padding-box,
+    var(--kedom-gradient-gold-chevron) border-box;
 }
 
 .kedom-chat-check__summary {
-  margin-top: 0.35rem;
+  margin-top: 0.4rem;
+  padding-top: 0.35rem;
+  border-top: 1px dashed color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 55%, transparent);
+  font-family: var(--kedom-font-display, Georgia, serif);
   font-size: 0.9em;
-  opacity: 0.9;
+  font-style: italic;
+  color: var(--kedom-color-gold-100, #faf591);
+}
+
+.kedom-chat-check__modifier .part-header {
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.kedom-chat-check__modifier .part-formula {
+  font-family: var(--kedom-font-mono, ui-monospace, monospace);
+  font-weight: 600;
+  color: var(--kedom-color-gold-200, #fdbb42);
 }
 
 .kedom-chat-check__modifier .part-flavor {
-  margin-inline: 0.35rem;
-  opacity: 0.85;
+  margin-inline: 0.25rem;
+  font-family: var(--kedom-font-body, Georgia, serif);
+  font-style: italic;
+  color: var(--kedom-text-primary, var(--kedom-color-primary-50, #fff4e1));
+  opacity: 0.9;
+}
+
+.kedom-chat-check__modifier .part-total {
+  font-variant-numeric: tabular-nums;
+  color: var(--kedom-color-gold-100, #faf591);
 }
 
 .kedom-chat-check__degree--success {
@@ -157,6 +376,10 @@
 .kedom-chat-check__degree--failure {
   color: inherit;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Character sheet                                                            */
+/* -------------------------------------------------------------------------- */
 
 .kedom.sheet.actor {
   min-width: 42rem;
@@ -169,7 +392,7 @@
  * Layout: fixed header PART + scrolling 1:2 aside/main (Tidy-inspired).
  */
 .application.kedom.sheet.actor.character {
-  --kedom-sheet-banner-height: 17.5rem;
+  --kedom-sheet-banner-height: 20rem;
   --kedom-sheet-chrome-offset: 2.75rem;
   --kedom-portrait-size: 6rem;
   --kedom-portrait-inset: 0.3rem;
@@ -259,12 +482,22 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 0.85rem;
-  min-height: 8.5rem;
+  column-gap: 0.85rem;
+  row-gap: 0;
+  min-height: 11rem;
   margin: 0;
   padding: calc(var(--kedom-sheet-chrome-offset) + 0.35rem) 0.15rem 0;
   border: none;
-  background: linear-gradient(to bottom, transparent 40%, color-mix(in srgb, black 45%, transparent));
+  background: none;
+}
+
+.kedom.sheet .kedom-portrait-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 auto;
+  width: max-content;
+  gap: 0;
 }
 
 .kedom.sheet .kedom-portrait {
@@ -272,6 +505,8 @@
   flex: 0 0 auto;
   width: var(--kedom-portrait-size);
   height: var(--kedom-portrait-size);
+  margin-inline: auto;
+  margin-bottom: -0.5rem;
   border-radius: 50%;
   overflow: hidden;
   box-shadow: 0 0 0.5rem color-mix(in srgb, black 55%, transparent);
@@ -310,6 +545,7 @@
 .kedom.sheet .sheet-header h1,
 .kedom.sheet .sheet-header .document-name {
   flex: 1;
+  align-self: flex-start;
   margin: 0 0 0.35rem;
   font-family: var(--kedom-font-display, Georgia, serif);
   font-size: 1.85rem;
@@ -328,7 +564,10 @@
   border: 1px solid transparent;
   border-radius: 0.3rem;
   background:
-    linear-gradient(color-mix(in srgb, black 28%, transparent), color-mix(in srgb, black 28%, transparent))
+    linear-gradient(
+        var(--kedom-color-primary-600, #14101a),
+        var(--kedom-color-primary-600, #14101a)
+      )
       padding-box,
     var(--kedom-chrome-gold, var(--kedom-gradient-gold)) border-box;
   text-shadow: none;
@@ -340,11 +579,15 @@
   --kedom-divider-gems-width: calc(17.6 / 14 * 1rem);
   --kedom-divider-gems-height: 1rem;
   --kedom-divider-line: 1.2px;
+  position: relative;
+  z-index: 5;
   flex: 1 0 100%;
   width: 100%;
   height: var(--kedom-divider-gems-height);
-  margin: 0.55rem 0 0;
+  /* Half diamond height so the gems sit on the strain-row bottom edge */
+  margin: -0.5rem 0 0;
   background: var(--kedom-chrome-gold, var(--kedom-gradient-gold));
+  pointer-events: none;
   -webkit-mask-image:
     linear-gradient(#fff, #fff),
     linear-gradient(#fff, #fff),
@@ -376,6 +619,12 @@
 
 /* Compact lock/feather mode toggle (Tidy-inspired) */
 .application.kedom.sheet .window-header .kedom-mode-toggle {
+  --kedom-toggle-simple-gold: linear-gradient(
+    135deg,
+    var(--kedom-color-gold-200, #fdbb42) 0%,
+    var(--kedom-color-gold-300, #df7126) 55%,
+    var(--kedom-color-gold-400, #a15537) 100%
+  );
   flex: 0 0 auto;
   order: -1;
   width: calc(2.3125rem * 0.875);
@@ -385,6 +634,16 @@
   border: none;
   background: transparent;
   cursor: pointer;
+  box-shadow: none;
+}
+
+.application.kedom.sheet .window-header .kedom-mode-toggle:focus,
+.application.kedom.sheet .window-header .kedom-mode-toggle:focus-visible,
+.application.kedom.sheet .window-header .kedom-mode-toggle:active {
+  outline: none;
+  box-shadow: none;
+  border: none;
+  --button-focus-outline-color: transparent;
 }
 
 .application.kedom.sheet .window-header .kedom-mode-toggle__track {
@@ -394,7 +653,10 @@
   border-radius: 2rem;
   border: 1px solid transparent;
   background:
-    linear-gradient(color-mix(in srgb, black 50%, transparent), color-mix(in srgb, black 50%, transparent))
+    linear-gradient(
+        var(--kedom-color-primary-600, #14101a),
+        var(--kedom-color-primary-600, #14101a)
+      )
       padding-box,
     var(--kedom-chrome-gold, var(--kedom-gradient-gold)) border-box;
   position: relative;
@@ -408,13 +670,17 @@
   height: 1rem;
   margin-top: -0.5rem;
   border-radius: 50%;
-  background: var(--kedom-chrome-gold, var(--kedom-gradient-gold));
+  border: 1.5px solid transparent;
+  /* Fill: simple gold; rim: complex chrome gold (same as track/sheet) */
+  background:
+    var(--kedom-toggle-simple-gold) padding-box,
+    var(--kedom-chrome-gold, var(--kedom-gradient-gold)) border-box;
   color: var(--kedom-color-gold-700, #12111a);
   display: grid;
   place-items: center;
   font-size: 0.62rem;
-  transition: left 0.15s ease;
-  box-shadow: 0 1px 2px color-mix(in srgb, black 40%, transparent);
+  transition: left 0.18s ease;
+  box-shadow: none;
 }
 
 .application.kedom.sheet .window-header .kedom-mode-toggle.is-edit .kedom-mode-toggle__thumb {
@@ -461,10 +727,362 @@
   background: var(--kedom-color-primary-300, #6e04e5);
 }
 
+.kedom.sheet .kedom-meters {
+  --kedom-meter-height: 1.5rem; /* 24px */
+  --kedom-meter-border: 1.5px;
+  --kedom-meter-gold: linear-gradient(
+    135deg,
+    var(--kedom-color-gold-200, #fdbb42) 0%,
+    var(--kedom-color-gold-300, #df7126) 55%,
+    var(--kedom-color-gold-400, #a15537) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: max-content;
+  margin-top: 0;
+  gap: 0;
+  position: relative;
+  /* Below the diamond divider so its line sits on the strain-row edge */
+  z-index: 1;
+}
+
+.kedom.sheet .kedom-meter-strain-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  width: max-content;
+}
+
+.kedom.sheet .kedom-meter {
+  --kedom-meter-fill: linear-gradient(
+    90deg,
+    var(--kedom-proficiency-trained, #411e18),
+    var(--kedom-proficiency-trained-text, #c7a064)
+  );
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--kedom-meter-height);
+  margin: 0;
+  padding: 0;
+  border: var(--kedom-meter-border) solid transparent;
+  border-radius: 0;
+  background:
+    linear-gradient(
+        var(--kedom-color-primary-600, #14101a),
+        var(--kedom-color-primary-600, #14101a)
+      )
+      padding-box,
+    var(--kedom-meter-gold) border-box;
+  box-shadow: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+/* HP spans full strain-row width (strain + resolve + roll) */
+.kedom.sheet .kedom-meter--hp {
+  width: auto;
+  align-self: stretch;
+  flex: 0 0 auto;
+}
+
+/* Shared HP↔strain line comes from HP bottom only */
+.kedom.sheet .kedom-meter--strain,
+.kedom.sheet .kedom-resolve,
+.kedom.sheet .kedom-strain-roll {
+  border-top-width: 0;
+}
+
+/* Vertical joins: previous element's right border only */
+.kedom.sheet .kedom-resolve,
+.kedom.sheet .kedom-strain-roll {
+  border-left-width: 0;
+  margin-inline-start: 0;
+}
+
+.kedom.sheet .kedom-meter--strain {
+  flex: 1 1 auto;
+  min-width: var(--kedom-portrait-size);
+}
+
+.kedom.sheet .kedom-meter__track {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: transparent;
+  pointer-events: none;
+}
+
+.kedom.sheet .kedom-meter__fill {
+  height: 100%;
+  width: var(--kedom-meter-pct, 0%);
+  max-width: 100%;
+  background: var(--kedom-meter-fill);
+  transition: width 120ms ease-out, background 120ms ease-out;
+}
+
+/* High → apprentice (green), mid → expert (orange), low → legendary (red) */
+.kedom.sheet .kedom-meter--hp.kedom-meter--high {
+  --kedom-meter-fill: linear-gradient(
+    90deg,
+    var(--kedom-proficiency-apprentice, #3a2d01) 0%,
+    var(--kedom-proficiency-apprentice-text, #afaf43) 55%,
+    color-mix(in srgb, var(--kedom-proficiency-apprentice-text, #afaf43) 70%, white) 100%
+  );
+}
+
+.kedom.sheet .kedom-meter--hp.kedom-meter--mid {
+  --kedom-meter-fill: linear-gradient(
+    90deg,
+    var(--kedom-proficiency-expert, #3f2c03) 0%,
+    var(--kedom-proficiency-expert-text, #fdbb42) 55%,
+    color-mix(in srgb, var(--kedom-proficiency-expert-text, #fdbb42) 65%, white) 100%
+  );
+}
+
+.kedom.sheet .kedom-meter--hp.kedom-meter--low {
+  --kedom-meter-fill: linear-gradient(
+    90deg,
+    var(--kedom-proficiency-legendary, #1e0308) 0%,
+    var(--kedom-proficiency-legendary-text, #c61624) 55%,
+    color-mix(in srgb, var(--kedom-proficiency-legendary-text, #c61624) 55%, white) 100%
+  );
+}
+
+.kedom.sheet .kedom-meter--hp.kedom-meter--empty {
+  --kedom-meter-fill: transparent;
+}
+
+.kedom.sheet .kedom-meter--strain {
+  --kedom-meter-fill: linear-gradient(
+    90deg,
+    var(--kedom-color-primary-500, #251a31) 0%,
+    var(--kedom-color-primary-300, #6e04e5) 55%,
+    var(--kedom-color-primary-200, #d854f5) 100%
+  );
+}
+
+.kedom.sheet .kedom-meter__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  width: 100%;
+  height: 100%;
+  padding: 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--kedom-text-primary, var(--kedom-color-primary-50, #fff4e1));
+  text-shadow: 0 1px 2px color-mix(in srgb, black 70%, transparent);
+  pointer-events: none;
+}
+
+.kedom.sheet .kedom-meter__name {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.62rem;
+  opacity: 0.9;
+  margin-inline-end: 0.15rem;
+}
+
+.kedom.sheet .kedom-meter__sep {
+  opacity: 0.55;
+}
+
+.kedom.sheet .kedom-meter__edit-value,
+.kedom.sheet .kedom-meter__max-input {
+  width: 2.1rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: var(--kedom-color-primary-600, #14101a);
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  text-shadow: none;
+  pointer-events: auto;
+}
+
+.kedom.sheet .kedom-meter__edit-value {
+  display: none;
+}
+
+.kedom.sheet .kedom-meter.is-editing .kedom-meter__value {
+  display: none;
+}
+
+.kedom.sheet .kedom-meter.is-editing .kedom-meter__edit-value {
+  display: inline-block;
+}
+
+.kedom.sheet .kedom-resolve {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex: 0 0 var(--kedom-meter-height);
+  width: var(--kedom-meter-height);
+  height: var(--kedom-meter-height);
+  min-height: var(--kedom-meter-height);
+  max-height: var(--kedom-meter-height);
+  margin: 0;
+  padding: 0;
+  border: var(--kedom-meter-border) solid transparent;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-radius: 0;
+  background:
+    linear-gradient(
+        var(--kedom-color-primary-600, #14101a),
+        var(--kedom-color-primary-600, #14101a)
+      )
+      padding-box,
+    var(--kedom-meter-gold) border-box;
+  color: var(--kedom-color-gold-200, #fdbb42);
+  cursor: help;
+  line-height: 1;
+  text-align: center;
+  box-shadow: none;
+}
+
+.kedom.sheet .kedom-resolve__abbr {
+  font-size: 0.48rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.kedom.sheet .kedom-resolve__value {
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.kedom.sheet button.kedom-strain-roll,
+.kedom.sheet .kedom-strain-roll {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  flex: 0 0 var(--kedom-meter-height);
+  width: var(--kedom-meter-height);
+  height: var(--kedom-meter-height);
+  min-width: var(--kedom-meter-height);
+  min-height: var(--kedom-meter-height);
+  max-width: var(--kedom-meter-height);
+  max-height: var(--kedom-meter-height);
+  margin: 0;
+  padding: 0;
+  border: var(--kedom-meter-border) solid transparent;
+  border-top-width: 0;
+  border-left-width: 0;
+  border-radius: 0;
+  --button-size: var(--kedom-meter-height);
+  background:
+    linear-gradient(
+        var(--kedom-color-primary-600, #14101a),
+        var(--kedom-color-primary-600, #14101a)
+      )
+      padding-box,
+    var(--kedom-meter-gold) border-box;
+  color: var(--kedom-color-gold-200, #fdbb42);
+  cursor: pointer;
+  box-shadow: none;
+  line-height: 1;
+  font-size: inherit;
+}
+
+.kedom.sheet button.kedom-strain-roll:hover,
+.kedom.sheet .kedom-strain-roll:hover {
+  color: var(--kedom-color-gold-100, #faf591);
+  filter: brightness(1.1);
+}
+
+.kedom.sheet .kedom-strain-roll i {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.kedom.sheet .kedom-combat-stubs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+  margin: 0 0 0.55rem;
+}
+
+.kedom.sheet .kedom-combat-stubs__item,
+.kedom.sheet .kedom-combat-stubs .kedom-wounds {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.3rem 0.2rem;
+  border-radius: var(--kedom-radius-md, 0.5rem);
+  background: var(--kedom-color-primary-600, #14101a);
+  text-align: center;
+}
+
+.kedom.sheet .kedom-combat-stubs__label,
+.kedom.sheet .kedom-wounds__label {
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--kedom-text-primary, var(--kedom-color-primary-50, #fff4e1));
+  opacity: 0.85;
+}
+
+.kedom.sheet .kedom-combat-stubs__value,
+.kedom.sheet .kedom-wounds__value,
+.kedom.sheet .kedom-wounds input[type="number"] {
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--kedom-color-gold-300, #df7126);
+}
+
+.kedom.sheet .kedom-wounds input[type="number"] {
+  width: 2.4rem;
+  margin: 0;
+  padding: 0.05rem 0.15rem;
+  text-align: center;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  color: inherit;
+  background:
+    linear-gradient(
+        var(--kedom-color-primary-600, #14101a),
+        var(--kedom-color-primary-600, #14101a)
+      )
+      padding-box,
+    var(--kedom-chrome-gold, var(--kedom-gradient-gold)) border-box;
+}
+
 .kedom.sheet .ability-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.35rem;
+  margin: 0;
+}
+
+.kedom.sheet .save-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.55rem 0 0;
+}
+
+.kedom.sheet .save-list > .kedom-save {
   margin: 0;
 }
 
@@ -495,7 +1113,7 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
-  color: var(--kedom-accent, #8b2e2e);
+  color: var(--kedom-color-gold-300, #df7126);
 }
 
 .kedom.sheet .ability__score {
@@ -515,8 +1133,8 @@
   border-radius: 0.25rem;
   background:
     linear-gradient(
-        color-mix(in srgb, var(--kedom-surface-sunken, #14101a) 60%, transparent),
-        color-mix(in srgb, var(--kedom-surface-sunken, #14101a) 60%, transparent)
+        var(--kedom-color-primary-600, #14101a),
+        var(--kedom-color-primary-600, #14101a)
       )
       padding-box,
     var(--kedom-chrome-gold, var(--kedom-gradient-gold)) border-box;
@@ -778,7 +1396,7 @@
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   font-size: 0.95rem;
-  color: var(--kedom-accent, #6e04e5);
+  color: var(--kedom-color-gold-300, #df7126);
   min-width: 2rem;
   text-align: right;
 }
@@ -804,6 +1422,7 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
+  transition: background 0.18s ease, filter 0.18s ease;
 }
 
 .kedom-skill__roll:hover,
@@ -817,8 +1436,12 @@
   color: var(--kedom-skill-rank-text);
 }
 
-.kedom-skill__roll:hover i {
-  transform: rotate(25deg);
+.kedom-skill__roll:hover {
+  --kedom-rank-rim-fill: var(--kedom-gradient-gold-chevron-bright);
+}
+
+.kedom-skill__roll:hover .kedom-skill__rank-mark {
+  filter: drop-shadow(0 0 0.2rem color-mix(in srgb, var(--kedom-color-gold-100, #faf591) 70%, transparent));
 }
 
 .kedom-skill__roll i {
@@ -827,7 +1450,13 @@
   font-size: 0.72rem;
   line-height: 1;
   color: inherit;
-  transition: transform 0.2s ease;
+  filter: drop-shadow(0 1px 1px color-mix(in srgb, black 45%, transparent));
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.kedom-skill__roll:hover i {
+  transform: translateY(-2px) scale(1.28) rotate(25deg);
+  filter: drop-shadow(0 4px 3px color-mix(in srgb, black 55%, transparent));
 }
 
 .kedom-skill__tags {
@@ -921,7 +1550,7 @@ button.kedom-skill__tag.is-blocked:hover {
   font-weight: 700;
   font-size: 0.7rem;
   line-height: 1;
-  color: inherit;
+  color: var(--kedom-color-gold-400, #a15537);
 }
 
 .kedom-skill__tag-remove {

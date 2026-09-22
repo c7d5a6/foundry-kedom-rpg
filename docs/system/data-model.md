@@ -48,20 +48,23 @@ abilities:
     mod          DERIVED     from value + baseMod, on the -3..+3 band table
 
 attributes:
-  hp:      { value persisted, max DERIVED (class hit die + mgh.mod), temp persisted }
-  strain:  { value persisted, max DERIVED }
-  wounds:  { value persisted }
+  hp:      { value persisted, max persisted }   # both entered; initial 0/0 (HD derivation deferred)
+  strain:  { value persisted }                  # current System Strain
+  wounds:  { value persisted }                  # wound-point count
+  strainLimit  DERIVED   = foc.value (Focus score)
+  resolve      DERIVED   = 20 - foc.value
   # wounded is DERIVED (wounds > 1), never stored -- see rules/50-wounds-strain.md
   # the two corruption tracks are unshaped -- see rules/99-open-questions.md Q18
 
-combat:            all DERIVED, all zero-initialised
-  ac, acMelee, acRanged
-  attackBonus, attackBonusMelee, attackBonusRanged
-  meleeDamageBonus
-  initiative
+combat:            stubs for now, zero-initialised (formulas deferred)
+  ac, attackBonus, meleeDamageBonus
 
-saves:             all DERIVED targets, rolled against with 1d20
-  reflex, fortitude, will
+saves:
+  reflex, fortitude, will:
+    proficiency  persisted   same ladder as skills; no specialisations
+    mod          DERIVED     ability mod + full proficiency bonus
+  # attribute pairing: reflex←dex, fortitude←mgh, will←foc
+  # Strain Save (d20 vs Resolve/Strain) is a separate check — see rules/10-attributes.md
 
 movement:
   base:    { value persisted }

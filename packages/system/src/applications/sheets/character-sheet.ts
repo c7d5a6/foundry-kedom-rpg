@@ -2,9 +2,12 @@ import {
   ABILITY_KEYS,
   PROFICIENCY_SPECIALIZATION_SLOTS,
   PROFICIENCY_TIERS,
+  SAVE_ABILITY,
+  SAVE_KEYS,
   SKILL_ABILITY,
   SKILL_KEYS,
   type ProficiencyTier,
+  type SaveKey,
   type SkillKey,
 } from "../../config/kedom.ts";
 import {
@@ -19,11 +22,14 @@ import {
 } from "../../config/specializations.ts";
 import type {
   CharacterData,
+  SaveFields,
   SkillFields,
   SkillSpecialization,
 } from "../../data/actor/character.ts";
 import { formatSignedBonus } from "../../rolls/build-skill-check.ts";
+import { rollSaveCheck } from "../../rolls/save-check.ts";
 import { prepareSkillCheck, rollSkillCheck } from "../../rolls/skill-check.ts";
+import { rollStrainSave } from "../../rolls/strain-save.ts";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -87,6 +93,9 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     actions: {
       toggleMode: CharacterSheet.#onToggleMode,
       rollSkill: CharacterSheet.#onRollSkill,
+      rollSave: CharacterSheet.#onRollSave,
+      rollStrainSave: CharacterSheet.#onRollStrainSave,
+      editResource: CharacterSheet.#onEditResource,
       rollSpecialization: CharacterSheet.#onRollSpecialization,
       toggleSpecialization: CharacterSheet.#onToggleSpecialization,
       addSpecialization: CharacterSheet.#onAddSpecialization,
@@ -250,11 +259,81 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       };
     });
 
+    const attrs = system.attributes as {
+      hp: { value: number; max: number };
+      strain: { value: number };
+      wounds: { value: number };
+      strainLimit?: number;
+      resolve?: number;
+    };
+    const hpMax = attrs.hp.max ?? 0;
+    const hpValue = attrs.hp.value ?? 0;
+    const strainLimit = attrs.strainLimit ?? 0;
+    const strainValue = attrs.strain.value ?? 0;
+    const hpPct = hpMax > 0 ? Math.min(100, Math.round((hpValue / hpMax) * 100)) : 0;
+    const resources = {
+      hp: {
+        value: hpValue,
+        max: hpMax,
+        pct: hpPct,
+        band: hpColorBand(hpPct, hpMax),
+      },
+      strain: {
+        value: strainValue,
+        limit: strainLimit,
+        pct: strainLimit > 0 ? Math.min(100, Math.round((strainValue / strainLimit) * 100)) : 0,
+      },
+      wounds: attrs.wounds.value ?? 0,
+      resolve: attrs.resolve ?? 0,
+    };
+
+    const combatData = system.combat as {
+      ac: number;
+      meleeDamageBonus: number;
+    };
+    const combat = {
+      ac: combatData.ac ?? 0,
+      meleeDamageSigned: formatSignedBonus(combatData.meleeDamageBonus ?? 0),
+    };
+
+    const savesData = system.saves as Record<SaveKey, SaveFields>;
+    const saves = SAVE_KEYS.map((key) => {
+      const save = savesData[key]!;
+      const proficiency = save.proficiency as ProficiencyTier;
+      const abilityKey = SAVE_ABILITY[key];
+      const mod = save.mod ?? 0;
+      return {
+        key,
+        label: game.i18n.localize(`KEDOM.Save.${key}`),
+        abilityKey,
+        abilityAbbr: game.i18n.localize(`KEDOM.Ability.${abilityKey}.abbr`),
+        proficiency,
+        proficiencyLetter: proficiencyLetterFromLabel(proficiency),
+        proficiencyLabel: game.i18n.localize(`KEDOM.Proficiency.${proficiency}`),
+        proficiencyClass: `kedom-skill--${proficiency}`,
+        bonusSigned: formatSignedBonus(mod),
+        proficiencyOptions: PROFICIENCY_TIERS.map((value) => {
+          const label = game.i18n.localize(`KEDOM.Proficiency.${value}`);
+          return {
+            value,
+            label,
+            letter: proficiencyLetterFromLabel(value),
+            selected: value === proficiency,
+            rankClass: `kedom-skill--${value}`,
+          };
+        }),
+      };
+    });
+
     return Object.assign(context, {
       actor: this.actor,
       system,
       abilities,
       skills,
+      saves,
+      resources,
+      combat,
+      editable: this.isEditable,
       isPlay: this.isPlayMode,
       isEdit: this.isEditMode,
     });
@@ -268,7 +347,39 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.element.classList.toggle("mode-play", this.isPlayMode);
     this.element.classList.toggle("mode-edit", this.isEditMode);
     this.#renderModeToggle();
+    this.#bindMeterEditors();
   }
+
+  #meterAbort: AbortController | null = null;
+
+  /** Tidy-style: blur closes inline current-value editor on HP/Strain meters. */
+  #bindMeterEditors(): void {
+    this.#meterAbort?.abort();
+    this.#meterAbort = new AbortController();
+    const { signal } = this.#meterAbort;
+    for (const input of this.element.querySelectorAll<HTMLInputElement>(".kedom-meter__edit-value")) {
+      input.addEventListener(
+        "blur",
+        () => {
+          input.closest(".kedom-meter")?.classList.remove("is-editing");
+        },
+        { signal },
+      );
+      input.addEventListener(
+        "keydown",
+        (ev) => {
+          if (ev.key === "Enter" || ev.key === "Escape") {
+            ev.preventDefault();
+            input.blur();
+          }
+        },
+        { signal },
+      );
+    }
+  }
+
+  /** Last play/edit thumb side — survives header remounts so both slide directions animate. */
+  #modeToggleWasEdit: boolean | null = null;
 
   /** Tidy-style lock/feather play/edit toggle in the sheet window header. */
   #renderModeToggle(): void {
@@ -278,9 +389,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     let toggle = header.querySelector<HTMLButtonElement>(".kedom-mode-toggle");
     if (!this.isEditable) {
       toggle?.remove();
+      this.#modeToggleWasEdit = null;
       return;
     }
 
+    const wantEdit = this.isEditMode;
+    let created = false;
     if (!toggle) {
       toggle = document.createElement("button");
       toggle.type = "button";
@@ -292,17 +406,34 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         "</span>";
       toggle.addEventListener("dblclick", (event) => event.stopPropagation());
       toggle.addEventListener("pointerdown", (event) => event.stopPropagation());
+      // Remount: start at previous side so left can transition both directions.
+      const startEdit = this.#modeToggleWasEdit ?? wantEdit;
+      toggle.classList.toggle("is-edit", startEdit);
       header.prepend(toggle);
+      created = true;
     }
 
     const hint = game.i18n.localize("KEDOM.Sheet.Mode.toggleHint");
     toggle.title = hint;
     toggle.setAttribute("aria-label", hint);
-    toggle.setAttribute("aria-pressed", this.isEditMode ? "true" : "false");
-    toggle.classList.toggle("is-edit", this.isEditMode);
+    toggle.setAttribute("aria-pressed", wantEdit ? "true" : "false");
+
     const icon = toggle.querySelector(".kedom-mode-toggle__thumb i");
     if (icon) {
-      icon.className = this.isEditMode ? "fa-solid fa-feather" : "fa-solid fa-lock";
+      icon.className = wantEdit ? "fa-solid fa-feather" : "fa-solid fa-lock";
+    }
+
+    const applySide = (): void => {
+      toggle?.classList.toggle("is-edit", wantEdit);
+      this.#modeToggleWasEdit = wantEdit;
+    };
+
+    if (created && this.#modeToggleWasEdit !== null && this.#modeToggleWasEdit !== wantEdit) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(applySide);
+      });
+    } else {
+      applySide();
     }
   }
 
@@ -338,6 +469,38 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const skillKey = target.dataset.skillKey;
     if (!skillKey || !this.actor) return;
     await rollSkillCheck(this.actor, skillKey);
+  }
+
+  static async #onRollSave(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (this.isEditMode) return;
+    const saveKey = target.dataset.saveKey as SaveKey | undefined;
+    if (!saveKey || !this.actor) return;
+    await rollSaveCheck(this.actor, saveKey);
+  }
+
+  static async #onRollStrainSave(this: CharacterSheet): Promise<void> {
+    if (this.isEditMode || !this.actor) return;
+    await rollStrainSave(this.actor);
+  }
+
+  static #onEditResource(
+    this: CharacterSheet,
+    event: PointerEvent,
+    target: HTMLElement,
+  ): void {
+    if (!this.isEditable) return;
+    if (event.target instanceof HTMLInputElement) return;
+    const meter = target.closest(".kedom-meter") ?? target;
+    if (!(meter instanceof HTMLElement) || !meter.classList.contains("kedom-meter")) return;
+    const input = meter.querySelector<HTMLInputElement>(".kedom-meter__edit-value");
+    if (!input) return;
+    meter.classList.add("is-editing");
+    input.focus();
+    input.select();
   }
 
   static async #onRollSpecialization(
@@ -500,4 +663,11 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       return null;
     }
   }
+}
+
+function hpColorBand(pct: number, max: number): "empty" | "high" | "mid" | "low" {
+  if (max <= 0) return "empty";
+  if (pct > 50) return "high";
+  if (pct > 25) return "mid";
+  return "low";
 }

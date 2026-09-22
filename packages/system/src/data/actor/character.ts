@@ -1,11 +1,17 @@
 import {
   ABILITY_KEYS,
+  PROFICIENCY_BONUS,
   PROFICIENCY_TIERS,
+  SAVE_ABILITY,
+  SAVE_KEYS,
   SKILL_KEYS,
   type AbilityKey,
+  type ProficiencyTier,
+  type SaveKey,
   type SkillKey,
 } from "../../config/kedom.ts";
 import { abilityModifier } from "../../derivations/ability-mod.ts";
+import { resolveFromFocus, strainLimitFromFocus } from "../../derivations/strain.ts";
 
 const { ArrayField, BooleanField, NumberField, SchemaField, StringField } = foundry.data.fields;
 
@@ -50,6 +56,18 @@ function skillSchema() {
   });
 }
 
+function saveSchema() {
+  return new SchemaField({
+    proficiency: new StringField({
+      required: true,
+      nullable: false,
+      blank: false,
+      choices: [...PROFICIENCY_TIERS],
+      initial: "untrained",
+    }),
+  });
+}
+
 function characterSchema() {
   const abilities = {} as Record<AbilityKey, ReturnType<typeof abilitySchema>>;
   for (const key of ABILITY_KEYS) {
@@ -61,9 +79,61 @@ function characterSchema() {
     skills[key] = skillSchema();
   }
 
+  const saves = {} as Record<SaveKey, ReturnType<typeof saveSchema>>;
+  for (const key of SAVE_KEYS) {
+    saves[key] = saveSchema();
+  }
+
   return {
     abilities: new SchemaField(abilities),
     skills: new SchemaField(skills),
+    attributes: new SchemaField({
+      hp: new SchemaField({
+        value: new NumberField({
+          required: true,
+          nullable: false,
+          integer: true,
+          min: 0,
+          initial: 0,
+        }),
+        max: new NumberField({
+          required: true,
+          nullable: false,
+          integer: true,
+          min: 0,
+          initial: 0,
+        }),
+      }),
+      strain: new SchemaField({
+        value: new NumberField({
+          required: true,
+          nullable: false,
+          integer: true,
+          min: 0,
+          initial: 0,
+        }),
+      }),
+      wounds: new SchemaField({
+        value: new NumberField({
+          required: true,
+          nullable: false,
+          integer: true,
+          min: 0,
+          initial: 0,
+        }),
+      }),
+    }),
+    combat: new SchemaField({
+      ac: new NumberField({ required: true, nullable: false, integer: true, initial: 0 }),
+      attackBonus: new NumberField({ required: true, nullable: false, integer: true, initial: 0 }),
+      meleeDamageBonus: new NumberField({
+        required: true,
+        nullable: false,
+        integer: true,
+        initial: 0,
+      }),
+    }),
+    saves: new SchemaField(saves),
   };
 }
 
@@ -78,6 +148,19 @@ export type SkillFields = {
   specializations: SkillSpecialization[];
 };
 
+export type SaveFields = {
+  proficiency: string;
+  mod?: number;
+};
+
+type AttributesDerived = {
+  hp: { value: number; max: number };
+  strain: { value: number };
+  wounds: { value: number };
+  strainLimit?: number;
+  resolve?: number;
+};
+
 export class CharacterData extends foundry.abstract.TypeDataModel<
   CharacterSchema,
   Actor.Implementation
@@ -86,10 +169,40 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
     return characterSchema();
   }
 
+  override prepareBaseData(): void {
+    const attrs = this.attributes as AttributesDerived;
+    attrs.strainLimit = 0;
+    attrs.resolve = 0;
+    const combat = this.combat as { ac: number };
+    combat.ac = 0;
+    for (const key of SAVE_KEYS) {
+      const s = this.saves[key] as SaveFields;
+      s.mod = 0;
+    }
+  }
+
   override prepareDerivedData(): void {
     for (const key of ABILITY_KEYS) {
       const a = this.abilities[key] as AbilityFields;
       a.mod = abilityModifier(a.value, a.baseMod);
+    }
+
+    const foc = this.abilities.foc as AbilityFields;
+    const dex = this.abilities.dex as AbilityFields;
+    const attrs = this.attributes as AttributesDerived;
+    attrs.strainLimit = strainLimitFromFocus(foc.value);
+    attrs.resolve = resolveFromFocus(foc.value);
+
+    const combat = this.combat as { ac: number };
+    combat.ac = 10 + (dex.mod ?? 0);
+
+    for (const key of SAVE_KEYS) {
+      const s = this.saves[key] as SaveFields;
+      const abilityKey = SAVE_ABILITY[key];
+      const ability = this.abilities[abilityKey] as AbilityFields;
+      const tier = s.proficiency as ProficiencyTier;
+      const tierBonus = PROFICIENCY_BONUS[tier] ?? 0;
+      s.mod = (ability.mod ?? 0) + tierBonus;
     }
   }
 }

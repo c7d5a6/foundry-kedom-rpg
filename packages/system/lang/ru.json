@@ -85,6 +85,7 @@
     "Outcome": {
       "cost": "Успех с последствиями",
       "failure": "Провал",
+      "harm": "Вред",
       "success": "Успех"
     },
     "Sheet": {
@@ -117,13 +118,16 @@
         "edit": "Изменить",
         "equip": "Надеть",
         "roll": "Бросок",
+        "rollSave": "Бросок: {save}",
         "rollSkill": "Бросок: {skill}",
+        "rollStrainSave": "Испытание напряжения",
         "selectSpecialization": "Выбрать специализацию",
         "unequip": "Снять"
       },
       "searchPlaceholder": "Поиск",
       "EditPortrait": "Изменить портрет персонажа",
       "Proficiency": "Владение",
+      "ResolveHint": "Пороги испытания напряжения — Решимость и текущее напряжение",
       "SpecializationLabel": "Специализация",
       "SpecializationOverLimit": "Выбрано слишком много специализаций ({selected}/{slots}). Снимите лишние, прежде чем выбирать другие.",
       "SpecializationSelectBlocked": "При уровне «{proficiency}» доступно только {slots} специализаци(й)."
@@ -131,7 +135,9 @@
     "Chat": {
       "Dice": "кости",
       "MissingSkillData": "У персонажа нет характеристики или навыка.",
+      "SaveCheckFlavor": "Испытание «{save}» — {difficulty} ({bonus})",
       "SkillCheckFlavor": "{skill} — {difficulty}",
+      "StrainSaveFlavor": "Испытание напряжения — Решимость {resolve}, напряжение {strain}",
       "Total": "Итого",
       "UnknownSkill": "Неизвестный навык: {skill}"
     },
@@ -158,8 +164,13 @@
       "hpShort": "ПЗ",
       "initiative": "Инициатива",
       "level": "Уровень",
+      "meleeDamage": "Урон в ближнем бою",
       "movement": "Перемещение",
+      "resolve": "Решимость",
+      "resolveShort": "РШ",
       "strain": "Системное напряжение",
+      "strainLimit": "Предел напряжения",
+      "strainLimitShort": "ПН",
       "strainShort": "СН",
       "wounds": "Раны"
     },

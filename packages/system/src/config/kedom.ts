@@ -69,6 +69,16 @@ export const SKILL_ABILITY: Record<string, AbilityKey> = {
 export const SKILL_KEYS = Object.keys(SKILL_ABILITY) as Array<keyof typeof SKILL_ABILITY>;
 export type SkillKey = (typeof SKILL_KEYS)[number];
 
+/** Save key → governing ability. */
+export const SAVE_KEYS = ["reflex", "fortitude", "will"] as const;
+export type SaveKey = (typeof SAVE_KEYS)[number];
+
+export const SAVE_ABILITY: Record<SaveKey, AbilityKey> = {
+  reflex: "dex",
+  fortitude: "mgh",
+  will: "foc",
+};
+
 export const SKILL_CHECK_DICE = "2d10";
 
 /** Task difficulty columns on the success ladder — not the character's proficiency. */
