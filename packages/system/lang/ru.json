@@ -85,7 +85,6 @@
     "Outcome": {
       "cost": "Успех с последствиями",
       "failure": "Провал",
-      "harm": "Вред",
       "success": "Успех"
     },
     "Sheet": {
@@ -168,10 +167,10 @@
       "movement": "Перемещение",
       "resolve": "Решимость",
       "resolveShort": "РШ",
-      "strain": "Системное напряжение",
-      "strainLimit": "Предел напряжения",
+      "strain": "Изнурение",
+      "strainLimit": "Предел изнурения",
       "strainLimitShort": "ПН",
-      "strainShort": "СН",
+      "strainShort": "И",
       "wounds": "Раны"
     },
     "Condition": {

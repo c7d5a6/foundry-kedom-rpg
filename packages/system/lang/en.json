@@ -85,7 +85,6 @@
     "Outcome": {
       "cost": "Success at a Cost",
       "failure": "Failure",
-      "harm": "Harm",
       "success": "Success"
     },
     "Sheet": {
@@ -168,10 +167,10 @@
       "movement": "Movement",
       "resolve": "Resolve",
       "resolveShort": "RSV",
-      "strain": "System Strain",
-      "strainLimit": "Strain Limit",
+      "strain": "Exhaustion",
+      "strainLimit": "Exhaustion Limit",
       "strainLimitShort": "SL",
-      "strainShort": "SS",
+      "strainShort": "E",
       "wounds": "Wounds"
     },
     "Condition": {
