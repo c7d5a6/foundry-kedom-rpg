@@ -13,6 +13,7 @@ INSERT INTO schema_migrations VALUES('0004_vocab','2026-09-21T09:52:16Z');
 INSERT INTO schema_migrations VALUES('0005_seed_closed_vocab','2026-09-21T09:52:16Z');
 INSERT INTO schema_migrations VALUES('0006_outcome_cost_ru','2026-09-21T18:18:05Z');
 INSERT INTO schema_migrations VALUES('0007_travel_focus','2026-09-21T19:08:31Z');
+INSERT INTO schema_migrations VALUES('0008_strain_resolve_vocab','2026-09-22T21:45:23Z');
 CREATE TABLE attribute (
 	id           INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug         TEXT NOT NULL UNIQUE
@@ -190,8 +191,8 @@ INSERT INTO vocab VALUES(15,'difficulty','veryHard','Very Hard','',3,'');
 INSERT INTO vocab VALUES(16,'difficulty','incrediblyHard','Incredibly Hard','',4,'');
 INSERT INTO vocab VALUES(17,'derived','hp','Hit Points','',1,'');
 INSERT INTO vocab VALUES(18,'derived','hpShort','HP','',2,'');
-INSERT INTO vocab VALUES(19,'derived','strain','System Strain','',3,'');
-INSERT INTO vocab VALUES(20,'derived','strainShort','SS','',4,'');
+INSERT INTO vocab VALUES(19,'derived','strain','Exhaustion','',3,'');
+INSERT INTO vocab VALUES(20,'derived','strainShort','E','',4,'');
 INSERT INTO vocab VALUES(21,'derived','wounds','Wounds','',5,'');
 INSERT INTO vocab VALUES(22,'derived','ac','Armor Class','',6,'');
 INSERT INTO vocab VALUES(23,'derived','acShort','AC','',7,'');
@@ -229,6 +230,11 @@ INSERT INTO vocab VALUES(54,'injury_weapon','cutting','Cutting','',5,'');
 INSERT INTO vocab VALUES(55,'injury_weapon','flame','Flame','',6,'');
 INSERT INTO vocab VALUES(56,'injury_weapon','piercing','Piercing','',7,'');
 INSERT INTO vocab VALUES(57,'injury_weapon','explosion','Explosion','',8,'');
+INSERT INTO vocab VALUES(58,'derived','strainLimit','Exhaustion Limit','EL',16,'');
+INSERT INTO vocab VALUES(59,'derived','strainLimitShort','SL','',17,'');
+INSERT INTO vocab VALUES(60,'derived','resolve','Resolve','RSV',18,'');
+INSERT INTO vocab VALUES(61,'derived','resolveShort','RSV','',19,'');
+INSERT INTO vocab VALUES(62,'derived','meleeDamage','Melee Damage','',20,'');
 CREATE TABLE IF NOT EXISTS "translation" (
 	id          INTEGER PRIMARY KEY AUTOINCREMENT,
 	entity_kind TEXT NOT NULL
@@ -371,8 +377,8 @@ INSERT INTO translation VALUES(142,'derived',18,'ru','label','ПЗ');
 INSERT INTO translation VALUES(143,'derived',27,'ru','label','Инициатива');
 INSERT INTO translation VALUES(144,'derived',30,'ru','label','Уровень');
 INSERT INTO translation VALUES(145,'derived',28,'ru','label','Перемещение');
-INSERT INTO translation VALUES(146,'derived',19,'ru','label','Системное напряжение');
-INSERT INTO translation VALUES(147,'derived',20,'ru','label','СН');
+INSERT INTO translation VALUES(146,'derived',19,'ru','label','Изнурение');
+INSERT INTO translation VALUES(147,'derived',20,'ru','label','И');
 INSERT INTO translation VALUES(148,'derived',21,'ru','label','Раны');
 INSERT INTO translation VALUES(149,'condition',35,'ru','label','Ослеплён');
 INSERT INTO translation VALUES(150,'condition',36,'ru','label','Оглох');
@@ -400,6 +406,13 @@ INSERT INTO translation VALUES(171,'injury_weapon',54,'ru','label','Режуще
 INSERT INTO translation VALUES(172,'injury_weapon',57,'ru','label','Взрыв');
 INSERT INTO translation VALUES(173,'injury_weapon',55,'ru','label','Пламя');
 INSERT INTO translation VALUES(174,'injury_weapon',56,'ru','label','Колющее');
+INSERT INTO translation VALUES(185,'derived',62,'ru','label','Урон в ближнем бою');
+INSERT INTO translation VALUES(186,'derived',60,'ru','label','Решимость');
+INSERT INTO translation VALUES(187,'derived',61,'ru','label','РШ');
+INSERT INTO translation VALUES(188,'derived',58,'ru','label','Предел изнурения');
+INSERT INTO translation VALUES(189,'derived',59,'ru','label','ПН');
+INSERT INTO translation VALUES(193,'derived',58,'ru','abbreviation','ПИ');
+INSERT INTO translation VALUES(195,'derived',60,'ru','abbreviation','РШ');
 CREATE TRIGGER translation_insert_entity_exists
 BEFORE INSERT ON translation
 BEGIN

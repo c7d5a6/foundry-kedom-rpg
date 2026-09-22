@@ -70,14 +70,25 @@ function slugifyLeaf(label: string): string {
   return label
     .trim()
     .toLowerCase()
-    .replaceAll(/[^a-z0-9]+/g, ".")
+    .normalize("NFC")
+    // Letters/digits from any script (Cyrillic, etc.); other runs → "."
+    .replaceAll(/[^\p{L}\p{N}]+/gu, ".")
     .replaceAll(/^\.+|\.+$/g, "");
+}
+
+/** Stable fallback when a label has no letters/digits (e.g. emoji-only). */
+function leafFallback(label: string): string {
+  let h = 0;
+  for (let i = 0; i < label.length; i += 1) {
+    h = (Math.imul(31, h) + label.charCodeAt(i)) | 0;
+  }
+  return `custom.${(h >>> 0).toString(36)}`;
 }
 
 /** Slug for a free-form specialisation label; frozen after creation. */
 export function freeSpecializationSlug(skillKey: SkillKey, label: string): string {
   const leaf = slugifyLeaf(label);
-  return specializationSlug(skillKey, leaf === "" ? "custom" : leaf);
+  return specializationSlug(skillKey, leaf === "" ? leafFallback(label) : leaf);
 }
 
 /** Free-form label under a parameterized skill's open parameter (e.g. environment). */
@@ -87,7 +98,7 @@ export function freeParameterSpecializationSlug(
   label: string,
 ): string {
   const leaf = slugifyLeaf(label);
-  return `${skillKey}.${parameter}.${leaf === "" ? "custom" : leaf}`;
+  return `${skillKey}.${parameter}.${leaf === "" ? leafFallback(label) : leaf}`;
 }
 
 export function allowsFreeSpecialization(kind: SpecializationKind): boolean {
