@@ -90,7 +90,9 @@
               <div class="kedom-skill__headline">
                 <div class="kedom-skill__title">
                   <span class="kedom-skill__name">{{label}}</span>
-                  <span class="kedom-skill__ability">{{abilityAbbr}}</span>
+                  {{#if @root.isEdit}}
+                    <span class="kedom-skill__ability">{{abilityAbbr}}</span>
+                  {{/if}}
                 </div>
                 <span class="kedom-skill__mod">{{bonusSigned}}</span>
                 {{#unless @root.isEdit}}

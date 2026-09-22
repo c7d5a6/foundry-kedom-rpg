@@ -18,7 +18,7 @@
   --color-accent-hover: var(--kedom-accent-hover);
   --color-ok: var(--kedom-tier-success);
   --color-warn: var(--kedom-tier-cost);
-  --color-danger: var(--kedom-color-blood-600);
+  --color-danger: var(--kedom-color-proficiency-legendary-text);
 
   --radius-sm: var(--kedom-radius-sm);
   --radius-md: var(--kedom-radius-md);
@@ -35,8 +35,8 @@
   body {
     @apply m-0 min-h-screen bg-sheet font-body text-ink antialiased;
     background-image:
-      radial-gradient(ellipse at top left, color-mix(in srgb, var(--kedom-color-blood-500) 8%, transparent), transparent 45%),
-      radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--kedom-color-parchment-300) 55%, transparent), transparent 50%);
+      radial-gradient(ellipse at top left, color-mix(in srgb, var(--kedom-color-primary-300) 18%, transparent), transparent 45%),
+      radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--kedom-color-gold-300) 14%, transparent), transparent 50%);
   }
 
   button,

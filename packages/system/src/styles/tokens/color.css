@@ -1,32 +1,14 @@
 /*
- * Kedom colour primitives + semantic surfaces.
- * Shared by Foundry sheets (cascade variables layer) and Forge UI.
- * Taxonomy: docs/system/ui-design-system.md
+ * Kedom semantic colour tokens (+ shared type / radius / elevation for now).
+ * Primitives live in palette.css. Components should use these names, not raw
+ * --kedom-color-* steps. Taxonomy: docs/system/ui-design-system.md
+ *
+ * Default theme is dark (primary-500/600 surfaces, primary-50 text).
  */
 
-:root {
-  /* Primitives */
-  --kedom-color-ink-950: #120f0d;
-  --kedom-color-ink-900: #1c1612;
-  --kedom-color-ink-700: #3f342c;
-  --kedom-color-ink-500: #6b5b4f;
-  --kedom-color-parchment-50: #fbf7f0;
-  --kedom-color-parchment-100: #f3ebe0;
-  --kedom-color-parchment-200: #e5d6c4;
-  --kedom-color-parchment-300: #d0b99e;
-  --kedom-color-blood-600: #6f1f1f;
-  --kedom-color-blood-500: #8b2e2e;
-  --kedom-color-blood-400: #a84848;
-  --kedom-color-moss-600: #2f4a32;
-  --kedom-color-moss-500: #3d6342;
-  --kedom-color-amber-500: #b45309;
-  --kedom-color-proficiency-untrained: #171717;
-  --kedom-color-proficiency-apprentice: #414141;
-  --kedom-color-proficiency-trained: #59634a;
-  --kedom-color-proficiency-expert: #a47a3c;
-  --kedom-color-proficiency-master: #c05a3d;
-  --kedom-color-proficiency-legendary: #5c1717;
+@import "./palette.css";
 
+:root {
   --kedom-font-display: "Cormorant Garamond", "Palatino Linotype", Palatino, Georgia, serif;
   --kedom-font-body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
   --kedom-font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
@@ -35,43 +17,57 @@
   --kedom-radius-md: 0.5rem;
   --kedom-radius-lg: 0.75rem;
 
-  --kedom-shadow-1: 0 1px 2px color-mix(in srgb, var(--kedom-color-ink-900) 12%, transparent);
-  --kedom-shadow-2: 0 8px 24px color-mix(in srgb, var(--kedom-color-ink-900) 10%, transparent);
+  --kedom-shadow-1: 0 1px 2px color-mix(in srgb, var(--kedom-color-primary-600) 40%, transparent);
+  --kedom-shadow-2: 0 8px 24px color-mix(in srgb, var(--kedom-color-primary-600) 55%, transparent);
 
-  /* Semantic (light) */
-  --kedom-surface-sheet: var(--kedom-color-parchment-100);
-  --kedom-surface-raised: var(--kedom-color-parchment-50);
-  --kedom-surface-sunken: var(--kedom-color-parchment-200);
-  --kedom-text-primary: var(--kedom-color-ink-900);
-  --kedom-text-muted: var(--kedom-color-ink-500);
-  --kedom-text-inverse: var(--kedom-color-parchment-50);
-  --kedom-border-subtle: var(--kedom-color-parchment-300);
-  --kedom-border-strong: var(--kedom-color-ink-700);
-  --kedom-accent: var(--kedom-color-blood-500);
-  --kedom-accent-hover: var(--kedom-color-blood-600);
-  --kedom-tier-failure: var(--kedom-color-ink-700);
-  --kedom-tier-cost: var(--kedom-color-amber-500);
-  --kedom-tier-success: var(--kedom-color-moss-500);
-  --kedom-tier-critical: var(--kedom-color-blood-400);
-  --kedom-proficiency-untrained: var(--kedom-color-proficiency-untrained);
-  --kedom-proficiency-apprentice: var(--kedom-color-proficiency-apprentice);
-  --kedom-proficiency-trained: var(--kedom-color-proficiency-trained);
-  --kedom-proficiency-expert: var(--kedom-color-proficiency-expert);
-  --kedom-proficiency-master: var(--kedom-color-proficiency-master);
-  --kedom-proficiency-legendary: var(--kedom-color-proficiency-legendary);
+  /* Semantic (dark default) */
+  --kedom-surface-sheet: var(--kedom-color-primary-500);
+  --kedom-surface-raised: var(--kedom-color-primary-400);
+  --kedom-surface-sunken: var(--kedom-color-primary-600);
+  --kedom-text-primary: var(--kedom-color-primary-50);
+  --kedom-text-muted: var(--kedom-color-gold-50);
+  --kedom-text-inverse: var(--kedom-color-primary-600);
+  --kedom-border-subtle: var(--kedom-color-primary-400);
+  --kedom-border-strong: var(--kedom-color-primary-200);
+  --kedom-accent: var(--kedom-color-primary-300);
+  --kedom-accent-hover: var(--kedom-color-primary-200);
+  --kedom-tier-failure: var(--kedom-color-proficiency-legendary-text);
+  --kedom-tier-cost: var(--kedom-color-gold-300);
+  --kedom-tier-success: var(--kedom-color-proficiency-apprentice-text);
+  --kedom-tier-critical: var(--kedom-color-primary-200);
+
+  /* Proficiency: bare name = fill; -text / -disabled for letter states */
+  --kedom-proficiency-untrained: var(--kedom-color-proficiency-untrained-bg);
+  --kedom-proficiency-untrained-text: var(--kedom-color-proficiency-untrained-text);
+  --kedom-proficiency-untrained-disabled: var(--kedom-color-proficiency-untrained-disabled);
+  --kedom-proficiency-apprentice: var(--kedom-color-proficiency-apprentice-bg);
+  --kedom-proficiency-apprentice-text: var(--kedom-color-proficiency-apprentice-text);
+  --kedom-proficiency-apprentice-disabled: var(--kedom-color-proficiency-apprentice-disabled);
+  --kedom-proficiency-trained: var(--kedom-color-proficiency-trained-bg);
+  --kedom-proficiency-trained-text: var(--kedom-color-proficiency-trained-text);
+  --kedom-proficiency-trained-disabled: var(--kedom-color-proficiency-trained-disabled);
+  --kedom-proficiency-expert: var(--kedom-color-proficiency-expert-bg);
+  --kedom-proficiency-expert-text: var(--kedom-color-proficiency-expert-text);
+  --kedom-proficiency-expert-disabled: var(--kedom-color-proficiency-expert-disabled);
+  --kedom-proficiency-master: var(--kedom-color-proficiency-master-bg);
+  --kedom-proficiency-master-text: var(--kedom-color-proficiency-master-text);
+  --kedom-proficiency-master-disabled: var(--kedom-color-proficiency-master-disabled);
+  --kedom-proficiency-legendary: var(--kedom-color-proficiency-legendary-bg);
+  --kedom-proficiency-legendary-text: var(--kedom-color-proficiency-legendary-text);
+  --kedom-proficiency-legendary-disabled: var(--kedom-color-proficiency-legendary-disabled);
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --kedom-surface-sheet: #1a1614;
-    --kedom-surface-raised: #241e1a;
-    --kedom-surface-sunken: #120f0d;
-    --kedom-text-primary: var(--kedom-color-parchment-100);
-    --kedom-text-muted: #a89888;
-    --kedom-text-inverse: var(--kedom-color-ink-900);
-    --kedom-border-subtle: #3a312a;
-    --kedom-border-strong: var(--kedom-color-parchment-300);
-    --kedom-accent: var(--kedom-color-blood-400);
-    --kedom-accent-hover: #c45c5c;
+    --kedom-surface-sheet: var(--kedom-color-primary-50);
+    --kedom-surface-raised: var(--kedom-color-gold-50);
+    --kedom-surface-sunken: var(--kedom-color-gold-100);
+    --kedom-text-primary: var(--kedom-color-primary-600);
+    --kedom-text-muted: var(--kedom-color-primary-400);
+    --kedom-text-inverse: var(--kedom-color-primary-50);
+    --kedom-border-subtle: var(--kedom-color-gold-400);
+    --kedom-border-strong: var(--kedom-color-primary-400);
+    --kedom-accent: var(--kedom-color-primary-300);
+    --kedom-accent-hover: var(--kedom-color-primary-400);
   }
 }

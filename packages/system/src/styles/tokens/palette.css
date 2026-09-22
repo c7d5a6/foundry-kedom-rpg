@@ -1,0 +1,52 @@
+/*
+ * Kedom colour palette — primitive swatches only.
+ *
+ * Semantic tokens in color.css pick from these; unused steps are intentional.
+ * Families: primary (violet), gold, proficiency (text / disabled / bg).
+ */
+
+:root {
+  /* Primary — light → dark */
+  --kedom-color-primary-50: #fff4e1;
+  --kedom-color-primary-100: #ff9ff7;
+  --kedom-color-primary-200: #d854f5;
+  --kedom-color-primary-300: #6e04e5;
+  --kedom-color-primary-400: #462682;
+  --kedom-color-primary-500: #251a31;
+  --kedom-color-primary-600: #14101a;
+
+  /* Gold — light → dark */
+  --kedom-color-gold-50: #f8f7f7;
+  --kedom-color-gold-100: #faf591;
+  --kedom-color-gold-200: #fdbb42;
+  --kedom-color-gold-300: #df7126;
+  --kedom-color-gold-400: #a15537;
+  --kedom-color-gold-500: #73362d;
+  --kedom-color-gold-600: #4d243a;
+  --kedom-color-gold-700: #12111a;
+
+  /* Proficiency — text, disabled text, background */
+  --kedom-color-proficiency-untrained-text: #978387;
+  --kedom-color-proficiency-untrained-disabled: #726668;
+  --kedom-color-proficiency-untrained-bg: #2d1a31;
+
+  --kedom-color-proficiency-apprentice-text: #afaf43;
+  --kedom-color-proficiency-apprentice-disabled: #959322;
+  --kedom-color-proficiency-apprentice-bg: #3a2d01;
+
+  --kedom-color-proficiency-trained-text: #c7a064;
+  --kedom-color-proficiency-trained-disabled: #a47951;
+  --kedom-color-proficiency-trained-bg: #411e18;
+
+  --kedom-color-proficiency-expert-text: #fdbb42;
+  --kedom-color-proficiency-expert-disabled: #a87b13;
+  --kedom-color-proficiency-expert-bg: #3f2c03;
+
+  --kedom-color-proficiency-master-text: #df7126;
+  --kedom-color-proficiency-master-disabled: #882525;
+  --kedom-color-proficiency-master-bg: #3b0707;
+
+  --kedom-color-proficiency-legendary-text: #c61624;
+  --kedom-color-proficiency-legendary-disabled: #870e18;
+  --kedom-color-proficiency-legendary-bg: #1e0308;
+}
