@@ -1,7 +1,5 @@
 import {
-  DEFAULT_DIFFICULTY,
   SKILL_ABILITY,
-  SKILL_CHECK_DICE,
   type GradedOutcome,
   type ProficiencyTier,
   type SkillKey,
@@ -9,12 +7,19 @@ import {
 import { SKILL_SPECIALIZATION_KIND } from "../config/specializations.ts";
 import type { CharacterData, SkillFields } from "../data/actor/character.ts";
 import { buildSkillCheck, skillCheckIsSpecialized } from "./build-skill-check.ts";
+import type { CheckConfigureOptions } from "./check-configure.ts";
 import { labeledCheckFormula } from "./labeled-formula.ts";
+import {
+  advantageFlavorSuffix,
+  checkDiceExpression,
+  resolveCheckConfigure,
+  withSituationalModifier,
+} from "./resolve-check-configure.ts";
 import { resolveOutcome } from "./resolve-outcome.ts";
 
 const CHECK_TEMPLATE = "systems/kedom/templates/chat/check.hbs";
 
-export type SkillCheckOptions = {
+export type SkillCheckOptions = CheckConfigureOptions & {
   /** When set, full proficiency; otherwise half (unless the skill has no specialisations). */
   specializationSlug?: string;
 };
@@ -301,13 +306,25 @@ export async function rollSkillCheck(
     return;
   }
 
-  const { modifiers, formulaLabel } = prepared;
-  const difficulty = DEFAULT_DIFFICULTY;
+  const { modifiers: baseModifiers, formulaLabel } = prepared;
+  const configured = await resolveCheckConfigure(
+    game.i18n.format("KEDOM.Roll.Dialog.titleSkill", { skill: formulaLabel }),
+    baseModifiers,
+    options,
+  );
+  if (!configured) return;
+
+  const modifiers = withSituationalModifier(baseModifiers, configured.situational);
+  const { difficulty, advantageNet } = configured;
   const difficultyLabel = localize(
     `KEDOM.DifficultyColumn.${difficulty}`,
     difficulty.charAt(0).toUpperCase() + difficulty.slice(1),
   );
-  const formula = labeledCheckFormula(SKILL_CHECK_DICE, formulaLabel, modifiers);
+  const formula = labeledCheckFormula(
+    checkDiceExpression(advantageNet),
+    formulaLabel,
+    modifiers,
+  );
   const roll = await new Roll(formula).evaluate();
   const total = roll.total ?? 0;
   const outcome = resolveOutcome({ total, difficulty });
@@ -329,10 +346,11 @@ export async function rollSkillCheck(
 
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: actor as Actor.Stored }),
-    flavor: game.i18n.format("KEDOM.Chat.SkillCheckFlavor", {
-      skill: formulaLabel,
-      difficulty: difficultyLabel,
-    }),
+    flavor:
+      game.i18n.format("KEDOM.Chat.SkillCheckFlavor", {
+        skill: formulaLabel,
+        difficulty: difficultyLabel,
+      }) + advantageFlavorSuffix(advantageNet),
     content,
     rolls: [roll],
     sound: CONFIG.sounds.dice,

@@ -3,6 +3,7 @@ import {
   DIFFICULTY_COLUMNS,
   OUTCOME_KINDS,
   PROFICIENCY_TIERS,
+  SAVE_KEYS,
   SKILL_KEYS,
 } from "../config/kedom.ts";
 import { SKILL_FIXED_SPECIALIZATIONS } from "../config/specializations.ts";
@@ -44,6 +45,10 @@ const TEMPLATE_EXPANDERS: {
     expand: () => SKILL_KEYS.map((k) => `KEDOM.Skill.${k}`),
   },
   {
+    pattern: /^KEDOM\.Save\.\$\{[^}]+\}$/,
+    expand: () => SAVE_KEYS.map((k) => `KEDOM.Save.${k}`),
+  },
+  {
     pattern: /^KEDOM\.Proficiency\.\$\{[^}]+\}$/,
     expand: () => PROFICIENCY_TIERS.map((t) => `KEDOM.Proficiency.${t}`),
   },
@@ -66,6 +71,7 @@ export function configDrivenLangKeys(): string[] {
   return [
     ...ABILITY_KEYS.flatMap((k) => [`KEDOM.Ability.${k}.label`, `KEDOM.Ability.${k}.abbr`]),
     ...SKILL_KEYS.map((k) => `KEDOM.Skill.${k}`),
+    ...SAVE_KEYS.map((k) => `KEDOM.Save.${k}`),
     ...PROFICIENCY_TIERS.map((t) => `KEDOM.Proficiency.${t}`),
     ...OUTCOME_KINDS.map((o) => `KEDOM.Outcome.${o}`),
     ...DIFFICULTY_COLUMNS.map((d) => `KEDOM.DifficultyColumn.${d}`),

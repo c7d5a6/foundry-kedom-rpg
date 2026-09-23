@@ -238,9 +238,12 @@ exist, and it is the same rule as ADR-007 applied to languages.
 
 ## Closed vocabularies are authored in Forge, generated into lang JSON
 
-Attributes, the nineteen skills, fixed skill specializations, proficiency tiers, outcomes, saves, difficulty labels,
+Attributes, the nineteen skills, fixed skill specializations, proficiency tiers, outcomes,
+saves (Reflex / Fortitude / Will; Luck save when seeded), difficulty labels,
 derived combat labels (`KEDOM.Attributes`), conditions, and injury axes live in SQLite
 (`attribute` / `skill` / `specialization` / `vocab`) with Russian in `translation`.
+Sheet chrome for **Strain roll** (not a vocab save) stays hand-authored under `Sheet` /
+`Chat` until renamed in lang.
 
 `npm run forge:export:lang` regenerates those closed sections in
 `packages/system/lang/{en,ru}.json`. Sheet chrome (`TYPES`, `System`, `Sheet`, `Chat`,

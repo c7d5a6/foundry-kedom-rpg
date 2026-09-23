@@ -462,24 +462,28 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static async #onRollSkill(
     this: CharacterSheet,
-    _event: PointerEvent,
+    event: PointerEvent,
     target: HTMLElement,
   ): Promise<void> {
     if (this.isEditMode) return;
     const skillKey = target.dataset.skillKey;
     if (!skillKey || !this.actor) return;
-    await rollSkillCheck(this.actor, skillKey);
+    await rollSkillCheck(this.actor, skillKey, {
+      configure: event.ctrlKey || event.metaKey,
+    });
   }
 
   static async #onRollSave(
     this: CharacterSheet,
-    _event: PointerEvent,
+    event: PointerEvent,
     target: HTMLElement,
   ): Promise<void> {
     if (this.isEditMode) return;
     const saveKey = target.dataset.saveKey as SaveKey | undefined;
     if (!saveKey || !this.actor) return;
-    await rollSaveCheck(this.actor, saveKey);
+    await rollSaveCheck(this.actor, saveKey, {
+      configure: event.ctrlKey || event.metaKey,
+    });
   }
 
   static async #onRollStrainSave(this: CharacterSheet): Promise<void> {
@@ -505,14 +509,17 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static async #onRollSpecialization(
     this: CharacterSheet,
-    _event: PointerEvent,
+    event: PointerEvent,
     target: HTMLElement,
   ): Promise<void> {
     if (this.isEditMode) return;
     const skillKey = target.dataset.skillKey;
     const specializationSlug = target.dataset.specializationSlug;
     if (!skillKey || !specializationSlug || !this.actor) return;
-    await rollSkillCheck(this.actor, skillKey, { specializationSlug });
+    await rollSkillCheck(this.actor, skillKey, {
+      specializationSlug,
+      configure: event.ctrlKey || event.metaKey,
+    });
   }
 
   static async #onToggleSpecialization(

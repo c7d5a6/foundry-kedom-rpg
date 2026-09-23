@@ -23,8 +23,8 @@ points**, and healing converts wounds into System Strain.
 
 - **Hit points** work as before.
 - **Wound points** accumulate. The Heal skill is used to remove them.
-- **Wounded** replaces both Mortally Wounded and Frail: a character with **more than one wound
-  point** is Wounded.
+- **Wounded** replaces both Mortally Wounded and Frail: a character with **one or more wound
+  points** is Wounded.
 - While Wounded, a character **cannot lose System Strain and cannot recover hit points
   naturally**.
 - **Healing a wound** removes one wound point and **adds one System Strain**. That trade — HP
@@ -50,20 +50,21 @@ Written **SS** on the sheet short form; full label **System Strain**.
 
 | Stat | Meaning |
 |---|---|
-| **Strain Limit** | Maximum Strain; equals Focus **score** ([10-attributes.md](10-attributes.md)) |
+| **Strain Limit** | Maximum Strain; `10 + Focus mod` ([10-attributes.md](10-attributes.md)) |
 | **Strain** | Current System Strain (attrition currency) |
-| **Resolve** | `20 − Focus score` — high threshold for the Strain Save |
+| **Resolve** | `20 − Focus score` — high threshold for the Strain roll |
 
-Earlier notes equated maximum Strain to Might (WWN Constitution). **That is superseded:** the
-cap is Focus score. Magical healing, wound recovery, and similar costs still spend Strain.
+Earlier notes equated maximum Strain to Might (WWN Constitution), then briefly to Focus
+**score**. **Current rule:** Limit is `10 + Focus mod`. Magical healing, wound recovery, and
+similar costs still spend Strain.
 
-**Strain Save** (`d20`): Harm if `d20 <= min(Resolve, Strain)`; Success if
+**Strain roll** (`d20`): Harm if `d20 <= min(Resolve, Strain)`; Success if
 `d20 > max(Resolve, Strain)`; Failure otherwise. Harm’s mechanical payload is unwritten —
-do not auto-apply wounds from the save yet.
+do not auto-apply wounds from the roll yet.
 
-A character at maximum Strain is **Strained** and cannot accept more. The critical tables in
-[80-criticals.md](80-criticals.md) award Strain by severity: `+1` at group III, `+1d4` at
-group IV, `+1d6` at group V, and **maximum Strain** at group VI.
+A character at maximum Strain is **Strained** and cannot accept more. Design notes in
+[80-criticals.md](80-criticals.md) suggest Strain awards by injury group when authoring
+effects; that is not a separate severity roll in play.
 
 Natural Strain recovery is blocked while Wounded. The base recovery rate is
 [Q17](99-open-questions.md#q17--system-strain-recovery-rate).
@@ -98,7 +99,7 @@ gunshot wadding — raise the infection DC by 2 or worsen the tier.
 ## Implementation note
 
 Wound points, System Strain, and hit points are all persisted fields. **Wounded is derived**
-from wound points (`wounds > 1`), not stored, so it can never disagree with its own cause.
+from wound points (`wounds >= 1`), not stored, so it can never disagree with its own cause.
 
 The blocks that Wounded imposes — no natural HP recovery, no Strain loss — are implemented as
 flags on the derived data that the rest recovery routine reads, rather than as checks

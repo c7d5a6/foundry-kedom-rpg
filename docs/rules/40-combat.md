@@ -42,15 +42,15 @@ Kedom uses **advantage/disadvantage** alongside flat numeric modifiers. The crit
 use both, sometimes in the same entry ("−2 to hit + disadvantage on saves and skill checks"),
 so both must exist in the modifier pipeline.
 
-> Ignited originally called for a **Luck save**, which no longer exists. Which of Reflex,
-> Fortitude, or Will replaces it is unassigned; the critical tables in
-> [80-criticals.md](80-criticals.md) name the retired saves throughout and need the same pass
-> ([Q23](99-open-questions.md#q23--critical-tables-use-retired-wound-and-save-vocabulary)).
+> Ignited and other critical lines that name a **Luck save** can use the revived Luck save
+> (`d20 + Luck mod + Luck save proficiency`). Lines that still say **Physical** / **Mental**
+> need remapping to Fortitude / Will (or Reflex). Tracked as
+> [Q23](99-open-questions.md#q23--critical-tables-use-retired-wound-and-save-vocabulary).
 
 ## Saves
 
-**Renamed to the classic three.** The revised source replaces the earlier
-Physical/Mental/Evasion/Luck set with:
+**Class saves are the classic three.** The revised source replaces the earlier
+Physical/Mental/Evasion/Luck *class* set with:
 
 | Save | Covers | Also keys |
 |---|---|---|
@@ -58,22 +58,22 @@ Physical/Mental/Evasion/Luck set with:
 | **Fortitude** | Toughness, disease, poison | the corruption / disease strain track |
 | **Will** | Fear, domination, mental assault | the sanity strain track |
 
-Two changes matter. **Luck is no longer a save** — it stays a primary attribute with unwritten
-rules ([Q4](99-open-questions.md#q4--luck-has-no-rules)) rather than a fourth save. And
-**Fortitude and Will now do double duty**, each anchoring one of the two strain tracks in
-[10-attributes.md](10-attributes.md#the-two-strain-tracks), which couples the save set to the
-corruption system more tightly than the old four-save set did.
+**Luck save** is a separate primary-attribute roll (`d20 + Luck mod + Luck save proficiency`),
+not a fourth class save and not on the `2d10` ladder —
+[Q4](99-open-questions.md#q4--luck-save-proficiency),
+[10-attributes.md](10-attributes.md). **Fortitude and Will** also each anchor one of the two
+strain tracks in [10-attributes.md](10-attributes.md), coupling the class save set to
+corruption.
 
-**Saves share the skill resolution mechanic.** Roll `2d10 + attribute + save proficiency`
-against the same three-outcome ladder as skills
-([20-skills.md](20-skills.md#the-success-ladder)). This closes the older *"maybe saves as
-skills?"* question — they are.
+**Class saves share the skill resolution mechanic.** Roll `2d10 + attribute + save
+proficiency` against the same three-outcome ladder as skills
+([20-skills.md](20-skills.md#the-success-ladder)).
 
 Each class designates a **primary and secondary save** with better progression than the
 third; Adventurer combines the two partials' primaries —
 [30-character-creation.md](30-character-creation.md#saves),
-[Q30](99-open-questions.md#q30--per-class-primary-and-secondary-saves). Which attribute feeds
-each save, and what the numerical progression is, remain open under Q30 / Q4's neighbours.
+[Q30](99-open-questions.md#q30--per-class-primary-and-secondary-saves). Numerical progression
+remains open under Q30.
 
 ## Difficulty numbers
 

@@ -1582,3 +1582,195 @@ button.kedom-skill__tag.is-blocked:hover {
   color: var(--kedom-color-secondary-200, #fdbb42);
 }
 
+
+/* ——— Check configure dialog ——— */
+
+.kedom-check-dialog {
+  min-width: 0;
+}
+
+.kedom-check-dialog .window-content {
+  background: var(--kedom-color-primary-600, #14101a);
+  color: var(--kedom-text-primary, var(--kedom-color-primary-50, #fff4e1));
+}
+
+.kedom-check-dialog__form {
+  gap: 0.75rem;
+  padding: 0.15rem 0;
+}
+
+.kedom-check-dialog__difficulty {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.kedom-check-dialog__difficulty legend {
+  margin-block-end: 0.35rem;
+  font-family: var(--kedom-font-display, Georgia, serif);
+  font-size: 0.9rem;
+  color: var(--kedom-color-gold-200, #fdbb42);
+}
+
+.kedom-check-dialog__difficulty-group {
+  display: flex;
+  gap: 0;
+  width: 100%;
+}
+
+.kedom-check-dialog__diff {
+  --kedom-diff-border: var(--kedom-color-gold-500, #73362d);
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 1.85rem;
+  margin: 0;
+  padding: 0.25rem 0.15rem;
+  border: 1.5px solid var(--kedom-diff-border);
+  border-radius: 0;
+  cursor: pointer;
+  font-family: var(--kedom-font-display, Georgia, serif);
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: center;
+  background: var(--kedom-color-primary-600, #14101a);
+}
+
+.kedom-check-dialog__diff + .kedom-check-dialog__diff {
+  margin-inline-start: -1.5px;
+}
+
+.kedom-check-dialog__diff:first-child {
+  border-radius: var(--kedom-radius-sm, 0.25rem) 0 0 var(--kedom-radius-sm, 0.25rem);
+}
+
+.kedom-check-dialog__diff:last-child {
+  border-radius: 0 var(--kedom-radius-sm, 0.25rem) var(--kedom-radius-sm, 0.25rem) 0;
+}
+
+.kedom-check-dialog__diff input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.kedom-check-dialog__diff span {
+  pointer-events: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.kedom-check-dialog__diff--easy {
+  color: var(--kedom-tier-success, #afaf43);
+}
+
+.kedom-check-dialog__diff--trained {
+  color: var(--kedom-color-gold-100, #faf591);
+}
+
+.kedom-check-dialog__diff--hard {
+  color: var(--kedom-color-gold-200, #fdbb42);
+}
+
+.kedom-check-dialog__diff--legendary {
+  color: var(--kedom-tier-failure, #c61624);
+}
+
+.kedom-check-dialog__diff:has(input:checked) {
+  z-index: 2;
+  border-color: transparent;
+  background:
+    linear-gradient(var(--kedom-color-primary-600, #14101a), var(--kedom-color-primary-600, #14101a))
+      padding-box,
+    var(--kedom-chrome-gold, var(--kedom-gradient-gold)) border-box;
+}
+
+.kedom-check-dialog__diff--easy:has(input:checked) {
+  background:
+    linear-gradient(
+        color-mix(in srgb, var(--kedom-tier-success, #afaf43) 22%, var(--kedom-color-primary-600, #14101a)),
+        color-mix(in srgb, var(--kedom-tier-success, #afaf43) 22%, var(--kedom-color-primary-600, #14101a))
+      )
+      padding-box,
+    var(--kedom-chrome-gold, var(--kedom-gradient-gold)) border-box;
+}
+
+.kedom-check-dialog__diff--trained:has(input:checked) {
+  background:
+    linear-gradient(
+        color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 28%, var(--kedom-color-primary-600, #14101a)),
+        color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 28%, var(--kedom-color-primary-600, #14101a))
+      )
+      padding-box,
+    var(--kedom-chrome-gold, var(--kedom-gradient-gold)) border-box;
+}
+
+.kedom-check-dialog__diff--hard:has(input:checked) {
+  background:
+    linear-gradient(
+        color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 28%, var(--kedom-color-primary-600, #14101a)),
+        color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 28%, var(--kedom-color-primary-600, #14101a))
+      )
+      padding-box,
+    var(--kedom-chrome-gold, var(--kedom-gradient-gold)) border-box;
+}
+
+.kedom-check-dialog__diff--legendary:has(input:checked) {
+  background:
+    linear-gradient(
+        color-mix(in srgb, var(--kedom-tier-failure, #c61624) 22%, var(--kedom-color-primary-600, #14101a)),
+        color-mix(in srgb, var(--kedom-tier-failure, #c61624) 22%, var(--kedom-color-primary-600, #14101a))
+      )
+      padding-box,
+    var(--kedom-chrome-gold, var(--kedom-gradient-gold)) border-box;
+}
+
+.kedom-check-dialog__advantage-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.kedom-check-dialog__advantage-stack input[type="number"] {
+  width: 100%;
+  max-width: 5rem;
+}
+
+.kedom-check-dialog__advantage-stack input[type="range"] {
+  width: 100%;
+}
+
+.kedom-check-dialog__mods h3 {
+  margin: 0 0 0.35rem;
+  font-family: var(--kedom-font-display, Georgia, serif);
+  font-size: 0.85rem;
+  color: var(--kedom-color-gold-200, #fdbb42);
+}
+
+.kedom-check-dialog__mods ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kedom-check-dialog__mods li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.15rem 0;
+  font-size: 0.8rem;
+  border-bottom: 1px dashed color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 35%, transparent);
+}
+
+.kedom-check-dialog__mod-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--kedom-color-gold-200, #fdbb42);
+}

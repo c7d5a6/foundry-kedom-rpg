@@ -27,9 +27,8 @@ Untrained (−2) and Apprentice (0) are unchanged when unspecialised.
 The split is intentional: a flat `d20` for opposed, high-variance attack rolls; a bell curve
 where competence should show on skills and saves.
 
-> Front matter of the source note still reads `dice: D20/2d6`. That is stale. The body is the
-> decision. Dice expression and thresholds remain **configuration** in `src/config/` so a later
-> revision stays cheap.
+> Source front matter is `dice: d20/2d10` (attacks / skills). Dice expression and thresholds
+> remain **configuration** in `src/config/` so a later revision stays cheap.
 
 ## Proficiency
 
@@ -117,7 +116,7 @@ and four have none.
 14. **Shoot** — no specialisations
 15. **Stab** — no specialisations
 16. **Survive** — Foraging, Scouting, Shelter, Tracking, Environment (forest, desert, plains, urban, ...)
-17. **Travel** — Hiking, Riding, Driving, Sailing, Exotic, Navigation, Orientation
+17. **Travel** — Hiking, Riding, Driving, Sailing, Navigation, Orientation
 18. **Work** — *free* specialisation (trade, haul, administer, ...)
 19. **Worship** — *free* specialisation per pantheon, pantheons to be determined
 
@@ -128,8 +127,8 @@ and four have none.
 Which attribute each skill rolls is in
 [10-attributes.md](10-attributes.md#which-attribute-each-skill-uses).
 
-Note that Survive's "Environment" and Travel's "Exotic" are themselves open categories, so
-there are three kinds of specialisation, not two:
+Note that Survive's "Environment" is an open category, so there are three kinds of
+specialisation, not two:
 
 - **fixed** — chosen from a closed list
 - **free** — player writes the label

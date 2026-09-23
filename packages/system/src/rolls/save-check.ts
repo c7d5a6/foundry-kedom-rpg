@@ -1,14 +1,19 @@
 import {
-  DEFAULT_DIFFICULTY,
   PROFICIENCY_BONUS,
   SAVE_ABILITY,
-  SKILL_CHECK_DICE,
   type ProficiencyTier,
   type SaveKey,
 } from "../config/kedom.ts";
 import type { CharacterData, SaveFields } from "../data/actor/character.ts";
 import { formatSignedBonus } from "./build-skill-check.ts";
+import type { CheckConfigureOptions } from "./check-configure.ts";
 import { labeledCheckFormula } from "./labeled-formula.ts";
+import {
+  advantageFlavorSuffix,
+  checkDiceExpression,
+  resolveCheckConfigure,
+  withSituationalModifier,
+} from "./resolve-check-configure.ts";
 import { resolveOutcome } from "./resolve-outcome.ts";
 import { styleCheckRollHTML } from "./skill-check.ts";
 
@@ -25,6 +30,7 @@ function localize(path: string, fallback: string): string {
 export async function rollSaveCheck(
   actor: Actor.Implementation,
   saveKey: SaveKey,
+  options: CheckConfigureOptions = {},
 ): Promise<void> {
   const system = actor.system as CharacterData;
   const save = system.saves[saveKey] as SaveFields | undefined;
@@ -44,7 +50,7 @@ export async function rollSaveCheck(
   const abilityLabel = localize(`KEDOM.Ability.${abilityKey}.label`, abilityKey);
   const tierLabel = localize(`KEDOM.Proficiency.${tier}`, tier);
 
-  const modifiers = [
+  const baseModifiers = [
     {
       label: abilityLabel,
       value: abilityMod,
@@ -59,12 +65,24 @@ export async function rollSaveCheck(
     },
   ].filter((m) => m.value !== 0);
 
-  const difficulty = DEFAULT_DIFFICULTY;
+  const configured = await resolveCheckConfigure(
+    game.i18n.format("KEDOM.Roll.Dialog.titleSave", { save: saveLabel }),
+    baseModifiers,
+    options,
+  );
+  if (!configured) return;
+
+  const modifiers = withSituationalModifier(baseModifiers, configured.situational);
+  const { difficulty, advantageNet } = configured;
   const difficultyLabel = localize(
     `KEDOM.DifficultyColumn.${difficulty}`,
     difficulty.charAt(0).toUpperCase() + difficulty.slice(1),
   );
-  const formula = labeledCheckFormula(SKILL_CHECK_DICE, saveLabel, modifiers);
+  const formula = labeledCheckFormula(
+    checkDiceExpression(advantageNet),
+    saveLabel,
+    modifiers,
+  );
   const roll = await new Roll(formula).evaluate();
   const total = roll.total ?? 0;
   const outcome = resolveOutcome({ total, difficulty });
@@ -101,11 +119,12 @@ export async function rollSaveCheck(
 
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: actor as Actor.Stored }),
-    flavor: game.i18n.format("KEDOM.Chat.SaveCheckFlavor", {
-      save: saveLabel,
-      difficulty: difficultyLabel,
-      bonus: formatSignedBonus(bonus),
-    }),
+    flavor:
+      game.i18n.format("KEDOM.Chat.SaveCheckFlavor", {
+        save: saveLabel,
+        difficulty: difficultyLabel,
+        bonus: formatSignedBonus(bonus),
+      }) + advantageFlavorSuffix(advantageNet),
     content,
     rolls: [roll],
     sound: CONFIG.sounds.dice,

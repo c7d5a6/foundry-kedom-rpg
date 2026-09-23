@@ -59,19 +59,19 @@ the pantheon list.
 
 ## Significant
 
-### Q4 — Luck has no rules
+### Q4 — Luck save proficiency
 
-Luck is one of the six primary attributes, and the source says only that it is *"a separate
-attribute with its own rules"*. Those rules are not written anywhere.
+Luck pool rules are settled: score **0–20**, start **3d6**, restore **narratively**; Luck
+save `d20 + Luck mod + Luck save proficiency`; spend 1-to-1 or all to ignore a wound result
+([10-attributes.md](10-attributes.md)).
 
-It governs **no skills**, and it is **no longer a save** — the save set is now
-Reflex/Fortitude/Will. So at present Luck is an attribute that does nothing at all.
+Still open: whether **Luck save proficiency** uses the same six-tier ladder and costs as
+skills/class saves.
 
-Two other secondary-attribute gaps remain, though the list is otherwise now specified: hit
-points are `class hit die + Might modifier` with no per-level progression given, and which
-**attribute feeds each save** is unstated (Reflex / Fortitude / Will roll on `2d10` like
-skills — see [Q1 resolved](#q1--the-core-dice-mechanic--settled-for-now) — but the pairing is
-open under Q30).
+Secondary-attribute gaps that remain: hit points are `class hit die + Might modifier` with no
+per-level progression given; class save attribute pairing is under Q30 (Reflex←Dex,
+Fortitude←Might, Will←Focus are the working defaults in
+[10-attributes.md](10-attributes.md)).
 
 ### Q10 — Racial skill grants name skills that do not exist
 
@@ -107,25 +107,18 @@ WWN's Alienation and Stress counters — closer to a list of Active Effects than
 Decide the shape first, then the mechanics. A low-fantasy game with necromancers and a ritual
 magic style that spends strain (Q19) is clearly inviting a link to magic.
 
-### Q22 — How is critical severity determined?
-
-[80-criticals.md](80-criticals.md) is built on severity levels 1–15, but nothing says how a
-level is rolled: on a critical hit, by damage overflow, by weapon, by a table. The entire
-subsystem hangs off this one unstated step.
-
 ---
 
 ## Minor
 
-### Q5 — Focus governs only two skills
+### Q5 — Focus skill vs defensive load
 
-The nineteen skills now map to attributes explicitly, and the distribution is lopsided:
-Knowledge 5, Might 5, Presence 4, Dexterity 3, **Focus 2**, Luck 0.
+The nineteen skills map to attributes: Knowledge 5, Presence 4, Might 4, **Focus 3**
+(Notice, Survive, Travel), Dexterity 3, Luck 0.
 
-Focus covers "intuition, perception, will, wisdom" yet drives only Notice and Survive — while
-simultaneously carrying Strain and the Will save. It is thin as a skill attribute and heavy as
-a defensive one. Might has the opposite problem, doing the work of both strength and
-constitution.
+Focus covers intuition, perception, will, and wisdom, drives three skills, and also carries
+Strain Limit (`10 + Focus mod`), Resolve (`20 − Focus score`), and the Will save. Might still
+does the work of both strength and constitution.
 
 The older mental/physical target of "10–15 mental, 4–9 physical, roughly 2:1" is still met
 (10 mental, 4 physical, 5 mixed).
@@ -190,8 +183,10 @@ but which one rolls on the journey table is unstated.
 
 The location tables in [80-criticals.md](80-criticals.md) still say "Mortally Wounded" and
 "Frail", which [50-wounds-strain.md](50-wounds-strain.md) replaced with wound points and
-**Wounded**. They also call for **Luck** and **Physical** saves, both retired by the move to
-Reflex/Fortitude/Will ([40-combat.md](40-combat.md#saves)) — as does the Ignited condition.
+**Wounded** (`wounds >= 1`). They also call for **Physical** / **Mental** / older **Luck**
+wording as class-style checks; class saves are now Reflex/Fortitude/Will on `2d10`
+([40-combat.md](40-combat.md#saves)). The revived **Luck save** (`d20`) may reclaim some
+Luck-named lines (including Ignited); Physical/Mental still need remapping.
 
 The group summaries have been translated; the per-location tables need one pass for both the
 wound vocabulary and the save names.
@@ -252,22 +247,36 @@ Kept for the record, because each shaped a decision already written into the doc
 
 ### Q1 — The core dice mechanic — **Settled for now**
 
-- **Skills and saves:** `2d10 + attribute modifier + proficiency` (half proficiency on skills
-  when no relevant specialisation).
+- **Skills and class saves (Reflex / Fortitude / Will):** `2d10 + attribute modifier +
+  proficiency` (half proficiency on skills when no relevant specialisation).
 - **Attacks:** `1d20 + attribute modifier + proficiency`.
-- **Success ladder:** ≤10 / 11–14 / 15–21 / 22–26 / 27+, three kinds with stored degrees, no
-  critical-success kind.
-  See [20-skills.md](20-skills.md#resolution).
+- **Luck save:** `d20 + Luck mod + Luck save proficiency`.
+- **Strain roll:** plain `d20` vs Resolve and current Strain.
+- **Success ladder** (skills / class saves): ≤10 / 11–14 / 15–21 / 22–26 / 27+, three kinds
+  with stored degrees, no critical-success kind.
+  See [20-skills.md](20-skills.md#resolution), [10-attributes.md](10-attributes.md).
 
-Front matter of the source note still says `dice: D20/2d6` — treat that as stale. Dice and
-thresholds stay in `src/config/` so a later change is cheap. The travel table (Q20) now needs
-rescaling to match.
+Source front matter is `dice: d20/2d10`. Dice and thresholds stay in `src/config/` so a later
+change is cheap. The travel table (Q20) still needs rescaling to match.
 
-### Q13 — Save target formula — **Saves use the skill mechanic**
+### Q13 — Save target formula — **Class saves use the skill mechanic**
 
-Saves are not WWN-style derived targets on `d20`. They roll like skills: `2d10` + attribute +
-save proficiency, against the same graded ladder. Class primary/secondary progression and
-which attribute feeds each save remain under Q30.
+**Reflex / Fortitude / Will** are not WWN-style derived targets on `d20`. They roll like
+skills: `2d10` + attribute + save proficiency, against the same graded ladder. Class
+primary/secondary progression remains under Q30.
+
+**Luck save** and **Strain roll** stay on `d20` by design (see Q1 / Q4).
+
+### Q22 — Critical severity 1–15 — **Design scaffolding only**
+
+The Pathfinder-style severity ladder and groups in [80-criticals.md](80-criticals.md) are
+**import/design notes** (equivalence from other systems), not a Kedom play procedure. There is
+no “roll for severity” step in the RPG.
+
+Play wounds use the **Wound count column** + `d20 + Luck mod` + body part → effect index from
+the source wound table (`Kedom RPG.md` / [50-wounds-strain.md](50-wounds-strain.md)). Keep
+`80-criticals.md` as reference when authoring effects; do not gate Foundry on choosing a
+severity die.
 
 ### Q29 — Success ladder gap at 17–22 — **Filled**
 

@@ -85,6 +85,7 @@
     "Outcome": {
       "cost": "Success at a Cost",
       "failure": "Failure",
+      "harm": "Harm",
       "success": "Success"
     },
     "Sheet": {
@@ -211,17 +212,18 @@
     },
     "Roll": {
       "Dialog": {
+        "advantageFlavor": "Adv {n}",
+        "advantageHint": "0 = straight 2d10. Positive = advantage dice. Negative = disadvantage dice. Slider −3…+3; type any value.",
+        "advantageLabel": "Advantage",
+        "cancel": "Cancel",
         "difficultyLabel": "Difficulty",
+        "disadvantageFlavor": "Disadv {n}",
+        "modifiersHeading": "Modifiers",
         "situationalLabel": "Situational modifier",
         "submit": "Roll",
-        "title": "Configure Roll"
-      },
-      "Modifier": {
-        "ability": "{ability} modifier",
-        "armorPenalty": "Armor penalty",
-        "effect": "{effect}",
-        "halfProficiency": "{proficiency} (no specialization)",
-        "situational": "Situational"
+        "title": "Configure Roll",
+        "titleSave": "Configure {save}",
+        "titleSkill": "Configure {skill}"
       },
       "modifier": {
         "ability": "{ability} modifier",
@@ -240,6 +242,10 @@
       "UnknownSpecializationSlug": "No specialization is registered with the slug \"{slug}\"."
     },
     "Settings": {
+      "CheckDialog": {
+        "hint": "When enabled, skill and save rolls always open the configure dialog. Ctrl-click (⌘-click on Mac) also opens it when this is off.",
+        "name": "Always show check dialog"
+      },
       "MigrationVersion": {
         "hint": "Internal. The system data version this world was last migrated to.",
         "name": "Last migration version"

@@ -68,6 +68,12 @@ fixed, but a table rather than an enum because skills reference it and the set h
 changed once: strength and constitution merged into Might, dropping the count from seven
 ([Q2](../rules/99-open-questions.md#q2--is-strength-separate-from-constitution--no)).
 
+Closed `vocab` of `kind = 'save'` currently seeds **reflex**, **fortitude**, and **will**
+(class saves on `2d10`). **Luck save** is a separate `d20` roll with Luck save proficiency —
+add a `luck` save vocab row (and Foundry save field) when that proficiency is implemented;
+**Strain roll** is not a save vocab entry (plain `d20` vs Resolve/Strain). See
+[../rules/10-attributes.md](../rules/10-attributes.md).
+
 ```
 id, slug, label, abbreviation, description, comment, sort_order
 ```
@@ -320,9 +326,9 @@ integer level ([../rules/20-skills.md](../rules/20-skills.md#proficiency)), so
 `race_grant.level` column is unaffected — that one really is a character level, gating the
 Dwarf's level-2 ability.
 
-These are recorded, not fixed. The skill/save die is settled (`2d10`); remaining open
-questions (backgrounds, class numbers, magic) still argue for keeping enums and progressions
-as data rather than code constants.
+These are recorded, not fixed. Class skill/save die is settled (`2d10`); Luck save and Strain
+roll use `d20`. Remaining open questions (backgrounds, class numbers, magic) still argue for
+keeping enums and progressions as data rather than code constants.
 
 ## What is not in here
 
@@ -332,7 +338,8 @@ compendium journal entries from Markdown directly.
 
 **Play state.** Actors, worlds, and campaign notes are Foundry's business.
 
-**The critical-injury tables.** They are `(severity, location, weapon_type)` to effect, which
-is a lookup table rather than authored content. They ship as Active Effect documents and their
-source form is YAML written by hand once
+**The critical-injury design notes.** [80-criticals.md](../rules/80-criticals.md) is
+equivalence/design scaffolding (severity × location × weapon), not a play lookup. Wound play
+uses the source Wound-count table. Optional Active Effects can be hand-authored from those
+notes via YAML once needed
 ([../system/compendium-pipeline.md](../system/compendium-pipeline.md)).

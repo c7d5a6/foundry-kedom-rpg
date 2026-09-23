@@ -49,7 +49,7 @@ replacement" mode that does exactly this.
 
 ## Related skills
 
-**Travel** — Hiking, Riding, Driving, Sailing, Exotic, Navigation, Orientation
+**Travel** — Hiking, Riding, Driving, Sailing, Navigation, Orientation
 **Survive** — Foraging, Scouting, Shelter, Tracking, Environment (forest, desert, plains, urban)
 
 The division of labour between them is not stated. Presumably Travel covers making progress

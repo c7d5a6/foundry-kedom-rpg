@@ -18,9 +18,11 @@ When the vault and these documents disagree, **these documents win**. When the v
 something not yet ported, it is listed in [99-open-questions.md](99-open-questions.md).
 
 > **Skill and save rolls are settled** for now: `2d10 + attribute + proficiency` (half
-> proficiency without a relevant specialisation). Attacks stay on `1d20`. The note's front
-> matter still says `dice: D20/2d6` — ignore it; the body is canonical. See
-> [20-skills.md](20-skills.md#resolution).
+> proficiency without a relevant specialisation). Attacks stay on `1d20`. Source front matter
+> is `dice: d20/2d10`. See [20-skills.md](20-skills.md#resolution).
+>
+> Separately: **Luck save** is `d20 + Luck mod + Luck save proficiency`; **Strain roll** is a
+> plain `d20` vs Resolve and current Strain ([10-attributes.md](10-attributes.md)).
 
 ## Design intent
 
@@ -46,8 +48,9 @@ something not yet ported, it is listed in [99-open-questions.md](99-open-questio
 - [50-wounds-strain.md](50-wounds-strain.md) — the wound and System Strain rework.
 - [60-magic.md](60-magic.md) — arts, Effort, spell preparation.
 - [70-travel.md](70-travel.md) — overland travel and exploration procedure.
-- [80-criticals.md](80-criticals.md) — critical injuries by severity, body part, and weapon.
+- [80-criticals.md](80-criticals.md) — critical-injury **design** notes (not play severity rolls).
 - [99-open-questions.md](99-open-questions.md) — everything still undecided.
+- [POC roadmap](../system/roadmap-poc.md) — Foundry proof-of-concept scope and Done/Partial/Todo.
 
 ## Relationship to WWN
 

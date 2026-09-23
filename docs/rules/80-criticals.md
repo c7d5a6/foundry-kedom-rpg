@@ -1,30 +1,31 @@
-# Critical injuries
+# Critical injuries (design notes)
 
 Ported from the "Critical Migration Guide" section of `📥 inbox/WWN Kedom Hack.md`
-(last updated March 2026 in the source). This is the most complete subsystem in the whole
-design, and by some distance the most detailed.
+(last updated March 2026 in the source). **This document is design scaffolding**, not the
+Kedom wound play procedure.
 
-It exists because the author wanted WFRP-style and Pathfinder 2e-style critical hit effects
-expressed in WWN mechanics. The guide is therefore built on **equivalence tables** between
-systems, which are preserved here because they are the reasoning, not just the result.
+It records WFRP / Pathfinder 2e–style critical effects expressed against WWN vocabulary, via
+**equivalence tables**. Use it when authoring injury flavour and Active Effects. Do **not**
+treat “severity 1–15” as something players roll.
 
-## Structure
+**Play procedure** lives in the source wound table: increase Wound count → `d20 + Luck mod` in
+that column → body part → effect index. See [50-wounds-strain.md](50-wounds-strain.md) and
+`Kedom RPG.md`. [Q22 resolved](99-open-questions.md#q22--critical-severity-1–15--design-scaffolding-only).
 
-An injury is described by three axes:
+## Structure (design axes)
 
-1. **Severity** — a level from 1 to 15, banded into seven mechanical groups
+An injury *effect draft* was organised on three axes:
+
+1. **Severity** — a design level from 1 to 15, banded into seven groups (not a game roll)
 2. **Location** — head, body, arms, legs, or a general bleed
 3. **Weapon type** — arrow, bullet, blunt, claws, cutting, flame, piercing, explosion
 
-Severity determines the group; group and location together give the base effect; weapon type
-modifies it.
+Severity (as a design band) suggests the group; group and location give a base effect draft;
+weapon type modifies it.
 
-How severity is rolled is not specified —
-[Q22](99-open-questions.md#q22--how-is-critical-severity-determined).
+## Severity tiers (design bands)
 
-## Severity tiers
-
-Using Pathfinder 2e's tier ranges:
+Using Pathfinder 2e's tier ranges as a **design** scale only:
 
 | Tier | Levels | Description |
 |---|---|---|
@@ -80,11 +81,13 @@ Instant death. No saves, no stabilisation. Describe it spectacularly.
 
 > The source uses WWN's **Mortally Wounded** and **Frail** terms throughout these tables,
 > but [50-wounds-strain.md](50-wounds-strain.md) replaced both with **wound points** and
-> **Wounded**. The tables also call for **Luck** and **Physical** saves, both retired by the
-> move to Reflex/Fortitude/Will ([40-combat.md](40-combat.md#saves)).
+> **Wounded** (`wounds >= 1`). The tables also call for **Physical** / **Mental** saves and
+> older Luck wording. Class saves are Reflex/Fortitude/Will on `2d10`
+> ([40-combat.md](40-combat.md#saves)); **Luck save** is again a real `d20` roll and may reclaim
+> some Luck lines after a vocabulary pass.
 >
 > The text above has been translated; the per-location tables below still use the original
-> terms in places, and none of the save names has been reassigned. Tracked as
+> terms in places. Tracked as
 > [Q23](99-open-questions.md#q23--critical-tables-use-retired-wound-and-save-vocabulary).
 
 ## By location
@@ -226,20 +229,12 @@ battle = rest of encounter.
 
 ## Implementation note
 
-This subsystem is large but almost entirely **content, not code**.
+This file is **content reference for designers**, not a runtime severity engine.
 
-The tables ship as **compendium roll tables and Active Effect documents**. v14 makes this
-practical: Active Effects are primary documents that can live in a compendium, be dragged onto
-an actor or token, modify token data, and expire on duration events. A group IV head injury is
-an Active Effect with a duration and a set of changes, not a code path.
+Play wounds do not look up `(severity, location, weaponType)`. They use the Wound-count table
+in the source note. When porting flavour from the groups below into Active Effects, map by
+**effect index / fiction**, not by rolling a 1–15 severity.
 
-What the system actually implements:
-
-- a **lookup** from `(severity, location, weaponType)` to a compendium effect
-- **cumulative bleed** as a stacking effect with a per-round rate, since it is the one genuinely
-  stateful mechanic here
-- the difficulty labels as configuration, so "Hard" renders as DC 8 consistently
-
-What it must not implement: a critical-injury engine. There is no need for one — the tables
-are data, and the GM adjudicates. WFRP4e's 2,100 hashed effect scripts are the cautionary tale
+Optional later: bleed as a stacking per-round effect. Do **not** build a critical-severity
+roller. WFRP4e's 2,100 hashed effect scripts remain the cautionary tale
 ([ADR-009](../research/05-decisions.md#adr-009--declarative-effects-and-a-handler-registry-no-user-authored-javascript)).

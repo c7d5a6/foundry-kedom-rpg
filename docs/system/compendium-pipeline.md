@@ -97,17 +97,13 @@ LevelDB directory is a load error.
 
 ## Conditions and injuries are content
 
-Worth stating plainly because it is the largest single content decision: the condition set
-from [../rules/40-combat.md](../rules/40-combat.md) and the whole critical-injury system from
-[../rules/80-criticals.md](../rules/80-criticals.md) ship as **Active Effect documents in
-compendiums**, not as code.
+Worth stating plainly: conditions from [../rules/40-combat.md](../rules/40-combat.md) and
+injury **effects** (when authored) ship as **Active Effect documents in compendiums**, not as
+code. [80-criticals.md](../rules/80-criticals.md) is design scaffolding for writing those
+effects — not a `(severity, location, weaponType)` play lookup.
 
-v14 makes this practical — Active Effects are primary documents that live in packs, drag onto
-actors and tokens, modify token data, and expire on duration events. A group IV head injury is
-an effect with a duration and a change list.
-
-The system implements a **lookup** from `(severity, location, weaponType)` to a pack entry.
-It does not implement an injury engine
+Play wound resolution uses the Wound-count table in the source note. Optional later: map a
+wound **effect index** to a pack Active Effect. Do not implement a critical-severity roller
 ([ADR-009](../research/05-decisions.md#adr-009--declarative-effects-and-a-handler-registry-no-user-authored-javascript)).
 
 ## Determinism

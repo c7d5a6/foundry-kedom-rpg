@@ -33,6 +33,8 @@ ln -sfn "$(pwd)/packages/system/dist" "../foundrydata/Data/systems/kedom"
 
 - [Data model](../../docs/system/data-model.md) — actor and item types, the key-based skill
   and specialisation model
+- [POC roadmap](../../docs/system/roadmap-poc.md) — create character / rolls / combat: Done ·
+  Partial · Todo
 - [Roll pipeline](../../docs/system/roll-pipeline.md) — modifier collectors and the pure tier
   function
 - [UI design system](../../docs/system/ui-design-system.md) — CSS tokens, layers, and the

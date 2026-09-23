@@ -42,29 +42,35 @@ Two. Not five, not nine.
 
 ```
 abilities:
-  mgh, dex, kno, foc, pre, lck:
+  mgh, dex, kno, foc, pre:
     value        persisted   3-18, rolled at creation
     baseMod      persisted   racial and permanent adjustments
     mod          DERIVED     from value + baseMod, on the -3..+3 band table
+  lck:
+    value        persisted   0-20 (spendable; gen 3d6; narrative restore)
+    baseMod      persisted
+    mod          DERIVED     same band table; 0–2 → −3, 19–20 → +3 until extended
 
 attributes:
   hp:      { value persisted, max persisted }   # both entered; initial 0/0 (HD derivation deferred)
   strain:  { value persisted }                  # current System Strain
   wounds:  { value persisted }                  # wound-point count
-  strainLimit  DERIVED   = foc.value (Focus score)
+  strainLimit  DERIVED   = 10 + foc.mod
   resolve      DERIVED   = 20 - foc.value
-  # wounded is DERIVED (wounds > 1), never stored -- see rules/50-wounds-strain.md
+  # wounded is DERIVED (wounds >= 1), never stored -- see rules/50-wounds-strain.md
   # the two corruption tracks are unshaped -- see rules/99-open-questions.md Q18
 
 combat:            stubs for now, zero-initialised (formulas deferred)
   ac, attackBonus, meleeDamageBonus
+  # ac live stub: 10 + dex.mod
 
 saves:
   reflex, fortitude, will:
     proficiency  persisted   same ladder as skills; no specialisations
     mod          DERIVED     ability mod + full proficiency bonus
   # attribute pairing: reflex←dex, fortitude←mgh, will←foc
-  # Strain Save (d20 vs Resolve/Strain) is a separate check — see rules/10-attributes.md
+  # Luck save (d20 + Luck mod + Luck save proficiency) — proficiency stub; not a class save
+  # Strain roll (d20 vs Resolve/Strain) is a separate check — see rules/10-attributes.md
 
 movement:
   base:    { value persisted }

@@ -85,6 +85,7 @@
     "Outcome": {
       "cost": "Успех с последствиями",
       "failure": "Провал",
+      "harm": "Вред",
       "success": "Успех"
     },
     "Sheet": {
@@ -211,17 +212,18 @@
     },
     "Roll": {
       "Dialog": {
+        "advantageFlavor": "Преим. {n}",
+        "advantageHint": "0 — обычный 2d10. Плюс — кости преимущества. Минус — кости помехи. Ползунок −3…+3; можно ввести любое число.",
+        "advantageLabel": "Преимущество",
+        "cancel": "Отмена",
         "difficultyLabel": "Сложность",
+        "disadvantageFlavor": "Помеха {n}",
+        "modifiersHeading": "Модификаторы",
         "situationalLabel": "Ситуативный модификатор",
         "submit": "Бросок",
-        "title": "Настройка броска"
-      },
-      "Modifier": {
-        "ability": "модификатор {ability}",
-        "armorPenalty": "Штраф доспеха",
-        "effect": "{effect}",
-        "halfProficiency": "{proficiency} (без специализации)",
-        "situational": "Ситуативный"
+        "title": "Настройка броска",
+        "titleSave": "Настройка: {save}",
+        "titleSkill": "Настройка: {skill}"
       },
       "modifier": {
         "ability": "модификатор {ability}",
@@ -240,6 +242,10 @@
       "UnknownSpecializationSlug": "Специализация со слагом «{slug}» не зарегистрирована."
     },
     "Settings": {
+      "CheckDialog": {
+        "hint": "Если включено, броски навыков и спасбросков всегда открывают окно настройки. Ctrl+клик (⌘+клик на Mac) тоже открывает его, когда настройка выключена.",
+        "name": "Всегда показывать окно броска"
+      },
       "MigrationVersion": {
         "hint": "Служебное. Версия данных системы, до которой этот мир уже мигрирован.",
         "name": "Версия последней миграции"

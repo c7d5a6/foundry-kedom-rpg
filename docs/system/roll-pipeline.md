@@ -90,10 +90,10 @@ interact, that is one collector, not two with an ordering contract.
 
 ## Stage 3 — the dialog
 
-Optional, skippable with a modifier key, in the shape of dnd5e's
-`buildConfigure`/`buildEvaluate`/`buildPost` split. It shows the collected modifiers, accepts
-a situational modifier and a difficulty, and returns an updated context. It is an
-ApplicationV2 dialog and it computes nothing.
+Optional, skippable unless the client setting **Always show check dialog** is on or the
+player **Ctrl-clicks** (⌘-click on Mac). Shows collected modifiers, difficulty button-radios,
+advantage net, and situational modifier. Returns an updated configure result; it computes
+nothing.
 
 ## Stage 4 — evaluate
 
@@ -102,10 +102,14 @@ Sum the modifiers, build the formula, evaluate the `Roll`.
 The dice expression comes from `src/config/`, **not from a constant in this code**, so a later
 revision stays cheap. The settled defaults are:
 
-- skills and saves: `2d10 + attribute + proficiency`
+- skills and class saves (Reflex / Fortitude / Will): `2d10 + attribute + proficiency`
 - attacks: `1d20 + attribute + proficiency`
+- Luck save: `d20 + Luck mod + Luck save proficiency`
+- Strain roll: plain `d20` vs Resolve and current Strain (bands in
+  [../rules/10-attributes.md](../rules/10-attributes.md))
 
-with the success ladder in [../rules/20-skills.md](../rules/20-skills.md)
+with the success ladder for skills / class saves in
+[../rules/20-skills.md](../rules/20-skills.md)
 ([Q1 resolved](../rules/99-open-questions.md#q1--the-core-dice-mechanic--settled-for-now)).
 The expression is per-check-type, not global.
 
@@ -170,10 +174,15 @@ Strain, and `wounded` is derived from wound count, never set directly.
 
 ## Advantage and disadvantage
 
-The critical-injury tables use flat modifiers and advantage/disadvantage, sometimes in the same
-entry. So the pipeline carries both: `Modifier[]` for the numbers, and a separate
-`AdvantageState` on the context resolved to `-1 | 0 | +1` before the formula is built, with
-sources listed on the card.
+Skill and save checks use a **signed advantage net** on the roll context (POC):
+
+- `0` → `2d10`
+- `+n` → `(2+n)d10kh2` (keep highest 2)
+- `-n` → `(2+|n|)d10kl2` (keep lowest 2)
+
+The check dialog exposes a −3…+3 slider plus a number input for any integer. Flat
+`Modifier[]` remain separate (ability, proficiency, situational). Critical-injury notes that
+mix flat mods with advantage still resolve through the same net + modifiers split.
 
 ## Error handling at the boundary
 

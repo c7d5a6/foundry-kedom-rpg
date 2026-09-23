@@ -1,0 +1,60 @@
+<form class="kedom-check-dialog__form flexcol">
+  <fieldset class="kedom-check-dialog__difficulty">
+    <legend>{{localize "KEDOM.Roll.Dialog.difficultyLabel"}}</legend>
+    <div class="kedom-check-dialog__difficulty-group" role="radiogroup">
+      {{#each difficulties}}
+      <label class="kedom-check-dialog__diff kedom-check-dialog__diff--{{key}}">
+        <input
+          type="radio"
+          name="difficulty"
+          value="{{key}}"
+          {{#if selected}}checked{{/if}}
+        />
+        <span>{{label}}</span>
+      </label>
+      {{/each}}
+    </div>
+  </fieldset>
+
+  <div class="kedom-check-dialog__advantage form-group">
+    <label>{{localize "KEDOM.Roll.Dialog.advantageLabel"}}</label>
+    <div class="kedom-check-dialog__advantage-stack">
+      <input
+        type="number"
+        name="advantageNet"
+        value="{{advantageNet}}"
+        step="1"
+      />
+      <input
+        type="range"
+        name="advantageSlider"
+        min="-3"
+        max="3"
+        step="1"
+        value="{{advantageSlider}}"
+      />
+    </div>
+  </div>
+
+  <div class="kedom-check-dialog__situational form-group">
+    <label>{{localize "KEDOM.Roll.Dialog.situationalLabel"}}</label>
+    <input
+      type="number"
+      name="situational"
+      value="{{situational}}"
+      step="1"
+    />
+  </div>
+
+  {{#if modifiers.length}}
+  <div class="kedom-check-dialog__mods">
+    <h3>{{localize "KEDOM.Roll.Dialog.modifiersHeading"}}</h3>
+    <ul>
+      {{#each modifiers}}
+      <li><span class="kedom-check-dialog__mod-label">{{label}}</span>
+        <span class="kedom-check-dialog__mod-value">{{signed}}</span></li>
+      {{/each}}
+    </ul>
+  </div>
+  {{/if}}
+</form>
