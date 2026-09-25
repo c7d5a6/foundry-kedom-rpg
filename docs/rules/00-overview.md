@@ -21,8 +21,9 @@ something not yet ported, it is listed in [99-open-questions.md](99-open-questio
 > proficiency without a relevant specialisation). Attacks stay on `1d20`. Source front matter
 > is `dice: d20/2d10`. See [20-skills.md](20-skills.md#resolution).
 >
-> Separately: **Luck save** is `d20 + Luck mod + Luck save proficiency`; **Strain roll** is a
-> plain `d20` vs Resolve and current Strain ([10-attributes.md](10-attributes.md)).
+> Separately: **Luck save** is `d20 + Luck mod + Luck save proficiency` on the same graded
+> difficulty ladder as class saves; **Strain roll** is a plain `d20` vs Resolve and current
+> Strain ([10-attributes.md](10-attributes.md)).
 
 ## Design intent
 

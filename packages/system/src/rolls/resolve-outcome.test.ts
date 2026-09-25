@@ -7,11 +7,11 @@ describe("resolveOutcome", () => {
       kind: "failure",
       degree: 1,
     });
-    expect(resolveOutcome({ total: 12, difficulty: "trained" })).toEqual({
+    expect(resolveOutcome({ total: 15, difficulty: "trained" })).toEqual({
       kind: "cost",
       degree: 1,
     });
-    expect(resolveOutcome({ total: 15, difficulty: "trained" })).toEqual({
+    expect(resolveOutcome({ total: 16, difficulty: "trained" })).toEqual({
       kind: "success",
       degree: 1,
     });

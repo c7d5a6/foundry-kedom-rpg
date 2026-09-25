@@ -54,7 +54,8 @@ abilities:
 attributes:
   hp:      { value persisted, max persisted }   # both entered; initial 0/0 (HD derivation deferred)
   strain:  { value persisted }                  # current System Strain
-  wounds:  { value persisted }                  # wound-point count
+  wounds:  { value persisted, notes HTML persisted }  # wound-point count + freeform notes
+  wounded: DERIVED (wounds.value >= 1)
   strainLimit  DERIVED   = 10 + foc.mod
   resolve      DERIVED   = 20 - foc.value
   # wounded is DERIVED (wounds >= 1), never stored -- see rules/50-wounds-strain.md
@@ -69,7 +70,7 @@ saves:
     proficiency  persisted   same ladder as skills; no specialisations
     mod          DERIVED     ability mod + full proficiency bonus
   # attribute pairing: reflex←dex, fortitude←mgh, will←foc
-  # Luck save (d20 + Luck mod + Luck save proficiency) — proficiency stub; not a class save
+  # Luck save (d20 + Luck mod + Luck save proficiency, graded) — not a class save; no Luck spend
   # Strain roll (d20 vs Resolve/Strain) is a separate check — see rules/10-attributes.md
 
 movement:

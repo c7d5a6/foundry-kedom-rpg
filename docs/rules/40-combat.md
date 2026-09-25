@@ -42,9 +42,9 @@ Kedom uses **advantage/disadvantage** alongside flat numeric modifiers. The crit
 use both, sometimes in the same entry ("−2 to hit + disadvantage on saves and skill checks"),
 so both must exist in the modifier pipeline.
 
-> Ignited and other critical lines that name a **Luck save** can use the revived Luck save
-> (`d20 + Luck mod + Luck save proficiency`). Lines that still say **Physical** / **Mental**
-> need remapping to Fortitude / Will (or Reflex). Tracked as
+> Ignited and other critical lines that name a **Luck save** can use the Luck save
+> (`d20` + Luck mod + Luck save proficiency, graded). Lines that still say **Physical** /
+> **Mental** need remapping to Fortitude / Will (or Reflex). Tracked as
 > [Q23](99-open-questions.md#q23--critical-tables-use-retired-wound-and-save-vocabulary).
 
 ## Saves
@@ -58,8 +58,8 @@ Physical/Mental/Evasion/Luck *class* set with:
 | **Fortitude** | Toughness, disease, poison | the corruption / disease strain track |
 | **Will** | Fear, domination, mental assault | the sanity strain track |
 
-**Luck save** is a separate primary-attribute roll (`d20 + Luck mod + Luck save proficiency`),
-not a fourth class save and not on the `2d10` ladder —
+**Luck save** is a separate primary-attribute roll (`d20` + Luck mod + Luck save proficiency)
+on the same graded difficulty ladder as class saves, not a fourth class save —
 [Q4](99-open-questions.md#q4--luck-save-proficiency),
 [10-attributes.md](10-attributes.md). **Fortitude and Will** also each anchor one of the two
 strain tracks in [10-attributes.md](10-attributes.md), coupling the class save set to

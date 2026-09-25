@@ -1,0 +1,28 @@
+<div
+  class="kedom-chat-wound{{#if ignored}} kedom-chat-wound--ignored{{/if}}"
+  data-wound-count="{{woundCount}}"
+  data-effect-index="{{effectIndex}}"
+  data-body-part="{{bodyPart}}"
+>
+  <div class="kedom-chat-wound__summary">
+    <div class="kedom-chat-wound__row">
+      <span class="kedom-chat-wound__label">{{localize "KEDOM.Chat.WoundCount"}}</span>
+      <span class="kedom-chat-wound__value">{{woundCount}}</span>
+    </div>
+    <div class="kedom-chat-wound__row">
+      <span class="kedom-chat-wound__label">{{localize "KEDOM.Chat.WoundEffect"}}</span>
+      <span class="kedom-chat-wound__value">{{effectIndex}}</span>
+    </div>
+    <div class="kedom-chat-wound__row">
+      <span class="kedom-chat-wound__label">{{localize "KEDOM.Chat.WoundBodyPart"}}</span>
+      <span class="kedom-chat-wound__value">{{bodyPartLabel}}</span>
+    </div>
+    <div class="kedom-chat-wound__row kedom-chat-wound__row--muted">
+      <span class="kedom-chat-wound__label">{{localize "KEDOM.Chat.WoundTableTotal"}}</span>
+      <span class="kedom-chat-wound__value">{{tableTotal}} ({{luckModSigned}})</span>
+    </div>
+  </div>
+  {{#if ignored}}
+    <p class="kedom-chat-wound__ignored">{{localize "KEDOM.Chat.WoundIgnored"}}</p>
+  {{/if}}
+</div>

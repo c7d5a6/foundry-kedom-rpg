@@ -1,30 +1,5 @@
 <div class="kedom-sheet-panels">
   <aside class="kedom-sheet-aside">
-    <div class="kedom-combat-stubs">
-      <div class="kedom-combat-stubs__item">
-        <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.acShort"}}</span>
-        <span class="kedom-combat-stubs__value">{{combat.ac}}</span>
-      </div>
-      <div class="kedom-combat-stubs__item">
-        <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.meleeDamage"}}</span>
-        <span class="kedom-combat-stubs__value">{{combat.meleeDamageSigned}}</span>
-      </div>
-      <div class="kedom-wounds">
-        <label class="kedom-wounds__label" for="kedom-wounds">{{localize "KEDOM.Attributes.wounds"}}</label>
-        {{#if @root.isEdit}}
-          <input
-            id="kedom-wounds"
-            type="number"
-            name="system.attributes.wounds.value"
-            value="{{resources.wounds}}"
-            min="0"
-          />
-        {{else}}
-          <span class="kedom-wounds__value">{{resources.wounds}}</span>
-        {{/if}}
-      </div>
-    </div>
-
     <div class="ability-grid">
       {{#each abilities}}
         <div class="ability">
@@ -37,8 +12,8 @@
               name="system.abilities.{{key}}.value"
               type="number"
               value="{{value}}"
-              min="3"
-              max="18"
+              min="{{min}}"
+              max="{{max}}"
               aria-label="{{label}}"
             />
           {{else}}
@@ -52,14 +27,87 @@
       {{#each saves}}
         {{> "systems/kedom/templates/actor/partials/save.hbs"}}
       {{/each}}
+      {{#with luckSave}}
+        {{> "systems/kedom/templates/actor/partials/save.hbs"}}
+      {{/with}}
     </div>
   </aside>
 
   <section class="kedom-sheet-main">
-    <div class="skill-list">
-      {{#each skills}}
-        {{> "systems/kedom/templates/actor/partials/skill.hbs"}}
-      {{/each}}
-    </div>
+    {{#if isSkillsTab}}
+      <div class="skill-list">
+        {{#each skills}}
+          {{> "systems/kedom/templates/actor/partials/skill.hbs"}}
+        {{/each}}
+      </div>
+    {{else}}
+      <div class="kedom-combat-tab">
+        <div class="kedom-combat-stubs">
+          <div class="kedom-combat-stubs__item">
+            <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.acShort"}}</span>
+            <span class="kedom-combat-stubs__value">{{combat.ac}}</span>
+          </div>
+          <div class="kedom-combat-stubs__item">
+            <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.meleeDamage"}}</span>
+            <span class="kedom-combat-stubs__value">{{combat.meleeDamageSigned}}</span>
+          </div>
+        </div>
+
+        <section class="kedom-wounds-panel">
+          <header class="kedom-wounds-panel__header">
+            <h2 class="kedom-wounds-panel__title">{{localize "KEDOM.Attributes.wounds"}}</h2>
+            {{#if resources.wounded}}
+              <span class="kedom-wounds-panel__badge">{{localize "KEDOM.Condition.wounded"}}</span>
+            {{/if}}
+          </header>
+
+          <div class="kedom-wounds-panel__controls">
+            <div
+              class="kedom-meter kedom-meter--wounds"
+              data-resource="wounds"
+              data-action="editResource"
+              title="{{localize "KEDOM.Attributes.wounds"}}"
+            >
+              <div class="kedom-meter__content">
+                <span class="kedom-meter__name">{{localize "KEDOM.Attributes.wounds"}}</span>
+                <span class="kedom-meter__value">{{resources.wounds.value}}</span>
+                <input
+                  class="kedom-meter__edit-value"
+                  type="number"
+                  name="system.attributes.wounds.value"
+                  value="{{resources.wounds.value}}"
+                  min="0"
+                  aria-label="{{localize "KEDOM.Attributes.wounds"}}"
+                />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="kedom-wounds-panel__take"
+              data-action="takeWound"
+              {{#unless @root.isPlay}}disabled{{/unless}}
+              title="{{localize "KEDOM.Sheet.Action.takeWound"}}"
+            >
+              {{localize "KEDOM.Sheet.Action.takeWound"}}
+            </button>
+          </div>
+
+          <div class="kedom-wounds-panel__notes">
+            <label class="kedom-wounds-panel__notes-label">{{localize "KEDOM.Sheet.WoundNotes"}}</label>
+            {{#if editable}}
+              {{formInput
+                systemFields.attributes.fields.wounds.fields.notes
+                value=source.system.attributes.wounds.notes
+                enriched=enrichedWoundsNotes
+                toggled=true
+              }}
+            {{else}}
+              <div class="kedom-wounds-panel__notes-view">{{{enrichedWoundsNotes}}}</div>
+            {{/if}}
+          </div>
+        </section>
+      </div>
+    {{/if}}
   </section>
 </div>

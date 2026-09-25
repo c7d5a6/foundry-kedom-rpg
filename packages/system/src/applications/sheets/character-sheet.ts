@@ -1,5 +1,7 @@
 import {
   ABILITY_KEYS,
+  LUCK_SCORE_MAX,
+  LUCK_SCORE_MIN,
   PROFICIENCY_SPECIALIZATION_SLOTS,
   PROFICIENCY_TIERS,
   SAVE_ABILITY,
@@ -27,9 +29,11 @@ import type {
   SkillSpecialization,
 } from "../../data/actor/character.ts";
 import { formatSignedBonus } from "../../rolls/build-skill-check.ts";
+import { rollLuckSave } from "../../rolls/luck-save.ts";
 import { rollSaveCheck } from "../../rolls/save-check.ts";
 import { prepareSkillCheck, rollSkillCheck } from "../../rolls/skill-check.ts";
 import { rollStrainSave } from "../../rolls/strain-save.ts";
+import { takeWound } from "../../rolls/wound-roll.ts";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -38,6 +42,9 @@ type AbilityView = { value: number; mod?: number };
 
 const SHEET_MODES = Object.freeze({ PLAY: "play", EDIT: "edit" } as const);
 type SheetMode = (typeof SHEET_MODES)[keyof typeof SHEET_MODES];
+
+const SHEET_TABS = Object.freeze({ SKILLS: "skills", COMBAT: "combat" } as const);
+type SheetTab = (typeof SHEET_TABS)[keyof typeof SHEET_TABS];
 
 function localizeSpecLabel(skillKey: SkillKey, leaf: string): string {
   const path = `KEDOM.Specialization.${skillKey}.${leaf}`;
@@ -70,6 +77,9 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   /** Play vs edit — instance UI state, not persisted on the actor. */
   #mode: SheetMode = SHEET_MODES.PLAY;
 
+  /** Primary sheet tab — instance UI state. */
+  #primaryTab: SheetTab = SHEET_TABS.SKILLS;
+
   get isPlayMode(): boolean {
     return this.#mode === SHEET_MODES.PLAY;
   }
@@ -80,7 +90,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static override DEFAULT_OPTIONS = {
     ...ActorSheetV2.DEFAULT_OPTIONS,
-    classes: ["kedom", "sheet", "actor", "character"],
+    classes: ["kedom", "sheet", "actor", "character", "vertical-tabs"],
     position: { width: 800, height: 740 },
     window: {
       ...ActorSheetV2.DEFAULT_OPTIONS.window,
@@ -92,9 +102,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     },
     actions: {
       toggleMode: CharacterSheet.#onToggleMode,
+      changeSheetTab: CharacterSheet.#onChangeSheetTab,
       rollSkill: CharacterSheet.#onRollSkill,
       rollSave: CharacterSheet.#onRollSave,
+      rollLuckSave: CharacterSheet.#onRollLuckSave,
       rollStrainSave: CharacterSheet.#onRollStrainSave,
+      takeWound: CharacterSheet.#onTakeWound,
       editResource: CharacterSheet.#onEditResource,
       rollSpecialization: CharacterSheet.#onRollSpecialization,
       toggleSpecialization: CharacterSheet.#onToggleSpecialization,
@@ -104,6 +117,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   };
 
   static override PARTS = {
+    tabs: {
+      template: "systems/kedom/templates/actor/character-tabs.hbs",
+      classes: ["kedom-sheet-tabs-part", "tabs-right"],
+    },
     header: {
       template: "systems/kedom/templates/actor/character-header.hbs",
       classes: ["kedom-sheet-header-part"],
@@ -119,6 +136,32 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   ): void {
     super._configureRenderOptions(options);
     if (options.mode && this.isEditable) this.#mode = options.mode;
+  }
+
+  /**
+   * Clamp sheet position so external tab strip (dnd5e-style overhang) stays on-screen.
+   * Without this, overflow:visible + outside tabs can shove other UI (chat) around.
+   */
+  protected override _updatePosition(
+    position: foundry.applications.api.ApplicationV2.Position,
+  ): foundry.applications.api.ApplicationV2.Position {
+    const pos = super._updatePosition(position);
+    const rightOverhang =
+      this.element?.querySelector<HTMLElement>(".kedom-sheet-tabs-part.tabs-right")
+        ?.offsetWidth ?? 0;
+    if (!rightOverhang) return pos;
+    const { clientWidth } = this.element.ownerDocument.documentElement;
+    const sheetWidth =
+      typeof pos.width === "number" ? pos.width : (this.element?.offsetWidth ?? 0);
+    pos.left = Math.clamp(
+      pos.left ?? 0,
+      0,
+      Math.max(clientWidth - sheetWidth - rightOverhang, 0),
+    );
+    if (typeof pos.width === "number") {
+      pos.width = Math.min(pos.width, Math.max(clientWidth - (pos.left ?? 0) - rightOverhang, 0));
+    }
+    return pos;
   }
 
   protected override async _prepareContext(
@@ -137,6 +180,8 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         label: game.i18n.localize(`KEDOM.Ability.${key}.label`),
         abbr: game.i18n.localize(`KEDOM.Ability.${key}.abbr`),
         value: ability.value,
+        min: key === "lck" ? LUCK_SCORE_MIN : 3,
+        max: key === "lck" ? LUCK_SCORE_MAX : 18,
         mod,
         modSigned: mod >= 0 ? `+${mod}` : String(mod),
       };
@@ -257,33 +302,37 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           };
         }),
       };
-    });
+    }).sort((a, b) => a.label.localeCompare(b.label, game.i18n.lang));
 
     const attrs = system.attributes as {
       hp: { value: number; max: number };
       strain: { value: number };
-      wounds: { value: number };
+      wounds: { value: number; notes?: string };
       strainLimit?: number;
       resolve?: number;
+      wounded?: boolean;
     };
     const hpMax = attrs.hp.max ?? 0;
     const hpValue = attrs.hp.value ?? 0;
     const strainLimit = attrs.strainLimit ?? 0;
     const strainValue = attrs.strain.value ?? 0;
     const hpPct = hpMax > 0 ? Math.min(100, Math.round((hpValue / hpMax) * 100)) : 0;
+    const woundValue = attrs.wounds.value ?? 0;
     const resources = {
       hp: {
         value: hpValue,
         max: hpMax,
         pct: hpPct,
-        band: hpColorBand(hpPct, hpMax),
       },
       strain: {
         value: strainValue,
         limit: strainLimit,
         pct: strainLimit > 0 ? Math.min(100, Math.round((strainValue / strainLimit) * 100)) : 0,
       },
-      wounds: attrs.wounds.value ?? 0,
+      wounds: {
+        value: woundValue,
+      },
+      wounded: attrs.wounded ?? woundValue >= 1,
       resolve: attrs.resolve ?? 0,
     };
 
@@ -296,11 +345,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       meleeDamageSigned: formatSignedBonus(combatData.meleeDamageBonus ?? 0),
     };
 
-    const savesData = system.saves as Record<SaveKey, SaveFields>;
-    const saves = SAVE_KEYS.map((key) => {
+    const savesData = system.saves as Record<SaveKey | "luck", SaveFields>;
+    const saveView = (key: SaveKey | "luck", abilityKey: typeof SAVE_ABILITY[SaveKey] | "lck") => {
       const save = savesData[key]!;
       const proficiency = save.proficiency as ProficiencyTier;
-      const abilityKey = SAVE_ABILITY[key];
       const mod = save.mod ?? 0;
       return {
         key,
@@ -312,6 +360,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         proficiencyLabel: game.i18n.localize(`KEDOM.Proficiency.${proficiency}`),
         proficiencyClass: `kedom-skill--${proficiency}`,
         bonusSigned: formatSignedBonus(mod),
+        rollAction: key === "luck" ? "rollLuckSave" : "rollSave",
         proficiencyOptions: PROFICIENCY_TIERS.map((value) => {
           const label = game.i18n.localize(`KEDOM.Proficiency.${value}`);
           return {
@@ -323,16 +372,45 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           };
         }),
       };
+    };
+    const saves = SAVE_KEYS.map((key) => saveView(key, SAVE_ABILITY[key]));
+    const luckSave = saveView("luck", "lck");
+
+    const enrichedWoundsNotes = await TextEditor.enrichHTML(attrs.wounds.notes ?? "", {
+      secrets: this.actor.isOwner,
+      relativeTo: this.actor,
     });
+
+    const tabs = [
+      {
+        id: SHEET_TABS.SKILLS,
+        label: game.i18n.localize("KEDOM.Sheet.Tab.skills"),
+        icon: "fa-solid fa-book",
+        active: this.#primaryTab === SHEET_TABS.SKILLS,
+      },
+      {
+        id: SHEET_TABS.COMBAT,
+        label: game.i18n.localize("KEDOM.Sheet.Tab.combat"),
+        icon: "fa-solid fa-shield-halved",
+        active: this.#primaryTab === SHEET_TABS.COMBAT,
+      },
+    ];
 
     return Object.assign(context, {
       actor: this.actor,
       system,
+      systemFields: this.actor.system.schema.fields,
       abilities,
       skills,
       saves,
+      luckSave,
       resources,
       combat,
+      tabs,
+      primaryTab: this.#primaryTab,
+      isSkillsTab: this.#primaryTab === SHEET_TABS.SKILLS,
+      isCombatTab: this.#primaryTab === SHEET_TABS.COMBAT,
+      enrichedWoundsNotes,
       editable: this.isEditable,
       isPlay: this.isPlayMode,
       isEdit: this.isEditMode,
@@ -346,8 +424,19 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     await super._onRender(context, options);
     this.element.classList.toggle("mode-play", this.isPlayMode);
     this.element.classList.toggle("mode-edit", this.isEditMode);
+    this.element.classList.toggle("tab-skills", this.#primaryTab === SHEET_TABS.SKILLS);
+    this.element.classList.toggle("tab-combat", this.#primaryTab === SHEET_TABS.COMBAT);
+    this.#placeExternalTabs();
     this.#renderModeToggle();
     this.#bindMeterEditors();
+  }
+
+  /** Move tab strip outside `.window-content` (dnd5e-style external nav). */
+  #placeExternalTabs(): void {
+    const tabs = this.element.querySelector(".kedom-sheet-tabs-part");
+    if (!(tabs instanceof HTMLElement)) return;
+    if (tabs.parentElement === this.element) return;
+    this.element.append(tabs);
   }
 
   #meterAbort: AbortController | null = null;
@@ -460,6 +549,23 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     } as foundry.applications.api.ApplicationV2.RenderOptions);
   }
 
+  static async #onChangeSheetTab(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    const tab = target.dataset.tab;
+    if (tab !== SHEET_TABS.SKILLS && tab !== SHEET_TABS.COMBAT) return;
+    if (this.#primaryTab === tab) return;
+    this.#primaryTab = tab;
+    await this.render();
+  }
+
+  static async #onTakeWound(this: CharacterSheet): Promise<void> {
+    if (this.isEditMode || !this.actor) return;
+    await takeWound(this.actor);
+  }
+
   static async #onRollSkill(
     this: CharacterSheet,
     event: PointerEvent,
@@ -482,6 +588,16 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const saveKey = target.dataset.saveKey as SaveKey | undefined;
     if (!saveKey || !this.actor) return;
     await rollSaveCheck(this.actor, saveKey, {
+      configure: event.ctrlKey || event.metaKey,
+    });
+  }
+
+  static async #onRollLuckSave(
+    this: CharacterSheet,
+    event: PointerEvent,
+  ): Promise<void> {
+    if (this.isEditMode || !this.actor) return;
+    await rollLuckSave(this.actor, {
       configure: event.ctrlKey || event.metaKey,
     });
   }
@@ -670,11 +786,4 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       return null;
     }
   }
-}
-
-function hpColorBand(pct: number, max: number): "empty" | "high" | "mid" | "low" {
-  if (max <= 0) return "empty";
-  if (pct > 50) return "high";
-  if (pct > 25) return "mid";
-  return "low";
 }

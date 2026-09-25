@@ -1,0 +1,15 @@
+<nav class="kedom-sheet-tabs" aria-label="{{localize "KEDOM.Sheet.Tabs"}}">
+  {{#each tabs}}
+    <button
+      type="button"
+      class="kedom-sheet-tabs__btn{{#if active}} active{{/if}}"
+      data-action="changeSheetTab"
+      data-tab="{{id}}"
+      title="{{label}}"
+      aria-label="{{label}}"
+      aria-pressed="{{active}}"
+    >
+      <i class="{{icon}}" inert></i>
+    </button>
+  {{/each}}
+</nav>

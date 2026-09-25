@@ -1,5 +1,7 @@
 import {
   ABILITY_KEYS,
+  LUCK_SCORE_MAX,
+  LUCK_SCORE_MIN,
   PROFICIENCY_BONUS,
   PROFICIENCY_TIERS,
   SAVE_ABILITY,
@@ -13,16 +15,17 @@ import {
 import { abilityModifier } from "../../derivations/ability-mod.ts";
 import { resolveFromFocus, strainLimitFromFocus } from "../../derivations/strain.ts";
 
-const { ArrayField, BooleanField, NumberField, SchemaField, StringField } = foundry.data.fields;
+const { ArrayField, BooleanField, HTMLField, NumberField, SchemaField, StringField } =
+  foundry.data.fields;
 
-function abilitySchema() {
+function abilitySchema(opts: { min: number; max: number }) {
   return new SchemaField({
     value: new NumberField({
       required: true,
       nullable: false,
       integer: true,
-      min: 3,
-      max: 18,
+      min: opts.min,
+      max: opts.max,
       initial: 10,
     }),
     baseMod: new NumberField({
@@ -71,7 +74,10 @@ function saveSchema() {
 function characterSchema() {
   const abilities = {} as Record<AbilityKey, ReturnType<typeof abilitySchema>>;
   for (const key of ABILITY_KEYS) {
-    abilities[key] = abilitySchema();
+    abilities[key] =
+      key === "lck"
+        ? abilitySchema({ min: LUCK_SCORE_MIN, max: LUCK_SCORE_MAX })
+        : abilitySchema({ min: 3, max: 18 });
   }
 
   const skills = {} as Record<SkillKey, ReturnType<typeof skillSchema>>;
@@ -79,10 +85,11 @@ function characterSchema() {
     skills[key] = skillSchema();
   }
 
-  const saves = {} as Record<SaveKey, ReturnType<typeof saveSchema>>;
+  const saves = {} as Record<SaveKey | "luck", ReturnType<typeof saveSchema>>;
   for (const key of SAVE_KEYS) {
     saves[key] = saveSchema();
   }
+  saves.luck = saveSchema();
 
   return {
     abilities: new SchemaField(abilities),
@@ -121,6 +128,7 @@ function characterSchema() {
           min: 0,
           initial: 0,
         }),
+        notes: new HTMLField({ required: true, nullable: false, blank: true, initial: "" }),
       }),
     }),
     combat: new SchemaField({
@@ -156,9 +164,10 @@ export type SaveFields = {
 type AttributesDerived = {
   hp: { value: number; max: number };
   strain: { value: number };
-  wounds: { value: number };
+  wounds: { value: number; notes: string };
   strainLimit?: number;
   resolve?: number;
+  wounded?: boolean;
 };
 
 export class CharacterData extends foundry.abstract.TypeDataModel<
@@ -173,12 +182,14 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
     const attrs = this.attributes as AttributesDerived;
     attrs.strainLimit = 0;
     attrs.resolve = 0;
+    attrs.wounded = false;
     const combat = this.combat as { ac: number };
     combat.ac = 0;
     for (const key of SAVE_KEYS) {
       const s = this.saves[key] as SaveFields;
       s.mod = 0;
     }
+    (this.saves.luck as SaveFields).mod = 0;
   }
 
   override prepareDerivedData(): void {
@@ -192,6 +203,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
     const attrs = this.attributes as AttributesDerived;
     attrs.strainLimit = strainLimitFromFocus(foc.value);
     attrs.resolve = resolveFromFocus(foc.value);
+    attrs.wounded = (attrs.wounds?.value ?? 0) >= 1;
 
     const combat = this.combat as { ac: number };
     combat.ac = 10 + (dex.mod ?? 0);
@@ -204,6 +216,11 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
       const tierBonus = PROFICIENCY_BONUS[tier] ?? 0;
       s.mod = (ability.mod ?? 0) + tierBonus;
     }
+
+    const luckSave = this.saves.luck as SaveFields;
+    const lck = this.abilities.lck as AbilityFields;
+    const luckTier = luckSave.proficiency as ProficiencyTier;
+    luckSave.mod = (lck.mod ?? 0) + (PROFICIENCY_BONUS[luckTier] ?? 0);
   }
 }
 

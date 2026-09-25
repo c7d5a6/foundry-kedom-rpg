@@ -28,7 +28,7 @@ during balance.
 | Range | **0–20** |
 | Generation | **3d6** |
 | Restore | **Narrative** (fiction / GM — no fixed rest recovery) |
-| Luck save | `d20 + Luck mod + Luck save proficiency` |
+| Luck save | `d20` + Luck mod + Luck save proficiency (same difficulty ladder as class saves) |
 | Spend | 1-to-1 to improve a roll; spend **all** current Luck to ignore a wound roll result |
 
 Modifier from current score uses the table below; treat **0–2** as −3 and **19–20** as +3 until a
@@ -80,7 +80,8 @@ full tier bonus ([20-skills.md](20-skills.md#resolution)). Class primary/seconda
 *progression* remains open
 ([Q30](99-open-questions.md#q30--per-class-primary-and-secondary-saves)).
 
-**Luck save** is separate from the class three: it rolls on **`d20`**, not `2d10`.
+**Luck save** is separate from the class three (own proficiency track, rolls **`d20`**) but uses
+the same graded difficulty ladder and configure dialog.
 
 ### Strain triad and Strain roll
 

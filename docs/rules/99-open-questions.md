@@ -273,7 +273,7 @@ The Pathfinder-style severity ladder and groups in [80-criticals.md](80-critical
 **import/design notes** (equivalence from other systems), not a Kedom play procedure. There is
 no “roll for severity” step in the RPG.
 
-Play wounds use the **Wound count column** + `d20 + Luck mod` + body part → effect index from
+Play wounds use the **Wound count column** + `d20 + Luck mod` + `d8` body part → effect index from
 the source wound table (`Kedom RPG.md` / [50-wounds-strain.md](50-wounds-strain.md)). Keep
 `80-criticals.md` as reference when authoring effects; do not gate Foundry on choosing a
 severity die.

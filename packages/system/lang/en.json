@@ -96,6 +96,7 @@
       "Roll": "Roll",
       "Tab": {
         "biography": "Biography",
+        "combat": "Combat",
         "description": "Description",
         "details": "Details",
         "effects": "Effects",
@@ -104,6 +105,8 @@
         "skills": "Skills",
         "stats": "Stats"
       },
+      "Tabs": "Sheet tabs",
+      "WoundNotes": "Wound notes",
       "Mode": {
         "edit": "Edit Mode",
         "play": "Play Mode",
@@ -122,6 +125,7 @@
         "rollSkill": "Roll {skill}",
         "rollStrainSave": "Roll Strain Save",
         "selectSpecialization": "Select specialization",
+        "takeWound": "Take Wound",
         "unequip": "Unequip"
       },
       "searchPlaceholder": "Search",
@@ -134,15 +138,39 @@
     },
     "Chat": {
       "Dice": "dice",
+      "IgnoreWound": "Ignore wound (spend all Luck)",
+      "IgnoreWoundNoLuck": "No Luck left to ignore this wound.",
+      "InsufficientLuck": "Need {cost} Luck (have {available}).",
+      "LuckSaveFlavor": "Luck Save — {difficulty} ({bonus})",
       "MissingSkillData": "Character data missing ability or skill.",
+      "Reroll": "Reroll",
       "SaveCheckFlavor": "{save} Save — {difficulty} ({bonus})",
       "SkillCheckFlavor": "{skill} — {difficulty}",
+      "SpendLuck": "Spend {cost} Luck → {outcome}",
+      "SpendLuckStale": "This card’s outcome changed. Refresh and try again.",
       "StrainSaveFlavor": "Strain Save — Resolve {resolve}, Strain {strain}",
       "Total": "Total",
-      "UnknownSkill": "Unknown skill: {skill}"
+      "UnknownSkill": "Unknown skill: {skill}",
+      "WoundBodyPart": "Body part",
+      "WoundCount": "Wound count",
+      "WoundEffect": "Effect index",
+      "WoundFlavor": "Wound {count} — effect {effect}, {part}",
+      "WoundIgnored": "Wound effect ignored (all Luck spent).",
+      "WoundTableTotal": "Table roll"
+    },
+    "Wound": {
+      "BodyPart": {
+        "body": "Body",
+        "head": "Head",
+        "leftArm": "Left arm",
+        "leftLeg": "Left leg",
+        "rightArm": "Right arm",
+        "rightLeg": "Right leg"
+      }
     },
     "Save": {
       "fortitude": "Fortitude",
+      "luck": "Luck",
       "reflex": "Reflex",
       "will": "Will"
     },
@@ -172,7 +200,8 @@
       "strainLimit": "Exhaustion Limit",
       "strainLimitShort": "SL",
       "strainShort": "E",
-      "wounds": "Wounds"
+      "wounds": "Wounds",
+      "woundsShort": "W"
     },
     "Condition": {
       "blinded": "Blinded",
@@ -230,6 +259,7 @@
         "armorPenalty": "Armor penalty",
         "effect": "{effect}",
         "halfProficiency": "{proficiency} (no specialization)",
+        "luckSpend": "Luck",
         "situational": "Situational",
         "skillLevel": "{skill} level",
         "specialization": "{specialization}",

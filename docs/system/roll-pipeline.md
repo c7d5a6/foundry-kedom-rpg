@@ -103,8 +103,8 @@ The dice expression comes from `src/config/`, **not from a constant in this code
 revision stays cheap. The settled defaults are:
 
 - skills and class saves (Reflex / Fortitude / Will): `2d10 + attribute + proficiency`
+- Luck save: `d20 + Luck mod + Luck save proficiency` (same difficulty ladder; no Luck spend)
 - attacks: `1d20 + attribute + proficiency`
-- Luck save: `d20 + Luck mod + Luck save proficiency`
 - Strain roll: plain `d20` vs Resolve and current Strain (bands in
   [../rules/10-attributes.md](../rules/10-attributes.md))
 
@@ -180,9 +180,29 @@ Skill and save checks use a **signed advantage net** on the roll context (POC):
 - `+n` → `(2+n)d10kh2` (keep highest 2)
 - `-n` → `(2+|n|)d10kl2` (keep lowest 2)
 
-The check dialog exposes a −3…+3 slider plus a number input for any integer. Flat
+The flat
 `Modifier[]` remain separate (ability, proficiency, situational). Critical-injury notes that
 mix flat mods with advantage still resolve through the same net + modifiers split.
+
+## Luck (POC B)
+
+- **Pool:** Luck ability score `0–20` (modifier bands extend 0–2 / 19–20). Narrative restore only.
+- **Luck save:** `d20` + Luck mod + `saves.luck` proficiency, graded on the class-save difficulty
+  ladder. Configure dialog is opt-in (Ctrl/⌘-click or setting), same as skills/saves. **No**
+  spend on this card.
+- **Spend on skill / class-save cards:** 1 Luck = +1 total. Chat button shows cost to the **next
+  better outcome band** on the current difficulty column and spends that many at once.
+- **Reroll:** free from the same cards (for future ability hooks); does not spend Luck.
+- **Ignore wound** (spend all Luck): wound chat card empties Luck and voids the **effect**
+  only (count stays).
+
+## Wounds (POC D)
+
+- **Take Wound** (Combat tab): increment `wounds.value`, then `d20 + Luck mod` on the
+  post-increment column + `d8` body part (arm L/R, leg L/R, body×3, head) → effect index in chat.
+- Freeform `attributes.wounds.notes` (HTML) for written effects until system content lands.
+- Sheet tabs: external icon strip (right); Skills/Combat swap the main panel only (abilities +
+  saves stay). Header wound count sits on the HP row (same chip pattern as Resolve on strain).
 
 ## Error handling at the boundary
 

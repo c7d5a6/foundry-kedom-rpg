@@ -1,6 +1,6 @@
 import { resolveFromFocus, strainSaveBand } from "../derivations/strain.ts";
 import type { CharacterData } from "../data/actor/character.ts";
-import { styleCheckRollHTML } from "./skill-check.ts";
+import { styleCheckRollHTML } from "./check-card.ts";
 
 const CHECK_TEMPLATE = "systems/kedom/templates/chat/check.hbs";
 

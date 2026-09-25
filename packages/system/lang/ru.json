@@ -96,6 +96,7 @@
       "Roll": "Бросок",
       "Tab": {
         "biography": "Биография",
+        "combat": "Бой",
         "description": "Описание",
         "details": "Сведения",
         "effects": "Эффекты",
@@ -104,6 +105,8 @@
         "skills": "Навыки",
         "stats": "Характеристики"
       },
+      "Tabs": "Вкладки листа",
+      "WoundNotes": "Заметки о ранах",
       "Mode": {
         "edit": "Режим правки",
         "play": "Режим игры",
@@ -122,6 +125,7 @@
         "rollSkill": "Бросок: {skill}",
         "rollStrainSave": "Испытание напряжения",
         "selectSpecialization": "Выбрать специализацию",
+        "takeWound": "Получить рану",
         "unequip": "Снять"
       },
       "searchPlaceholder": "Поиск",
@@ -134,15 +138,39 @@
     },
     "Chat": {
       "Dice": "кости",
+      "IgnoreWound": "Игнорировать рану (потратить всю Удачу)",
+      "IgnoreWoundNoLuck": "Нет Удачи, чтобы игнорировать эту рану.",
+      "InsufficientLuck": "Нужно {cost} Удачи (есть {available}).",
+      "LuckSaveFlavor": "Испытание Удачи — {difficulty} ({bonus})",
       "MissingSkillData": "У персонажа нет характеристики или навыка.",
+      "Reroll": "Перебросить",
       "SaveCheckFlavor": "Испытание «{save}» — {difficulty} ({bonus})",
       "SkillCheckFlavor": "{skill} — {difficulty}",
+      "SpendLuck": "Потратить {cost} Удачи → {outcome}",
+      "SpendLuckStale": "Результат на этой карточке изменился. Обновите и попробуйте снова.",
       "StrainSaveFlavor": "Испытание напряжения — Решимость {resolve}, напряжение {strain}",
       "Total": "Итого",
-      "UnknownSkill": "Неизвестный навык: {skill}"
+      "UnknownSkill": "Неизвестный навык: {skill}",
+      "WoundBodyPart": "Часть тела",
+      "WoundCount": "Число ран",
+      "WoundEffect": "Индекс эффекта",
+      "WoundFlavor": "Рана {count} — эффект {effect}, {part}",
+      "WoundIgnored": "Эффект раны проигнорирован (вся Удача потрачена).",
+      "WoundTableTotal": "Бросок по таблице"
+    },
+    "Wound": {
+      "BodyPart": {
+        "body": "Туловище",
+        "head": "Голова",
+        "leftArm": "Левая рука",
+        "leftLeg": "Левая нога",
+        "rightArm": "Правая рука",
+        "rightLeg": "Правая нога"
+      }
     },
     "Save": {
       "fortitude": "Стойкость",
+      "luck": "Удача",
       "reflex": "Реакция",
       "will": "Воля"
     },
@@ -172,7 +200,8 @@
       "strainLimit": "Предел изнурения",
       "strainLimitShort": "ПН",
       "strainShort": "И",
-      "wounds": "Раны"
+      "wounds": "Раны",
+      "woundsShort": "Р"
     },
     "Condition": {
       "blinded": "Ослеплён",
@@ -230,6 +259,7 @@
         "armorPenalty": "Штраф доспеха",
         "effect": "{effect}",
         "halfProficiency": "{proficiency} (без специализации)",
+        "luckSpend": "Удача",
         "situational": "Ситуативный",
         "skillLevel": "навык {skill}",
         "specialization": "{specialization}",

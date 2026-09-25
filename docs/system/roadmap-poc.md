@@ -46,13 +46,13 @@ or Active Effects. Full Adventurer dual-class maths and Forge packs can stay def
 |---|---|---|---|
 | 2.1 | **Skill rolls** (`2d10` + mod + proficiency → graded outcome → chat) | **Done** | `rolls/skill-check.ts` |
 | 2.2 | **Class save rolls** (Reflex / Fortitude / Will, same ladder) | **Done** | `rolls/save-check.ts` |
-| 2.3 | **Luck save** (`d20 + Luck mod + Luck save proficiency`) | **Todo** | Luck ability exists; no save proficiency / roll yet |
+| 2.3 | **Luck save** (`d20` + Luck mod + Luck save proficiency) | **Done** | Graded dialog/ladder (Ctrl/⌘); no spend on this card |
 | 2.4 | **Difficulty** (Easy…Legendary) | **Done** | Check dialog + default Trained when skipped |
 | 2.5 | **Pre-roll modal** (difficulty, situational, optional) | **Done** | Ctrl/⌘-click or client setting `kedom.checkDialog` |
 | 2.6 | **Advantage / disadvantage** (extra d10, keep 2 best/worst) | **Done** | Signed net; slider −3…+3 + number input |
-| 2.7 | **Spend Luck** to improve skill/save (1-to-1) | **Todo** | Pool rules settled (0–20, 3d6 start, narrative restore); no spend UI |
+| 2.7 | **Spend Luck** to improve skill/save (1-to-1) | **Done** | Chat: spend N Luck to next outcome band; not on Luck save |
 | 2.8 | **Skill defaults** (extra dice or default +adv) | **Todo** | Per-skill or actor settings; nowhere in schema |
-| 2.9 | **Rerolls** (from chat or sheet) | **Todo** | Chat card is display-only |
+| 2.9 | **Rerolls** (from chat or sheet) | **Done** | Free chat reroll on skill/class-save cards (no Luck cost) |
 
 Also related (not in your list, but POC-adjacent):
 
@@ -67,11 +67,11 @@ chat card; optional per-skill default adv count.
 
 **Suggested work**
 
-1. Check dialog (skip by default; open with Ctrl/⌘-click or setting).
+1. Check dialog (skip by default; open with Ctrl/⌘-click or setting). — **Done**
 2. AdvantageState → formula (`Nd10kh2` / `kl2` style) — **Done** (signed net).
-3. Allow Luck `value` **0–20** (generation 3d6); spend on chat reduces score.
-4. Luck save proficiency on actor + roll entry on sheet.
-5. Chat buttons: spend Luck, reroll (spend Luck unless free once — **decide**).
+3. Allow Luck `value` **0–20** (generation 3d6); spend on chat reduces score. — **Done** (0–20 + spend-to-next-band)
+4. Luck save proficiency on actor + roll entry on sheet. — **Done**
+5. Chat buttons: spend Luck (N to next outcome), free reroll. — **Done**
 6. Actor/skill flags: `defaultAdvantage`, `baseDice` (default 2).
 7. Narrative restore: GM edits Luck up (no auto rest recovery).
 
@@ -83,15 +83,15 @@ chat card; optional per-skill default adv count.
 |---|---|---|---|
 | 3.1 | **Attack rolls** (`d20` + attr + proficiency vs AC) | **Todo** | `combat.attackBonus` stub = 0; no attack roll path |
 | 3.2 | **Damage rolls** | **Todo** | `meleeDamageBonus` stub; no weapon items |
-| 3.3 | **Wound rolls** (`d20 + Luck mod` by wound count + body part → effect) | **Partial** | Manual **Wounds** counter; effect table in source `Kedom RPG.md` — not rolled. PF2e-style “severity 1–15” in `80-criticals.md` is **design notes only**, not play |
-| 3.4 | **Spend Luck** (combat / ignore wound result) | **Todo** | Same Luck pool as §2; “spend all Luck to ignore wound” in source note |
+| 3.3 | **Wound rolls** (`d20 + Luck mod` by wound count + `d8` body part → effect) | **Done** | Take Wound on Combat tab; matrix + body part; chat card |
+| 3.4 | **Spend Luck** (combat / ignore wound result) | **Partial** | Spend-all ignore on wound card **Done**; spend on attack waits for C |
 
 Also related:
 
 | Capability | Status | Notes |
 |---|---|---|
 | AC derived | **Partial** | `10 + Dex mod`; armour not applied |
-| HP / Wounded flag | **Partial** | HP + wound count editable; Wounded (`>= 1`) not derived/enforced in code |
+| HP / Wounded flag | **Partial** | Wounded derived (`wounds >= 1`); header badge; natural HP recovery not yet blocked |
 | Shock, initiative, targets | **Todo** | Out of minimal POC unless needed for attack demo |
 
 **POC minimum for §3:** weapon item (or sheet attack line) → attack + damage chat; on 0 HP /
@@ -111,21 +111,19 @@ effect; spend Luck on attack or to void wound result. Do **not** implement PF2e 
 ## Suggested build order
 
 ```text
-A. Roll UX          dialog → adv/disadv → difficulty          (§2.4–2.6)
-B. Luck             pool + Luck save + spend + reroll         (§2.3, 2.7, 2.9, 3.4)
+A. Roll UX          dialog → adv/disadv → difficulty          (§2.4–2.6)  Done
+B. Luck             pool + Luck save + spend + reroll         (§2.3, 2.7, 2.9) Done
+D. Wounds           wound roll + Luck ignore                  (§3.3–3.4) Done (ignore); attack spend → C
 C. Combat core      weapon → attack → damage                  (§3.1–3.2)
-D. Wounds           wound roll + Luck ignore                  (§3.3–3.4)
 E. Character create origin/focus items + birthplace/culture   (§1.1–1.5)
 F. Skill defaults   per-skill dice/adv presets                (§2.8)
 ```
 
-A→B unlocks the skill/save fantasy of the POC. C→D unlocks combat. E can parallel once Item
-types exist. F is polish.
+A→B unlocks the skill/save fantasy of the POC. **D before C** unlocks the wound loop without
+weapons. C wires 0 HP / crit → Take Wound. E can parallel once Item types exist. F is polish.
 
 **Doc/code sync (do early, cheap):** rename Strain Save → Strain roll in UI; Strain Limit =
-`10 + Focus mod`; Wounded when `wounds >= 1`; Luck ability `value` min/max **0–20** (today
-schema is 3–18 for all abilities) — see [10-attributes.md](../rules/10-attributes.md),
-[50-wounds-strain.md](../rules/50-wounds-strain.md).
+`10 + Focus mod`. Wounded (`wounds >= 1`) and Luck `0–20` are done.
 
 ---
 

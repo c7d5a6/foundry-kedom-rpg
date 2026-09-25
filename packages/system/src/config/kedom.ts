@@ -3,8 +3,12 @@
 export const ABILITY_KEYS = ["mgh", "dex", "kno", "foc", "pre", "lck"] as const;
 export type AbilityKey = (typeof ABILITY_KEYS)[number];
 
-/** Inclusive max score → modifier. Symmetric 1/2/3/4/3/2/1 bands over 3–18. */
+/**
+ * Inclusive max score → modifier. Core bands over 3–18; Luck extends 0–2 (−3) and
+ * 19–20 (+3) per docs.
+ */
 export const ABILITY_MOD_BANDS: ReadonlyArray<{ max: number; mod: number }> = [
+  { max: 2, mod: -3 },
   { max: 3, mod: -3 },
   { max: 5, mod: -2 },
   { max: 8, mod: -1 },
@@ -12,7 +16,12 @@ export const ABILITY_MOD_BANDS: ReadonlyArray<{ max: number; mod: number }> = [
   { max: 15, mod: 1 },
   { max: 17, mod: 2 },
   { max: 18, mod: 3 },
+  { max: 20, mod: 3 },
 ];
+
+/** Luck ability score range (spendable pool). Other abilities stay 3–18. */
+export const LUCK_SCORE_MIN = 0;
+export const LUCK_SCORE_MAX = 20;
 
 export const PROFICIENCY_TIERS = [
   "untrained",

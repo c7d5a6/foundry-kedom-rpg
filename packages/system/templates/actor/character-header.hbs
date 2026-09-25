@@ -17,48 +17,58 @@
     </div>
 
     <div class="kedom-meters">
-      <div
-        class="kedom-meter kedom-meter--hp kedom-meter--{{resources.hp.band}}"
-        data-resource="hp"
-        data-action="editResource"
-        title="{{localize "KEDOM.Attributes.hp"}}"
-      >
+      <div class="kedom-meter-hp-row">
         <div
-          class="kedom-meter__track"
-          role="meter"
-          aria-valuemin="0"
-          aria-valuemax="{{resources.hp.max}}"
-          aria-valuenow="{{resources.hp.value}}"
-          aria-label="{{localize "KEDOM.Attributes.hp"}}"
+          class="kedom-meter kedom-meter--hp"
+          data-resource="hp"
+          data-action="editResource"
+          title="{{localize "KEDOM.Attributes.hp"}}"
         >
-          <div class="kedom-meter__fill" style="--kedom-meter-pct: {{resources.hp.pct}}%;"></div>
-        </div>
-        <div class="kedom-meter__content">
-          <span class="kedom-meter__name">{{localize "KEDOM.Attributes.hpShort"}}</span>
-          <span class="kedom-meter__value">{{resources.hp.value}}</span>
-          <input
-            class="kedom-meter__edit-value"
-            type="number"
-            name="system.attributes.hp.value"
-            value="{{resources.hp.value}}"
-            min="0"
+          <div
+            class="kedom-meter__track"
+            role="meter"
+            aria-valuemin="0"
+            aria-valuemax="{{resources.hp.max}}"
+            aria-valuenow="{{resources.hp.value}}"
             aria-label="{{localize "KEDOM.Attributes.hp"}}"
-          />
-          <span class="kedom-meter__sep">/</span>
-          {{#if isEdit}}
+          >
+            <div class="kedom-meter__fill" style="--kedom-meter-pct: {{resources.hp.pct}}%;"></div>
+          </div>
+          <div class="kedom-meter__content">
+            <span class="kedom-meter__name">{{localize "KEDOM.Attributes.hpShort"}}</span>
+            <span class="kedom-meter__value">{{resources.hp.value}}</span>
             <input
-              class="kedom-meter__max-input"
+              class="kedom-meter__edit-value"
               type="number"
-              name="system.attributes.hp.max"
-              value="{{resources.hp.max}}"
+              name="system.attributes.hp.value"
+              value="{{resources.hp.value}}"
               min="0"
-              data-action=""
-              aria-label="{{localize "KEDOM.Attributes.hp"}} max"
+              aria-label="{{localize "KEDOM.Attributes.hp"}}"
             />
-          {{else}}
-            <span class="kedom-meter__max">{{resources.hp.max}}</span>
-          {{/if}}
+            <span class="kedom-meter__sep">/</span>
+            {{#if isEdit}}
+              <input
+                class="kedom-meter__max-input"
+                type="number"
+                name="system.attributes.hp.max"
+                value="{{resources.hp.max}}"
+                min="0"
+                data-action=""
+                aria-label="{{localize "KEDOM.Attributes.hp"}} max"
+              />
+            {{else}}
+              <span class="kedom-meter__max">{{resources.hp.max}}</span>
+            {{/if}}
+          </div>
         </div>
+
+        <span
+          class="kedom-header-wounds{{#if resources.wounded}} kedom-header-wounds--wounded{{/if}}"
+          title="{{localize "KEDOM.Attributes.wounds"}}{{#if resources.wounded}} — {{localize "KEDOM.Condition.wounded"}}{{/if}}"
+        >
+          <span class="kedom-header-wounds__abbr">{{localize "KEDOM.Attributes.woundsShort"}}</span>
+          <span class="kedom-header-wounds__value">{{resources.wounds.value}}</span>
+        </span>
       </div>
 
       <div class="kedom-meter-strain-row">

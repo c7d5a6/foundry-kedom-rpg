@@ -6,6 +6,7 @@ import {
   SAVE_KEYS,
   SKILL_KEYS,
 } from "../config/kedom.ts";
+import { BODY_PART_KEYS } from "../config/wound-table.ts";
 import { SKILL_FIXED_SPECIALIZATIONS } from "../config/specializations.ts";
 
 function fixedSpecializationLangKeys(): string[] {
@@ -61,6 +62,10 @@ const TEMPLATE_EXPANDERS: {
     expand: () => DIFFICULTY_COLUMNS.map((d) => `KEDOM.DifficultyColumn.${d}`),
   },
   {
+    pattern: /^KEDOM\.Wound\.BodyPart\.\$\{[^}]+\}$/,
+    expand: () => BODY_PART_KEYS.map((p) => `KEDOM.Wound.BodyPart.${p}`),
+  },
+  {
     pattern: /^KEDOM\.Specialization\.\$\{[^}]+\}\.\$\{[^}]+\}$/,
     expand: () => fixedSpecializationLangKeys(),
   },
@@ -72,9 +77,11 @@ export function configDrivenLangKeys(): string[] {
     ...ABILITY_KEYS.flatMap((k) => [`KEDOM.Ability.${k}.label`, `KEDOM.Ability.${k}.abbr`]),
     ...SKILL_KEYS.map((k) => `KEDOM.Skill.${k}`),
     ...SAVE_KEYS.map((k) => `KEDOM.Save.${k}`),
+    "KEDOM.Save.luck",
     ...PROFICIENCY_TIERS.map((t) => `KEDOM.Proficiency.${t}`),
     ...OUTCOME_KINDS.map((o) => `KEDOM.Outcome.${o}`),
     ...DIFFICULTY_COLUMNS.map((d) => `KEDOM.DifficultyColumn.${d}`),
+    ...BODY_PART_KEYS.map((p) => `KEDOM.Wound.BodyPart.${p}`),
     ...fixedSpecializationLangKeys(),
   ];
 }
