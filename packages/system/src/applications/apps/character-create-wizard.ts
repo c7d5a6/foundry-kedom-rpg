@@ -10,9 +10,16 @@ import {
   REGIONS,
   getClass,
   getCulture,
+  resolveTalentPickBudget,
+  classSaveSystemData,
   type CreationAbilityKey,
   type RegionKey,
 } from "../../config/creation.ts";
+import {
+  featureKeysForCreate,
+  featureTalentCreateData,
+} from "../../creation/class-features.ts";
+import { abilityModifier } from "../../derivations/ability-mod.ts";
 import {
   backgroundsForRegion,
   getBackground,
@@ -72,6 +79,8 @@ type Draft = {
   /** Extra free pick from any skill (after background table grants). */
   bonusFree: ResolvePick;
   classKey: string | null;
+  /** Raw hit-die roll total (before Might mod), set when class is picked. */
+  hitDieTotal: number | null;
 };
 
 function emptyAbilities(): Record<CreationAbilityKey, number | null> {
@@ -120,6 +129,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       roll2OriginalLabel: "",
       bonusFree: emptyPick(),
       classKey: null,
+      hitDieTotal: null,
     };
   }
 
@@ -337,8 +347,12 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
             .map((c) => ({
               key: c.key,
               label: localize(c.labelKey),
+              hitDie: c.hitDie,
               selected: d.classKey === c.key,
             }));
+
+    const startingHp = this.#startingHp();
+    const selectedClass = d.classKey ? getClass(d.classKey) : undefined;
 
     const combatOptions = COMBAT_SKILLS.map((key) => ({
       key,
@@ -412,6 +426,16 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       bonusSpecUI: this.#specUI("bonus", d.bonusFree),
       bonusResolvedLabel: bonusResolved ? formatGrantLabel(bonusResolved) : "",
       classOptions,
+      selectedClassHitDie: selectedClass?.hitDie ?? "",
+      startingHp,
+      startingHpLabel:
+        startingHp !== null && selectedClass
+          ? game.i18n.format("KEDOM.Creation.Wizard.StartingHp", {
+              hp: String(startingHp),
+              hitDie: selectedClass.hitDie,
+              roll: String(d.hitDieTotal ?? 0),
+            })
+          : "",
       combatOptions,
       skillOptions,
       confirmLines: this.#confirmLines(),
@@ -419,6 +443,14 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       isFirst: d.stepIndex === 0,
       isLast: d.stepIndex === STEPS.length - 1,
     };
+  }
+
+  /** Hit die roll + Might mod, min 1. Null until a class is picked and rolled. */
+  #startingHp(): number | null {
+    const d = this.#draft;
+    if (d.hitDieTotal === null || !d.classKey) return null;
+    const mgh = d.abilities.mgh ?? 10;
+    return Math.max(1, Math.floor(d.hitDieTotal + abilityModifier(mgh)));
   }
 
   #specUI(
@@ -534,6 +566,19 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       const c = getClass(d.classKey);
       if (c) lines.push(localize(c.labelKey));
     }
+    const hp = this.#startingHp();
+    if (hp !== null && d.classKey) {
+      const c = getClass(d.classKey);
+      if (c) {
+        lines.push(
+          game.i18n.format("KEDOM.Creation.Wizard.StartingHp", {
+            hp: String(hp),
+            hitDie: c.hitDie,
+            roll: String(d.hitDieTotal ?? 0),
+          }),
+        );
+      }
+    }
     const grants = this.#ownedGrants();
     if (grants.length) {
       lines.push(grants.map((g) => formatGrantLabel(g)).join(", "));
@@ -585,7 +630,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
         return true;
       }
       case "className":
-        return Boolean(d.classKey && d.name.trim());
+        return Boolean(d.classKey && d.name.trim() && d.hitDieTotal !== null);
       case "confirm":
         return true;
       default:
@@ -687,6 +732,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     if (!getCulture(this.#draft.regionKey, key)) return;
     this.#draft.cultureKey = key;
     this.#draft.classKey = null;
+    this.#draft.hitDieTotal = null;
     await this.render();
   }
 
@@ -702,6 +748,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     if (!pick) return;
     this.#draft.cultureKey = pick.key;
     this.#draft.classKey = null;
+    this.#draft.hitDieTotal = null;
     await this.render();
   }
 
@@ -881,9 +928,15 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     target: HTMLElement,
   ): Promise<void> {
     const key = target.dataset.classKey;
-    if (!key || !getClass(key)) return;
+    const classDef = key ? getClass(key) : undefined;
+    if (!key || !classDef) return;
     this.#draft.classKey = key;
     this.#readNameFromForm();
+    const { total } = await postCreationRoll(
+      classDef.hitDie,
+      game.i18n.format("KEDOM.Creation.Wizard.HpRollFlavor", { hitDie: classDef.hitDie }),
+    );
+    this.#draft.hitDieTotal = total;
     await this.render();
   }
 
@@ -928,20 +981,37 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const backgroundLabel = localize(background.labelKey);
     const classLabel = localize(classDef.labelKey);
 
+    const featureKeys = featureKeysForCreate(culture.raceFeatures, classDef.classFeatures);
+    const featureItems = featureKeys.map((key) => featureTalentCreateData(key));
+    const talentPicks = resolveTalentPickBudget(culture, classDef);
+
+    const hpMax = this.#startingHp();
+    if (hpMax === null || d.hitDieTotal === null) {
+      ui.notifications.warn(localize("KEDOM.Creation.Wizard.IncompleteStep"));
+      return;
+    }
+
     const actorData = {
       name: d.name.trim() || localize("KEDOM.Creation.Wizard.DefaultName"),
       type: "character",
       system: {
         abilities,
         skills,
+        saves: classSaveSystemData(classDef),
         details: {
+          level: 1,
           culture: cultureLabel,
           background: backgroundLabel,
           class: classLabel,
           region: "",
         },
-        combat: {
-          attackBonus: classDef.attackBonus,
+        attributes: {
+          hp: { value: hpMax, max: hpMax },
+        },
+      },
+      flags: {
+        kedom: {
+          talentPicks,
         },
       },
       items: [
@@ -962,9 +1032,9 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
             subType: "class",
             description: "",
             hitDie: classDef.hitDie,
-            attackBonus: classDef.attackBonus,
           },
         },
+        ...featureItems,
       ],
     };
 

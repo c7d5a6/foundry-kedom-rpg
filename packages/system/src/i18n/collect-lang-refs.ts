@@ -9,6 +9,17 @@ import {
 import { BODY_PART_KEYS } from "../config/wound-table.ts";
 import { SKILL_FIXED_SPECIALIZATIONS } from "../config/specializations.ts";
 import { ORIGIN_SUBTYPES } from "../config/origin.ts";
+import { CREATION_FREE_SPEC_I18N } from "../config/creation-spec-labels.ts";
+import { TALENT_CATEGORIES } from "../config/talent.ts";
+
+const CREATION_STEP_IDS = [
+  "abilities",
+  "region",
+  "culture",
+  "background",
+  "className",
+  "confirm",
+] as const;
 
 function fixedSpecializationLangKeys(): string[] {
   const keys: string[] = [];
@@ -71,6 +82,21 @@ const TEMPLATE_EXPANDERS: {
     expand: () => ORIGIN_SUBTYPES.map((s) => `KEDOM.Origin.SubType.${s}`),
   },
   {
+    pattern: /^KEDOM\.Talent\.Category\.\$\{[^}]+\}$/,
+    expand: () => TALENT_CATEGORIES.map((c) => `KEDOM.Talent.Category.${c}`),
+  },
+  {
+    pattern: /^KEDOM\.Creation\.Step\.\$\{[^}]+\}$/,
+    expand: () => CREATION_STEP_IDS.map((s) => `KEDOM.Creation.Step.${s}`),
+  },
+  {
+    pattern: /^KEDOM\.Creation\.FreeSpec\.\$\{[^}]+\}$/,
+    expand: () =>
+      [...new Set(Object.values(CREATION_FREE_SPEC_I18N))].map(
+        (leaf) => `KEDOM.Creation.FreeSpec.${leaf}`,
+      ),
+  },
+  {
     pattern: /^KEDOM\.Specialization\.\$\{[^}]+\}\.\$\{[^}]+\}$/,
     expand: () => fixedSpecializationLangKeys(),
   },
@@ -88,6 +114,7 @@ export function configDrivenLangKeys(): string[] {
     ...DIFFICULTY_COLUMNS.map((d) => `KEDOM.DifficultyColumn.${d}`),
     ...BODY_PART_KEYS.map((p) => `KEDOM.Wound.BodyPart.${p}`),
     ...ORIGIN_SUBTYPES.map((s) => `KEDOM.Origin.SubType.${s}`),
+    ...TALENT_CATEGORIES.map((c) => `KEDOM.Talent.Category.${c}`),
     ...fixedSpecializationLangKeys(),
   ];
 }

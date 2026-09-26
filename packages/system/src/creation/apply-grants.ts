@@ -4,6 +4,7 @@ import {
   type ProficiencyTier,
   type SkillKey,
 } from "../config/kedom.ts";
+import { clampProficiencyToLevel, proficiencyRank } from "../config/proficiency-gates.ts";
 import type { CharacterData, SkillFields, SkillSpecialization } from "../data/actor/character.ts";
 import type { GrantsFields } from "../data/item/grants.ts";
 import type { TalentDataFields } from "../data/item/talent.ts";
@@ -45,6 +46,12 @@ export function mergeSpecializationGrants(
   return [...bySlug.values()];
 }
 
+type AppliedAbilityDeltas = Record<string, number>;
+
+function abilityDeltaKey(itemId: string, abilityKey: string): string {
+  return `${itemId}:${abilityKey}`;
+}
+
 function readItemGrants(item: Item.Implementation): GrantsFields | null {
   const type = item.type as string;
   if (type === "origin") {
@@ -58,10 +65,25 @@ function readItemGrants(item: Item.Implementation): GrantsFields | null {
   return null;
 }
 
-type AppliedAbilityDeltas = Record<string, number>;
+function characterLevel(actor: Actor.Implementation): number {
+  const details = (actor.system as CharacterData & { details?: { level?: number } }).details;
+  return Math.max(1, Math.floor(details?.level ?? 1));
+}
 
-function abilityDeltaKey(itemId: string, abilityKey: string): string {
-  return `${itemId}:${abilityKey}`;
+function kedomFlags(actor: Actor.Implementation): {
+  grantsApplied?: string;
+  appliedAbilityDeltas?: AppliedAbilityDeltas;
+} {
+  return (
+    (
+      actor.flags as {
+        kedom?: {
+          grantsApplied?: string;
+          appliedAbilityDeltas?: AppliedAbilityDeltas;
+        };
+      }
+    ).kedom ?? {}
+  );
 }
 
 function buildFingerprint(items: Item.Implementation[]): string {
@@ -75,9 +97,68 @@ function buildFingerprint(items: Item.Implementation[]): string {
 }
 
 /**
- * Apply grants from all owned origin + talent items onto the actor.
- * Skills take the max proficiency; specializations merge by slug;
- * ability baseMod deltas apply once per item+ability (tracked in flags).
+ * Apply ability deltas from a newly-added talent.
+ * Talents do not grant skill proficiency — use Active Effects for advantage/etc.
+ */
+export async function applyTalentAbilityGrants(
+  actor: Actor.Implementation,
+  talent: Item.Implementation,
+): Promise<{ skillsUpdated: number; specsAdded: number; abilitiesUpdated: number }> {
+  if ((talent.type as string) !== "talent" || !talent.id) {
+    return { skillsUpdated: 0, specsAdded: 0, abilitiesUpdated: 0 };
+  }
+  const grants = readItemGrants(talent);
+  if (!grants) return { skillsUpdated: 0, specsAdded: 0, abilitiesUpdated: 0 };
+
+  const flags = kedomFlags(actor);
+  const appliedDeltas: AppliedAbilityDeltas = { ...(flags.appliedAbilityDeltas ?? {}) };
+  let abilitiesUpdated = 0;
+  const abilityUpdate: Record<string, unknown> = {};
+  const system = actor.system as CharacterData;
+
+  for (const ag of grants.abilities ?? []) {
+    const key = ag.key as AbilityKey;
+    const delta = Math.floor(ag.delta ?? 0);
+    if (delta === 0) continue;
+    const flagKey = abilityDeltaKey(talent.id, key);
+    const already = appliedDeltas[flagKey] ?? 0;
+    const add = delta - already;
+    if (add === 0) continue;
+    const ability = (system.abilities as Record<string, { baseMod?: number }>)[key];
+    const baseMod = Math.floor(ability?.baseMod ?? 0) + add;
+    abilityUpdate[`system.abilities.${key}.baseMod`] = baseMod;
+    appliedDeltas[flagKey] = delta;
+    abilitiesUpdated += 1;
+  }
+
+  if (abilitiesUpdated === 0) {
+    return { skillsUpdated: 0, specsAdded: 0, abilitiesUpdated: 0 };
+  }
+
+  await actor.update({
+    ...abilityUpdate,
+    flags: {
+      kedom: {
+        ...flags,
+        appliedAbilityDeltas: appliedDeltas,
+      },
+    },
+  });
+
+  ui.notifications.info(
+    game.i18n.format("KEDOM.Sheet.GrantsApplied", {
+      skills: "0",
+      specs: "0",
+      abilities: String(abilitiesUpdated),
+    }),
+  );
+
+  return { skillsUpdated: 0, specsAdded: 0, abilitiesUpdated };
+}
+
+/**
+ * Apply grants from owned origin (+ talent ability deltas) onto the actor.
+ * Skill / specialization proficiency grants come from **origin** items only.
  */
 export async function applyGrants(actor: Actor.Implementation): Promise<{
   applied: boolean;
@@ -91,17 +172,14 @@ export async function applyGrants(actor: Actor.Implementation): Promise<{
   });
 
   const stableFingerprint = buildFingerprint(grantItems);
-  const flags = (
-    actor.flags as {
-      kedom?: { grantsApplied?: string; appliedAbilityDeltas?: AppliedAbilityDeltas };
-    }
-  ).kedom ?? {};
+  const flags = kedomFlags(actor);
 
   if (flags.grantsApplied === stableFingerprint) {
     ui.notifications.warn(game.i18n.localize("KEDOM.Sheet.GrantsAlreadyApplied"));
     return { applied: false, skillsUpdated: 0, specsAdded: 0, abilitiesUpdated: 0 };
   }
 
+  const level = characterLevel(actor);
   const system = actor.system as CharacterData;
   const skillsUpdate: Record<string, unknown> = {};
   let skillsUpdated = 0;
@@ -111,8 +189,10 @@ export async function applyGrants(actor: Actor.Implementation): Promise<{
   const specGrantsByKey = new Map<SkillKey, { slug: string; label: string }[]>();
 
   for (const item of grantItems) {
+    // Talents do not grant skill proficiency or specializations.
+    if ((item.type as string) === "talent") continue;
     const grants = readItemGrants(item);
-    if (!grants) continue;
+    if (!grants || !item.id) continue;
     for (const sg of grants.skills ?? []) {
       const key = sg.skillKey as SkillKey;
       const prev = skillGrantsByKey.get(key);
@@ -133,8 +213,12 @@ export async function applyGrants(actor: Actor.Implementation): Promise<{
   for (const [key, grantedTier] of skillGrantsByKey) {
     const current = skills[key];
     if (!current) continue;
-    const next = maxProficiencyTier(current.proficiency, grantedTier);
-    if (next !== current.proficiency) {
+    const desired = maxProficiencyTier(current.proficiency, grantedTier);
+    const next = clampProficiencyToLevel(desired, level);
+    if (
+      next !== current.proficiency &&
+      proficiencyRank(next) > proficiencyRank(current.proficiency)
+    ) {
       skillsUpdate[`system.skills.${key}.proficiency`] = next;
       skillsUpdated += 1;
     }

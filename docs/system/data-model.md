@@ -90,6 +90,7 @@ details:
   hitDie       persisted
   biography    persisted, HTMLField
   # POC shipped:
+  level        persisted   character level (sheet header; proficiency gates)
   region       persisted   birthplace (wizard creation-only; omitted from sheet identity line)
   culture      persisted   race / culture label (sheet: culture · background · class)
   background   persisted   background label
@@ -135,7 +136,7 @@ Seven. Each has a reason to exist that no other type covers.
 | `weapon` | Attack profile, damage, shock, ranges. **POC shipped:** `skill` (`punch`\|`shoot`\|`stab`), `damageFormula` (default `1d6`), `attackBonus`. Physical mixin / shock / ranges deferred. |
 | `armor` | AC contribution and skill penalty. |
 | `gear` | Everything else carried. |
-| `talent` | Character talent (WWN-style feat; not the Focus ability). Grants modifiers and unlocks. **POC shipped:** description + grant arrays; Apply grants on sheet. |
+| `talent` | Character talent (WWN-style feat; not the Focus ability). Grants + transferable Active Effects. **POC:** description, grant arrays, skill-advantage AE helper; auto-apply on embed with level-gate overflow. |
 | `power` | Arts, spells, and abilities, behind a `subType` discriminator. |
 | `origin` | Race, background, or class, behind a `subType` discriminator. **POC shipped:** `subType`, grants, class stubs (`hitDie`, `attackBonus`). |
 
@@ -283,14 +284,24 @@ Because the modifier list is persisted with labels, the card can explain itself 
 ## Active Effects
 
 v14 Active Effects are primary documents: they live in compendiums, drag onto actors and
-tokens, modify token data, and expire on duration events. Kedom uses them as the *only*
-mechanism for conditional modifiers, with two subtypes:
+tokens, modify token data, and expire on duration events.
+
+**POC shipped:**
+
+- `CONFIG.ActiveEffect.legacyTransferral = false` — transfer effects stay on Items and apply
+  via `actor.allApplicableEffects()`.
+- Character sheet **Effects** tab: on-actor vs from-items lists.
+- Talent items embed transferable AEs; helper creates
+  `system.skills.<key>.defaultAdvantage` ADD +1 (e.g. Gifted Chirurgeon → Heal advantage).
+- Skill `defaultAdvantage` / combat stub paths are AE-ready in `prepareBaseData`.
+
+Planned subtypes (not yet registered as `CONFIG.ActiveEffect.dataModels`):
 
 - `condition` — the standard condition set from [../rules/40-combat.md](../rules/40-combat.md)
 - `injury` — the critical-injury tables from [../rules/80-criticals.md](../rules/80-criticals.md)
 
-Both ship as compendium content, not code. A group IV head injury is an effect document with
-a duration and a change list. There is no critical-injury engine
+Both will ship as compendium content, not code. A group IV head injury is an effect document
+with a duration and a change list. There is no critical-injury engine
 ([ADR-009](../research/05-decisions.md#adr-009--declarative-effects-and-a-handler-registry-no-user-authored-javascript)).
 
 Effects target the zero-initialised derived paths listed above. That list is therefore a

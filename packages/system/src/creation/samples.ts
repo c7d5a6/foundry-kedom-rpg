@@ -1,5 +1,7 @@
 import type { GrantsFields } from "../data/item/grants.ts";
 import type { OriginSubtype } from "../config/origin.ts";
+import type { TalentCategory } from "../config/talent.ts";
+import { featureTalentCreateData } from "./class-features.ts";
 
 export type SampleItemData = {
   name: string;
@@ -8,6 +10,7 @@ export type SampleItemData = {
   sampleId: string;
   img?: string;
   system: Record<string, unknown>;
+  effects?: Record<string, unknown>[];
 };
 
 function grants(partial: Partial<GrantsFields>): GrantsFields {
@@ -29,14 +32,31 @@ function origin(
     name,
     type: "origin",
     img: "icons/svg/mystery-man.svg",
-    system: { subType, description: "", hitDie: "1d6", attackBonus: 0, ...system },
+    system: { subType, description: "", hitDie: "1d6", ...system },
+  };
+}
+
+function talent(
+  sampleId: string,
+  name: string,
+  category: TalentCategory,
+  system: Record<string, unknown>,
+  extras?: { img?: string; effects?: Record<string, unknown>[] },
+): SampleItemData {
+  return {
+    sampleId,
+    name,
+    type: "talent",
+    img: extras?.img ?? "icons/svg/aura.svg",
+    system: { category, featureKey: "", grants: grants({}), ...system },
+    effects: extras?.effects,
   };
 }
 
 /** Hand-authored demo items for POC character create (no compendium). */
 export const CREATION_SAMPLES: SampleItemData[] = [
   origin("sample-race-human-nerland", "Human (Nerland)", "race", {
-    description: "<p>Adaptable folk of Náirland.</p>",
+    description: "<p>Adaptable folk of Náirland — +1 Expert talent pick.</p>",
     grants: grants({}),
   }),
   origin("sample-background-hunter", "Hunter", "background", {
@@ -49,25 +69,85 @@ export const CREATION_SAMPLES: SampleItemData[] = [
     }),
   }),
   origin("sample-class-warrior", "Warrior", "class", {
-    description: "<p>Martial class stub — HD and attack bonus for POC.</p>",
-    hitDie: "1d10",
-    attackBonus: 1,
+    description: "<p>Full Warrior — HD 1d6+2, Killing Blow, Veteran's Luck.</p>",
+    hitDie: "1d6+2",
     grants: grants({
       skills: [{ skillKey: "exert", proficiency: "apprentice" }],
     }),
   }),
+  origin("sample-class-expert", "Expert", "class", {
+    description: "<p>Full Expert — HD 1d6, Masterful Expertise.</p>",
+    hitDie: "1d6",
+    grants: grants({}),
+  }),
   {
-    sampleId: "sample-talent-alert",
-    name: "Alert",
-    type: "talent",
-    img: "icons/svg/eye.svg",
-    system: {
-      description: "<p>Expert talent stub — Notice and a touch of Focus.</p>",
+    sampleId: "sample-feature-killing-blow",
+    ...featureTalentCreateData("killingBlow"),
+  },
+  {
+    sampleId: "sample-feature-veterans-luck",
+    ...featureTalentCreateData("veteransLuck"),
+  },
+  {
+    sampleId: "sample-feature-masterful-expertise",
+    ...featureTalentCreateData("masterfulExpertise"),
+  },
+  {
+    sampleId: "sample-feature-human-expert",
+    ...featureTalentCreateData("humanExpertTalent"),
+  },
+  {
+    sampleId: "sample-feature-warrior-talents",
+    ...featureTalentCreateData("warriorTalentPicks"),
+  },
+  {
+    sampleId: "sample-feature-expert-talents",
+    ...featureTalentCreateData("expertTalentPicks"),
+  },
+  {
+    sampleId: "sample-feature-adventurer-talents",
+    ...featureTalentCreateData("adventurerTalentPicks"),
+  },
+  talent(
+    "sample-talent-alert",
+    "Alert",
+    "warrior",
+    {
+      description: "<p>Warrior-pool talent stub — a touch of Focus.</p>",
       grants: grants({
-        skills: [{ skillKey: "notice", proficiency: "apprentice" }],
         abilities: [{ key: "foc", delta: 1 }],
       }),
     },
+    { img: "icons/svg/eye.svg" },
+  ),
+  {
+    sampleId: "sample-talent-gifted-chirurgeon",
+    name: "Gifted Chirurgeon",
+    type: "talent",
+    img: "icons/svg/blood.svg",
+    system: {
+      description:
+        "<p>Expert-pool talent — advantage on Heal checks via Active Effect (no proficiency grant).</p>",
+      category: "expert",
+      featureKey: "",
+      grants: grants({}),
+    },
+    effects: [
+      {
+        name: "Heal Advantage",
+        img: "icons/svg/upgrade.svg",
+        transfer: true,
+        disabled: false,
+        changes: [
+          {
+            key: "system.skills.heal.defaultAdvantage",
+            mode: 2, // CONST.ACTIVE_EFFECT_MODES.ADD
+            value: "1",
+            priority: 20,
+          },
+        ],
+      },
+    ],
   },
 ];
 
@@ -85,6 +165,7 @@ export async function addSampleItems(actor: Actor.Implementation): Promise<numbe
       img: sample.img,
       system: sample.system,
       flags: { kedom: { sampleId: sample.sampleId } },
+      ...(sample.effects?.length ? { effects: sample.effects } : {}),
     }),
   );
 
@@ -93,7 +174,7 @@ export async function addSampleItems(actor: Actor.Implementation): Promise<numbe
     return 0;
   }
 
-  // @ts-expect-error fvtt-types: origin/talent Item subtypes not in core union yet
+  // @ts-expect-error fvtt-types: origin/talent subtypes
   await actor.createEmbeddedDocuments("Item", toCreate);
   ui.notifications.info(
     game.i18n.format("KEDOM.Sheet.SamplesAdded", { count: String(toCreate.length) }),

@@ -106,7 +106,8 @@
         "inventory": "Инвентарь",
         "powers": "Способности",
         "skills": "Навыки",
-        "stats": "Характеристики"
+        "stats": "Характеристики",
+        "talents": "Таланты"
       },
       "Tabs": "Вкладки листа",
       "WoundNotes": "Заметки о ранах",
@@ -133,6 +134,11 @@
         "deleteWeapon": "Убрать оружие",
         "createOrigin": "Создать происхождение",
         "createTalent": "Создать талант",
+        "createEffect": "Создать эффект",
+        "deleteEffect": "Удалить эффект",
+        "editEffect": "Изменить эффект",
+        "toggleEffect": "Вкл/выкл эффект",
+        "openEffectSource": "Открыть предмет-источник",
         "deleteOwnedItem": "Убрать",
         "applyGrants": "Применить дары",
         "addSamples": "Добавить образцы",
@@ -144,11 +150,25 @@
       "WeaponsEmpty": "Создайте предмет «Оружие» и добавьте его персонажу.",
       "DeleteWeaponConfirm": "Убрать «{name}» у персонажа?",
       "DeleteOwnedItemConfirm": "Убрать «{name}» у персонажа?",
+      "DeleteEffectConfirm": "Удалить эффект «{name}»?",
       "Region": "Регион",
       "Culture": "Культура",
+      "Level": "Уровень",
+      "LevelShort": "Ур.",
       "RegionPlaceholder": "Место рождения / регион",
       "CulturePlaceholder": "Раса / культура",
       "Talents": "Таланты",
+      "TalentsEmpty": "Талантов пока нет. Создайте в режиме правки или перетащите предмет.",
+      "TalentNoDescription": "Нет описания.",
+      "EffectsOnCharacter": "На персонаже",
+      "EffectsOnCharacterEmpty": "На персонаже нет эффектов.",
+      "EffectsFromItems": "С предметов",
+      "EffectsFromItemsEmpty": "Нет переносимых эффектов с предметов.",
+      "EffectTransfer": "Переносится на актёра",
+      "EffectNoTransfer": "Только на предмете",
+      "EffectDisabled": "Выключен",
+      "EffectDeleteFromItem": "Удалите этот эффект на листе предмета-источника.",
+      "NewEffect": "Новый эффект",
       "GrantsApplied": "Дары применены — навыки {skills}, специализации {specs}, характеристики {abilities}.",
       "GrantsAlreadyApplied": "Дары уже применены для текущих происхождений и талантов.",
       "SamplesAdded": "Добавлено образцов: {count}.",
@@ -233,7 +253,6 @@
       "acMelee": "КБ в ближнем бою",
       "acRanged": "КБ против стрельбы",
       "acShort": "КБ",
-      "attackBonus": "Бонус атаки",
       "encumbrance": "Нагрузка",
       "experience": "Опыт",
       "hp": "Пункты здоровья",
@@ -330,7 +349,6 @@
       "subType": "Тип происхождения",
       "description": "Описание",
       "hitDie": "Кость хитов",
-      "attackBonus": "Классовый бонус атаки",
       "SubType": {
         "race": "Раса",
         "background": "Предыстория",
@@ -338,7 +356,26 @@
       }
     },
     "Talent": {
-      "description": "Описание"
+      "description": "Описание",
+      "category": "Категория",
+      "Category": {
+        "warrior": "Воин",
+        "expert": "Эксперт",
+        "any": "Любой",
+        "class": "Классовая способность",
+        "race": "Расовая способность"
+      },
+      "Feature": {
+        "killingBlow": "Смертельный удар"
+      },
+      "Effects": "Эффекты",
+      "EffectsHint": "Переносимые Active Effects действуют, пока талант на персонаже. «Добавить преимущество навыка» — для бонусов вроде Heal. Таланты не дают владение навыком.",
+      "EffectsEmpty": "На таланте пока нет эффектов.",
+      "AddSkillAdvantage": "Добавить преимущество навыка",
+      "SkillAdvantagePick": "Навык",
+      "SkillAdvantageEffectName": "Преимущество: {skill}",
+      "NewEffect": "Новый эффект",
+      "NewTalent": "Новый талант"
     },
     "Grants": {
       "json": "Дары (JSON)",
@@ -444,8 +481,7 @@
       "Class": {
         "warrior": "Воин",
         "expert": "Эксперт",
-        "mage": "Маг",
-        "adventurer": "Искатель (Воин/Эксперт)"
+        "adventurer": "Воин/Эксперт"
       },
       "FreeSpec": {
         "oldGods": "Старые боги",
@@ -530,7 +566,9 @@
         "WasRolled": "Выпало: {skill}",
         "PickSpecialization": "Выберите или введите специализацию:",
         "SpecLabel": "Специализация",
-        "ClassHint": "Выберите класс, доступный этой культуре, и введите имя.",
+        "ClassHint": "Выберите класс, доступный этой культуре (бросок стартовых хитов), и введите имя.",
+        "StartingHp": "Стартовые хиты {hp} (бросок {roll} на {hitDie} + Мощь)",
+        "HpRollFlavor": "Создание персонажа — хиты ({hitDie})",
         "NameLabel": "Имя персонажа",
         "ConfirmHint": "Создать этого персонажа?",
         "Back": "Назад",

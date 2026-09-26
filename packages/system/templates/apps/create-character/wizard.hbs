@@ -339,9 +339,13 @@
             data-class-key="{{key}}"
           >
             {{label}}
+            <span class="kedom-create-wizard__choice-meta">{{hitDie}}</span>
           </button>
         {{/each}}
       </div>
+      {{#if startingHpLabel}}
+        <p class="kedom-create-wizard__hp">{{startingHpLabel}}</p>
+      {{/if}}
       <label class="kedom-create-wizard__name">
         <span>{{localize "KEDOM.Creation.Wizard.NameLabel"}}</span>
         <input type="text" name="characterName" value="{{name}}" autocomplete="off" />

@@ -59,6 +59,11 @@ export class OriginSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     return Object.assign(context, {
       item: this.item,
       system: { ...system, subType },
+      systemFields: this.item.system.schema.fields,
+      enrichedDescription: await TextEditor.enrichHTML(system.description ?? "", {
+        secrets: this.item.isOwner,
+        relativeTo: this.item,
+      }),
       subTypeLabel: game.i18n.localize(`KEDOM.Origin.SubType.${subType}`),
       subTypeOptions: ORIGIN_SUBTYPES.map((value) => ({
         value,

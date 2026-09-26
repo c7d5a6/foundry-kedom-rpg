@@ -134,9 +134,26 @@
         {{actor.name}}
       {{/if}}
     </h1>
-    {{#if identityLine}}
-      <p class="kedom-identity__line">{{identityLine}}</p>
-    {{/if}}
+    <div class="kedom-identity__meta">
+      <div class="kedom-identity__level" title="{{localize "KEDOM.Sheet.Level"}}">
+        <span class="kedom-identity__level-label">{{localize "KEDOM.Sheet.LevelShort"}}</span>
+        {{#if isEdit}}
+          <input
+            class="kedom-identity__level-input"
+            type="number"
+            name="system.details.level"
+            value="{{level}}"
+            min="1"
+            aria-label="{{localize "KEDOM.Sheet.Level"}}"
+          />
+        {{else}}
+          <span class="kedom-identity__level-value">{{level}}</span>
+        {{/if}}
+      </div>
+      {{#if identityLine}}
+        <p class="kedom-identity__line">{{identityLine}}</p>
+      {{/if}}
+    </div>
   </div>
   {{!-- One gradient painted across the whole divider; mask = lines + hollow diamonds --}}
   <div class="kedom-sheet-divider" aria-hidden="true"></div>

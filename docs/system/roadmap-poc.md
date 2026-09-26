@@ -25,7 +25,7 @@ at volume). Status reflects **`packages/system` code today** vs the target below
 | 1.2 | Set **culture** (race / human sub-culture) | **Done** | Wizard → `details.culture` + race `origin` item |
 | 1.3 | Set **background** | **Done** | Wizard: free + choose 1 of 8 + 2×1d8 growth (Nerland draft); skills granted at create |
 | 1.4 | Set **class** | **Done** | Wizard → `details.class` + class `origin`; stub `hitDie` / `attackBonus` |
-| 1.5 | **Special abilities** (talents, racial arts, class features) | **Partial** | `talent` Item type exists; talents picking deferred from create wizard |
+| 1.5 | **Special abilities** (talents, racial arts, class features) | **Partial** | Talents tab + AE on talents (skill advantage); grant overflow on add; racial arts deferred |
 
 **POC minimum for §1:** ApplicationV2 **Create Character** wizard from the Actor Directory
 (attributes → region → culture → background → class/name → `Actor.create`). Sheet under-name

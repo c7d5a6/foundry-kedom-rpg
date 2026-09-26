@@ -15,8 +15,11 @@ import { appliedProficiencyBonus } from "../derivations/skill-proficiency.ts";
 import {
   attackBonusTotal,
   attackHits,
+  actorHasKillingBlow,
   buildAttackModifiers,
   buildDamageModifiers,
+  killingBlowAttackProficiency,
+  killingBlowDamageBonus,
 } from "./attack-helpers.ts";
 import { skillCheckIsSpecialized } from "./build-skill-check.ts";
 import { styleCheckRollHTML } from "./check-card.ts";
@@ -91,10 +94,10 @@ function buildAttackMods(
   const tierBonus = PROFICIENCY_BONUS[tier] ?? 0;
   const kind = SKILL_SPECIALIZATION_KIND[skillKey];
   const specialized = skillCheckIsSpecialized(kind ?? "none", false);
-  const proficiencyBonus = appliedProficiencyBonus({ tierBonus, specialized });
-  const attackBonus = Math.floor(
-    ((system.combat as { attackBonus?: number } | undefined)?.attackBonus ?? 0),
-  );
+  let proficiencyBonus = appliedProficiencyBonus({ tierBonus, specialized });
+  if (actorHasKillingBlow(actor)) {
+    proficiencyBonus = killingBlowAttackProficiency(proficiencyBonus);
+  }
 
   const skillLabel = localize(`KEDOM.Skill.${skillKey}`, skillKey);
   const tierLabel = localize(`KEDOM.Proficiency.${tier}`, tier);
@@ -107,8 +110,6 @@ function buildAttackMods(
     skillLabel,
     proficiencyBonus,
     proficiencyLabel: tierLabel,
-    attackBonus,
-    attackBonusLabel: localize("KEDOM.Attributes.attackBonus", "Attack Bonus"),
     weaponBonus: wsys.attackBonus,
     weaponBonusLabel: localize("KEDOM.Weapon.attackBonus", "Weapon Attack Bonus"),
   });
@@ -125,12 +126,28 @@ export function buildWeaponDamageModifiers(
   const meleeDamageBonus = Math.floor(
     ((system.combat as { meleeDamageBonus?: number } | undefined)?.meleeDamageBonus ?? 0),
   );
+
+  let killingBlowBonus = 0;
+  if (actorHasKillingBlow(actor)) {
+    const skill = (system.skills as Record<string, SkillFields>)[skillKey];
+    if (skill) {
+      const tier = skill.proficiency as ProficiencyTier;
+      const tierBonus = PROFICIENCY_BONUS[tier] ?? 0;
+      const kind = SKILL_SPECIALIZATION_KIND[skillKey];
+      const specialized = skillCheckIsSpecialized(kind ?? "none", false);
+      const base = appliedProficiencyBonus({ tierBonus, specialized });
+      killingBlowBonus = killingBlowDamageBonus(base);
+    }
+  }
+
   return buildDamageModifiers({
     abilityKey,
     mightMod,
     mightLabel: localize("KEDOM.Ability.mgh.label", "Might"),
     meleeDamageBonus,
     meleeDamageLabel: localize("KEDOM.Attributes.meleeDamage", "Melee Damage"),
+    killingBlowBonus,
+    killingBlowLabel: localize("KEDOM.Talent.Feature.killingBlow", "Killing Blow"),
   });
 }
 
@@ -201,7 +218,7 @@ async function styleDamageRollHTML(
 }
 
 /**
- * Attack: `1d20 + ability + skill proficiency + AB stubs`, then damage
+ * Attack: `1d20 + ability + skill proficiency` (± Killing Blow) `+ weapon AB`, then damage
  * (maximized on natural 20). Inspectable dice like skill/Luck cards.
  */
 export async function rollAttack(

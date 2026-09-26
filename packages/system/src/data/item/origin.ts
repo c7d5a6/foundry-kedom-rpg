@@ -7,7 +7,7 @@ import {
 
 export { ORIGIN_SUBTYPES, normalizeOriginSubtype, type OriginSubtype };
 
-const { HTMLField, NumberField, StringField } = foundry.data.fields;
+const { HTMLField, StringField } = foundry.data.fields;
 
 function originSchema() {
   return {
@@ -26,12 +26,6 @@ function originSchema() {
       blank: false,
       initial: "1d6",
     }),
-    attackBonus: new NumberField({
-      required: true,
-      nullable: false,
-      integer: true,
-      initial: 0,
-    }),
   };
 }
 
@@ -42,7 +36,6 @@ export type OriginDataFields = {
   description: string;
   grants: GrantsFields;
   hitDie: string;
-  attackBonus: number;
 };
 
 export class OriginData extends foundry.abstract.TypeDataModel<

@@ -18,23 +18,106 @@
   </header>
 
   <section class="kedom-item-sheet__body">
-    <div class="kedom-item-sheet__field kedom-item-sheet__field--block">
-      <label for="talent-desc">{{localize "KEDOM.Talent.description"}}</label>
+    <div class="kedom-item-sheet__field">
+      <label for="talent-category">{{localize "KEDOM.Talent.category"}}</label>
       {{#if editable}}
-        {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+        {{formInput systemFields.category value=source.system.category}}
       {{else}}
-        {{{system.description}}}
+        <span>{{categoryLabel}}</span>
       {{/if}}
     </div>
 
     <div class="kedom-item-sheet__field kedom-item-sheet__field--block">
-      <label for="talent-grants">{{localize "KEDOM.Grants.json"}}</label>
-      <p class="kedom-item-sheet__hint">{{localize "KEDOM.Grants.jsonHint"}}</p>
+      <label>{{localize "KEDOM.Talent.description"}}</label>
       {{#if editable}}
-        <textarea id="talent-grants" name="grantsJson" rows="10">{{grantsJson}}</textarea>
+        {{formInput
+          systemFields.description
+          value=source.system.description
+          enriched=enrichedDescription
+          toggled=true
+        }}
       {{else}}
-        <pre class="kedom-item-sheet__pre">{{grantsJson}}</pre>
+        <div class="kedom-item-sheet__prose">{{{enrichedDescription}}}</div>
       {{/if}}
     </div>
+
+    <section class="kedom-effects-panel">
+      <header class="kedom-effects-panel__header">
+        <h2 class="kedom-effects-panel__title">{{localize "KEDOM.Talent.Effects"}}</h2>
+        {{#if editable}}
+          <div class="kedom-effects-panel__actions">
+            <button
+              type="button"
+              class="kedom-effects-panel__btn"
+              data-action="addSkillAdvantage"
+              title="{{localize "KEDOM.Talent.AddSkillAdvantage"}}"
+            >
+              {{localize "KEDOM.Talent.AddSkillAdvantage"}}
+            </button>
+            <button
+              type="button"
+              class="kedom-effects-panel__btn"
+              data-action="createEffect"
+              title="{{localize "KEDOM.Sheet.Action.createEffect"}}"
+            >
+              {{localize "KEDOM.Sheet.Action.createEffect"}}
+            </button>
+          </div>
+        {{/if}}
+      </header>
+      <p class="kedom-item-sheet__hint">{{localize "KEDOM.Talent.EffectsHint"}}</p>
+      {{#if effects.length}}
+        <ul class="kedom-effects-list">
+          {{#each effects}}
+            <li class="kedom-effects-list__item{{#if disabled}} is-disabled{{/if}}">
+              <img class="kedom-effects-list__img" src="{{img}}" alt="" />
+              <div class="kedom-effects-list__info">
+                <span class="kedom-effects-list__name">{{name}}</span>
+                <span class="kedom-effects-list__meta">
+                  {{#if transfer}}{{localize "KEDOM.Sheet.EffectTransfer"}}{{else}}{{localize "KEDOM.Sheet.EffectNoTransfer"}}{{/if}}
+                  {{#if disabled}} · {{localize "KEDOM.Sheet.EffectDisabled"}}{{/if}}
+                </span>
+              </div>
+              <div class="kedom-effects-list__actions">
+                <button
+                  type="button"
+                  class="kedom-effects-list__btn"
+                  data-action="toggleEffect"
+                  data-effect-id="{{id}}"
+                  {{#unless @root.editable}}disabled{{/unless}}
+                  title="{{localize "KEDOM.Sheet.Action.toggleEffect"}}"
+                  aria-label="{{localize "KEDOM.Sheet.Action.toggleEffect"}}"
+                >
+                  <i class="fa-solid {{#if disabled}}fa-toggle-off{{else}}fa-toggle-on{{/if}}" inert></i>
+                </button>
+                <button
+                  type="button"
+                  class="kedom-effects-list__btn"
+                  data-action="editEffect"
+                  data-effect-id="{{id}}"
+                  title="{{localize "KEDOM.Sheet.Action.editEffect"}}"
+                  aria-label="{{localize "KEDOM.Sheet.Action.editEffect"}}"
+                >
+                  <i class="fa-solid fa-pen" inert></i>
+                </button>
+                <button
+                  type="button"
+                  class="kedom-effects-list__btn"
+                  data-action="deleteEffect"
+                  data-effect-id="{{id}}"
+                  {{#unless @root.editable}}disabled{{/unless}}
+                  title="{{localize "KEDOM.Sheet.Action.deleteEffect"}}"
+                  aria-label="{{localize "KEDOM.Sheet.Action.deleteEffect"}}"
+                >
+                  <i class="fa-solid fa-trash" inert></i>
+                </button>
+              </div>
+            </li>
+          {{/each}}
+        </ul>
+      {{else}}
+        <p class="kedom-effects-panel__empty">{{localize "KEDOM.Talent.EffectsEmpty"}}</p>
+      {{/if}}
+    </section>
   </section>
 </div>

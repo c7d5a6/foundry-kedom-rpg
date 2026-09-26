@@ -106,7 +106,8 @@
         "inventory": "Inventory",
         "powers": "Powers",
         "skills": "Skills",
-        "stats": "Stats"
+        "stats": "Stats",
+        "talents": "Talents"
       },
       "Tabs": "Sheet tabs",
       "WoundNotes": "Wound notes",
@@ -133,6 +134,11 @@
         "deleteWeapon": "Remove weapon",
         "createOrigin": "Create origin",
         "createTalent": "Create talent",
+        "createEffect": "Create effect",
+        "deleteEffect": "Delete effect",
+        "editEffect": "Edit effect",
+        "toggleEffect": "Toggle effect",
+        "openEffectSource": "Open source item",
         "deleteOwnedItem": "Remove",
         "applyGrants": "Apply grants",
         "addSamples": "Add sample origins",
@@ -144,11 +150,25 @@
       "WeaponsEmpty": "Create a Weapon item and add it to this actor.",
       "DeleteWeaponConfirm": "Remove {name} from this character?",
       "DeleteOwnedItemConfirm": "Remove {name} from this character?",
+      "DeleteEffectConfirm": "Delete effect {name}?",
       "Region": "Region",
       "Culture": "Culture",
+      "Level": "Level",
+      "LevelShort": "Lvl",
       "RegionPlaceholder": "Birthplace / region",
       "CulturePlaceholder": "Race / culture",
       "Talents": "Talents",
+      "TalentsEmpty": "No talents yet. Create one in edit mode or drop a talent item here.",
+      "TalentNoDescription": "No description.",
+      "EffectsOnCharacter": "On character",
+      "EffectsOnCharacterEmpty": "No effects on this character.",
+      "EffectsFromItems": "From items",
+      "EffectsFromItemsEmpty": "No transferable effects from owned items.",
+      "EffectTransfer": "Transfers to actor",
+      "EffectNoTransfer": "Item only",
+      "EffectDisabled": "Disabled",
+      "EffectDeleteFromItem": "Delete this effect from its source item sheet.",
+      "NewEffect": "New Effect",
       "GrantsApplied": "Grants applied — skills {skills}, specializations {specs}, abilities {abilities}.",
       "GrantsAlreadyApplied": "Grants are already applied for the current origins and talents.",
       "SamplesAdded": "Added {count} sample item(s).",
@@ -233,7 +253,6 @@
       "acMelee": "Melee AC",
       "acRanged": "Ranged AC",
       "acShort": "AC",
-      "attackBonus": "Attack Bonus",
       "encumbrance": "Encumbrance",
       "experience": "Experience",
       "hp": "Hit Points",
@@ -330,7 +349,6 @@
       "subType": "Origin type",
       "description": "Description",
       "hitDie": "Hit die",
-      "attackBonus": "Class attack bonus",
       "SubType": {
         "race": "Race",
         "background": "Background",
@@ -338,7 +356,26 @@
       }
     },
     "Talent": {
-      "description": "Description"
+      "description": "Description",
+      "category": "Category",
+      "Category": {
+        "warrior": "Warrior",
+        "expert": "Expert",
+        "any": "Any",
+        "class": "Class feature",
+        "race": "Race feature"
+      },
+      "Feature": {
+        "killingBlow": "Killing Blow"
+      },
+      "Effects": "Effects",
+      "EffectsHint": "Transferable Active Effects apply while this talent is owned. Use Add skill advantage for Heal-style bonuses. Talents do not grant skill proficiency.",
+      "EffectsEmpty": "No effects on this talent yet.",
+      "AddSkillAdvantage": "Add skill advantage",
+      "SkillAdvantagePick": "Skill",
+      "SkillAdvantageEffectName": "{skill} Advantage",
+      "NewEffect": "New Effect",
+      "NewTalent": "New Talent"
     },
     "Grants": {
       "json": "Grants (JSON)",
@@ -444,8 +481,7 @@
       "Class": {
         "warrior": "Warrior",
         "expert": "Expert",
-        "mage": "Mage",
-        "adventurer": "Adventurer (Warrior/Expert)"
+        "adventurer": "Warrior/Expert"
       },
       "FreeSpec": {
         "oldGods": "Old Gods",
@@ -530,7 +566,9 @@
         "WasRolled": "Rolled: {skill}",
         "PickSpecialization": "Choose or enter a specialization:",
         "SpecLabel": "Specialization",
-        "ClassHint": "Choose a class allowed for this culture, then enter a name.",
+        "ClassHint": "Choose a class allowed for this culture (rolls starting hit points), then enter a name.",
+        "StartingHp": "Starting HP {hp} (rolled {roll} on {hitDie} + Might)",
+        "HpRollFlavor": "Character creation — hit points ({hitDie})",
         "NameLabel": "Character name",
         "ConfirmHint": "Create this character?",
         "Back": "Back",

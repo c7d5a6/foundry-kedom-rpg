@@ -148,7 +148,6 @@ function characterSchema() {
     }),
     combat: new SchemaField({
       ac: new NumberField({ required: true, nullable: false, integer: true, initial: 0 }),
-      attackBonus: new NumberField({ required: true, nullable: false, integer: true, initial: 0 }),
       meleeDamageBonus: new NumberField({
         required: true,
         nullable: false,
@@ -157,6 +156,13 @@ function characterSchema() {
       }),
     }),
     details: new SchemaField({
+      level: new NumberField({
+        required: true,
+        nullable: false,
+        integer: true,
+        min: 1,
+        initial: 1,
+      }),
       region: new StringField({
         required: true,
         nullable: false,
@@ -226,8 +232,19 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
     attrs.strainLimit = 0;
     attrs.resolve = 0;
     attrs.wounded = false;
-    const combat = this.combat as { ac: number };
+    // AE-first: zero-init paths Active Effects may ADD onto before prepareDerivedData.
+    const combat = this.combat as {
+      ac: number;
+      meleeDamageBonus: number;
+    };
     combat.ac = 0;
+    combat.meleeDamageBonus = Math.floor(combat.meleeDamageBonus ?? 0);
+    for (const key of SKILL_KEYS) {
+      const skill = this.skills[key] as SkillFields;
+      // Ensure AE change paths exist; keep persisted base (ADD stacks on top).
+      skill.baseDice = Math.max(1, Math.floor(skill.baseDice ?? 2));
+      skill.defaultAdvantage = Math.floor(skill.defaultAdvantage ?? 0);
+    }
     for (const key of SAVE_KEYS) {
       const s = this.saves[key] as SaveFields;
       s.mod = 0;

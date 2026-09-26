@@ -40,22 +40,19 @@
           <span>{{system.hitDie}}</span>
         {{/if}}
       </div>
-      <div class="kedom-item-sheet__field">
-        <label for="origin-ab">{{localize "KEDOM.Origin.attackBonus"}}</label>
-        {{#if editable}}
-          <input id="origin-ab" type="number" name="system.attackBonus" value="{{system.attackBonus}}" />
-        {{else}}
-          <span>{{system.attackBonus}}</span>
-        {{/if}}
-      </div>
     {{/if}}
 
     <div class="kedom-item-sheet__field kedom-item-sheet__field--block">
-      <label for="origin-desc">{{localize "KEDOM.Origin.description"}}</label>
+      <label>{{localize "KEDOM.Origin.description"}}</label>
       {{#if editable}}
-        {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+        {{formInput
+          systemFields.description
+          value=source.system.description
+          enriched=enrichedDescription
+          toggled=true
+        }}
       {{else}}
-        {{{system.description}}}
+        <div class="kedom-item-sheet__prose">{{{enrichedDescription}}}</div>
       {{/if}}
     </div>
 

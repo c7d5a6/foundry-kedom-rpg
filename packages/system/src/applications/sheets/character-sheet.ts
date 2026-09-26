@@ -50,8 +50,22 @@ type AbilityView = { value: number; mod?: number };
 const SHEET_MODES = Object.freeze({ PLAY: "play", EDIT: "edit" } as const);
 type SheetMode = (typeof SHEET_MODES)[keyof typeof SHEET_MODES];
 
-const SHEET_TABS = Object.freeze({ SKILLS: "skills", COMBAT: "combat" } as const);
+const SHEET_TABS = Object.freeze({
+  SKILLS: "skills",
+  COMBAT: "combat",
+  TALENTS: "talents",
+  EFFECTS: "effects",
+} as const);
 type SheetTab = (typeof SHEET_TABS)[keyof typeof SHEET_TABS];
+
+function isSheetTab(value: string | undefined): value is SheetTab {
+  return (
+    value === SHEET_TABS.SKILLS ||
+    value === SHEET_TABS.COMBAT ||
+    value === SHEET_TABS.TALENTS ||
+    value === SHEET_TABS.EFFECTS
+  );
+}
 
 function localizeSpecLabel(skillKey: SkillKey, leaf: string): string {
   const path = `KEDOM.Specialization.${skillKey}.${leaf}`;
@@ -119,6 +133,14 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       rollDamage: CharacterSheet.#onRollDamage,
       editWeapon: CharacterSheet.#onEditWeapon,
       deleteWeapon: CharacterSheet.#onDeleteWeapon,
+      createTalent: CharacterSheet.#onCreateTalent,
+      editTalent: CharacterSheet.#onEditTalent,
+      deleteTalent: CharacterSheet.#onDeleteTalent,
+      createActorEffect: CharacterSheet.#onCreateActorEffect,
+      editEffect: CharacterSheet.#onEditEffect,
+      deleteEffect: CharacterSheet.#onDeleteEffect,
+      toggleEffect: CharacterSheet.#onToggleEffect,
+      openEffectSource: CharacterSheet.#onOpenEffectSource,
       editResource: CharacterSheet.#onEditResource,
       rollSpecialization: CharacterSheet.#onRollSpecialization,
       toggleSpecialization: CharacterSheet.#onToggleSpecialization,
@@ -369,15 +391,11 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     const combatData = system.combat as {
       ac: number;
-      attackBonus: number;
       meleeDamageBonus: number;
     };
-    const attackBonus = combatData.attackBonus ?? 0;
     const meleeDamageBonus = combatData.meleeDamageBonus ?? 0;
     const combat = {
       ac: combatData.ac ?? 0,
-      attackBonus,
-      attackBonusSigned: formatSignedBonus(attackBonus),
       meleeDamageBonus,
       meleeDamageSigned: formatSignedBonus(meleeDamageBonus),
     };
@@ -449,15 +467,90 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         icon: "fa-solid fa-shield-halved",
         active: this.#primaryTab === SHEET_TABS.COMBAT,
       },
+      {
+        id: SHEET_TABS.TALENTS,
+        label: game.i18n.localize("KEDOM.Sheet.Tab.talents"),
+        icon: "fa-solid fa-star",
+        active: this.#primaryTab === SHEET_TABS.TALENTS,
+      },
+      {
+        id: SHEET_TABS.EFFECTS,
+        label: game.i18n.localize("KEDOM.Sheet.Tab.effects"),
+        icon: "fa-solid fa-bolt",
+        active: this.#primaryTab === SHEET_TABS.EFFECTS,
+      },
     ];
 
     const detailsRaw = (system as CharacterData & {
-      details?: { culture?: string; background?: string; class?: string };
+      details?: {
+        level?: number;
+        culture?: string;
+        background?: string;
+        class?: string;
+      };
     }).details ?? {};
+    const level = Math.max(1, Math.floor(detailsRaw.level ?? 1));
     const culture = (detailsRaw.culture ?? "").trim();
     const background = (detailsRaw.background ?? "").trim();
     const className = (detailsRaw.class ?? "").trim();
     const identityLine = [culture, background, className].filter(Boolean).join(" · ");
+
+    const talentItems = this.actor.items
+      .filter((item) => (item.type as string) === "talent")
+      .sort((a, b) => a.name.localeCompare(b.name));
+    const talents = await Promise.all(
+      talentItems.map(async (item) => {
+        const system = item.system as unknown as { description?: string };
+        const enrichedDescription = await TextEditor.enrichHTML(system.description ?? "", {
+          secrets: this.actor.isOwner,
+          relativeTo: item,
+        });
+        return {
+          id: item.id,
+          name: item.name,
+          img: item.img,
+          enrichedDescription,
+          hasDescription: Boolean((system.description ?? "").replace(/<[^>]*>/g, "").trim()),
+        };
+      }),
+    );
+
+    const actorEffects: {
+      id: string;
+      name: string;
+      img: string;
+      disabled: boolean;
+      sourceName: string;
+      parentIsActor: boolean;
+      parentItemId: string | null;
+    }[] = [];
+    const itemEffects: typeof actorEffects = [];
+    for (const effect of this.actor.allApplicableEffects()) {
+      const parent = effect.parent;
+      const parentIsActor = parent === this.actor;
+      const parentItem =
+        !parentIsActor && parent && "documentName" in parent && parent.documentName === "Item"
+          ? (parent as Item.Implementation)
+          : null;
+      const row = {
+        id: effect.id ?? "",
+        name: effect.name,
+        img: effect.img || "icons/svg/aura.svg",
+        disabled: effect.disabled,
+        sourceName: parentItem?.name ?? (effect as { sourceName?: string }).sourceName ?? "",
+        parentIsActor,
+        parentItemId: parentItem?.id ?? null,
+      };
+      if (!row.id) continue;
+      if (parentIsActor) actorEffects.push(row);
+      else itemEffects.push(row);
+    }
+    const byDisabledThenName = (
+      a: (typeof actorEffects)[number],
+      b: (typeof actorEffects)[number],
+    ) => Number(a.disabled) - Number(b.disabled) || a.name.localeCompare(b.name);
+    actorEffects.sort(byDisabledThenName);
+    itemEffects.sort(byDisabledThenName);
 
     return Object.assign(context, {
       actor: this.actor,
@@ -470,11 +563,17 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       resources,
       combat,
       weapons,
+      talents,
+      actorEffects,
+      itemEffects,
+      level,
       identityLine,
       tabs,
       primaryTab: this.#primaryTab,
       isSkillsTab: this.#primaryTab === SHEET_TABS.SKILLS,
       isCombatTab: this.#primaryTab === SHEET_TABS.COMBAT,
+      isTalentsTab: this.#primaryTab === SHEET_TABS.TALENTS,
+      isEffectsTab: this.#primaryTab === SHEET_TABS.EFFECTS,
       enrichedWoundsNotes,
       editable: this.isEditable,
       isPlay: this.isPlayMode,
@@ -491,6 +590,8 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.element.classList.toggle("mode-edit", this.isEditMode);
     this.element.classList.toggle("tab-skills", this.#primaryTab === SHEET_TABS.SKILLS);
     this.element.classList.toggle("tab-combat", this.#primaryTab === SHEET_TABS.COMBAT);
+    this.element.classList.toggle("tab-talents", this.#primaryTab === SHEET_TABS.TALENTS);
+    this.element.classList.toggle("tab-effects", this.#primaryTab === SHEET_TABS.EFFECTS);
     this.#placeExternalTabs();
     this.#renderModeToggle();
     this.#bindMeterEditors();
@@ -620,10 +721,152 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     target: HTMLElement,
   ): Promise<void> {
     const tab = target.dataset.tab;
-    if (tab !== SHEET_TABS.SKILLS && tab !== SHEET_TABS.COMBAT) return;
+    if (!isSheetTab(tab)) return;
     if (this.#primaryTab === tab) return;
     this.#primaryTab = tab;
     await this.render();
+  }
+
+  static async #onCreateTalent(this: CharacterSheet): Promise<void> {
+    if (!this.isEditable || !this.actor) return;
+    // @ts-expect-error fvtt-types: talent Item subtype
+    const created = await this.actor.createEmbeddedDocuments("Item", [
+      {
+        name: game.i18n.localize("KEDOM.Talent.NewTalent"),
+        type: "talent",
+        img: "icons/svg/upgrade.svg",
+        system: {
+          description: "",
+          grants: { skills: [], specializations: [], abilities: [] },
+        },
+      },
+    ]);
+    const item = Array.isArray(created) ? created[0] : created;
+    if (item) await item.sheet?.render(true);
+  }
+
+  static async #onEditTalent(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (!this.actor) return;
+    const itemId = target.dataset.itemId;
+    if (!itemId) return;
+    const talent = this.actor.items.get(itemId);
+    if (!talent || (talent.type as string) !== "talent") return;
+    await talent.sheet?.render(true);
+  }
+
+  static async #onDeleteTalent(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (!this.isEditable || !this.actor) return;
+    const itemId = target.dataset.itemId;
+    if (!itemId) return;
+    const talent = this.actor.items.get(itemId);
+    if (!talent || (talent.type as string) !== "talent") return;
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize("KEDOM.Sheet.Action.deleteOwnedItem") },
+      content: `<p>${game.i18n.format("KEDOM.Sheet.DeleteOwnedItemConfirm", {
+        name: talent.name,
+      })}</p>`,
+    });
+    if (!confirmed) return;
+    await talent.delete();
+  }
+
+  static async #onCreateActorEffect(this: CharacterSheet): Promise<void> {
+    if (!this.isEditable || !this.actor) return;
+    const created = await this.actor.createEmbeddedDocuments("ActiveEffect", [
+      {
+        name: game.i18n.localize("KEDOM.Sheet.NewEffect"),
+        img: "icons/svg/aura.svg",
+        transfer: false,
+        origin: this.actor.uuid,
+        disabled: false,
+        changes: [],
+      },
+    ]);
+    const effect = Array.isArray(created) ? created[0] : created;
+    if (effect) await effect.sheet?.render(true);
+  }
+
+  static #findApplicableEffect(
+    this: CharacterSheet,
+    effectId: string,
+  ): ActiveEffect.Implementation | undefined {
+    for (const effect of this.actor.allApplicableEffects()) {
+      if (effect.id === effectId) return effect;
+    }
+    return undefined;
+  }
+
+  static async #onEditEffect(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    const effectId = target.dataset.effectId;
+    if (!effectId) return;
+    const effect = CharacterSheet.#findApplicableEffect.call(this, effectId);
+    if (!effect) return;
+    const parent = effect.parent;
+    if (parent && parent !== this.actor && "sheet" in parent) {
+      await (parent as Item.Implementation).sheet?.render(true);
+      return;
+    }
+    await effect.sheet?.render(true);
+  }
+
+  static async #onDeleteEffect(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (!this.isEditable || !this.actor) return;
+    const effectId = target.dataset.effectId;
+    if (!effectId) return;
+    const effect = this.actor.effects.get(effectId);
+    if (!effect) {
+      ui.notifications.warn(game.i18n.localize("KEDOM.Sheet.EffectDeleteFromItem"));
+      return;
+    }
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize("KEDOM.Sheet.Action.deleteEffect") },
+      content: `<p>${game.i18n.format("KEDOM.Sheet.DeleteEffectConfirm", {
+        name: effect.name,
+      })}</p>`,
+    });
+    if (!confirmed) return;
+    await effect.delete();
+  }
+
+  static async #onToggleEffect(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (!this.isEditable) return;
+    const effectId = target.dataset.effectId;
+    if (!effectId) return;
+    const effect = CharacterSheet.#findApplicableEffect.call(this, effectId);
+    if (!effect) return;
+    await effect.update({ disabled: !effect.disabled });
+  }
+
+  static async #onOpenEffectSource(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    const itemId = target.dataset.itemId;
+    if (!itemId || !this.actor) return;
+    const item = this.actor.items.get(itemId);
+    if (!item) return;
+    await item.sheet?.render(true);
   }
 
   static async #onTakeWound(this: CharacterSheet): Promise<void> {

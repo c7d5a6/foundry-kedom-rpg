@@ -9,13 +9,31 @@ export type AttackModInput = {
   skillLabel: string;
   proficiencyBonus: number;
   proficiencyLabel: string;
-  attackBonus: number;
-  attackBonusLabel: string;
   weaponBonus: number;
   weaponBonusLabel: string;
 };
 
-/** Build attack flat modifiers (ability + skill proficiency + actor AB + weapon AB). */
+/** Double positive proficiency for Killing Blow attack rolls; leave ≤0 unchanged. */
+export function killingBlowAttackProficiency(base: number): number {
+  return base > 0 ? base * 2 : base;
+}
+
+/** Positive proficiency only adds to Killing Blow damage. */
+export function killingBlowDamageBonus(base: number): number {
+  return base > 0 ? base : 0;
+}
+
+/** True when the actor owns a talent with featureKey killingBlow. */
+export function actorHasKillingBlow(actor: Actor.Implementation): boolean {
+  for (const item of actor.items) {
+    if ((item.type as string) !== "talent") continue;
+    const featureKey = (item.system as { featureKey?: string } | undefined)?.featureKey;
+    if (featureKey === "killingBlow") return true;
+  }
+  return false;
+}
+
+/** Build attack flat modifiers (ability + skill proficiency + weapon AB). */
 export function buildAttackModifiers(input: AttackModInput): Modifier[] {
   const mods: Modifier[] = [
     {
@@ -31,14 +49,6 @@ export function buildAttackModifiers(input: AttackModInput): Modifier[] {
       kind: "skill",
     },
   ];
-  if (input.attackBonus !== 0) {
-    mods.push({
-      label: input.attackBonusLabel,
-      value: input.attackBonus,
-      source: { id: "combat.attackBonus", label: input.attackBonusLabel },
-      kind: "effect",
-    });
-  }
   if (input.weaponBonus !== 0) {
     mods.push({
       label: input.weaponBonusLabel,
@@ -86,22 +96,34 @@ export function buildDamageModifiers(input: {
   mightLabel: string;
   meleeDamageBonus: number;
   meleeDamageLabel: string;
+  killingBlowBonus?: number;
+  killingBlowLabel?: string;
 }): Modifier[] {
-  if (input.abilityKey !== "mgh") return [];
   const mods: Modifier[] = [];
-  if (input.mightMod !== 0) {
-    mods.push({
-      label: input.mightLabel,
-      value: input.mightMod,
-      source: { id: "ability.mgh", label: input.mightLabel },
-      kind: "ability",
-    });
+  if (input.abilityKey === "mgh") {
+    if (input.mightMod !== 0) {
+      mods.push({
+        label: input.mightLabel,
+        value: input.mightMod,
+        source: { id: "ability.mgh", label: input.mightLabel },
+        kind: "ability",
+      });
+    }
+    if (input.meleeDamageBonus !== 0) {
+      mods.push({
+        label: input.meleeDamageLabel,
+        value: input.meleeDamageBonus,
+        source: { id: "combat.meleeDamageBonus", label: input.meleeDamageLabel },
+        kind: "effect",
+      });
+    }
   }
-  if (input.meleeDamageBonus !== 0) {
+  const kb = input.killingBlowBonus ?? 0;
+  if (kb > 0) {
     mods.push({
-      label: input.meleeDamageLabel,
-      value: input.meleeDamageBonus,
-      source: { id: "combat.meleeDamageBonus", label: input.meleeDamageLabel },
+      label: input.killingBlowLabel ?? "Killing Blow",
+      value: kb,
+      source: { id: "talent.killingBlow", label: input.killingBlowLabel ?? "Killing Blow" },
       kind: "effect",
     });
   }
