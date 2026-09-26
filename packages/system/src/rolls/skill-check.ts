@@ -143,21 +143,29 @@ export async function rollSkillCheck(
   }
 
   const { modifiers: baseModifiers, formulaLabel } = prepared;
+  const system = actor.system as CharacterData;
+  const skill = (system.skills as Record<SkillKey, SkillFields>)[key];
+  const skillBaseDice = Math.max(1, Math.floor(skill?.baseDice ?? 2));
+  const skillDefaultAdv = Math.floor(skill?.defaultAdvantage ?? 0);
   const configured = await resolveCheckConfigure(
     game.i18n.format("KEDOM.Roll.Dialog.titleSkill", { skill: formulaLabel }),
     baseModifiers,
-    options,
+    {
+      ...options,
+      advantageNet: options.advantageNet ?? skillDefaultAdv,
+      baseDice: options.baseDice ?? skillBaseDice,
+    },
   );
   if (!configured) return;
 
   const modifiers = withSituationalModifier(baseModifiers, configured.situational);
-  const { difficulty, advantageNet } = configured;
+  const { difficulty, advantageNet, baseDice } = configured;
   const difficultyLabel = localize(
     `KEDOM.DifficultyColumn.${difficulty}`,
     difficulty.charAt(0).toUpperCase() + difficulty.slice(1),
   );
   const formula = labeledCheckFormula(
-    checkDiceExpression(advantageNet),
+    checkDiceExpression(advantageNet, baseDice),
     formulaLabel,
     modifiers,
   );
@@ -191,6 +199,7 @@ export async function rollSkillCheck(
           specializationSlug: options.specializationSlug,
           difficulty,
           advantageNet,
+          baseDice,
           situational: configured.situational,
           total,
           diceTotal: total,

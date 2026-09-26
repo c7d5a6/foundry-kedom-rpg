@@ -89,13 +89,26 @@ details:
   experience   { value, next DERIVED }
   hitDie       persisted
   biography    persisted, HTMLField
+  # POC shipped:
+  region       persisted   birthplace (wizard creation-only; omitted from sheet identity line)
+  culture      persisted   race / culture label (sheet: culture · background · class)
+  background   persisted   background label
+  class        persisted   class label
 
 skillPoints:
   unspent persisted, earned DERIVED
 ```
 
-Note what is absent: no `skills` object. Skills are **embedded items**, following WWN. The
-reasoning is in the skills section below.
+**Create pipeline (POC):** Actor Directory **Create Character** opens
+`CharacterCreateWizard` (ApplicationV2). Draft stays in memory through attributes → region →
+culture → background growth → class/name; one `Actor.create` at confirm writes abilities,
+Apprentice skill grants (+ specs), `details.*`, and embedded race/background/class `origin`
+items. Pure growth resolve lives in `src/creation/resolve-background.ts`.
+
+Note what is absent from the **target** model: no `skills` object — skills are **embedded
+items**, following WWN (reasoning below). **POC today** stores skills as actor fields
+(`proficiency`, `specializations`, `baseDice` default 2, `defaultAdvantage` default 0) until
+Item-based skills land.
 
 ### `npc`
 
@@ -119,12 +132,12 @@ Seven. Each has a reason to exist that no other type covers.
 | Type | Purpose |
 |---|---|
 | `skill` | A skill and its specialisations. Embedded on the actor. |
-| `weapon` | Attack profile, damage, shock, ranges. |
+| `weapon` | Attack profile, damage, shock, ranges. **POC shipped:** `skill` (`punch`\|`shoot`\|`stab`), `damageFormula` (default `1d6`), `attackBonus`. Physical mixin / shock / ranges deferred. |
 | `armor` | AC contribution and skill penalty. |
 | `gear` | Everything else carried. |
-| `focus` | A feat or talent. Grants modifiers and unlocks. |
+| `focus` | A feat or talent. Grants modifiers and unlocks. **POC shipped:** description + grant arrays; Apply grants on sheet. |
 | `power` | Arts, spells, and abilities, behind a `subType` discriminator. |
-| `origin` | Race, background, or class, behind a `subType` discriminator. |
+| `origin` | Race, background, or class, behind a `subType` discriminator. **POC shipped:** `subType`, grants, class stubs (`hitDie`, `attackBonus`). |
 
 ### Why `power` and `origin` are discriminated unions
 

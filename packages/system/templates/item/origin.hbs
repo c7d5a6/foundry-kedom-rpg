@@ -1,0 +1,72 @@
+<div class="kedom-origin-sheet">
+  <header class="sheet-header kedom-item-sheet__header">
+    <img
+      class="profile-img"
+      src="{{item.img}}"
+      data-action="editImage"
+      data-edit="img"
+      title="{{item.name}}"
+      alt="{{item.name}}"
+    />
+    <div class="header-fields">
+      {{#if editable}}
+        {{formInput fields.name value=source.name placeholder=(localize "DOCUMENT.FIELDS.name.label")}}
+      {{else}}
+        <h1 class="document-name">{{item.name}}</h1>
+      {{/if}}
+    </div>
+  </header>
+
+  <section class="kedom-item-sheet__body">
+    <div class="kedom-item-sheet__field">
+      <label for="origin-subtype">{{localize "KEDOM.Origin.subType"}}</label>
+      {{#if editable}}
+        <select id="origin-subtype" name="system.subType">
+          {{#each subTypeOptions}}
+            <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+          {{/each}}
+        </select>
+      {{else}}
+        <span>{{subTypeLabel}}</span>
+      {{/if}}
+    </div>
+
+    {{#if isClass}}
+      <div class="kedom-item-sheet__field">
+        <label for="origin-hitdie">{{localize "KEDOM.Origin.hitDie"}}</label>
+        {{#if editable}}
+          <input id="origin-hitdie" type="text" name="system.hitDie" value="{{system.hitDie}}" />
+        {{else}}
+          <span>{{system.hitDie}}</span>
+        {{/if}}
+      </div>
+      <div class="kedom-item-sheet__field">
+        <label for="origin-ab">{{localize "KEDOM.Origin.attackBonus"}}</label>
+        {{#if editable}}
+          <input id="origin-ab" type="number" name="system.attackBonus" value="{{system.attackBonus}}" />
+        {{else}}
+          <span>{{system.attackBonus}}</span>
+        {{/if}}
+      </div>
+    {{/if}}
+
+    <div class="kedom-item-sheet__field kedom-item-sheet__field--block">
+      <label for="origin-desc">{{localize "KEDOM.Origin.description"}}</label>
+      {{#if editable}}
+        {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+      {{else}}
+        {{{system.description}}}
+      {{/if}}
+    </div>
+
+    <div class="kedom-item-sheet__field kedom-item-sheet__field--block">
+      <label for="origin-grants">{{localize "KEDOM.Grants.json"}}</label>
+      <p class="kedom-item-sheet__hint">{{localize "KEDOM.Grants.jsonHint"}}</p>
+      {{#if editable}}
+        <textarea id="origin-grants" name="grantsJson" rows="10">{{grantsJson}}</textarea>
+      {{else}}
+        <pre class="kedom-item-sheet__pre">{{grantsJson}}</pre>
+      {{/if}}
+    </div>
+  </section>
+</div>

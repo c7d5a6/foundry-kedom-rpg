@@ -24,6 +24,7 @@ export async function resolveCheckConfigure(
     ...(options.difficulty !== undefined ? { difficulty: options.difficulty } : {}),
     ...(options.situational !== undefined ? { situational: options.situational } : {}),
     ...(options.advantageNet !== undefined ? { advantageNet: options.advantageNet } : {}),
+    ...(options.baseDice !== undefined ? { baseDice: options.baseDice } : {}),
   };
 
   if (!shouldPromptCheckDialog(options.configure)) {
@@ -50,8 +51,8 @@ export function withSituationalModifier(
   ];
 }
 
-export function checkDiceExpression(advantageNet: number): string {
-  return skillCheckDiceTerm(advantageNet);
+export function checkDiceExpression(advantageNet: number, baseDice = 2): string {
+  return skillCheckDiceTerm(advantageNet, baseDice);
 }
 
 export function advantageFlavorSuffix(advantageNet: number): string {

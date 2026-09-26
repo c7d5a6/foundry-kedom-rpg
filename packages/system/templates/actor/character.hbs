@@ -48,10 +48,100 @@
             <span class="kedom-combat-stubs__value">{{combat.ac}}</span>
           </div>
           <div class="kedom-combat-stubs__item">
+            <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.attackBonus"}}</span>
+            {{#if @root.isEdit}}
+              <input
+                class="kedom-combat-stubs__input"
+                type="number"
+                name="system.combat.attackBonus"
+                value="{{combat.attackBonus}}"
+                aria-label="{{localize "KEDOM.Attributes.attackBonus"}}"
+              />
+            {{else}}
+              <span class="kedom-combat-stubs__value">{{combat.attackBonusSigned}}</span>
+            {{/if}}
+          </div>
+          <div class="kedom-combat-stubs__item">
             <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.meleeDamage"}}</span>
-            <span class="kedom-combat-stubs__value">{{combat.meleeDamageSigned}}</span>
+            {{#if @root.isEdit}}
+              <input
+                class="kedom-combat-stubs__input"
+                type="number"
+                name="system.combat.meleeDamageBonus"
+                value="{{combat.meleeDamageBonus}}"
+                aria-label="{{localize "KEDOM.Attributes.meleeDamage"}}"
+              />
+            {{else}}
+              <span class="kedom-combat-stubs__value">{{combat.meleeDamageSigned}}</span>
+            {{/if}}
           </div>
         </div>
+
+        <section class="kedom-weapons-panel">
+          <header class="kedom-weapons-panel__header">
+            <h2 class="kedom-weapons-panel__title">{{localize "KEDOM.Sheet.Weapons"}}</h2>
+          </header>
+          {{#if weapons.length}}
+            <ul class="kedom-weapons-list">
+              {{#each weapons}}
+                <li class="kedom-weapons-list__item">
+                  <div class="kedom-weapons-list__info">
+                    <span class="kedom-weapons-list__name">{{name}}</span>
+                    <span class="kedom-weapons-list__meta">
+                      {{skillLabel}} · {{damageFormula}}
+                      {{#if attackBonusSigned}} · {{attackBonusSigned}}{{/if}}
+                    </span>
+                  </div>
+                  <div class="kedom-weapons-list__actions">
+                    <button
+                      type="button"
+                      class="kedom-weapons-list__btn"
+                      data-action="rollAttack"
+                      data-item-id="{{id}}"
+                      {{#unless @root.isPlay}}disabled{{/unless}}
+                      title="{{localize "KEDOM.Sheet.Action.rollAttack"}}"
+                    >
+                      {{localize "KEDOM.Sheet.Action.rollAttack"}}
+                    </button>
+                    <button
+                      type="button"
+                      class="kedom-weapons-list__btn"
+                      data-action="rollDamage"
+                      data-item-id="{{id}}"
+                      {{#unless @root.isPlay}}disabled{{/unless}}
+                      title="{{localize "KEDOM.Sheet.Action.rollDamage"}}"
+                    >
+                      {{localize "KEDOM.Sheet.Action.rollDamage"}}
+                    </button>
+                    <button
+                      type="button"
+                      class="kedom-weapons-list__btn kedom-weapons-list__btn--icon"
+                      data-action="editWeapon"
+                      data-item-id="{{id}}"
+                      title="{{localize "KEDOM.Sheet.Action.editWeapon"}}"
+                      aria-label="{{localize "KEDOM.Sheet.Action.editWeapon"}}"
+                    >
+                      <i class="fa-solid fa-pen" inert></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="kedom-weapons-list__btn kedom-weapons-list__btn--icon"
+                      data-action="deleteWeapon"
+                      data-item-id="{{id}}"
+                      {{#unless @root.editable}}disabled{{/unless}}
+                      title="{{localize "KEDOM.Sheet.Action.deleteWeapon"}}"
+                      aria-label="{{localize "KEDOM.Sheet.Action.deleteWeapon"}}"
+                    >
+                      <i class="fa-solid fa-trash" inert></i>
+                    </button>
+                  </div>
+                </li>
+              {{/each}}
+            </ul>
+          {{else}}
+            <p class="kedom-weapons-panel__empty">{{localize "KEDOM.Sheet.WeaponsEmpty"}}</p>
+          {{/if}}
+        </section>
 
         <section class="kedom-wounds-panel">
           <header class="kedom-wounds-panel__header">

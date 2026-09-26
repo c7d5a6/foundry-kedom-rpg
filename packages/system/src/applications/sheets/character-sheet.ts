@@ -22,6 +22,7 @@ import {
   hasFixedSpecializationCatalog,
   specializationSlug,
 } from "../../config/specializations.ts";
+import { localizePersistedSpecLabel } from "../../config/creation-spec-labels.ts";
 import type {
   CharacterData,
   SaveFields,
@@ -29,11 +30,17 @@ import type {
   SkillSpecialization,
 } from "../../data/actor/character.ts";
 import { formatSignedBonus } from "../../rolls/build-skill-check.ts";
+import { rollAttack } from "../../rolls/attack-roll.ts";
+import { rollDamage } from "../../rolls/damage-roll.ts";
 import { rollLuckSave } from "../../rolls/luck-save.ts";
 import { rollSaveCheck } from "../../rolls/save-check.ts";
 import { prepareSkillCheck, rollSkillCheck } from "../../rolls/skill-check.ts";
 import { rollStrainSave } from "../../rolls/strain-save.ts";
 import { takeWound } from "../../rolls/wound-roll.ts";
+import {
+  normalizeWeaponSkill,
+  type WeaponDataFields,
+} from "../../data/item/weapon.ts";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -108,6 +115,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       rollLuckSave: CharacterSheet.#onRollLuckSave,
       rollStrainSave: CharacterSheet.#onRollStrainSave,
       takeWound: CharacterSheet.#onTakeWound,
+      rollAttack: CharacterSheet.#onRollAttack,
+      rollDamage: CharacterSheet.#onRollDamage,
+      editWeapon: CharacterSheet.#onEditWeapon,
+      deleteWeapon: CharacterSheet.#onDeleteWeapon,
       editResource: CharacterSheet.#onEditResource,
       rollSpecialization: CharacterSheet.#onRollSpecialization,
       toggleSpecialization: CharacterSheet.#onToggleSpecialization,
@@ -201,6 +212,22 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
       const skillCheck = this.actor ? prepareSkillCheck(this.actor, key) : null;
       const bonusSigned = skillCheck !== null ? formatSignedBonus(skillCheck.bonus) : "+0";
+      const baseDice = Math.max(1, Math.floor(skill.baseDice ?? 2));
+      const defaultAdvantage = Math.floor(skill.defaultAdvantage ?? 0);
+      const hasNonDefaultRoll =
+        baseDice !== 2 || defaultAdvantage !== 0;
+      const rollHintParts: string[] = [];
+      if (baseDice !== 2) {
+        rollHintParts.push(
+          game.i18n.format("KEDOM.Sheet.SkillBaseDiceHint", { dice: String(baseDice) }),
+        );
+      }
+      if (defaultAdvantage > 0) {
+        rollHintParts.push(game.i18n.localize("KEDOM.Sheet.SkillAdvHint"));
+      } else if (defaultAdvantage < 0) {
+        rollHintParts.push(game.i18n.localize("KEDOM.Sheet.SkillDisadvHint"));
+      }
+      const rollHint = rollHintParts.join(" ");
 
       type SpecTag = {
         slug: string;
@@ -246,7 +273,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
               : null;
           specializationTags.push({
             slug: s.slug,
-            label: s.label,
+            label: localizePersistedSpecLabel(key, s.slug, s.label),
             skillKey: key,
             selected,
             isFree: true,
@@ -276,6 +303,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         proficiencyLabel: game.i18n.localize(`KEDOM.Proficiency.${proficiency}`),
         proficiencyClass: `kedom-skill--${proficiency}`,
         bonusSigned,
+        baseDice,
+        defaultAdvantage,
+        hasNonDefaultRoll,
+        rollHint,
         allowsSpecialization: kind !== "none",
         allowsFreeAdd: allowsFreeSpecialization(kind),
         isFree: kind === "free",
@@ -338,12 +369,36 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     const combatData = system.combat as {
       ac: number;
+      attackBonus: number;
       meleeDamageBonus: number;
     };
+    const attackBonus = combatData.attackBonus ?? 0;
+    const meleeDamageBonus = combatData.meleeDamageBonus ?? 0;
     const combat = {
       ac: combatData.ac ?? 0,
-      meleeDamageSigned: formatSignedBonus(combatData.meleeDamageBonus ?? 0),
+      attackBonus,
+      attackBonusSigned: formatSignedBonus(attackBonus),
+      meleeDamageBonus,
+      meleeDamageSigned: formatSignedBonus(meleeDamageBonus),
     };
+
+    const weapons = this.actor.items
+      .filter((item) => (item.type as string) === "weapon")
+      .map((item) => {
+        const wsys = item.system as unknown as WeaponDataFields;
+        const skill = normalizeWeaponSkill(wsys.skill);
+        const weaponBonus = Math.floor(wsys.attackBonus ?? 0);
+        return {
+          id: item.id,
+          name: item.name,
+          skill,
+          skillLabel: game.i18n.localize(`KEDOM.Skill.${skill}`),
+          damageFormula: wsys.damageFormula || "1d6",
+          attackBonus: weaponBonus,
+          attackBonusSigned: weaponBonus !== 0 ? formatSignedBonus(weaponBonus) : "",
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, game.i18n.lang));
 
     const savesData = system.saves as Record<SaveKey | "luck", SaveFields>;
     const saveView = (key: SaveKey | "luck", abilityKey: typeof SAVE_ABILITY[SaveKey] | "lck") => {
@@ -396,6 +451,14 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       },
     ];
 
+    const detailsRaw = (system as CharacterData & {
+      details?: { culture?: string; background?: string; class?: string };
+    }).details ?? {};
+    const culture = (detailsRaw.culture ?? "").trim();
+    const background = (detailsRaw.background ?? "").trim();
+    const className = (detailsRaw.class ?? "").trim();
+    const identityLine = [culture, background, className].filter(Boolean).join(" · ");
+
     return Object.assign(context, {
       actor: this.actor,
       system,
@@ -406,6 +469,8 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       luckSave,
       resources,
       combat,
+      weapons,
+      identityLine,
       tabs,
       primaryTab: this.#primaryTab,
       isSkillsTab: this.#primaryTab === SHEET_TABS.SKILLS,
@@ -564,6 +629,66 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static async #onTakeWound(this: CharacterSheet): Promise<void> {
     if (this.isEditMode || !this.actor) return;
     await takeWound(this.actor);
+  }
+
+  static async #onRollAttack(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (this.isEditMode || !this.actor) return;
+    const itemId = target.dataset.itemId;
+    if (!itemId) return;
+    const weapon = this.actor.items.get(itemId);
+    if (!weapon || (weapon.type as string) !== "weapon") return;
+    await rollAttack(this.actor, weapon);
+  }
+
+  static async #onRollDamage(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (this.isEditMode || !this.actor) return;
+    const itemId = target.dataset.itemId;
+    if (!itemId) return;
+    const weapon = this.actor.items.get(itemId);
+    if (!weapon || (weapon.type as string) !== "weapon") return;
+    await rollDamage(this.actor, weapon);
+  }
+
+  static async #onEditWeapon(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (!this.actor) return;
+    const itemId = target.dataset.itemId;
+    if (!itemId) return;
+    const weapon = this.actor.items.get(itemId);
+    if (!weapon || (weapon.type as string) !== "weapon") return;
+    await weapon.sheet?.render(true);
+  }
+
+  static async #onDeleteWeapon(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (!this.isEditable || !this.actor) return;
+    const itemId = target.dataset.itemId;
+    if (!itemId) return;
+    const weapon = this.actor.items.get(itemId);
+    if (!weapon || (weapon.type as string) !== "weapon") return;
+
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize("KEDOM.Sheet.Action.deleteWeapon") },
+      content: `<p>${game.i18n.format("KEDOM.Sheet.DeleteWeaponConfirm", {
+        name: weapon.name,
+      })}</p>`,
+    });
+    if (!confirmed) return;
+    await weapon.delete();
   }
 
   static async #onRollSkill(

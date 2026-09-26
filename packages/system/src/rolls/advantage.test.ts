@@ -20,6 +20,18 @@ describe("skillCheckDiceTerm", () => {
     expect(skillCheckDiceTerm(1.9)).toBe("3d10kh2");
     expect(skillCheckDiceTerm(-1.9)).toBe("3d10kl2");
   });
+
+  it("honors a custom baseDice pool", () => {
+    expect(skillCheckDiceTerm(0, 3)).toBe("3d10");
+    expect(skillCheckDiceTerm(1, 3)).toBe("4d10kh3");
+    expect(skillCheckDiceTerm(-1, 3)).toBe("4d10kl3");
+    expect(skillCheckDiceTerm(2, 1)).toBe("3d10kh1");
+  });
+
+  it("falls back to base 2 when baseDice is below 1", () => {
+    expect(skillCheckDiceTerm(0, 0)).toBe("2d10");
+    expect(skillCheckDiceTerm(1, -2)).toBe("3d10kh2");
+  });
 });
 
 describe("luckSaveDiceTerm", () => {

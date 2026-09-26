@@ -32,6 +32,10 @@
           <span class="kedom-skill__name">{{label}}</span>
           {{#if @root.isEdit}}
             <span class="kedom-skill__ability">{{abilityAbbr}}</span>
+          {{else}}
+            {{#if hasNonDefaultRoll}}
+              <span class="kedom-skill__roll-hint" title="{{localize "KEDOM.Sheet.SkillDefaultsHint"}}">{{rollHint}}</span>
+            {{/if}}
           {{/if}}
         </div>
         <span class="kedom-skill__mod">{{bonusSigned}}</span>
@@ -50,6 +54,30 @@
           </button>
         {{/unless}}
       </div>
+
+      {{#if @root.isEdit}}
+        <div class="kedom-skill__defaults">
+          <label class="kedom-skill__defaults-field">
+            <span>{{localize "KEDOM.Sheet.SkillBaseDice"}}</span>
+            <input
+              type="number"
+              name="system.skills.{{key}}.baseDice"
+              value="{{baseDice}}"
+              min="1"
+              step="1"
+            />
+          </label>
+          <label class="kedom-skill__defaults-field">
+            <span>{{localize "KEDOM.Sheet.SkillDefaultAdv"}}</span>
+            <input
+              type="number"
+              name="system.skills.{{key}}.defaultAdvantage"
+              value="{{defaultAdvantage}}"
+              step="1"
+            />
+          </label>
+        </div>
+      {{/if}}
 
       {{#if specializationOverLimit}}
         <p class="kedom-skill__alert" role="alert">{{specializationOverLimitMessage}}</p>

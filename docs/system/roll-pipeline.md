@@ -176,12 +176,17 @@ Strain, and `wounded` is derived from wound count, never set directly.
 
 Skill and save checks use a **signed advantage net** on the roll context (POC):
 
-- `0` → `2d10`
-- `+n` → `(2+n)d10kh2` (keep highest 2)
-- `-n` → `(2+|n|)d10kl2` (keep lowest 2)
+- Let `B` = skill `baseDice` (default **2**); saves always use `B = 2`
+- `0` → `Bd10`
+- `+n` → `(B+n)d10khB` (keep highest B)
+- `-n` → `(B+|n|)d10klB` (keep lowest B)
+
+**Skill defaults (POC F):** each skill stores `baseDice` (min 1, default 2) and
+`defaultAdvantage` (signed net, default 0). Instant rolls and the check dialog seed from these;
+explicit options / chat reroll flags override. Saves and Luck save ignore skill defaults.
 
 The flat
-`Modifier[]` remain separate (ability, proficiency, situational). Critical-injury notes that
+`modifier[]` remain separate (ability, proficiency, situational). Critical-injury notes that
 mix flat mods with advantage still resolve through the same net + modifiers split.
 
 ## Luck (POC B)
@@ -204,6 +209,19 @@ mix flat mods with advantage still resolve through the same net + modifiers spli
 - Sheet tabs: external icon strip (right); Skills/Combat swap the main panel only (abilities +
   saves stay). Header wound count sits on the HP row (same chip pattern as Resolve on strain).
 
+## Combat (POC C)
+
+- **Weapon** Item (`skill` punch|shoot|stab, `damageFormula` default `1d6`, `attackBonus`): sheet +
+  Combat tab list with Attack / Damage / edit / remove.
+- **Attack:** `1d20 + skill ability mod + skill proficiency + combat.attackBonus + weapon.attackBonus`.
+  If exactly one targeted token has `combat.ac`, card shows hit/miss. Always rolls damage on the
+  same card; **nat 20** maximizes damage dice. Flags: `flags.kedom.attack`. Inspectable Foundry
+  dice HTML (same expand pattern as Luck save / skill checks).
+- **Luck on attack:** spend `ac - total` to hit when missing vs known AC; otherwise spend 1 for +1.
+- **Damage (standalone):** Combat tab Damage button / chat Roll Damage — normal dice (no apply-HP).
+- **Nat 20:** Critical wound button calls `takeWound` on the **roll-time** target uuid (if any).
+- Manual Take Wound (Combat tab) remains the 0 HP path.
+
 ## Error handling at the boundary
 
 Per the three-tier assertion rule in [../../Style.md](../../Style.md):
@@ -213,6 +231,10 @@ Per the three-tier assertion rule in [../../Style.md](../../Style.md):
 - **The click handler is a boundary.** It never crashes the host. It catches, logs, and shows
   a notification, because an exception escaping a click handler leaves the player with a dead
   sheet and no explanation.
+
+Character **create** is not a roll pipeline stage: the wizard evaluates 3d6 / 1d8 locally for
+draft scores and growth rows, then persists via a single `Actor.create` (see
+[data-model.md](./data-model.md#actor-types)). Skill/attack/wound rolls above remain the in-play path.
 
 ## Test plan
 

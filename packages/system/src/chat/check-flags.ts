@@ -9,6 +9,8 @@ export type KedomGradedCheckFlags = {
   saveKey?: SaveKey;
   difficulty: DifficultyColumn;
   advantageNet: number;
+  /** Dice kept on skill checks; omitted / 2 for saves. */
+  baseDice?: number;
   situational: number;
   /** Effective total including Luck spent on this card. */
   total: number;

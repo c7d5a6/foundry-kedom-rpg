@@ -23,7 +23,7 @@ function formatSigned(value: number): string {
   return value >= 0 ? `+${String(value)}` : String(value);
 }
 
-function parseForm(form: HTMLFormElement): CheckConfigureResult {
+function parseForm(form: HTMLFormElement, defaults: CheckConfigureResult): CheckConfigureResult {
   const data = new FormData(form);
   const difficultyRaw = String(data.get("difficulty") ?? "trained");
   const difficulty = (
@@ -31,7 +31,7 @@ function parseForm(form: HTMLFormElement): CheckConfigureResult {
   ) as DifficultyColumn;
   const situational = Number.parseInt(String(data.get("situational") ?? "0"), 10) || 0;
   const advantageNet = Number.parseInt(String(data.get("advantageNet") ?? "0"), 10) || 0;
-  return { difficulty, situational, advantageNet };
+  return { difficulty, situational, advantageNet, baseDice: defaults.baseDice };
 }
 
 function wireAdvantageControls(root: HTMLElement): void {
@@ -98,7 +98,7 @@ export async function promptCheckDialog(options: {
               button.form ??
               (root instanceof HTMLElement ? root.querySelector("form") : null);
             if (!(form instanceof HTMLFormElement)) return defaultCheckConfigure();
-            return parseForm(form);
+            return parseForm(form, defaults);
           },
         },
         {

@@ -1,0 +1,62 @@
+<div class="kedom-weapon-sheet">
+  <header class="sheet-header kedom-weapon-sheet__header">
+    <img
+      class="profile-img"
+      src="{{item.img}}"
+      data-action="editImage"
+      data-edit="img"
+      title="{{item.name}}"
+      alt="{{item.name}}"
+    />
+    <div class="header-fields">
+      {{#if editable}}
+        {{formInput fields.name value=source.name placeholder=(localize "DOCUMENT.FIELDS.name.label")}}
+      {{else}}
+        <h1 class="document-name">{{item.name}}</h1>
+      {{/if}}
+    </div>
+  </header>
+
+  <section class="kedom-weapon-sheet__body">
+    <div class="kedom-weapon-sheet__field">
+      <label for="weapon-skill">{{localize "KEDOM.Weapon.skill"}}</label>
+      {{#if editable}}
+        <select id="weapon-skill" name="system.skill">
+          {{#each skillOptions}}
+            <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+          {{/each}}
+        </select>
+      {{else}}
+        <span>{{skillLabel}}</span>
+      {{/if}}
+    </div>
+
+    <div class="kedom-weapon-sheet__field">
+      <label for="weapon-damage">{{localize "KEDOM.Weapon.damageFormula"}}</label>
+      {{#if editable}}
+        <input
+          id="weapon-damage"
+          type="text"
+          name="system.damageFormula"
+          value="{{system.damageFormula}}"
+        />
+      {{else}}
+        <span>{{system.damageFormula}}</span>
+      {{/if}}
+    </div>
+
+    <div class="kedom-weapon-sheet__field">
+      <label for="weapon-attack-bonus">{{localize "KEDOM.Weapon.attackBonus"}}</label>
+      {{#if editable}}
+        <input
+          id="weapon-attack-bonus"
+          type="number"
+          name="system.attackBonus"
+          value="{{system.attackBonus}}"
+        />
+      {{else}}
+        <span>{{system.attackBonus}}</span>
+      {{/if}}
+    </div>
+  </section>
+</div>

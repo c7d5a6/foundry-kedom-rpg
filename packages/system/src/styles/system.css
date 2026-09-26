@@ -471,15 +471,25 @@
 
 /*
  * Frame border on ::after (not the box) so overflow:visible + outside tabs work.
- * Sharp corners; inset:0 aligns with the app top once the header is out of flow.
+ * Hollow gold-gradient ring (same chrome as portrait/meters); sharp corners.
  */
 .application.kedom.sheet.actor.character.vertical-tabs:not(.minimized)::after {
   content: "";
   position: absolute;
   pointer-events: none;
   inset: 0;
-  border: 1px solid var(--kedom-color-gold-300, #df7126);
+  border: none;
   border-radius: 0;
+  padding: 1.5px;
+  background: var(--kedom-chrome-gold, var(--kedom-gradient-gold));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
   box-shadow: 0 8px 28px color-mix(in srgb, black 35%, transparent);
   z-index: 2;
 }
@@ -581,8 +591,14 @@
   flex-direction: column;
   gap: 0;
   contain: content;
-  background: var(--kedom-color-primary-600, #14101a);
-  border: 1px solid var(--kedom-color-gold-300, #df7126);
+  background:
+    linear-gradient(
+      var(--kedom-color-primary-600, #14101a),
+      var(--kedom-color-primary-600, #14101a)
+    )
+      padding-box,
+    var(--kedom-chrome-gold, var(--kedom-gradient-gold)) border-box;
+  border: 1.5px solid transparent;
   border-left: none;
   border-radius: 0;
   pointer-events: auto;
@@ -635,6 +651,221 @@
   flex-direction: column;
   gap: 0.85rem;
   padding: 0.35rem 0.25rem 0.5rem;
+}
+
+.kedom-weapons-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 45%, transparent);
+  background: color-mix(in srgb, var(--kedom-color-primary-500, #251a31) 55%, transparent);
+}
+
+.kedom-weapons-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.kedom-weapons-panel__title {
+  margin: 0;
+  font-family: var(--kedom-font-display, Georgia, serif);
+  font-size: 1.05rem;
+  color: var(--kedom-color-gold-100, #faf591);
+}
+
+.kedom-weapons-panel__empty {
+  margin: 0;
+  opacity: 0.75;
+  font-size: 0.85rem;
+}
+
+.kedom-weapons-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.kedom-weapons-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 35%, transparent);
+  background: color-mix(in srgb, var(--kedom-color-primary-600, #14101a) 45%, transparent);
+}
+
+.kedom-weapons-list__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.kedom-weapons-list__name {
+  font-weight: 700;
+  color: var(--kedom-text-primary, #fff4e1);
+}
+
+.kedom-weapons-list__meta {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  color: var(--kedom-color-gold-100, #faf591);
+}
+
+.kedom-weapons-list__actions {
+  display: flex;
+  gap: 0.3rem;
+  flex: 0 0 auto;
+}
+
+.kedom-weapons-list__btn {
+  margin: 0;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid var(--kedom-color-gold-300, #df7126);
+  background: var(--kedom-color-primary-500, #251a31);
+  color: var(--kedom-color-gold-100, #faf591);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.kedom-weapons-list__btn:hover:not(:disabled) {
+  background: var(--kedom-color-primary-400, #3a2a48);
+}
+
+.kedom-weapons-list__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.kedom-weapons-list__btn--icon {
+  min-width: 1.75rem;
+  padding-inline: 0.35rem;
+}
+
+.kedom-chat-attack__damage {
+  margin-block-start: 0.45rem;
+  padding-block-start: 0.35rem;
+  border-top: 1px solid color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 35%, transparent);
+}
+
+.kedom.sheet .kedom-combat-stubs__input {
+  width: 3.5rem;
+  margin: 0;
+  padding: 0.1rem 0.25rem;
+  border: 1px solid color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 55%, transparent);
+  background: color-mix(in srgb, var(--kedom-color-primary-600, #14101a) 70%, transparent);
+  color: var(--kedom-text-primary, #fff4e1);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.kedom-chat-attack,
+.kedom-chat-damage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.15rem 0;
+}
+
+.kedom-chat-attack__summary,
+.kedom-chat-damage__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.kedom-chat-attack__row,
+.kedom-chat-damage__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.kedom-chat-attack__row--muted,
+.kedom-chat-damage__row--muted {
+  opacity: 0.8;
+  font-size: 0.9em;
+}
+
+.kedom-chat-attack__label,
+.kedom-chat-damage__label {
+  opacity: 0.85;
+}
+
+.kedom-chat-attack__value,
+.kedom-chat-damage__value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.kedom-chat-attack__value--hit {
+  color: var(--kedom-tier-success, #afaf43);
+}
+
+.kedom-chat-attack__value--miss {
+  color: var(--kedom-tier-failure, #c61624);
+}
+
+.kedom-chat-attack__mods,
+.kedom-chat-damage__mods {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+  font-size: 0.85em;
+  opacity: 0.85;
+}
+
+.application.kedom.sheet.item.weapon .window-content {
+  padding: 0.65rem;
+}
+
+.kedom-weapon-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.kedom-weapon-sheet__header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: none;
+}
+
+.kedom-weapon-sheet__header .profile-img {
+  width: 4rem;
+  height: 4rem;
+  object-fit: cover;
+  border: 1px solid var(--kedom-color-gold-300, #df7126);
+}
+
+.kedom-weapon-sheet__header .header-fields {
+  flex: 1;
+  min-width: 0;
+}
+
+.kedom-weapon-sheet__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.kedom-weapon-sheet__field {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.kedom-weapon-sheet__field label {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
 }
 
 .kedom-wounds-panel {
@@ -847,9 +1078,9 @@
 
 .kedom.sheet .sheet-header h1,
 .kedom.sheet .sheet-header .document-name {
-  flex: 1;
-  align-self: flex-start;
-  margin: 0 0 0.35rem;
+  flex: 0 0 auto;
+  align-self: stretch;
+  margin: 0 0 0.25rem;
   font-family: var(--kedom-font-display, Georgia, serif);
   font-size: 1.85rem;
   font-weight: 700;
@@ -859,6 +1090,223 @@
   text-shadow:
     0 1px 2px color-mix(in srgb, black 70%, transparent),
     0 2px 12px color-mix(in srgb, black 45%, transparent);
+}
+
+.kedom.sheet .kedom-identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.15rem;
+  align-self: flex-start;
+}
+
+.kedom.sheet .kedom-identity .document-name {
+  margin: 0;
+}
+
+.kedom.sheet .kedom-identity__line {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--kedom-text-muted, #c8c4bc);
+  opacity: 0.92;
+  line-height: 1.25;
+}
+
+.kedom.sheet .kedom-identity__place {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+}
+
+.kedom.sheet .kedom-identity__field {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--kedom-text-muted, #f8f7f7);
+  opacity: 0.9;
+}
+
+.kedom.sheet .kedom-identity__field input {
+  width: 8.5rem;
+  min-height: 1.35rem;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.kedom.sheet .kedom-identity__place-line {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--kedom-color-gold-200, #fdbb42);
+  text-shadow: 0 1px 2px color-mix(in srgb, black 55%, transparent);
+}
+
+.kedom.sheet .kedom-identity__origins {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.kedom.sheet .kedom-identity__slot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.4rem;
+  min-height: 1.35rem;
+}
+
+.kedom.sheet .kedom-identity__slot-label {
+  flex: 0 0 5.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--kedom-text-muted, #f8f7f7);
+  opacity: 0.75;
+}
+
+.kedom.sheet .kedom-identity__foci {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.35rem;
+  min-width: 0;
+}
+
+.kedom.sheet .kedom-identity__chip-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.kedom.sheet .kedom-identity__chip {
+  margin: 0;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 55%, transparent);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--kedom-color-primary-600, #14101a) 70%, transparent);
+  color: var(--kedom-color-gold-100, #faf591);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.kedom.sheet .kedom-identity__chip:hover {
+  border-color: var(--kedom-color-gold-200, #fdbb42);
+  color: var(--kedom-color-gold-50, #fff4a3);
+}
+
+.kedom.sheet .kedom-identity__empty {
+  font-size: 0.75rem;
+  color: var(--kedom-text-muted, #f8f7f7);
+  opacity: 0.45;
+}
+
+.kedom.sheet .kedom-identity__icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 40%, transparent);
+  border-radius: 0;
+  background: transparent;
+  color: var(--kedom-color-gold-200, #fdbb42);
+  font-size: 0.65rem;
+  cursor: pointer;
+}
+
+.kedom.sheet .kedom-identity__icon-btn:hover {
+  border-color: var(--kedom-color-gold-200, #fdbb42);
+  color: var(--kedom-color-gold-50, #fff4a3);
+}
+
+.kedom.sheet .kedom-identity__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.kedom.sheet .kedom-identity__action {
+  margin: 0;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--kedom-color-gold-300, #df7126);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--kedom-color-primary-600, #14101a) 75%, transparent);
+  color: var(--kedom-color-gold-100, #faf591);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.kedom.sheet .kedom-identity__action:hover {
+  border-color: var(--kedom-color-gold-200, #fdbb42);
+  color: var(--kedom-color-gold-50, #fff4a3);
+}
+
+.kedom-item-sheet__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.kedom-item-sheet__header .profile-img {
+  width: 3.5rem;
+  height: 3.5rem;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+.kedom-item-sheet__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.kedom-item-sheet__field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.65rem;
+}
+
+.kedom-item-sheet__field--block {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.kedom-item-sheet__field label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--kedom-color-gold-200, #fdbb42);
+}
+
+.kedom-item-sheet__hint {
+  margin: 0;
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+
+.kedom-item-sheet__pre,
+.kedom-item-sheet__field textarea {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  line-height: 1.35;
 }
 
 .kedom.sheet .sheet-header h1 input {
@@ -1693,6 +2141,42 @@
   opacity: 0.9;
 }
 
+.kedom-skill__roll-hint {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  color: var(--kedom-color-gold-200, #fdbb42);
+  opacity: 0.75;
+}
+
+.kedom-skill__defaults {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  margin: 0;
+}
+
+.kedom-skill__defaults-field {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--kedom-text-muted, #f8f7f7);
+}
+
+.kedom-skill__defaults-field input {
+  width: 3.25rem;
+  min-height: 1.4rem;
+  padding: 0.1rem 0.25rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
 .kedom-skill__mod {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
@@ -2074,4 +2558,223 @@ button.kedom-skill__tag.is-blocked:hover {
 .kedom-check-dialog__mod-value {
   font-variant-numeric: tabular-nums;
   color: var(--kedom-color-gold-200, #fdbb42);
+}
+
+/* —— Character create wizard —— */
+.kedom-create-wizard .kedom-create-wizard__form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 0.75rem;
+}
+
+.kedom-create-wizard__header h2 {
+  margin: 0;
+  font-family: var(--kedom-font-display, Georgia, serif);
+  font-size: 1.15rem;
+}
+
+.kedom-create-wizard__progress {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.kedom-create-wizard__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.kedom-create-wizard__abilities {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.kedom-create-wizard__ability {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 12%, transparent);
+}
+
+.kedom-create-wizard__ability.is-replaced {
+  outline: 1px solid color-mix(in srgb, var(--kedom-color-gold-200, #fdbb42) 55%, transparent);
+}
+
+.kedom-create-wizard__ability-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  min-width: 1.5rem;
+  text-align: right;
+}
+
+.kedom-create-wizard__choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.kedom-create-wizard__choices--wrap {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.kedom-create-wizard__choice {
+  text-align: left;
+}
+
+.kedom-create-wizard__choice.is-selected {
+  outline: 1px solid color-mix(in srgb, var(--kedom-color-gold-200, #fdbb42) 70%, transparent);
+  background: color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 22%, transparent);
+}
+
+.kedom-create-wizard__choice:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.kedom-create-wizard__skill-steps {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.kedom-create-wizard__step-label {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+}
+
+.kedom-create-wizard__skill-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.kedom-create-wizard__skill {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--kedom-color-gold-200, #fdbb42) 40%, transparent);
+  background: color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 10%, #1a1612);
+  color: inherit;
+  border-radius: 0.2rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.kedom-create-wizard__skill.is-free {
+  cursor: default;
+  opacity: 0.85;
+  border-style: dashed;
+}
+
+.kedom-create-wizard__skill:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  border-style: dashed;
+}
+
+.kedom-create-wizard__skill.is-selected {
+  border-color: var(--kedom-color-gold-200, #fdbb42);
+  background: color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 28%, #1a1612);
+}
+
+.kedom-create-wizard__skill.is-rolled,
+.kedom-create-wizard__skill.is-substitute {
+  cursor: default;
+}
+
+.kedom-create-wizard__skill.is-substitute {
+  border-color: color-mix(in srgb, #7ec8a0 55%, transparent);
+  background: color-mix(in srgb, #7ec8a0 12%, #1a1612);
+}
+
+.kedom-create-wizard__sub-arrow {
+  opacity: 0.7;
+  font-weight: 700;
+}
+
+.kedom-create-wizard__sub-note {
+  margin: 0.25rem 0;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.kedom-create-wizard__roll-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  border: 1px dashed color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 35%, transparent);
+  border-radius: 0.25rem;
+}
+
+.kedom-create-wizard__spec {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.kedom-create-wizard__spec label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+}
+
+.kedom-create-wizard__ability button.is-selected {
+  outline: 1px solid color-mix(in srgb, var(--kedom-color-gold-200, #fdbb42) 70%, transparent);
+}
+
+.kedom-create-wizard__bg-detail {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.kedom-create-wizard__bg-detail h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.kedom-create-wizard__rolls {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.kedom-create-wizard__name {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.kedom-create-wizard__confirm {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.kedom-create-wizard__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.kedom-create-character-btn {
+  width: 100%;
+  margin-top: 0.25rem;
 }

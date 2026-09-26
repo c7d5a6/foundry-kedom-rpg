@@ -147,6 +147,7 @@ async function onReroll(flags: KedomGradedCheckFlags): Promise<void> {
     difficulty: flags.difficulty,
     advantageNet: flags.advantageNet,
     situational: flags.situational,
+    ...(flags.baseDice !== undefined ? { baseDice: flags.baseDice } : {}),
   };
 
   if (flags.kind === "skill" && flags.skillKey) {

@@ -56,6 +56,21 @@ function skillSchema() {
       initial: "untrained",
     }),
     specializations: new ArrayField(specializationSchema(), { initial: [] }),
+    /** Dice kept on a skill check (default 2 → 2d10 / Nd10kh2). */
+    baseDice: new NumberField({
+      required: true,
+      nullable: false,
+      integer: true,
+      min: 1,
+      initial: 2,
+    }),
+    /** Signed advantage net applied when rolling this skill (dialog seeds from it). */
+    defaultAdvantage: new NumberField({
+      required: true,
+      nullable: false,
+      integer: true,
+      initial: 0,
+    }),
   });
 }
 
@@ -141,6 +156,32 @@ function characterSchema() {
         initial: 0,
       }),
     }),
+    details: new SchemaField({
+      region: new StringField({
+        required: true,
+        nullable: false,
+        blank: true,
+        initial: "",
+      }),
+      culture: new StringField({
+        required: true,
+        nullable: false,
+        blank: true,
+        initial: "",
+      }),
+      background: new StringField({
+        required: true,
+        nullable: false,
+        blank: true,
+        initial: "",
+      }),
+      class: new StringField({
+        required: true,
+        nullable: false,
+        blank: true,
+        initial: "",
+      }),
+    }),
     saves: new SchemaField(saves),
   };
 }
@@ -154,6 +195,8 @@ export type SkillSpecialization = { slug: string; label: string; selected: boole
 export type SkillFields = {
   proficiency: string;
   specializations: SkillSpecialization[];
+  baseDice: number;
+  defaultAdvantage: number;
 };
 
 export type SaveFields = {

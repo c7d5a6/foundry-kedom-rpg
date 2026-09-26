@@ -21,22 +21,23 @@ at volume). Status reflects **`packages/system` code today** vs the target below
 | # | Capability | Status | Notes |
 |---|---|---|---|
 | 1.0 | Actor sheet: abilities, skills, HP/Strain/Wounds, saves | **Done** | `character` actor + sheet |
-| 1.1 | Set **birthplace** (region) | **Todo** | No region/birthplace field or UI; Forge `region` planned |
-| 1.2 | Set **culture** (race / human sub-culture) | **Todo** | No origin items; race lists in rules only |
-| 1.3 | Set **background** | **Partial** | Scratch tables in `docs/content/nerland-human-backgrounds.md`; no Foundry grant/apply |
-| 1.4 | Set **class** | **Todo** | Roster in `docs/rules/30-character-creation.md`; no class item / HD / attack progression |
-| 1.5 | **Special abilities** (foci, racial arts, class features) | **Todo** | Lang foreshadows `focus` / `power` / `origin` Item types — **not registered** in `system.json` |
+| 1.1 | Set **birthplace** (region) | **Done** | Wizard step only (creation-only; not on sheet identity line) |
+| 1.2 | Set **culture** (race / human sub-culture) | **Done** | Wizard → `details.culture` + race `origin` item |
+| 1.3 | Set **background** | **Done** | Wizard: free + choose 1 of 8 + 2×1d8 growth (Nerland draft); skills granted at create |
+| 1.4 | Set **class** | **Done** | Wizard → `details.class` + class `origin`; stub `hitDie` / `attackBonus` |
+| 1.5 | **Special abilities** (foci, racial arts, class features) | **Partial** | `focus` Item type exists; foci picking deferred from create wizard |
 
-**POC minimum for §1:** `origin` (or sheet fields) for region + culture + background + class;
-apply free skill / growth picks from background; attach 1–2 foci or racial abilities as items
-or Active Effects. Full Adventurer dual-class maths and Forge packs can stay deferred.
+**POC minimum for §1:** ApplicationV2 **Create Character** wizard from the Actor Directory
+(attributes → region → culture → background → class/name → `Actor.create`). Sheet under-name
+line: `culture · background · class`. Region is creation-only. Foci / dual-class / multi-region
+tables stay deferred.
 
 **Suggested work**
 
-1. Item types: at least `origin` (`race` | `background` | `class`) and `focus` (or `power`).
-2. Character details: birthplace/region + culture slugs (persisted choices).
-3. Apply grants: skill proficiency / specialisation from background + class skill points stub.
-4. Optional: thin creation dialog (pick order) instead of only manual sheet edits.
+1. ~~Item types: at least `origin` (`race` | `background` | `class`) and `focus`.~~ Done.
+2. ~~Character details + create wizard.~~ Done (Nerland backgrounds draft).
+3. Expand backgrounds beyond Nerland; Adventurer dual-class maths.
+4. Foci picking in wizard or post-create advancement.
 
 ---
 
@@ -51,7 +52,7 @@ or Active Effects. Full Adventurer dual-class maths and Forge packs can stay def
 | 2.5 | **Pre-roll modal** (difficulty, situational, optional) | **Done** | Ctrl/⌘-click or client setting `kedom.checkDialog` |
 | 2.6 | **Advantage / disadvantage** (extra d10, keep 2 best/worst) | **Done** | Signed net; slider −3…+3 + number input |
 | 2.7 | **Spend Luck** to improve skill/save (1-to-1) | **Done** | Chat: spend N Luck to next outcome band; not on Luck save |
-| 2.8 | **Skill defaults** (extra dice or default +adv) | **Todo** | Per-skill or actor settings; nowhere in schema |
+| 2.8 | **Skill defaults** (extra dice or default +adv) | **Done** | Per-skill `baseDice` + `defaultAdvantage`; sheet edit + roll seed |
 | 2.9 | **Rerolls** (from chat or sheet) | **Done** | Free chat reroll on skill/class-save cards (no Luck cost) |
 
 Also related (not in your list, but POC-adjacent):
@@ -63,7 +64,7 @@ Also related (not in your list, but POC-adjacent):
 
 **POC minimum for §2:** opt-in check dialog (difficulty + adv/disadv + situational); Luck
 score as pool (0–20, 3d6 at create); Luck save; spend Luck on total; one reroll path from the
-chat card; optional per-skill default adv count.
+chat card; per-skill `baseDice` + `defaultAdvantage`.
 
 **Suggested work**
 
@@ -72,7 +73,7 @@ chat card; optional per-skill default adv count.
 3. Allow Luck `value` **0–20** (generation 3d6); spend on chat reduces score. — **Done** (0–20 + spend-to-next-band)
 4. Luck save proficiency on actor + roll entry on sheet. — **Done**
 5. Chat buttons: spend Luck (N to next outcome), free reroll. — **Done**
-6. Actor/skill flags: `defaultAdvantage`, `baseDice` (default 2).
+6. Actor/skill flags: `defaultAdvantage`, `baseDice` (default 2). — **Done**
 7. Narrative restore: GM edits Luck up (no auto rest recovery).
 
 ---
@@ -81,18 +82,18 @@ chat card; optional per-skill default adv count.
 
 | # | Capability | Status | Notes |
 |---|---|---|---|
-| 3.1 | **Attack rolls** (`d20` + attr + proficiency vs AC) | **Todo** | `combat.attackBonus` stub = 0; no attack roll path |
-| 3.2 | **Damage rolls** | **Todo** | `meleeDamageBonus` stub; no weapon items |
+| 3.1 | **Attack rolls** (`d20` + skill ability + proficiency + AB stub vs AC; damage on same card; crit = max dice) | **Done** | Weapon `skill` punch\|shoot\|stab; inspectable dice |
+| 3.2 | **Damage rolls** | **Done** | Standalone Damage button + attack card damage; melee bonuses; chat only (no apply-HP) |
 | 3.3 | **Wound rolls** (`d20 + Luck mod` by wound count + `d8` body part → effect) | **Done** | Take Wound on Combat tab; matrix + body part; chat card |
-| 3.4 | **Spend Luck** (combat / ignore wound result) | **Partial** | Spend-all ignore on wound card **Done**; spend on attack waits for C |
+| 3.4 | **Spend Luck** (combat / ignore wound result) | **Done** | Spend-all ignore on wound; spend on attack total (to-hit / +1) |
 
 Also related:
 
 | Capability | Status | Notes |
 |---|---|---|
 | AC derived | **Partial** | `10 + Dex mod`; armour not applied |
-| HP / Wounded flag | **Partial** | Wounded derived (`wounds >= 1`); header badge; natural HP recovery not yet blocked |
-| Shock, initiative, targets | **Todo** | Out of minimal POC unless needed for attack demo |
+| HP / Wounded flag | **Partial** | Wounded derived (`wounds >= 1`); header badge; natural HP recovery not yet blocked; apply-damage → 0 HP auto-wound deferred |
+| Shock, initiative, targets | **Todo** | Out of minimal POC; attack uses optional single target for AC/crit only |
 
 **POC minimum for §3:** weapon item (or sheet attack line) → attack + damage chat; on 0 HP /
 critical → increase Wound count → wound table roll (`d20 + Luck mod` + body part) → show
@@ -113,10 +114,10 @@ effect; spend Luck on attack or to void wound result. Do **not** implement PF2e 
 ```text
 A. Roll UX          dialog → adv/disadv → difficulty          (§2.4–2.6)  Done
 B. Luck             pool + Luck save + spend + reroll         (§2.3, 2.7, 2.9) Done
-D. Wounds           wound roll + Luck ignore                  (§3.3–3.4) Done (ignore); attack spend → C
-C. Combat core      weapon → attack → damage                  (§3.1–3.2)
-E. Character create origin/focus items + birthplace/culture   (§1.1–1.5)
-F. Skill defaults   per-skill dice/adv presets                (§2.8)
+D. Wounds           wound roll + Luck ignore                  (§3.3–3.4) Done
+C. Combat core      weapon → attack → damage                  (§3.1–3.2) Done (apply-HP deferred)
+E. Character create wizard (attrs→region→culture→bg→class)   (§1.1–1.5) Done (foci deferred)
+F. Skill defaults   per-skill dice/adv presets                (§2.8) Done
 ```
 
 A→B unlocks the skill/save fantasy of the POC. **D before C** unlocks the wound loop without

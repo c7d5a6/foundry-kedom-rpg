@@ -126,13 +126,18 @@
     </div>
   </div>
 
-  <h1 class="document-name">
-    {{#if isEdit}}
-      {{formInput fields.name value=source.name placeholder=(localize "DOCUMENT.FIELDS.name.label")}}
-    {{else}}
-      {{actor.name}}
+  <div class="kedom-identity">
+    <h1 class="document-name">
+      {{#if isEdit}}
+        {{formInput fields.name value=source.name placeholder=(localize "DOCUMENT.FIELDS.name.label")}}
+      {{else}}
+        {{actor.name}}
+      {{/if}}
+    </h1>
+    {{#if identityLine}}
+      <p class="kedom-identity__line">{{identityLine}}</p>
     {{/if}}
-  </h1>
+  </div>
   {{!-- One gradient painted across the whole divider; mask = lines + hollow diamonds --}}
   <div class="kedom-sheet-divider" aria-hidden="true"></div>
 </header>

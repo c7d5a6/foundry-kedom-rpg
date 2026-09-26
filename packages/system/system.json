@@ -52,6 +52,11 @@
   "documentTypes": {
     "Actor": {
       "character": {}
+    },
+    "Item": {
+      "weapon": {},
+      "origin": {},
+      "focus": {}
     }
   },
 

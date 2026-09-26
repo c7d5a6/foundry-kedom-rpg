@@ -8,6 +8,7 @@ import {
 } from "../config/kedom.ts";
 import { BODY_PART_KEYS } from "../config/wound-table.ts";
 import { SKILL_FIXED_SPECIALIZATIONS } from "../config/specializations.ts";
+import { ORIGIN_SUBTYPES } from "../config/origin.ts";
 
 function fixedSpecializationLangKeys(): string[] {
   const keys: string[] = [];
@@ -66,6 +67,10 @@ const TEMPLATE_EXPANDERS: {
     expand: () => BODY_PART_KEYS.map((p) => `KEDOM.Wound.BodyPart.${p}`),
   },
   {
+    pattern: /^KEDOM\.Origin\.SubType\.\$\{[^}]+\}$/,
+    expand: () => ORIGIN_SUBTYPES.map((s) => `KEDOM.Origin.SubType.${s}`),
+  },
+  {
     pattern: /^KEDOM\.Specialization\.\$\{[^}]+\}\.\$\{[^}]+\}$/,
     expand: () => fixedSpecializationLangKeys(),
   },
@@ -82,6 +87,7 @@ export function configDrivenLangKeys(): string[] {
     ...OUTCOME_KINDS.map((o) => `KEDOM.Outcome.${o}`),
     ...DIFFICULTY_COLUMNS.map((d) => `KEDOM.DifficultyColumn.${d}`),
     ...BODY_PART_KEYS.map((p) => `KEDOM.Wound.BodyPart.${p}`),
+    ...ORIGIN_SUBTYPES.map((s) => `KEDOM.Origin.SubType.${s}`),
     ...fixedSpecializationLangKeys(),
   ];
 }

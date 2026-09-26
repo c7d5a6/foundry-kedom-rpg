@@ -1,0 +1,40 @@
+<div class="kedom-focus-sheet">
+  <header class="sheet-header kedom-item-sheet__header">
+    <img
+      class="profile-img"
+      src="{{item.img}}"
+      data-action="editImage"
+      data-edit="img"
+      title="{{item.name}}"
+      alt="{{item.name}}"
+    />
+    <div class="header-fields">
+      {{#if editable}}
+        {{formInput fields.name value=source.name placeholder=(localize "DOCUMENT.FIELDS.name.label")}}
+      {{else}}
+        <h1 class="document-name">{{item.name}}</h1>
+      {{/if}}
+    </div>
+  </header>
+
+  <section class="kedom-item-sheet__body">
+    <div class="kedom-item-sheet__field kedom-item-sheet__field--block">
+      <label for="focus-desc">{{localize "KEDOM.Focus.description"}}</label>
+      {{#if editable}}
+        {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
+      {{else}}
+        {{{system.description}}}
+      {{/if}}
+    </div>
+
+    <div class="kedom-item-sheet__field kedom-item-sheet__field--block">
+      <label for="focus-grants">{{localize "KEDOM.Grants.json"}}</label>
+      <p class="kedom-item-sheet__hint">{{localize "KEDOM.Grants.jsonHint"}}</p>
+      {{#if editable}}
+        <textarea id="focus-grants" name="grantsJson" rows="10">{{grantsJson}}</textarea>
+      {{else}}
+        <pre class="kedom-item-sheet__pre">{{grantsJson}}</pre>
+      {{/if}}
+    </div>
+  </section>
+</div>
