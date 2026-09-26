@@ -148,7 +148,7 @@ cultures would naturally sit at the race level.
 `niziel`, `ferori`, `nerland`, `half-elf`, and `half-orc` as five human sub-cultures, and gives
 **each its own background list and its own allowed-class list**. Sub-cultures are mechanical,
 they sit at the race level, and they differ by content rather than by statistics — no
-sub-culture grants an attribute or focus the others do not. What remains open is whether Kedom
+sub-culture grants an attribute or talent the others do not. What remains open is whether Kedom
 keeps that arrangement. See
 [../forge/public-site-export.md](../forge/public-site-export.md#what-it-confirms-about-the-forge-schema).
 

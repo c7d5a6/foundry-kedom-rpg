@@ -15,11 +15,11 @@
     },
     "Item": {
       "armor": "Доспех",
-      "focus": "Фокус",
       "gear": "Снаряжение",
       "origin": "Происхождение",
       "power": "Способность",
       "skill": "Навык",
+      "talent": "Талант",
       "weapon": "Оружие"
     }
   },
@@ -92,7 +92,7 @@
       "Character": "Лист персонажа Kedom",
       "Weapon": "Лист оружия Kedom",
       "Origin": "Лист происхождения Kedom",
-      "Focus": "Лист фокуса Kedom",
+      "Talent": "Лист таланта Kedom",
       "Abilities": "Характеристики",
       "Skills": "Навыки",
       "Mod": "Мод",
@@ -132,7 +132,7 @@
         "editWeapon": "Изменить оружие",
         "deleteWeapon": "Убрать оружие",
         "createOrigin": "Создать происхождение",
-        "createFocus": "Создать фокус",
+        "createTalent": "Создать талант",
         "deleteOwnedItem": "Убрать",
         "applyGrants": "Применить дары",
         "addSamples": "Добавить образцы",
@@ -148,11 +148,11 @@
       "Culture": "Культура",
       "RegionPlaceholder": "Место рождения / регион",
       "CulturePlaceholder": "Раса / культура",
-      "Foci": "Фокусы",
+      "Talents": "Таланты",
       "GrantsApplied": "Дары применены — навыки {skills}, специализации {specs}, характеристики {abilities}.",
-      "GrantsAlreadyApplied": "Дары уже применены для текущих происхождений и фокусов.",
+      "GrantsAlreadyApplied": "Дары уже применены для текущих происхождений и талантов.",
       "SamplesAdded": "Добавлено образцов: {count}.",
-      "SamplesAlreadyAdded": "Образцы уже есть у этого персонажа.",
+      "SamplesAlreadyAdded": "Образцы происхождений и талантов уже есть у этого персонажа.",
       "searchPlaceholder": "Поиск",
       "EditPortrait": "Изменить портрет персонажа",
       "Proficiency": "Владение",
@@ -337,7 +337,7 @@
         "class": "Класс"
       }
     },
-    "Focus": {
+    "Talent": {
       "description": "Описание"
     },
     "Grants": {

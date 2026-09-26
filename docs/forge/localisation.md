@@ -75,7 +75,7 @@ kind is a new allowed value rather than a new migration.
 translation:
   id
   entity_kind     'attribute' | 'skill' | 'specialization' | 'race' | 'class'
-                  | 'background' | 'region' | 'focus' | 'power' | 'condition'
+                  | 'background' | 'region' | 'talent' | 'power' | 'condition'
                   | 'injury' | 'proficiency' | 'outcome' | 'save' | 'difficulty'
                   | 'derived' | 'injury_severity' | 'injury_location' | 'injury_weapon'
   entity_id       INTEGER NOT NULL     the id in that kind's table

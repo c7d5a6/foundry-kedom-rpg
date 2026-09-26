@@ -3,7 +3,7 @@ import type { OriginSubtype } from "../config/origin.ts";
 
 export type SampleItemData = {
   name: string;
-  type: "origin" | "focus";
+  type: "origin" | "talent";
   /** Stable id used to detect already-added samples on an actor. */
   sampleId: string;
   img?: string;
@@ -57,12 +57,12 @@ export const CREATION_SAMPLES: SampleItemData[] = [
     }),
   }),
   {
-    sampleId: "sample-focus-alert",
+    sampleId: "sample-talent-alert",
     name: "Alert",
-    type: "focus",
+    type: "talent",
     img: "icons/svg/eye.svg",
     system: {
-      description: "<p>Expert focus stub — Notice and a touch of Focus.</p>",
+      description: "<p>Expert talent stub — Notice and a touch of Focus.</p>",
       grants: grants({
         skills: [{ skillKey: "notice", proficiency: "apprentice" }],
         abilities: [{ key: "foc", delta: 1 }],
@@ -93,7 +93,7 @@ export async function addSampleItems(actor: Actor.Implementation): Promise<numbe
     return 0;
   }
 
-  // @ts-expect-error fvtt-types: origin/focus Item subtypes not in core union yet
+  // @ts-expect-error fvtt-types: origin/talent Item subtypes not in core union yet
   await actor.createEmbeddedDocuments("Item", toCreate);
   ui.notifications.info(
     game.i18n.format("KEDOM.Sheet.SamplesAdded", { count: String(toCreate.length) }),

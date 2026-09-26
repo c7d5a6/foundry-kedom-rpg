@@ -25,19 +25,19 @@ at volume). Status reflects **`packages/system` code today** vs the target below
 | 1.2 | Set **culture** (race / human sub-culture) | **Done** | Wizard → `details.culture` + race `origin` item |
 | 1.3 | Set **background** | **Done** | Wizard: free + choose 1 of 8 + 2×1d8 growth (Nerland draft); skills granted at create |
 | 1.4 | Set **class** | **Done** | Wizard → `details.class` + class `origin`; stub `hitDie` / `attackBonus` |
-| 1.5 | **Special abilities** (foci, racial arts, class features) | **Partial** | `focus` Item type exists; foci picking deferred from create wizard |
+| 1.5 | **Special abilities** (talents, racial arts, class features) | **Partial** | `talent` Item type exists; talents picking deferred from create wizard |
 
 **POC minimum for §1:** ApplicationV2 **Create Character** wizard from the Actor Directory
 (attributes → region → culture → background → class/name → `Actor.create`). Sheet under-name
-line: `culture · background · class`. Region is creation-only. Foci / dual-class / multi-region
+line: `culture · background · class`. Region is creation-only. Talents / dual-class / multi-region
 tables stay deferred.
 
 **Suggested work**
 
-1. ~~Item types: at least `origin` (`race` | `background` | `class`) and `focus`.~~ Done.
+1. ~~Item types: at least `origin` (`race` | `background` | `class`) and `talent`.~~ Done.
 2. ~~Character details + create wizard.~~ Done (Nerland backgrounds draft).
 3. Expand backgrounds beyond Nerland; Adventurer dual-class maths.
-4. Foci picking in wizard or post-create advancement.
+4. Talents picking in wizard or post-create advancement.
 
 ---
 
@@ -116,7 +116,7 @@ A. Roll UX          dialog → adv/disadv → difficulty          (§2.4–2.6) 
 B. Luck             pool + Luck save + spend + reroll         (§2.3, 2.7, 2.9) Done
 D. Wounds           wound roll + Luck ignore                  (§3.3–3.4) Done
 C. Combat core      weapon → attack → damage                  (§3.1–3.2) Done (apply-HP deferred)
-E. Character create wizard (attrs→region→culture→bg→class)   (§1.1–1.5) Done (foci deferred)
+E. Character create wizard (attrs→region→culture→bg→class)   (§1.1–1.5) Done (talents deferred)
 F. Skill defaults   per-skill dice/adv presets                (§2.8) Done
 ```
 

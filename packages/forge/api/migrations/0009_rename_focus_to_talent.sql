@@ -1,25 +1,8 @@
--- Closed-vocabulary terms for Foundry lang JSON (proficiency, outcomes, saves, …).
--- Attributes and skills stay on their existing tables.
+-- Rename translation entity_kind 'focus' → 'talent' (WWN-style feats; not the Focus attribute).
+-- SQLite cannot ALTER CHECK; recreate translation with the updated enum.
 
 PRAGMA foreign_keys = ON;
 
-CREATE TABLE vocab (
-	id           INTEGER PRIMARY KEY AUTOINCREMENT,
-	kind         TEXT NOT NULL
-		CHECK (kind IN (
-			'proficiency', 'outcome', 'save', 'difficulty', 'derived',
-			'condition', 'injury_severity', 'injury_location', 'injury_weapon'
-		)),
-	slug         TEXT NOT NULL
-		CHECK (length(slug) > 0 AND slug NOT GLOB '*[^a-zA-Z0-9]*'),
-	label        TEXT NOT NULL CHECK (length(label) > 0),
-	abbreviation TEXT NOT NULL DEFAULT '',
-	sort_order   INTEGER NOT NULL DEFAULT 0,
-	comment      TEXT NOT NULL DEFAULT '',
-	UNIQUE (kind, slug)
-);
-
--- Widen translation.entity_kind for vocab kinds (SQLite cannot ALTER CHECK).
 CREATE TABLE translation_new (
 	id          INTEGER PRIMARY KEY AUTOINCREMENT,
 	entity_kind TEXT NOT NULL
@@ -37,19 +20,27 @@ CREATE TABLE translation_new (
 );
 
 INSERT INTO translation_new (id, entity_kind, entity_id, locale, field, value)
-SELECT id, entity_kind, entity_id, locale, field, value FROM translation;
+SELECT
+	id,
+	CASE entity_kind WHEN 'focus' THEN 'talent' ELSE entity_kind END,
+	entity_id,
+	locale,
+	field,
+	value
+FROM translation;
 
--- Parent delete triggers reference translation; drop them before replacing the table.
 DROP TRIGGER IF EXISTS translation_insert_entity_exists;
 DROP TRIGGER IF EXISTS translation_update_entity_exists;
 DROP TRIGGER IF EXISTS attribute_delete_translations;
 DROP TRIGGER IF EXISTS skill_delete_translations;
 DROP TRIGGER IF EXISTS specialization_delete_translations;
 DROP TRIGGER IF EXISTS class_delete_translations;
+DROP TRIGGER IF EXISTS vocab_delete_translations;
 
 DROP TABLE translation;
 ALTER TABLE translation_new RENAME TO translation;
 
+-- Recreate parent-delete + entity-exists triggers (same as 0004_vocab.sql).
 CREATE TRIGGER translation_insert_entity_exists
 BEFORE INSERT ON translation
 BEGIN
@@ -68,11 +59,9 @@ BEGIN
 			THEN RAISE(ABORT, 'translation.entity_id: class not found')
 		WHEN NEW.entity_kind IN (
 				'proficiency', 'outcome', 'save', 'difficulty', 'derived',
-				'condition', 'injury_severity', 'injury_location', 'injury_weapon'
+				'injury_severity', 'injury_location', 'injury_weapon'
 			)
-			AND NOT EXISTS (
-				SELECT 1 FROM vocab WHERE id = NEW.entity_id AND kind = NEW.entity_kind
-			)
+			AND NOT EXISTS (SELECT 1 FROM vocab WHERE id = NEW.entity_id)
 			THEN RAISE(ABORT, 'translation.entity_id: vocab not found')
 	END;
 END;
@@ -95,11 +84,9 @@ BEGIN
 			THEN RAISE(ABORT, 'translation.entity_id: class not found')
 		WHEN NEW.entity_kind IN (
 				'proficiency', 'outcome', 'save', 'difficulty', 'derived',
-				'condition', 'injury_severity', 'injury_location', 'injury_weapon'
+				'injury_severity', 'injury_location', 'injury_weapon'
 			)
-			AND NOT EXISTS (
-				SELECT 1 FROM vocab WHERE id = NEW.entity_id AND kind = NEW.entity_kind
-			)
+			AND NOT EXISTS (SELECT 1 FROM vocab WHERE id = NEW.entity_id)
 			THEN RAISE(ABORT, 'translation.entity_id: vocab not found')
 	END;
 END;

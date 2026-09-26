@@ -240,7 +240,7 @@ CREATE TABLE IF NOT EXISTS "translation" (
 	entity_kind TEXT NOT NULL
 		CHECK (entity_kind IN (
 			'attribute', 'skill', 'specialization', 'class',
-			'background', 'region', 'focus', 'power', 'condition', 'injury', 'race',
+			'background', 'region', 'talent', 'power', 'condition', 'injury', 'race',
 			'proficiency', 'outcome', 'save', 'difficulty', 'derived',
 			'injury_severity', 'injury_location', 'injury_weapon'
 		)),

@@ -34,9 +34,9 @@ classes, taking the better hit die, the constrained attack bonus, and the union 
 ### The data shapes it uses
 
 ```
-race:        { id, name, toRoll, foci, description, suboptions[] }
+race:        { id, name, toRoll, talents, description, suboptions[] }
 background:  { title, description, freeSkill, quickSkills[2], allSkills[8] }
-class:       { id, title, partial, hd, ab, minAb, arts[], spells, foci, skill, description }
+class:       { id, title, partial, hd, ab, minAb, arts[], spells, talents, skill, description }
 raceToClass: { id, classes[], forcedClass[] }
 ```
 
@@ -150,7 +150,7 @@ site/v1/
     races.json                      id, label, weight, rollRange, parentId, thumb
     classes.json                    id, label, partial, allowedFor[]
     skills.json                     id, label, attribute
-  race/<slug>.json                  full record: description, foci, grants
+  race/<slug>.json                  full record: description, talents, grants
   background/<slug>.json
   class/<slug>.json
   by-race/<slug>.json               that race's background ids and class ids

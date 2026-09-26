@@ -15,11 +15,11 @@
     },
     "Item": {
       "armor": "Armor",
-      "focus": "Focus",
       "gear": "Gear",
       "origin": "Origin",
       "power": "Power",
       "skill": "Skill",
+      "talent": "Talent",
       "weapon": "Weapon"
     }
   },
@@ -92,7 +92,7 @@
       "Character": "Kedom Character Sheet",
       "Weapon": "Kedom Weapon Sheet",
       "Origin": "Kedom Origin Sheet",
-      "Focus": "Kedom Focus Sheet",
+      "Talent": "Kedom Talent Sheet",
       "Abilities": "Abilities",
       "Skills": "Skills",
       "Mod": "Mod",
@@ -132,7 +132,7 @@
         "editWeapon": "Edit weapon",
         "deleteWeapon": "Remove weapon",
         "createOrigin": "Create origin",
-        "createFocus": "Create focus",
+        "createTalent": "Create talent",
         "deleteOwnedItem": "Remove",
         "applyGrants": "Apply grants",
         "addSamples": "Add sample origins",
@@ -148,11 +148,11 @@
       "Culture": "Culture",
       "RegionPlaceholder": "Birthplace / region",
       "CulturePlaceholder": "Race / culture",
-      "Foci": "Foci",
+      "Talents": "Talents",
       "GrantsApplied": "Grants applied — skills {skills}, specializations {specs}, abilities {abilities}.",
-      "GrantsAlreadyApplied": "Grants are already applied for the current origins and foci.",
+      "GrantsAlreadyApplied": "Grants are already applied for the current origins and talents.",
       "SamplesAdded": "Added {count} sample item(s).",
-      "SamplesAlreadyAdded": "Sample origins and foci are already on this character.",
+      "SamplesAlreadyAdded": "Sample origins and talents are already on this character.",
       "searchPlaceholder": "Search",
       "EditPortrait": "Edit character artwork",
       "Proficiency": "Proficiency",
@@ -337,7 +337,7 @@
         "class": "Class"
       }
     },
-    "Focus": {
+    "Talent": {
       "description": "Description"
     },
     "Grants": {

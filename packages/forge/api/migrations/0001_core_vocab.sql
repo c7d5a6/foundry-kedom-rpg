@@ -68,7 +68,7 @@ CREATE TABLE translation (
 	entity_kind TEXT NOT NULL
 		CHECK (entity_kind IN (
 			'attribute', 'skill', 'specialization', 'class',
-			'background', 'region', 'focus', 'power', 'condition', 'injury', 'race'
+			'background', 'region', 'talent', 'power', 'condition', 'injury', 'race'
 		)),
 	entity_id   INTEGER NOT NULL,
 	locale      TEXT NOT NULL CHECK (locale != 'en' AND length(locale) > 0),

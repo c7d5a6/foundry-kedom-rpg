@@ -135,7 +135,7 @@ Seven. Each has a reason to exist that no other type covers.
 | `weapon` | Attack profile, damage, shock, ranges. **POC shipped:** `skill` (`punch`\|`shoot`\|`stab`), `damageFormula` (default `1d6`), `attackBonus`. Physical mixin / shock / ranges deferred. |
 | `armor` | AC contribution and skill penalty. |
 | `gear` | Everything else carried. |
-| `focus` | A feat or talent. Grants modifiers and unlocks. **POC shipped:** description + grant arrays; Apply grants on sheet. |
+| `talent` | Character talent (WWN-style feat; not the Focus ability). Grants modifiers and unlocks. **POC shipped:** description + grant arrays; Apply grants on sheet. |
 | `power` | Arts, spells, and abilities, behind a `subType` discriminator. |
 | `origin` | Race, background, or class, behind a `subType` discriminator. **POC shipped:** `subType`, grants, class stubs (`hitDie`, `attackBonus`). |
 
@@ -162,7 +162,7 @@ unrepresentable.
 src/data/templates/
   physical.ts      quantity, weight, price, encumbrance slot, equipped state
   describable.ts   description (HTMLField), source, slug
-  grantor.ts       the grant arrays -- used by origin and focus
+  grantor.ts       the grant arrays -- used by origin and talent
 ```
 
 ## Skills and specialisations
@@ -235,7 +235,7 @@ compendium is the definition; the embedded item is the character's instance of i
 
 ## References between documents
 
-Grants on `origin` and `focus` items are declarative arrays, and they reference by slug:
+Grants on `origin` and `talent` items are declarative arrays, and they reference by slug:
 
 ```
 grants:

@@ -2,22 +2,22 @@ import { grantsSchema, type GrantsFields } from "./grants.ts";
 
 const { HTMLField } = foundry.data.fields;
 
-function focusSchema() {
+function talentSchema() {
   return {
     description: new HTMLField({ required: true, nullable: false, blank: true, initial: "" }),
     grants: grantsSchema(),
   };
 }
 
-export type FocusSchema = ReturnType<typeof focusSchema>;
+export type TalentSchema = ReturnType<typeof talentSchema>;
 
-export type FocusDataFields = {
+export type TalentDataFields = {
   description: string;
   grants: GrantsFields;
 };
 
-export class FocusData extends foundry.abstract.TypeDataModel<FocusSchema, Item.Implementation> {
-  static override defineSchema(): FocusSchema {
-    return focusSchema();
+export class TalentData extends foundry.abstract.TypeDataModel<TalentSchema, Item.Implementation> {
+  static override defineSchema(): TalentSchema {
+    return talentSchema();
   }
 }

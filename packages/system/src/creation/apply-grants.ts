@@ -6,7 +6,7 @@ import {
 } from "../config/kedom.ts";
 import type { CharacterData, SkillFields, SkillSpecialization } from "../data/actor/character.ts";
 import type { GrantsFields } from "../data/item/grants.ts";
-import type { FocusDataFields } from "../data/item/focus.ts";
+import type { TalentDataFields } from "../data/item/talent.ts";
 import type { OriginDataFields } from "../data/item/origin.ts";
 
 const TIER_RANK = Object.fromEntries(
@@ -51,8 +51,8 @@ function readItemGrants(item: Item.Implementation): GrantsFields | null {
     const system = item.system as unknown as OriginDataFields;
     return system.grants ?? { skills: [], specializations: [], abilities: [] };
   }
-  if (type === "focus") {
-    const system = item.system as unknown as FocusDataFields;
+  if (type === "talent") {
+    const system = item.system as unknown as TalentDataFields;
     return system.grants ?? { skills: [], specializations: [], abilities: [] };
   }
   return null;
@@ -75,7 +75,7 @@ function buildFingerprint(items: Item.Implementation[]): string {
 }
 
 /**
- * Apply grants from all owned origin + focus items onto the actor.
+ * Apply grants from all owned origin + talent items onto the actor.
  * Skills take the max proficiency; specializations merge by slug;
  * ability baseMod deltas apply once per item+ability (tracked in flags).
  */
@@ -87,7 +87,7 @@ export async function applyGrants(actor: Actor.Implementation): Promise<{
 }> {
   const grantItems = [...actor.items].filter((item) => {
     const t = item.type as string;
-    return t === "origin" || t === "focus";
+    return t === "origin" || t === "talent";
   });
 
   const stableFingerprint = buildFingerprint(grantItems);

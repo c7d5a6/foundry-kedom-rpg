@@ -252,7 +252,7 @@ The full design is [localisation.md](localisation.md).
 ```
 id
 entity_kind     'attribute' | 'skill' | 'specialization' | 'race' | 'class'
-                | 'background' | 'region' | 'focus' | 'power' | 'condition'
+                | 'background' | 'region' | 'talent' | 'power' | 'condition'
                 | 'injury'
 entity_id       INTEGER NOT NULL
 locale          TEXT NOT NULL        currently only 'ru'

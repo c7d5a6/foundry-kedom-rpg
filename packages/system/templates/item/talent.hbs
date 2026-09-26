@@ -1,4 +1,4 @@
-<div class="kedom-focus-sheet">
+<div class="kedom-talent-sheet">
   <header class="sheet-header kedom-item-sheet__header">
     <img
       class="profile-img"
@@ -19,7 +19,7 @@
 
   <section class="kedom-item-sheet__body">
     <div class="kedom-item-sheet__field kedom-item-sheet__field--block">
-      <label for="focus-desc">{{localize "KEDOM.Focus.description"}}</label>
+      <label for="talent-desc">{{localize "KEDOM.Talent.description"}}</label>
       {{#if editable}}
         {{editor system.description target="system.description" button=true editable=editable engine="prosemirror"}}
       {{else}}
@@ -28,10 +28,10 @@
     </div>
 
     <div class="kedom-item-sheet__field kedom-item-sheet__field--block">
-      <label for="focus-grants">{{localize "KEDOM.Grants.json"}}</label>
+      <label for="talent-grants">{{localize "KEDOM.Grants.json"}}</label>
       <p class="kedom-item-sheet__hint">{{localize "KEDOM.Grants.jsonHint"}}</p>
       {{#if editable}}
-        <textarea id="focus-grants" name="grantsJson" rows="10">{{grantsJson}}</textarea>
+        <textarea id="talent-grants" name="grantsJson" rows="10">{{grantsJson}}</textarea>
       {{else}}
         <pre class="kedom-item-sheet__pre">{{grantsJson}}</pre>
       {{/if}}

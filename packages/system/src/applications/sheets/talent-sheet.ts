@@ -1,4 +1,4 @@
-import type { FocusDataFields } from "../../data/item/focus.ts";
+import type { TalentDataFields } from "../../data/item/talent.ts";
 import type { GrantsFields } from "../../data/item/grants.ts";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -23,11 +23,11 @@ function parseGrantsJson(raw: string): GrantsFields | null {
   }
 }
 
-export class FocusSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
+export class TalentSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static override DEFAULT_OPTIONS = {
     ...ItemSheetV2.DEFAULT_OPTIONS,
-    classes: ["kedom", "sheet", "item", "focus"],
-    position: { width: 460, height: 480 },
+    classes: ["kedom", "sheet", "item", "talent"],
+    position: { width: 460, height: 520 },
     window: {
       ...ItemSheetV2.DEFAULT_OPTIONS.window,
       resizable: true,
@@ -40,8 +40,8 @@ export class FocusSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
   static override PARTS = {
     body: {
-      template: "systems/kedom/templates/item/focus.hbs",
-      classes: ["kedom-focus-sheet-body"],
+      template: "systems/kedom/templates/item/talent.hbs",
+      classes: ["kedom-talent-sheet-body"],
     },
   };
 
@@ -49,7 +49,7 @@ export class FocusSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     options: foundry.applications.api.ApplicationV2.RenderOptions,
   ) {
     const context = await super._prepareContext(options);
-    const system = this.item.system as unknown as FocusDataFields;
+    const system = this.item.system as unknown as TalentDataFields;
 
     return Object.assign(context, {
       item: this.item,

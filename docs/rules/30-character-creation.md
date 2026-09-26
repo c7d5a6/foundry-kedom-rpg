@@ -8,11 +8,11 @@ Ported from `📥 inbox/WWN Kedom Hack.md`.
 2. Choose a **race**, which grants bonus skills, attribute adjustments, and a class list.
 3. Roll or choose a **background**.
 4. Choose a **class** from those the race allows.
-5. Spend starting skill points, choose foci, and buy equipment.
+5. Spend starting skill points, choose talents, and buy equipment.
 
 ## Races
 
-Every race grants **Expert foci**. Each also restricts which classes are available, which is
+Every race grants **Expert talents**. Each also restricts which classes are available, which is
 the main mechanical weight of the choice.
 
 > **Every racial attribute modifier below is stale.** They are quoted from
@@ -154,7 +154,7 @@ classes and the same twelve partials, with no additions or omissions on either s
 ([../forge/public-site-export.md](../forge/public-site-export.md)).
 
 That is worth more than it looks. The generator also carries per-class `hd`, `ab`, `arts`, and
-foci values, and its `Summary.vue` implements the partial-combination maths: the better hit
+talent values, and its `Summary.vue` implements the partial-combination maths: the better hit
 die of the two, a constrained attack bonus, and the union of arts. Those are WWN's numbers and
 need rebalancing for Kedom, but the **structure** of the hybrid chassis is already worked out
 and does not need inventing.
@@ -186,7 +186,7 @@ names themselves are Reflex / Fortitude / Will —
 ## Implementation note
 
 Race, background, and class are all **items** on the actor, not enumerations, because each
-grants things: bonus skills, attribute adjustments, class lists, foci, progressions. Grants
+grants things: bonus skills, attribute adjustments, class lists, talents, progressions. Grants
 are declarative data on the item, resolved by `src/derivations/`, following
 `foundryvtt-wwn`'s `classEdge` pattern where the class item carries `poolGrant`,
 `skillPointsPerLevel`, and `attackProgression`.

@@ -1,10 +1,10 @@
 import { CharacterData } from "./data/actor/character.ts";
-import { FocusData } from "./data/item/focus.ts";
 import { OriginData } from "./data/item/origin.ts";
+import { TalentData } from "./data/item/talent.ts";
 import { WeaponData } from "./data/item/weapon.ts";
 import { CharacterSheet } from "./applications/sheets/character-sheet.ts";
-import { FocusSheet } from "./applications/sheets/focus-sheet.ts";
 import { OriginSheet } from "./applications/sheets/origin-sheet.ts";
+import { TalentSheet } from "./applications/sheets/talent-sheet.ts";
 import { WeaponSheet } from "./applications/sheets/weapon-sheet.ts";
 import { registerCharacterCreateDirectoryButton } from "./applications/apps/character-create-wizard.ts";
 import { decorateAttackCardActions } from "./chat/attack-card-actions.ts";
@@ -20,7 +20,7 @@ Hooks.once("init", () => {
   // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
   CONFIG.Item.dataModels.origin = OriginData;
   // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
-  CONFIG.Item.dataModels.focus = FocusData;
+  CONFIG.Item.dataModels.talent = TalentData;
 
   foundry.documents.collections.Actors.registerSheet("kedom", CharacterSheet, {
     types: ["character"],
@@ -42,11 +42,11 @@ Hooks.once("init", () => {
     label: "KEDOM.Sheet.Origin",
   });
 
-  foundry.documents.collections.Items.registerSheet("kedom", FocusSheet, {
+  foundry.documents.collections.Items.registerSheet("kedom", TalentSheet, {
     // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
-    types: ["focus"],
+    types: ["talent"],
     makeDefault: true,
-    label: "KEDOM.Sheet.Focus",
+    label: "KEDOM.Sheet.Talent",
   });
 
   registerSettings();
@@ -62,10 +62,10 @@ Hooks.once("init", () => {
     "systems/kedom/templates/actor/partials/save.hbs",
     "systems/kedom/templates/item/weapon.hbs",
     "systems/kedom/templates/item/origin.hbs",
-    "systems/kedom/templates/item/focus.hbs",
+    "systems/kedom/templates/item/talent.hbs",
   ]);
 
-  console.log("Kedom RPG | initialized (character + origin/focus/weapon + rolls)");
+  console.log("Kedom RPG | initialized (character + origin/talent/weapon + rolls)");
 });
 
 Hooks.on("renderActorDirectory", registerCharacterCreateDirectoryButton);
