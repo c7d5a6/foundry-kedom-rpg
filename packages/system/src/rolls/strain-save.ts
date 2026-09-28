@@ -12,13 +12,13 @@ function localize(path: string, fallback: string): string {
 /** Strain Save: d20 vs Resolve and current Strain (Harm / Failure / Success). */
 export async function rollStrainSave(actor: Actor.Implementation): Promise<void> {
   const system = actor.system as CharacterData;
-  const foc = (system.abilities as { foc?: { value?: number } }).foc;
-  const focusScore = foc?.value ?? 10;
+  const foc = (system.abilities as { foc?: { value?: number; mod?: number } }).foc;
+  const focusMod = foc?.mod ?? 0;
   const attrs = system.attributes as {
     resolve?: number;
     strain?: { value?: number };
   };
-  const resolve = attrs.resolve ?? resolveFromFocus(focusScore);
+  const resolve = attrs.resolve ?? resolveFromFocus(focusMod);
   const strain = attrs.strain?.value ?? 0;
 
   const roll = await new Roll("1d20").evaluate();

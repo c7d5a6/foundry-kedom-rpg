@@ -261,8 +261,8 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
     const foc = this.abilities.foc as AbilityFields;
     const dex = this.abilities.dex as AbilityFields;
     const attrs = this.attributes as AttributesDerived;
-    attrs.strainLimit = strainLimitFromFocus(foc.value);
-    attrs.resolve = resolveFromFocus(foc.value);
+    attrs.strainLimit = strainLimitFromFocus(foc.mod ?? 0);
+    attrs.resolve = resolveFromFocus(foc.mod ?? 0);
     attrs.wounded = (attrs.wounds?.value ?? 0) >= 1;
 
     const combat = this.combat as { ac: number };
