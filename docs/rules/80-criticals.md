@@ -8,8 +8,9 @@ It records WFRP / Pathfinder 2e–style critical effects expressed against WWN v
 **equivalence tables**. Use it when authoring injury flavour and Active Effects. Do **not**
 treat “severity 1–15” as something players roll.
 
-**Play procedure** lives in the source wound table: increase Wound count → `d20 + Luck mod` in
-that column → body part → effect index. See [50-wounds-strain.md](50-wounds-strain.md) and
+**Play procedure** lives in the source wound table: increase Wound count → Luck save
+(`d20 + Luck mod + Luck save proficiency + armor`) in that column → `d8` body part → effect
+index. Armor does not change Defense. See [50-wounds-strain.md](50-wounds-strain.md) and
 `Kedom RPG.md`. [Q22 resolved](99-open-questions.md#q22--critical-severity-1–15--design-scaffolding-only).
 
 ## Structure (design axes)

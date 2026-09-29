@@ -59,7 +59,7 @@ Also related (not in your list, but POC-adjacent):
 
 | Capability | Status | Notes |
 |---|---|---|
-| Strain roll (`d20` vs Resolve/Strain) | **Partial** | Implemented as “Strain Save”; docs call it **Strain roll**; Limit in code still Focus **score**, docs say `10 + Focus mod` |
+| Strain roll (`d20` vs Resolve/Strain) | **Partial** | Limit `10 + Focus mod`, Resolve `10 − Focus mod`. UI still says “Strain Save”; docs say **Strain roll** |
 | Half proficiency without specialisation | **Done** | Skills |
 
 **POC minimum for §2:** opt-in check dialog (difficulty + adv/disadv + situational); Luck
@@ -84,19 +84,19 @@ chat card; per-skill `baseDice` + `defaultAdvantage`.
 |---|---|---|---|
 | 3.1 | **Attack rolls** (`d20` + skill ability + proficiency + AB stub vs AC; damage on same card; crit = max dice) | **Done** | Weapon `skill` punch\|shoot\|stab; inspectable dice |
 | 3.2 | **Damage rolls** | **Done** | Standalone Damage button + attack card damage; melee bonuses; chat only (no apply-HP) |
-| 3.3 | **Wound rolls** (`d20 + Luck mod` by wound count + `d8` body part → effect) | **Done** | Take Wound on Combat tab; matrix + body part; chat card |
+| 3.3 | **Wound rolls** (Luck save `d20 + Luck mod + Luck proficiency + armor`, by wound count, + `d8` body part → effect) | **Done** | Take Wound on Combat tab; matrix + body part; chat card. Armor does not change Defense |
 | 3.4 | **Spend Luck** (combat / ignore wound result) | **Done** | Spend-all ignore on wound; spend on attack total (to-hit / +1) |
 
 Also related:
 
 | Capability | Status | Notes |
 |---|---|---|
-| AC derived | **Partial** | `10 + Dex mod`; armour not applied |
+| AC derived | **Done** | `10 + Reflex save` (Dex mod + Reflex proficiency). Armor does not change AC |
 | HP / Wounded flag | **Partial** | Wounded derived (`wounds >= 1`); header badge; natural HP recovery not yet blocked; apply-damage → 0 HP auto-wound deferred |
 | Shock, initiative, targets | **Todo** | Out of minimal POC; attack uses optional single target for AC/crit only |
 
 **POC minimum for §3:** weapon item (or sheet attack line) → attack + damage chat; on 0 HP /
-critical → increase Wound count → wound table roll (`d20 + Luck mod` + body part) → show
+critical → increase Wound count → wound table Luck save (`d20 + Luck mod + Luck proficiency + armor` + body part) → show
 effect; spend Luck on attack or to void wound result. Do **not** implement PF2e severity
 1–15 as a separate roll.
 
@@ -123,8 +123,9 @@ F. Skill defaults   per-skill dice/adv presets                (§2.8) Done
 A→B unlocks the skill/save fantasy of the POC. **D before C** unlocks the wound loop without
 weapons. C wires 0 HP / crit → Take Wound. E can parallel once Item types exist. F is polish.
 
-**Doc/code sync (do early, cheap):** rename Strain Save → Strain roll in UI; Strain Limit =
-`10 + Focus mod`. Wounded (`wounds >= 1`) and Luck `0–20` are done.
+**Doc/code sync (do early, cheap):** rename Strain Save → Strain roll in UI. Strain Limit
+`10 + Focus mod` and Resolve `10 − Focus mod` match the sheet. Wounded (`wounds >= 1`) and
+Luck `0–20` are done.
 
 ---
 

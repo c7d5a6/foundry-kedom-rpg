@@ -65,8 +65,8 @@ still lack class formulas are **stubs** (zero until rules land).
 | **Wounds** | Entered wound-point count | Persisted; initial `0` |
 | **Strain** | Entered current System Strain | Persisted |
 | **Strain Limit** | `10 + Focus mod` | Derived only |
-| **Resolve** | `20 − Focus score` | Derived only |
-| Armour class | `10 + Dexterity mod` (+ armour; stub) | Derived path |
+| **Resolve** | `10 − Focus mod` | Derived only |
+| Armour class | `10 + Reflex save` (Dexterity mod + Reflex proficiency) | Derived path |
 | Melee damage bonus | Might (stub) | Derived path, zero-init |
 | Attack bonus | Might or Dexterity + class (stub) | Derived path, zero-init |
 | **Reflex** save | Dexterity mod + **save proficiency** | Proficiency persisted |
@@ -89,7 +89,7 @@ the same graded difficulty ladder and configure dialog.
 |---|---|
 | **Strain Limit** | Maximum Strain; `10 + Focus mod` |
 | **Strain** | Current System Strain (attrition currency) |
-| **Resolve** | Strain roll high threshold; `20 − Focus score` |
+| **Resolve** | Strain roll high threshold; `10 − Focus mod` |
 
 **Strain roll** is a plain `d20` against Resolve and current Strain (not the skill `2d10`
 ladder, and not a class save):

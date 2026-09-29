@@ -117,7 +117,7 @@ The nineteen skills map to attributes: Knowledge 5, Presence 4, Might 4, **Focus
 (Notice, Survive, Travel), Dexterity 3, Luck 0.
 
 Focus covers intuition, perception, will, and wisdom, drives three skills, and also carries
-Strain Limit (`10 + Focus mod`), Resolve (`20 − Focus score`), and the Will save. Might still
+Strain Limit (`10 + Focus mod`), Resolve (`10 − Focus mod`), and the Will save. Might still
 does the work of both strength and constitution.
 
 The older mental/physical target of "10–15 mental, 4–9 physical, roughly 2:1" is still met
@@ -273,8 +273,10 @@ The Pathfinder-style severity ladder and groups in [80-criticals.md](80-critical
 **import/design notes** (equivalence from other systems), not a Kedom play procedure. There is
 no “roll for severity” step in the RPG.
 
-Play wounds use the **Wound count column** + `d20 + Luck mod` + `d8` body part → effect index from
-the source wound table (`Kedom RPG.md` / [50-wounds-strain.md](50-wounds-strain.md)). Keep
+Play wounds use the **Wound count column** + Luck save
+(`d20 + Luck mod + Luck save proficiency + armor`) + `d8` body part → effect index from
+the source wound table (`Kedom RPG.md` / [50-wounds-strain.md](50-wounds-strain.md)). Armor
+does not change Defense. Keep
 `80-criticals.md` as reference when authoring effects; do not gate Foundry on choosing a
 severity die.
 

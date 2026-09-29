@@ -3,7 +3,8 @@
 Repository tasks. TypeScript run through `tsx`, per [Style.md](../Style.md): typed and portable,
 where a shell script is neither. Keep the toolbox small.
 
-**`dump-content.ts` and `link-foundry.ts` are implemented.** The pack / unpack tools are not yet.
+**`dump-content.ts`, `link-foundry.ts`, and `release.ts` are implemented.** The pack / unpack
+tools are not yet.
 
 
 ## `pack.ts` — `npm run packs:build`
@@ -38,6 +39,33 @@ Writes to a scratch directory, never over `packs/_source/`.
 - Idempotent (replaces an existing symlink).
 
 Equivalent to pf2e's `build/link-foundry.ts` and draw-steel's `tools/create-symlinks.mjs`.
+
+## `release.ts` — `npm run release`
+
+**Implemented.** Local Foundry system release (no GitHub Actions). Bumps
+`packages/system/system.json`, builds `dist/`, zips it as `kedom.zip`, commits, tags,
+pushes, and creates a GitHub Release with `system.json` + `kedom.zip` via `gh`.
+
+```sh
+npm run release -- patch          # 0.0.1 → 0.0.2
+npm run release -- minor          # 0.0.1 → 0.1.0
+npm run release -- major          # 0.0.1 → 1.0.0
+npm run release -- 0.2.0          # exact version (must be greater than current)
+npm run release -- patch --dry-run
+```
+
+Prerequisites:
+
+- Clean git working tree.
+- [`gh`](https://cli.github.com/) installed and authenticated (`gh auth status`).
+- `zip` on PATH (used to package `dist/`).
+
+Foundry install / update manifest URL (after the first release exists):
+
+`https://github.com/c7d5a6/foundry-kedom-rpg/releases/latest/download/system.json`
+
+Paste that into Foundry → Install System. Each release must attach both assets; Foundry
+reads `version` from the manifest for updates.
 
 ## `dump-content.ts` — `npm run forge:dump`
 

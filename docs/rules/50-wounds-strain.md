@@ -32,6 +32,12 @@ points**, and healing converts wounds into System Strain.
 - **Magical healing** removes any number of wound points for an equal amount of System Strain.
 - **First aid** can restore hit points but cannot remove the Wounded condition.
 
+**Wound table.** Increase the wound count, then roll a Luck save for the column:
+`d20 + Luck mod + Luck save proficiency + armor`. Armor is the owned armor wound bonus; it
+does not change Defense (`10 + Reflex save`). A separate `d8` picks the body part (arm L/R,
+leg L/R, body×3, head). The cell is an effect index. Spending all current Luck voids that
+effect; the wound count stays.
+
 ### Feats that interact
 
 - **Die Hard** — automatically stabilise.
@@ -52,11 +58,12 @@ Written **SS** on the sheet short form; full label **System Strain**.
 |---|---|
 | **Strain Limit** | Maximum Strain; `10 + Focus mod` ([10-attributes.md](10-attributes.md)) |
 | **Strain** | Current System Strain (attrition currency) |
-| **Resolve** | `20 − Focus score` — high threshold for the Strain roll |
+| **Resolve** | `10 − Focus mod` — high threshold for the Strain roll |
 
 Earlier notes equated maximum Strain to Might (WWN Constitution), then briefly to Focus
-**score**. **Current rule:** Limit is `10 + Focus mod`. Magical healing, wound recovery, and
-similar costs still spend Strain.
+**score**, and Resolve to `20 − Focus score`. **Current rule:** Limit is `10 + Focus mod`,
+Resolve is `10 − Focus mod`. Magical healing, wound recovery, and similar costs still spend
+Strain.
 
 **Strain roll** (`d20`): Harm if `d20 <= min(Resolve, Strain)`; Success if
 `d20 > max(Resolve, Strain)`; Failure otherwise. Harm’s mechanical payload is unwritten —

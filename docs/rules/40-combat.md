@@ -6,9 +6,9 @@ document records what Kedom needs to decide rather than what it has decided.
 
 ## Established
 
-**Ascending armour class.** Base 10, plus armour, plus DEX modifier. Lizards have an
-unarmoured AC of 13. Melee and ranged AC are tracked separately — WWN does this, and the
-critical tables assume it.
+**Ascending armour class.** `10 + Reflex save` (Dexterity mod + Reflex proficiency). Armor
+does not change AC. Lizards have an unarmoured AC of 13. Melee and ranged AC are tracked
+separately — WWN does this, and the critical tables assume it.
 
 **Attack roll** is `1d20 + attribute modifier + proficiency`, compared to target AC.
 

@@ -203,8 +203,10 @@ mix flat mods with advantage still resolve through the same net + modifiers spli
 
 ## Wounds (POC D)
 
-- **Take Wound** (Combat tab): increment `wounds.value`, then `d20 + Luck mod` on the
+- **Take Wound** (Combat tab): increment `wounds.value`, then a Luck save
+  (`d20 + Luck mod + Luck save proficiency + owned armor wound bonus`) on the
   post-increment column + `d8` body part (arm L/R, leg L/R, body×3, head) → effect index in chat.
+  Armor does not change Defense (`10 + Reflex save`).
 - Freeform `attributes.wounds.notes` (HTML) for written effects until system content lands.
 - Sheet tabs: external icon strip (right); Skills/Combat swap the main panel only (abilities +
   saves stay). Header wound count sits on the HP row (same chip pattern as Resolve on strain).

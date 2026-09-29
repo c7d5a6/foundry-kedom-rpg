@@ -86,7 +86,7 @@ Vowed / Beast, Necromancer.
 ### Lizard
 
 **Level 1:** Gains **Punch** and **Survive** as bonus skills. **STR or CHA +1, DEX or CHA −1.**
-Unarmoured AC is **13**; better armour grants **+1 AC** on top.
+Defense is `10 + Reflex save` for every ancestry. Armor does not change it; it adds to the wound Luck save.
 
 **Classes:** Adventurer only — Vowed / Beast plus one of Warrior, Expert, Priest, Wise.
 

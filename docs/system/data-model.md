@@ -57,13 +57,13 @@ attributes:
   wounds:  { value persisted, notes HTML persisted }  # wound-point count + freeform notes
   wounded: DERIVED (wounds.value >= 1)
   strainLimit  DERIVED   = 10 + foc.mod
-  resolve      DERIVED   = 20 - foc.value
+  resolve      DERIVED   = 10 - foc.mod
   # wounded is DERIVED (wounds >= 1), never stored -- see rules/50-wounds-strain.md
   # the two corruption tracks are unshaped -- see rules/99-open-questions.md Q18
 
 combat:            stubs for now, zero-initialised (formulas deferred)
   ac, attackBonus, meleeDamageBonus
-  # ac live stub: 10 + dex.mod
+  # ac: 10 + reflex save mod (dex mod + reflex proficiency); armor does not change it
 
 saves:
   reflex, fortitude, will:
@@ -134,7 +134,7 @@ Seven. Each has a reason to exist that no other type covers.
 |---|---|
 | `skill` | A skill and its specialisations. Embedded on the actor. |
 | `weapon` | Attack profile, damage, shock, ranges. **POC shipped:** `skill` (`punch`\|`shoot`\|`stab`), `damageFormula` (default `1d6`), `attackBonus`. Physical mixin / shock / ranges deferred. |
-| `armor` | AC contribution and skill penalty. |
+| `armor` | Wound Luck-save bonus (`woundBonus`). Does not change Defense. **POC shipped.** Skill penalty deferred. |
 | `gear` | Everything else carried. |
 | `talent` | Character talent (WWN-style feat; not the Focus ability). Grants + transferable Active Effects. **POC:** description, grant arrays, skill-advantage AE helper; auto-apply on embed with level-gate overflow. |
 | `power` | Arts, spells, and abilities, behind a `subType` discriminator. |
@@ -314,7 +314,7 @@ so it needs a migration.
 src/derivations/
   modifiers.ts     ability score -> modifier, on the -3..+3 band table
   hp.ts            hit points from class hit die, Might, level
-  ac.ts            armour class from armour items and Dexterity
+  ac.ts            armour class from the Reflex save; armor does not change it
   saves.ts         reflex, fortitude, will targets
   attack.ts        attack bonus from class progression
   encumbrance.ts   readied and stowed slots from Might
