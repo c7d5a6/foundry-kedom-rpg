@@ -1,10 +1,14 @@
+import { PROFICIENCY_BONUS, type ProficiencyTier } from "../config/kedom.ts";
 import {
   bodyPartFromRoll,
+  clampWoundTableTotal,
   lookupWoundEffectIndex,
   type BodyPartKey,
 } from "../config/wound-table.ts";
-import type { CharacterData } from "../data/actor/character.ts";
+import type { CharacterData, SaveFields } from "../data/actor/character.ts";
 import { formatSignedBonus } from "./build-skill-check.ts";
+import { labeledCheckFormula } from "./labeled-formula.ts";
+import type { Modifier } from "./collectors.ts";
 
 const WOUND_TEMPLATE = "systems/kedom/templates/chat/wound.hbs";
 
@@ -18,13 +22,19 @@ export type KedomWoundFlags = {
   woundCount: number;
   effectIndex: number;
   bodyPart: BodyPartKey;
+  /** Raw luck-save total before table clamp. */
   tableTotal: number;
+  /** Total used for the wound table (−3…30). */
+  tableRow: number;
   luckMod: number;
+  armorBonus: number;
+  modifiers: { label: string; value: number }[];
   ignored: boolean;
 };
 
 /**
- * Increment wound count, then roll table (`d20 + Luck mod`) and body part (`d8`).
+ * Increment wound count, then roll a Luck save (`d20` + Luck mod + Luck proficiency +
+ * armor bonus) for the wound table, plus body part (`d8`).
  */
 export async function takeWound(actor: Actor.Implementation): Promise<void> {
   const system = actor.system as CharacterData;
@@ -38,16 +48,56 @@ export async function takeWound(actor: Actor.Implementation): Promise<void> {
     system: { attributes: { wounds: { value: woundCount } } },
   });
 
+  const save = system.saves.luck as SaveFields | undefined;
   const lck = (system.abilities as { lck?: { mod?: number } }).lck;
   const luckMod = lck?.mod ?? 0;
+  const tier = (save?.proficiency ?? "untrained") as ProficiencyTier;
+  const profBonus = PROFICIENCY_BONUS[tier] ?? 0;
+  const armorBonus = Math.floor(
+    ((system.combat as { armorBonus?: number } | undefined)?.armorBonus ?? 0),
+  );
 
-  const tableRoll = await new Roll(`1d20 + ${String(luckMod)}`).evaluate();
+  const abilityLabel = localize("KEDOM.Ability.lck.label", "Luck");
+  const tierLabel = localize(`KEDOM.Proficiency.${tier}`, tier);
+  const armorLabel = localize("KEDOM.Attributes.armorBonus", "Armor");
+
+  const modifiers: Modifier[] = [
+    {
+      label: abilityLabel,
+      value: luckMod,
+      source: { id: "ability.lck", label: abilityLabel },
+      kind: "ability",
+    },
+    {
+      label: tierLabel,
+      value: profBonus,
+      source: { id: "save.luck.proficiency", label: tierLabel },
+      kind: "skill",
+    },
+  ];
+  if (armorBonus !== 0) {
+    modifiers.push({
+      label: armorLabel,
+      value: armorBonus,
+      source: { id: "combat.armorBonus", label: armorLabel },
+      kind: "armor",
+    });
+  }
+
+  const saveLabel = localize("KEDOM.Save.luck", "Luck");
+  const formula = labeledCheckFormula("1d20", saveLabel, modifiers);
+  const tableRoll = await new Roll(formula).evaluate();
   const bodyRoll = await new Roll("1d8").evaluate();
   const tableTotal = tableRoll.total ?? 0;
+  const tableRow = clampWoundTableTotal(tableTotal);
   const bodyDie = bodyRoll.total ?? 1;
-  const effectIndex = lookupWoundEffectIndex(tableTotal, woundCount);
+  const effectIndex = lookupWoundEffectIndex(tableRow, woundCount);
   const bodyPart = bodyPartFromRoll(bodyDie);
   const bodyPartLabel = localize(`KEDOM.Wound.BodyPart.${bodyPart}`, bodyPart);
+
+  const modSummaries = modifiers
+    .filter((m) => m.value !== 0)
+    .map((m) => ({ label: m.label, value: m.value }));
 
   const content = await foundry.applications.handlebars.renderTemplate(WOUND_TEMPLATE, {
     woundCount,
@@ -55,7 +105,11 @@ export async function takeWound(actor: Actor.Implementation): Promise<void> {
     bodyPart,
     bodyPartLabel,
     tableTotal,
+    tableRow,
+    tableClamped: tableRow !== tableTotal,
     luckModSigned: formatSignedBonus(luckMod),
+    armorBonusSigned: armorBonus !== 0 ? formatSignedBonus(armorBonus) : "",
+    modifiers: modSummaries,
     ignored: false,
   });
 
@@ -77,7 +131,10 @@ export async function takeWound(actor: Actor.Implementation): Promise<void> {
           effectIndex,
           bodyPart,
           tableTotal,
+          tableRow,
           luckMod,
+          armorBonus,
+          modifiers: modSummaries,
           ignored: false,
         } satisfies KedomWoundFlags,
       },

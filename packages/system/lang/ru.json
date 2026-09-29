@@ -224,7 +224,8 @@
       "WoundEffect": "Индекс эффекта",
       "WoundFlavor": "Рана {count} — эффект {effect}, {part}",
       "WoundIgnored": "Эффект раны проигнорирован (вся Удача потрачена).",
-      "WoundTableTotal": "Бросок по таблице"
+      "WoundTableTotal": "Испытание удачи",
+      "WoundModifiers": "Модификаторы"
     },
     "Wound": {
       "BodyPart": {
@@ -260,6 +261,7 @@
       "initiative": "Инициатива",
       "level": "Уровень",
       "meleeDamage": "Урон в ближнем бою",
+      "armorBonus": "Доспех (раны)",
       "movement": "Перемещение",
       "resolve": "Решимость",
       "resolveShort": "РШ",

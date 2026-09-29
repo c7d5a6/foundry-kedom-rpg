@@ -1,35 +1,53 @@
 /**
- * Wound table from Kedom RPG.md: columns = wound count (1–10, then 11+);
- * rows = d20+Luck mod bands (20+ … <=1). Cell = effect index.
+ * Wound table: columns = wound count (1–10, then 11+);
+ * rows = d20+Luck mod totals (−3 … 30). Cell = effect index.
  */
 
 /** Columns: index 0 unused; 1–10 then index 11 = 11+. */
 export const WOUND_TABLE_COLUMNS = 11;
 
+/** Lowest / highest row labels (totals clamp outside this range). */
+export const WOUND_TABLE_TOTAL_MIN = -3;
+export const WOUND_TABLE_TOTAL_MAX = 30;
+
 /**
- * Rows from best (20+) to worst (<=1). Each row is 11 effect indices for columns 1…11+.
+ * Rows from worst total (−3) to best (30). Each row is 11 effect indices for columns 1…11+.
  */
 export const WOUND_EFFECT_TABLE: ReadonlyArray<ReadonlyArray<number>> = [
-  /* 20+ */ [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12],
-  /* 19  */ [1, 2, 4, 5, 7, 9, 10, 11, 12, 13, 14],
-  /* 18  */ [1, 3, 5, 6, 8, 10, 11, 11, 13, 14, 15],
-  /* 17  */ [1, 3, 5, 7, 8, 10, 11, 12, 14, 15, 15],
-  /* 16  */ [2, 4, 6, 8, 9, 11, 12, 13, 14, 15, 15],
-  /* 15  */ [2, 4, 6, 9, 10, 11, 12, 13, 14, 15, 15],
-  /* 14  */ [2, 5, 7, 10, 11, 12, 13, 14, 15, 15, 15],
-  /* 13  */ [3, 5, 8, 11, 11, 12, 13, 14, 15, 15, 15],
-  /* 12  */ [3, 6, 8, 11, 12, 13, 14, 14, 15, 15, 15],
-  /* 11  */ [3, 6, 9, 12, 12, 13, 14, 15, 15, 15, 15],
-  /* 10  */ [4, 7, 9, 12, 13, 14, 14, 15, 15, 15, 15],
-  /* 9   */ [4, 7, 10, 13, 13, 14, 14, 15, 15, 15, 15],
-  /* 8   */ [4, 8, 10, 13, 14, 14, 15, 15, 15, 15, 15],
-  /* 7   */ [5, 8, 11, 14, 14, 14, 15, 15, 15, 15, 15],
-  /* 6   */ [5, 9, 11, 14, 14, 15, 15, 15, 15, 15, 15],
-  /* 5   */ [5, 9, 12, 14, 15, 15, 15, 15, 15, 15, 15],
-  /* 4   */ [6, 10, 12, 15, 15, 15, 15, 15, 15, 15, 15],
-  /* 3   */ [6, 10, 13, 15, 15, 15, 15, 15, 15, 15, 15],
-  /* 2   */ [6, 11, 14, 15, 15, 15, 15, 15, 15, 15, 15],
-  /* <=1 */ [7, 12, 15, 15, 15, 15, 15, 15, 15, 15, 15],
+  /* -3 */ [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20],
+  /* -2 */ [19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20],
+  /* -1 */ [17, 19, 20, 20, 20, 20, 20, 20, 20, 20, 20],
+  /*  0 */ [15, 18, 19, 20, 20, 20, 20, 20, 20, 20, 20],
+  /*  1 */ [10, 15, 18, 19, 20, 20, 20, 20, 20, 20, 20],
+  /*  2 */ [7, 10, 15, 17, 18, 19, 20, 20, 20, 20, 20],
+  /*  3 */ [7, 10, 14, 16, 18, 19, 20, 20, 20, 20, 20],
+  /*  4 */ [6, 9, 14, 16, 18, 19, 20, 20, 20, 20, 20],
+  /*  5 */ [6, 9, 13, 15, 18, 19, 20, 20, 20, 20, 20],
+  /*  6 */ [6, 8, 13, 15, 17, 19, 20, 20, 20, 20, 20],
+  /*  7 */ [5, 8, 12, 14, 17, 19, 20, 20, 20, 20, 20],
+  /*  8 */ [5, 8, 12, 13, 17, 19, 20, 20, 20, 20, 20],
+  /*  9 */ [5, 7, 11, 13, 17, 18, 20, 20, 20, 20, 20],
+  /* 10 */ [4, 7, 11, 13, 17, 18, 20, 20, 20, 20, 20],
+  /* 11 */ [4, 6, 10, 13, 17, 18, 20, 20, 20, 20, 20],
+  /* 12 */ [4, 6, 10, 12, 16, 18, 20, 20, 20, 20, 20],
+  /* 13 */ [3, 6, 9, 12, 16, 18, 20, 20, 20, 20, 20],
+  /* 14 */ [3, 5, 9, 12, 16, 18, 20, 20, 20, 20, 20],
+  /* 15 */ [3, 5, 8, 11, 16, 18, 20, 20, 20, 20, 20],
+  /* 16 */ [2, 4, 8, 11, 16, 17, 19, 20, 20, 20, 20],
+  /* 17 */ [2, 4, 7, 9, 14, 16, 18, 19, 20, 20, 20],
+  /* 18 */ [2, 4, 7, 8, 12, 14, 16, 17, 18, 19, 20],
+  /* 19 */ [2, 3, 6, 7, 10, 12, 14, 15, 16, 18, 20],
+  /* 20 */ [1, 2, 5, 6, 8, 10, 12, 13, 14, 16, 18],
+  /* 21 */ [1, 2, 4, 6, 8, 10, 12, 13, 14, 16, 18],
+  /* 22 */ [1, 2, 4, 6, 8, 10, 12, 13, 14, 16, 18],
+  /* 23 */ [1, 2, 4, 6, 8, 10, 11, 13, 14, 16, 18],
+  /* 24 */ [1, 2, 3, 6, 8, 9, 11, 12, 14, 16, 18],
+  /* 25 */ [1, 2, 3, 6, 8, 9, 11, 12, 14, 16, 18],
+  /* 26 */ [1, 1, 3, 5, 7, 9, 10, 12, 13, 15, 18],
+  /* 27 */ [1, 1, 3, 5, 7, 9, 10, 12, 13, 15, 18],
+  /* 28 */ [1, 1, 2, 5, 7, 8, 9, 11, 13, 15, 18],
+  /* 29 */ [1, 1, 2, 5, 7, 8, 9, 11, 13, 15, 18],
+  /* 30 */ [1, 1, 2, 5, 7, 8, 9, 11, 13, 15, 18],
 ];
 
 export const BODY_PART_KEYS = [
@@ -65,20 +83,24 @@ export function woundTableColumnIndex(woundCount: number): number {
 
 /**
  * Row index into WOUND_EFFECT_TABLE for a d20+Luck total.
- * 20+ → 0, 19 → 1, …, 2 → 18, <=1 → 19.
+ * Totals below −3 use the −3 row; above 30 use the 30 row.
  */
-export function woundTableRowIndex(total: number): number {
+export function clampWoundTableTotal(total: number): number {
   const t = Math.floor(total);
-  if (t >= 20) return 0;
-  if (t <= 1) return WOUND_EFFECT_TABLE.length - 1;
-  return 20 - t;
+  if (t <= WOUND_TABLE_TOTAL_MIN) return WOUND_TABLE_TOTAL_MIN;
+  if (t >= WOUND_TABLE_TOTAL_MAX) return WOUND_TABLE_TOTAL_MAX;
+  return t;
 }
 
-/** Effect index (1–15) for post-increment wound count and table roll total. */
+export function woundTableRowIndex(total: number): number {
+  return clampWoundTableTotal(total) - WOUND_TABLE_TOTAL_MIN;
+}
+
+/** Effect index for post-increment wound count and table roll total. */
 export function lookupWoundEffectIndex(total: number, woundCount: number): number {
   const row = WOUND_EFFECT_TABLE[woundTableRowIndex(total)];
   const col = woundTableColumnIndex(woundCount);
-  return row?.[col] ?? 15;
+  return row?.[col] ?? 20;
 }
 
 /** Body part from a natural d8 (1–8). */

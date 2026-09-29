@@ -19,8 +19,18 @@
     </div>
     <div class="kedom-chat-wound__row kedom-chat-wound__row--muted">
       <span class="kedom-chat-wound__label">{{localize "KEDOM.Chat.WoundTableTotal"}}</span>
-      <span class="kedom-chat-wound__value">{{tableTotal}} ({{luckModSigned}})</span>
+      <span class="kedom-chat-wound__value">
+        {{tableTotal}}{{#if tableClamped}} → {{tableRow}}{{/if}}
+      </span>
     </div>
+    {{#if modifiers.length}}
+      <div class="kedom-chat-wound__row kedom-chat-wound__row--muted">
+        <span class="kedom-chat-wound__label">{{localize "KEDOM.Chat.WoundModifiers"}}</span>
+        <span class="kedom-chat-wound__value">
+          {{#each modifiers}}{{#unless @first}}, {{/unless}}{{label}} {{value}}{{/each}}
+        </span>
+      </div>
+    {{/if}}
   </div>
   {{#if ignored}}
     <p class="kedom-chat-wound__ignored">{{localize "KEDOM.Chat.WoundIgnored"}}</p>

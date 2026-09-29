@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   bodyPartFromRoll,
+  clampWoundTableTotal,
   lookupWoundEffectIndex,
   woundTableColumnIndex,
   woundTableRowIndex,
+  WOUND_EFFECT_TABLE,
+  WOUND_TABLE_TOTAL_MAX,
+  WOUND_TABLE_TOTAL_MIN,
 } from "../config/wound-table.ts";
 
 describe("woundTableColumnIndex", () => {
@@ -15,23 +19,37 @@ describe("woundTableColumnIndex", () => {
   });
 });
 
-describe("woundTableRowIndex", () => {
-  it("bands 20+ and <=1", () => {
-    expect(woundTableRowIndex(25)).toBe(0);
-    expect(woundTableRowIndex(20)).toBe(0);
-    expect(woundTableRowIndex(19)).toBe(1);
-    expect(woundTableRowIndex(2)).toBe(18);
-    expect(woundTableRowIndex(1)).toBe(19);
-    expect(woundTableRowIndex(-3)).toBe(19);
+describe("clampWoundTableTotal / woundTableRowIndex", () => {
+  it("clamps totals below −3 and above 30", () => {
+    expect(clampWoundTableTotal(-10)).toBe(WOUND_TABLE_TOTAL_MIN);
+    expect(clampWoundTableTotal(-3)).toBe(-3);
+    expect(clampWoundTableTotal(0)).toBe(0);
+    expect(clampWoundTableTotal(30)).toBe(30);
+    expect(clampWoundTableTotal(99)).toBe(WOUND_TABLE_TOTAL_MAX);
+  });
+
+  it("maps clamped totals to row indices", () => {
+    expect(woundTableRowIndex(-10)).toBe(0);
+    expect(woundTableRowIndex(WOUND_TABLE_TOTAL_MIN)).toBe(0);
+    expect(woundTableRowIndex(0)).toBe(3);
+    expect(woundTableRowIndex(20)).toBe(23);
+    expect(woundTableRowIndex(WOUND_TABLE_TOTAL_MAX)).toBe(WOUND_EFFECT_TABLE.length - 1);
+    expect(woundTableRowIndex(99)).toBe(WOUND_EFFECT_TABLE.length - 1);
   });
 });
 
 describe("lookupWoundEffectIndex", () => {
   it("reads known cells from the source matrix", () => {
+    expect(lookupWoundEffectIndex(-3, 1)).toBe(20);
+    expect(lookupWoundEffectIndex(-2, 1)).toBe(19);
+    expect(lookupWoundEffectIndex(1, 1)).toBe(10);
+    expect(lookupWoundEffectIndex(1, 3)).toBe(18);
     expect(lookupWoundEffectIndex(20, 1)).toBe(1);
-    expect(lookupWoundEffectIndex(1, 1)).toBe(7);
-    expect(lookupWoundEffectIndex(20, 11)).toBe(12);
-    expect(lookupWoundEffectIndex(1, 3)).toBe(15);
+    expect(lookupWoundEffectIndex(20, 11)).toBe(18);
+    expect(lookupWoundEffectIndex(30, 1)).toBe(1);
+    expect(lookupWoundEffectIndex(30, 10)).toBe(15);
+    expect(lookupWoundEffectIndex(18, 11)).toBe(20);
+    expect(lookupWoundEffectIndex(13, 2)).toBe(6);
   });
 });
 

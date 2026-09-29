@@ -392,12 +392,16 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const combatData = system.combat as {
       ac: number;
       meleeDamageBonus: number;
+      armorBonus: number;
     };
     const meleeDamageBonus = combatData.meleeDamageBonus ?? 0;
+    const armorBonus = combatData.armorBonus ?? 0;
     const combat = {
       ac: combatData.ac ?? 0,
       meleeDamageBonus,
       meleeDamageSigned: formatSignedBonus(meleeDamageBonus),
+      armorBonus,
+      armorBonusSigned: formatSignedBonus(armorBonus),
     };
 
     const weapons = this.actor.items

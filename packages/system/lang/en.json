@@ -224,7 +224,8 @@
       "WoundEffect": "Effect index",
       "WoundFlavor": "Wound {count} — effect {effect}, {part}",
       "WoundIgnored": "Wound effect ignored (all Luck spent).",
-      "WoundTableTotal": "Table roll"
+      "WoundTableTotal": "Luck save",
+      "WoundModifiers": "Modifiers"
     },
     "Wound": {
       "BodyPart": {
@@ -260,6 +261,7 @@
       "initiative": "Initiative",
       "level": "Level",
       "meleeDamage": "Melee Damage",
+      "armorBonus": "Armor (wounds)",
       "movement": "Movement",
       "resolve": "Resolve",
       "resolveShort": "RSV",

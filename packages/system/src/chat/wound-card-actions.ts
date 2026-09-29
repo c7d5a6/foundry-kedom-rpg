@@ -70,6 +70,7 @@ async function onIgnoreWound(message: ChatMessage.Implementation): Promise<void>
   await actor.update({ system: { abilities: { lck: { value: 0 } } } });
 
   const bodyPartLabel = game.i18n.localize(`KEDOM.Wound.BodyPart.${flags.bodyPart}`);
+  const tableRow = flags.tableRow ?? flags.tableTotal;
   const content = await foundry.applications.handlebars.renderTemplate(
     "systems/kedom/templates/chat/wound.hbs",
     {
@@ -78,7 +79,16 @@ async function onIgnoreWound(message: ChatMessage.Implementation): Promise<void>
       bodyPart: flags.bodyPart,
       bodyPartLabel,
       tableTotal: flags.tableTotal,
+      tableRow,
+      tableClamped: tableRow !== flags.tableTotal,
       luckModSigned: flags.luckMod >= 0 ? `+${String(flags.luckMod)}` : String(flags.luckMod),
+      armorBonusSigned:
+        (flags.armorBonus ?? 0) !== 0
+          ? flags.armorBonus >= 0
+            ? `+${String(flags.armorBonus)}`
+            : String(flags.armorBonus)
+          : "",
+      modifiers: flags.modifiers ?? [],
       ignored: true,
     },
   );

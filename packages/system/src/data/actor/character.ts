@@ -154,6 +154,13 @@ function characterSchema() {
         integer: true,
         initial: 0,
       }),
+      /** Armor bonus added to wound Luck saves (stub until armor items). */
+      armorBonus: new NumberField({
+        required: true,
+        nullable: false,
+        integer: true,
+        initial: 0,
+      }),
     }),
     details: new SchemaField({
       level: new NumberField({
@@ -236,9 +243,11 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
     const combat = this.combat as {
       ac: number;
       meleeDamageBonus: number;
+      armorBonus: number;
     };
     combat.ac = 0;
     combat.meleeDamageBonus = Math.floor(combat.meleeDamageBonus ?? 0);
+    combat.armorBonus = Math.floor(combat.armorBonus ?? 0);
     for (const key of SKILL_KEYS) {
       const skill = this.skills[key] as SkillFields;
       // Ensure AE change paths exist; keep persisted base (ADD stacks on top).

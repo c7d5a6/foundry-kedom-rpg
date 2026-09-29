@@ -61,6 +61,20 @@
               <span class="kedom-combat-stubs__value">{{combat.meleeDamageSigned}}</span>
             {{/if}}
           </div>
+          <div class="kedom-combat-stubs__item">
+            <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.armorBonus"}}</span>
+            {{#if @root.isEdit}}
+              <input
+                class="kedom-combat-stubs__input"
+                type="number"
+                name="system.combat.armorBonus"
+                value="{{combat.armorBonus}}"
+                aria-label="{{localize "KEDOM.Attributes.armorBonus"}}"
+              />
+            {{else}}
+              <span class="kedom-combat-stubs__value">{{combat.armorBonusSigned}}</span>
+            {{/if}}
+          </div>
         </div>
 
         <section class="kedom-weapons-panel">
