@@ -2,7 +2,7 @@
   "id": "kedom",
   "title": "Kedom RPG",
   "description": "A low-fantasy OSR system in the Worlds Without Number tradition, set in the world of Kedom.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "compatibility": {
     "minimum": "14.367",
     "verified": "14"
@@ -19,15 +19,23 @@
   "license": "LICENSE",
   "readme": "README.md",
   "bugs": "https://github.com/c7d5a6/foundry-kedom-rpg/issues",
-
-  "esmodules": ["kedom.mjs"],
-
-  "styles": [
-    { "src": "css/kedom-tokens.css", "layer": "variables" },
-    { "src": "css/kedom-elements.css", "layer": "elements" },
-    { "src": "css/kedom-system.css", "layer": "system" }
+  "esmodules": [
+    "kedom.mjs"
   ],
-
+  "styles": [
+    {
+      "src": "css/kedom-tokens.css",
+      "layer": "variables"
+    },
+    {
+      "src": "css/kedom-elements.css",
+      "layer": "elements"
+    },
+    {
+      "src": "css/kedom-system.css",
+      "layer": "system"
+    }
+  ],
   "languages": [
     {
       "lang": "en",
@@ -40,15 +48,12 @@
       "path": "lang/ru.json"
     }
   ],
-
   "packs": [],
   "packFolders": [],
-
   "grid": {
     "distance": 5,
     "units": "ft"
   },
-
   "documentTypes": {
     "Actor": {
       "character": {}
@@ -60,11 +65,18 @@
       "talent": {}
     }
   },
-
   "flags": {
     "hotReload": {
-      "extensions": ["css", "hbs", "json"],
-      "paths": ["css", "templates", "lang"]
+      "extensions": [
+        "css",
+        "hbs",
+        "json"
+      ],
+      "paths": [
+        "css",
+        "templates",
+        "lang"
+      ]
     }
   }
 }
