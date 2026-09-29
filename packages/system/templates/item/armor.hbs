@@ -1,0 +1,36 @@
+<div class="kedom-weapon-sheet">
+  <header class="sheet-header kedom-weapon-sheet__header">
+    <img
+      class="profile-img"
+      src="{{item.img}}"
+      data-action="editImage"
+      data-edit="img"
+      title="{{item.name}}"
+      alt="{{item.name}}"
+    />
+    <div class="header-fields">
+      {{#if editable}}
+        {{formInput fields.name value=source.name placeholder=(localize "DOCUMENT.FIELDS.name.label")}}
+      {{else}}
+        <h1 class="document-name">{{item.name}}</h1>
+      {{/if}}
+    </div>
+  </header>
+
+  <section class="kedom-weapon-sheet__body">
+    <div class="kedom-weapon-sheet__field">
+      <label for="armor-wound-bonus">{{localize "KEDOM.Armor.woundBonus"}}</label>
+      {{#if editable}}
+        <input
+          id="armor-wound-bonus"
+          type="number"
+          name="system.woundBonus"
+          value="{{system.woundBonus}}"
+        />
+      {{else}}
+        <span>{{system.woundBonus}}</span>
+      {{/if}}
+    </div>
+    <p class="kedom-item-sheet__hint">{{localize "KEDOM.Armor.woundBonusHint"}}</p>
+  </section>
+</div>

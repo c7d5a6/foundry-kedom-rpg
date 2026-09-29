@@ -91,6 +91,7 @@
     "Sheet": {
       "Character": "Лист персонажа Kedom",
       "Weapon": "Лист оружия Kedom",
+      "Armor": "Лист доспеха Kedom",
       "Origin": "Лист происхождения Kedom",
       "Talent": "Лист таланта Kedom",
       "Abilities": "Характеристики",
@@ -104,6 +105,7 @@
         "details": "Сведения",
         "effects": "Эффекты",
         "inventory": "Инвентарь",
+        "notes": "Заметки",
         "powers": "Способности",
         "skills": "Навыки",
         "stats": "Характеристики",
@@ -132,6 +134,8 @@
         "rollDamage": "Урон",
         "editWeapon": "Изменить оружие",
         "deleteWeapon": "Убрать оружие",
+        "editArmor": "Изменить доспех",
+        "deleteArmor": "Убрать доспех",
         "createOrigin": "Создать происхождение",
         "createTalent": "Создать талант",
         "createEffect": "Создать эффект",
@@ -149,6 +153,9 @@
       "Weapons": "Оружие",
       "WeaponsEmpty": "Создайте предмет «Оружие» и добавьте его персонажу.",
       "DeleteWeaponConfirm": "Убрать «{name}» у персонажа?",
+      "Armor": "Доспехи",
+      "ArmorEmpty": "Создайте предмет «Доспех» и добавьте его персонажу.",
+      "DeleteArmorConfirm": "Убрать «{name}» у персонажа?",
       "DeleteOwnedItemConfirm": "Убрать «{name}» у персонажа?",
       "DeleteEffectConfirm": "Удалить эффект «{name}»?",
       "Region": "Регион",
@@ -199,7 +206,7 @@
       "CriticalWound": "Критическая рана",
       "CriticalWoundNoPermission": "Нет прав наложить рану на эту цель.",
       "AttackFlavor": "Атака «{weapon}» ({bonus})",
-      "AttackVsAc": "КБ {ac} — {result}",
+      "AttackVsAc": "Защ {ac} — {result}",
       "AttackHit": "Попадание",
       "AttackMiss": "Промах",
       "AttackRoll": "Атака",
@@ -250,10 +257,12 @@
       "veryHard": "Очень трудно"
     },
     "Attributes": {
-      "ac": "Класс брони",
-      "acMelee": "КБ в ближнем бою",
-      "acRanged": "КБ против стрельбы",
-      "acShort": "КБ",
+      "ac": "Защита",
+      "acMelee": "Защита в ближнем бою",
+      "acRanged": "Защита от стрельбы",
+      "acShort": "Защ",
+      "defense": "Защита",
+      "defenseShort": "Защ",
       "encumbrance": "Нагрузка",
       "experience": "Опыт",
       "hp": "Пункты здоровья",
@@ -346,6 +355,10 @@
       "skill": "Боевой навык",
       "attackBonus": "Бонус атаки оружия",
       "damageFormula": "Формула урона"
+    },
+    "Armor": {
+      "woundBonus": "Бонус к ранам",
+      "woundBonusHint": "Плоский бонус к испытанию Удачи по таблице ран, пока доспех есть у персонажа. На Защиту не влияет."
     },
     "Origin": {
       "subType": "Тип происхождения",

@@ -1,7 +1,9 @@
 import { CharacterData } from "./data/actor/character.ts";
+import { ArmorData } from "./data/item/armor.ts";
 import { OriginData } from "./data/item/origin.ts";
 import { TalentData } from "./data/item/talent.ts";
 import { WeaponData } from "./data/item/weapon.ts";
+import { ArmorSheet } from "./applications/sheets/armor-sheet.ts";
 import { CharacterSheet } from "./applications/sheets/character-sheet.ts";
 import { OriginSheet } from "./applications/sheets/origin-sheet.ts";
 import { TalentSheet } from "./applications/sheets/talent-sheet.ts";
@@ -22,6 +24,8 @@ Hooks.once("init", () => {
   // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
   CONFIG.Item.dataModels.weapon = WeaponData;
   // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
+  CONFIG.Item.dataModels.armor = ArmorData;
+  // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
   CONFIG.Item.dataModels.origin = OriginData;
   // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
   CONFIG.Item.dataModels.talent = TalentData;
@@ -37,6 +41,13 @@ Hooks.once("init", () => {
     types: ["weapon"],
     makeDefault: true,
     label: "KEDOM.Sheet.Weapon",
+  });
+
+  foundry.documents.collections.Items.registerSheet("kedom", ArmorSheet, {
+    // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
+    types: ["armor"],
+    makeDefault: true,
+    label: "KEDOM.Sheet.Armor",
   });
 
   foundry.documents.collections.Items.registerSheet("kedom", OriginSheet, {
@@ -65,11 +76,12 @@ Hooks.once("init", () => {
     "systems/kedom/templates/actor/partials/skill.hbs",
     "systems/kedom/templates/actor/partials/save.hbs",
     "systems/kedom/templates/item/weapon.hbs",
+    "systems/kedom/templates/item/armor.hbs",
     "systems/kedom/templates/item/origin.hbs",
     "systems/kedom/templates/item/talent.hbs",
   ]);
 
-  console.log("Kedom RPG | initialized (character + origin/talent/weapon + rolls + AE)");
+  console.log("Kedom RPG | initialized (character + origin/talent/weapon/armor + rolls + AE)");
 });
 
 Hooks.on("renderActorDirectory", registerCharacterCreateDirectoryButton);

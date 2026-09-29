@@ -154,13 +154,6 @@ function characterSchema() {
         integer: true,
         initial: 0,
       }),
-      /** Armor bonus added to wound Luck saves (stub until armor items). */
-      armorBonus: new NumberField({
-        required: true,
-        nullable: false,
-        integer: true,
-        initial: 0,
-      }),
     }),
     details: new SchemaField({
       level: new NumberField({
@@ -194,6 +187,7 @@ function characterSchema() {
         blank: true,
         initial: "",
       }),
+      notes: new HTMLField({ required: true, nullable: false, blank: true, initial: "" }),
     }),
     saves: new SchemaField(saves),
   };
@@ -243,11 +237,9 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
     const combat = this.combat as {
       ac: number;
       meleeDamageBonus: number;
-      armorBonus: number;
     };
     combat.ac = 0;
     combat.meleeDamageBonus = Math.floor(combat.meleeDamageBonus ?? 0);
-    combat.armorBonus = Math.floor(combat.armorBonus ?? 0);
     for (const key of SKILL_KEYS) {
       const skill = this.skills[key] as SkillFields;
       // Ensure AE change paths exist; keep persisted base (ADD stacks on top).
@@ -268,14 +260,10 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
     }
 
     const foc = this.abilities.foc as AbilityFields;
-    const dex = this.abilities.dex as AbilityFields;
     const attrs = this.attributes as AttributesDerived;
     attrs.strainLimit = strainLimitFromFocus(foc.mod ?? 0);
     attrs.resolve = resolveFromFocus(foc.mod ?? 0);
     attrs.wounded = (attrs.wounds?.value ?? 0) >= 1;
-
-    const combat = this.combat as { ac: number };
-    combat.ac = 10 + (dex.mod ?? 0);
 
     for (const key of SAVE_KEYS) {
       const s = this.saves[key] as SaveFields;
@@ -290,6 +278,11 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
     const lck = this.abilities.lck as AbilityFields;
     const luckTier = luckSave.proficiency as ProficiencyTier;
     luckSave.mod = (lck.mod ?? 0) + (PROFICIENCY_BONUS[luckTier] ?? 0);
+
+    // Defense = 10 + Reflex save modifier (armor does not affect Defense for now).
+    const reflex = this.saves.reflex as SaveFields;
+    const combat = this.combat as { ac: number };
+    combat.ac = 10 + (reflex.mod ?? 0);
   }
 }
 

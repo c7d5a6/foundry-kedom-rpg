@@ -55,6 +55,7 @@
     },
     "Item": {
       "weapon": {},
+      "armor": {},
       "origin": {},
       "talent": {}
     }

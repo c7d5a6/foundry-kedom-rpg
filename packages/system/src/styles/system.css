@@ -962,6 +962,29 @@
   color: var(--kedom-text-primary, #fff4e1);
 }
 
+.kedom-notes-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 12rem;
+}
+
+.kedom-notes-panel .editor,
+.kedom-notes-panel .prosemirror,
+.kedom-notes-panel .editor-content {
+  flex: 1;
+  min-height: 12rem;
+}
+
+.kedom-notes-panel__view {
+  flex: 1;
+  min-height: 12rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--kedom-border-subtle, #3a2a48);
+  border-radius: var(--kedom-radius-sm, 0.25rem);
+  color: var(--kedom-text-primary, #fff4e1);
+}
+
 .kedom-chat-wound {
   display: flex;
   flex-direction: column;

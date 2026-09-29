@@ -1,4 +1,5 @@
 import { PROFICIENCY_BONUS, type ProficiencyTier } from "../config/kedom.ts";
+import { ownedArmorWoundBonus } from "../data/item/armor.ts";
 import {
   bodyPartFromRoll,
   clampWoundTableTotal,
@@ -34,7 +35,7 @@ export type KedomWoundFlags = {
 
 /**
  * Increment wound count, then roll a Luck save (`d20` + Luck mod + Luck proficiency +
- * armor bonus) for the wound table, plus body part (`d8`).
+ * owned armor wound bonuses) for the wound table, plus body part (`d8`).
  */
 export async function takeWound(actor: Actor.Implementation): Promise<void> {
   const system = actor.system as CharacterData;
@@ -53,13 +54,11 @@ export async function takeWound(actor: Actor.Implementation): Promise<void> {
   const luckMod = lck?.mod ?? 0;
   const tier = (save?.proficiency ?? "untrained") as ProficiencyTier;
   const profBonus = PROFICIENCY_BONUS[tier] ?? 0;
-  const armorBonus = Math.floor(
-    ((system.combat as { armorBonus?: number } | undefined)?.armorBonus ?? 0),
-  );
+  const armorBonus = ownedArmorWoundBonus(actor);
 
   const abilityLabel = localize("KEDOM.Ability.lck.label", "Luck");
   const tierLabel = localize(`KEDOM.Proficiency.${tier}`, tier);
-  const armorLabel = localize("KEDOM.Attributes.armorBonus", "Armor");
+  const armorLabel = localize("KEDOM.Armor.woundBonus", "Armor");
 
   const modifiers: Modifier[] = [
     {
@@ -79,7 +78,7 @@ export async function takeWound(actor: Actor.Implementation): Promise<void> {
     modifiers.push({
       label: armorLabel,
       value: armorBonus,
-      source: { id: "combat.armorBonus", label: armorLabel },
+      source: { id: "armor.woundBonus", label: armorLabel },
       kind: "armor",
     });
   }

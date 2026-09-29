@@ -44,7 +44,7 @@
       <div class="kedom-combat-tab">
         <div class="kedom-combat-stubs">
           <div class="kedom-combat-stubs__item">
-            <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.acShort"}}</span>
+            <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.defenseShort"}}</span>
             <span class="kedom-combat-stubs__value">{{combat.ac}}</span>
           </div>
           <div class="kedom-combat-stubs__item">
@@ -59,20 +59,6 @@
               />
             {{else}}
               <span class="kedom-combat-stubs__value">{{combat.meleeDamageSigned}}</span>
-            {{/if}}
-          </div>
-          <div class="kedom-combat-stubs__item">
-            <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.armorBonus"}}</span>
-            {{#if @root.isEdit}}
-              <input
-                class="kedom-combat-stubs__input"
-                type="number"
-                name="system.combat.armorBonus"
-                value="{{combat.armorBonus}}"
-                aria-label="{{localize "KEDOM.Attributes.armorBonus"}}"
-              />
-            {{else}}
-              <span class="kedom-combat-stubs__value">{{combat.armorBonusSigned}}</span>
             {{/if}}
           </div>
         </div>
@@ -140,6 +126,52 @@
             </ul>
           {{else}}
             <p class="kedom-weapons-panel__empty">{{localize "KEDOM.Sheet.WeaponsEmpty"}}</p>
+          {{/if}}
+        </section>
+
+        <section class="kedom-weapons-panel">
+          <header class="kedom-weapons-panel__header">
+            <h2 class="kedom-weapons-panel__title">{{localize "KEDOM.Sheet.Armor"}}</h2>
+          </header>
+          {{#if armor.length}}
+            <ul class="kedom-weapons-list">
+              {{#each armor}}
+                <li class="kedom-weapons-list__item">
+                  <div class="kedom-weapons-list__info">
+                    <span class="kedom-weapons-list__name">{{name}}</span>
+                    <span class="kedom-weapons-list__meta">
+                      {{localize "KEDOM.Armor.woundBonus"}}
+                      {{#if woundBonusSigned}} {{woundBonusSigned}}{{else}} +0{{/if}}
+                    </span>
+                  </div>
+                  <div class="kedom-weapons-list__actions">
+                    <button
+                      type="button"
+                      class="kedom-weapons-list__btn kedom-weapons-list__btn--icon"
+                      data-action="editArmor"
+                      data-item-id="{{id}}"
+                      title="{{localize "KEDOM.Sheet.Action.editArmor"}}"
+                      aria-label="{{localize "KEDOM.Sheet.Action.editArmor"}}"
+                    >
+                      <i class="fa-solid fa-pen" inert></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="kedom-weapons-list__btn kedom-weapons-list__btn--icon"
+                      data-action="deleteArmor"
+                      data-item-id="{{id}}"
+                      {{#unless @root.editable}}disabled{{/unless}}
+                      title="{{localize "KEDOM.Sheet.Action.deleteArmor"}}"
+                      aria-label="{{localize "KEDOM.Sheet.Action.deleteArmor"}}"
+                    >
+                      <i class="fa-solid fa-trash" inert></i>
+                    </button>
+                  </div>
+                </li>
+              {{/each}}
+            </ul>
+          {{else}}
+            <p class="kedom-weapons-panel__empty">{{localize "KEDOM.Sheet.ArmorEmpty"}}</p>
           {{/if}}
         </section>
 
@@ -259,6 +291,19 @@
           </ul>
         {{else}}
           <p class="kedom-talents-panel__empty">{{localize "KEDOM.Sheet.TalentsEmpty"}}</p>
+        {{/if}}
+      </section>
+    {{else if isNotesTab}}
+      <section class="kedom-notes-panel">
+        {{#if editable}}
+          {{formInput
+            systemFields.details.fields.notes
+            value=source.system.details.notes
+            enriched=enrichedNotes
+            toggled=true
+          }}
+        {{else}}
+          <div class="kedom-notes-panel__view">{{{enrichedNotes}}}</div>
         {{/if}}
       </section>
     {{else if isEffectsTab}}

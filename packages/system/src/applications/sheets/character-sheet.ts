@@ -37,6 +37,7 @@ import { rollSaveCheck } from "../../rolls/save-check.ts";
 import { prepareSkillCheck, rollSkillCheck } from "../../rolls/skill-check.ts";
 import { rollStrainSave } from "../../rolls/strain-save.ts";
 import { takeWound } from "../../rolls/wound-roll.ts";
+import type { ArmorDataFields } from "../../data/item/armor.ts";
 import {
   normalizeWeaponSkill,
   type WeaponDataFields,
@@ -54,6 +55,7 @@ const SHEET_TABS = Object.freeze({
   SKILLS: "skills",
   COMBAT: "combat",
   TALENTS: "talents",
+  NOTES: "notes",
   EFFECTS: "effects",
 } as const);
 type SheetTab = (typeof SHEET_TABS)[keyof typeof SHEET_TABS];
@@ -63,6 +65,7 @@ function isSheetTab(value: string | undefined): value is SheetTab {
     value === SHEET_TABS.SKILLS ||
     value === SHEET_TABS.COMBAT ||
     value === SHEET_TABS.TALENTS ||
+    value === SHEET_TABS.NOTES ||
     value === SHEET_TABS.EFFECTS
   );
 }
@@ -133,6 +136,8 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       rollDamage: CharacterSheet.#onRollDamage,
       editWeapon: CharacterSheet.#onEditWeapon,
       deleteWeapon: CharacterSheet.#onDeleteWeapon,
+      editArmor: CharacterSheet.#onEditArmor,
+      deleteArmor: CharacterSheet.#onDeleteArmor,
       createTalent: CharacterSheet.#onCreateTalent,
       editTalent: CharacterSheet.#onEditTalent,
       deleteTalent: CharacterSheet.#onDeleteTalent,
@@ -392,16 +397,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const combatData = system.combat as {
       ac: number;
       meleeDamageBonus: number;
-      armorBonus: number;
     };
     const meleeDamageBonus = combatData.meleeDamageBonus ?? 0;
-    const armorBonus = combatData.armorBonus ?? 0;
     const combat = {
       ac: combatData.ac ?? 0,
       meleeDamageBonus,
       meleeDamageSigned: formatSignedBonus(meleeDamageBonus),
-      armorBonus,
-      armorBonusSigned: formatSignedBonus(armorBonus),
     };
 
     const weapons = this.actor.items
@@ -418,6 +419,20 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           damageFormula: wsys.damageFormula || "1d6",
           attackBonus: weaponBonus,
           attackBonusSigned: weaponBonus !== 0 ? formatSignedBonus(weaponBonus) : "",
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, game.i18n.lang));
+
+    const armor = this.actor.items
+      .filter((item) => (item.type as string) === "armor")
+      .map((item) => {
+        const asys = item.system as unknown as ArmorDataFields;
+        const woundBonus = Math.floor(asys.woundBonus ?? 0);
+        return {
+          id: item.id,
+          name: item.name,
+          woundBonus,
+          woundBonusSigned: woundBonus !== 0 ? formatSignedBonus(woundBonus) : "",
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name, game.i18n.lang));
@@ -458,6 +473,21 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       relativeTo: this.actor,
     });
 
+    const detailsRaw = (system as CharacterData & {
+      details?: {
+        level?: number;
+        culture?: string;
+        background?: string;
+        class?: string;
+        notes?: string;
+      };
+    }).details ?? {};
+
+    const enrichedNotes = await TextEditor.enrichHTML(detailsRaw.notes ?? "", {
+      secrets: this.actor.isOwner,
+      relativeTo: this.actor,
+    });
+
     const tabs = [
       {
         id: SHEET_TABS.SKILLS,
@@ -478,6 +508,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         active: this.#primaryTab === SHEET_TABS.TALENTS,
       },
       {
+        id: SHEET_TABS.NOTES,
+        label: game.i18n.localize("KEDOM.Sheet.Tab.notes"),
+        icon: "fa-solid fa-scroll",
+        active: this.#primaryTab === SHEET_TABS.NOTES,
+      },
+      {
         id: SHEET_TABS.EFFECTS,
         label: game.i18n.localize("KEDOM.Sheet.Tab.effects"),
         icon: "fa-solid fa-bolt",
@@ -485,14 +521,6 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       },
     ];
 
-    const detailsRaw = (system as CharacterData & {
-      details?: {
-        level?: number;
-        culture?: string;
-        background?: string;
-        class?: string;
-      };
-    }).details ?? {};
     const level = Math.max(1, Math.floor(detailsRaw.level ?? 1));
     const culture = (detailsRaw.culture ?? "").trim();
     const background = (detailsRaw.background ?? "").trim();
@@ -567,6 +595,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       resources,
       combat,
       weapons,
+      armor,
       talents,
       actorEffects,
       itemEffects,
@@ -577,8 +606,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       isSkillsTab: this.#primaryTab === SHEET_TABS.SKILLS,
       isCombatTab: this.#primaryTab === SHEET_TABS.COMBAT,
       isTalentsTab: this.#primaryTab === SHEET_TABS.TALENTS,
+      isNotesTab: this.#primaryTab === SHEET_TABS.NOTES,
       isEffectsTab: this.#primaryTab === SHEET_TABS.EFFECTS,
       enrichedWoundsNotes,
+      enrichedNotes,
       editable: this.isEditable,
       isPlay: this.isPlayMode,
       isEdit: this.isEditMode,
@@ -595,6 +626,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.element.classList.toggle("tab-skills", this.#primaryTab === SHEET_TABS.SKILLS);
     this.element.classList.toggle("tab-combat", this.#primaryTab === SHEET_TABS.COMBAT);
     this.element.classList.toggle("tab-talents", this.#primaryTab === SHEET_TABS.TALENTS);
+    this.element.classList.toggle("tab-notes", this.#primaryTab === SHEET_TABS.NOTES);
     this.element.classList.toggle("tab-effects", this.#primaryTab === SHEET_TABS.EFFECTS);
     this.#placeExternalTabs();
     this.#renderModeToggle();
@@ -936,6 +968,40 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     });
     if (!confirmed) return;
     await weapon.delete();
+  }
+
+  static async #onEditArmor(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (!this.actor) return;
+    const itemId = target.dataset.itemId;
+    if (!itemId) return;
+    const armorItem = this.actor.items.get(itemId);
+    if (!armorItem || (armorItem.type as string) !== "armor") return;
+    await armorItem.sheet?.render(true);
+  }
+
+  static async #onDeleteArmor(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (!this.isEditable || !this.actor) return;
+    const itemId = target.dataset.itemId;
+    if (!itemId) return;
+    const armorItem = this.actor.items.get(itemId);
+    if (!armorItem || (armorItem.type as string) !== "armor") return;
+
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize("KEDOM.Sheet.Action.deleteArmor") },
+      content: `<p>${game.i18n.format("KEDOM.Sheet.DeleteArmorConfirm", {
+        name: armorItem.name,
+      })}</p>`,
+    });
+    if (!confirmed) return;
+    await armorItem.delete();
   }
 
   static async #onRollSkill(

@@ -91,6 +91,7 @@
     "Sheet": {
       "Character": "Kedom Character Sheet",
       "Weapon": "Kedom Weapon Sheet",
+      "Armor": "Kedom Armor Sheet",
       "Origin": "Kedom Origin Sheet",
       "Talent": "Kedom Talent Sheet",
       "Abilities": "Abilities",
@@ -104,6 +105,7 @@
         "details": "Details",
         "effects": "Effects",
         "inventory": "Inventory",
+        "notes": "Notes",
         "powers": "Powers",
         "skills": "Skills",
         "stats": "Stats",
@@ -132,6 +134,8 @@
         "rollDamage": "Damage",
         "editWeapon": "Edit weapon",
         "deleteWeapon": "Remove weapon",
+        "editArmor": "Edit armor",
+        "deleteArmor": "Remove armor",
         "createOrigin": "Create origin",
         "createTalent": "Create talent",
         "createEffect": "Create effect",
@@ -149,6 +153,9 @@
       "Weapons": "Weapons",
       "WeaponsEmpty": "Create a Weapon item and add it to this actor.",
       "DeleteWeaponConfirm": "Remove {name} from this character?",
+      "Armor": "Armor",
+      "ArmorEmpty": "Create an Armor item and add it to this actor.",
+      "DeleteArmorConfirm": "Remove {name} from this character?",
       "DeleteOwnedItemConfirm": "Remove {name} from this character?",
       "DeleteEffectConfirm": "Delete effect {name}?",
       "Region": "Region",
@@ -199,7 +206,7 @@
       "CriticalWound": "Critical wound",
       "CriticalWoundNoPermission": "You cannot apply a wound to that target.",
       "AttackFlavor": "{weapon} Attack ({bonus})",
-      "AttackVsAc": "AC {ac} — {result}",
+      "AttackVsAc": "Def {ac} — {result}",
       "AttackHit": "Hit",
       "AttackMiss": "Miss",
       "AttackRoll": "Attack",
@@ -250,10 +257,12 @@
       "veryHard": "Very Hard"
     },
     "Attributes": {
-      "ac": "Armor Class",
-      "acMelee": "Melee AC",
-      "acRanged": "Ranged AC",
-      "acShort": "AC",
+      "ac": "Defense",
+      "acMelee": "Melee Defense",
+      "acRanged": "Ranged Defense",
+      "acShort": "Def",
+      "defense": "Defense",
+      "defenseShort": "Def",
       "encumbrance": "Encumbrance",
       "experience": "Experience",
       "hp": "Hit Points",
@@ -346,6 +355,10 @@
       "skill": "Combat skill",
       "attackBonus": "Weapon attack bonus",
       "damageFormula": "Damage formula"
+    },
+    "Armor": {
+      "woundBonus": "Wound bonus",
+      "woundBonusHint": "Flat bonus added to Luck saves on the wound table while this armor is owned. Does not affect Defense."
     },
     "Origin": {
       "subType": "Origin type",
