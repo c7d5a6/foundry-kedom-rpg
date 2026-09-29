@@ -88,7 +88,7 @@ From the equivalence table, Kedom uses fixed difficulty numbers for saves and ch
 
 > These are **legacy fixed DCs** from the older equivalence note (critical tables, infection
 > checks, and similar). Skill checks and saves now share the graded ladder in
-> [20-skills.md](20-skills.md#the-success-ladder) (≤10 / 11–14 / 15–21 / 22–26 / 27+). Whether
+> [20-skills.md](20-skills.md#the-success-ladder) (≤10 / 11–15 / 16–21 / 22–26 / 27+). Whether
 > the critical tables should be rewritten onto that ladder is
 > [Q14](99-open-questions.md#q14--two-difficulty-scales).
 

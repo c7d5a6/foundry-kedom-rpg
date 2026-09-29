@@ -154,7 +154,7 @@ keeps that arrangement. See
 
 ### Q14 — Two difficulty scales
 
-Skill checks and saves share thresholds ≤10 / 11–14 / 15–21 / 22–26 / 27+. Critical tables
+Skill checks and saves share thresholds ≤10 / 11–15 / 16–21 / 22–26 / 27+. Critical tables
 and older notes still use fixed DCs of 6/8/10/12. Those fixed DCs are now a **legacy scale
 for unported content**, not a second way to roll saves. Whether the critical tables should be
 rewritten onto the graded ladder is open; until then both numbers appear in the docs.
@@ -252,7 +252,7 @@ Kept for the record, because each shaped a decision already written into the doc
 - **Attacks:** `1d20 + attribute modifier + proficiency`.
 - **Luck save:** `d20 + Luck mod + Luck save proficiency`.
 - **Strain roll:** plain `d20` vs Resolve and current Strain.
-- **Success ladder** (skills / class saves): ≤10 / 11–14 / 15–21 / 22–26 / 27+, three kinds
+- **Success ladder** (skills / class saves): ≤10 / 11–15 / 16–21 / 22–26 / 27+, three kinds
   with stored degrees, no critical-success kind.
   See [20-skills.md](20-skills.md#resolution), [10-attributes.md](10-attributes.md).
 
@@ -280,7 +280,7 @@ severity die.
 
 ### Q29 — Success ladder gap at 17–22 — **Filled**
 
-The ladder is now continuous: ≤10 / 11–14 / 15–21 / 22–26 / 27+.
+The ladder is now continuous: ≤10 / 11–15 / 16–21 / 22–26 / 27+.
 
 ### Q2 — Is Strength separate from Constitution? — **No**
 

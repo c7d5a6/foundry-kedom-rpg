@@ -331,7 +331,7 @@ script or fallback rules do not fit an overlay (right-to-left, for example).
 - Skills and saves: `2d10 + attribute + proficiency` (half proficiency on skills without a
   relevant specialisation).
 - Attacks: `1d20 + attribute + proficiency`.
-- Ladder: ≤10 / 11–14 / 15–21 / 22–26 / 27+ → failure / success with a cost / success.
+- Ladder: ≤10 / 11–15 / 16–21 / 22–26 / 27+ → failure / success with a cost / success.
 
 Dice expression and thresholds remain **configuration** in `src/config/` so a later revision
 stays cheap. Outcome *application* in code waits on ADR-008's deferred banding work; collecting

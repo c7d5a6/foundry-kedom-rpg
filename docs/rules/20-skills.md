@@ -64,8 +64,8 @@ Success 1 against an easy task and Failure 2 against a legendary one. Cost is al
 | Roll | Easy / Untrained | Trained / Expert | Hard / Master | Legendary |
 |---|---|---|---|---|
 | ≤10 | Failure 1 | Failure 1 | Failure 2 | Failure 3 |
-| 11–14 | Success 1 | Success at a cost | Failure 1 | Failure 2 |
-| 15–21 | Success 2 | Success 1 | Success at a cost | Failure 1 |
+| 11–15 | Success 1 | Success at a cost | Failure 1 | Failure 2 |
+| 16–21 | Success 2 | Success 1 | Success at a cost | Failure 1 |
 | 22–26 | Success 3 | Success 2 | Success 1 | Success at a cost |
 | 27+ | Success 4 | Success 3 | Success 2 | Success 1 |
 
@@ -85,9 +85,9 @@ Unmodified:
 
 | Band | on 2d10 (approx.) |
 |---|---|
-| ≤10 | ~45% |
-| 11–14 | ~36% |
-| 15–20 | ~19% |
+| ≤10 | 45% |
+| 11–15 | 40% |
+| 16–20 | 15% |
 | 21+ | 0% without modifiers |
 
 For calibration at the extremes: an untrained character with a 0 attribute (−2 total) clears
