@@ -108,7 +108,7 @@
                     {{#if freeSpecUI.fixedOptions.length}}
                       <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
                         {{#each freeSpecUI.fixedOptions}}
-                          <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setFreeWild" data-spec-leaf="{{leaf}}">{{label}}</button>
+                          <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setFreeWild" data-spec-leaf="{{leaf}}" {{#if disabled}}disabled{{/if}}>{{label}}</button>
                         {{/each}}
                       </div>
                     {{/if}}
@@ -132,6 +132,7 @@
                     class="kedom-create-wizard__skill{{#if selected}} is-selected{{/if}}"
                     data-action="pickChoice"
                     data-choice-index="{{index}}"
+                    {{#if disabled}}disabled{{/if}}
                   >
                     {{n}}. {{label}}
                   </button>
@@ -155,7 +156,7 @@
                     {{#if choiceSpecUI.fixedOptions.length}}
                       <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
                         {{#each choiceSpecUI.fixedOptions}}
-                          <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setChoiceWild" data-spec-leaf="{{leaf}}">{{label}}</button>
+                          <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setChoiceWild" data-spec-leaf="{{leaf}}" {{#if disabled}}disabled{{/if}}>{{label}}</button>
                         {{/each}}
                       </div>
                     {{/if}}
@@ -213,7 +214,7 @@
                       {{#if roll1SpecUI.fixedOptions.length}}
                         <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
                           {{#each roll1SpecUI.fixedOptions}}
-                            <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setRoll1Wild" data-spec-leaf="{{leaf}}">{{label}}</button>
+                            <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setRoll1Wild" data-spec-leaf="{{leaf}}" {{#if disabled}}disabled{{/if}}>{{label}}</button>
                           {{/each}}
                         </div>
                       {{/if}}
@@ -267,7 +268,7 @@
                       {{#if roll2SpecUI.fixedOptions.length}}
                         <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
                           {{#each roll2SpecUI.fixedOptions}}
-                            <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setRoll2Wild" data-spec-leaf="{{leaf}}">{{label}}</button>
+                            <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setRoll2Wild" data-spec-leaf="{{leaf}}" {{#if disabled}}disabled{{/if}}>{{label}}</button>
                           {{/each}}
                         </div>
                       {{/if}}
@@ -305,7 +306,7 @@
                   {{#if bonusSpecUI.fixedOptions.length}}
                     <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
                       {{#each bonusSpecUI.fixedOptions}}
-                        <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setBonusFree" data-spec-leaf="{{leaf}}">{{label}}</button>
+                        <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setBonusFree" data-spec-leaf="{{leaf}}" {{#if disabled}}disabled{{/if}}>{{label}}</button>
                       {{/each}}
                     </div>
                   {{/if}}

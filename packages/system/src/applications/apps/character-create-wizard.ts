@@ -37,6 +37,7 @@ import {
   MAX_SAME_SKILL,
   countSkill,
   formatGrantLabel,
+  isGrantBlocked,
   mergeSkillGrants,
   resolveConcreteEntry,
   resolveRolledEntry,
@@ -293,14 +294,27 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       background?.free.kind === "anyCombat" || background?.free.kind === "anySkill";
     const freeWildIsCombat = background?.free.kind === "anyCombat";
 
+    const ownedFree = this.#ownedGrants({
+      includeChoice: false,
+      includeRoll1: false,
+      includeRoll2: false,
+      includeBonus: false,
+    });
     const tableRows =
-      background?.growth.map((entry, index) => ({
-        index,
-        n: index + 1,
-        label: this.#entryLabel(entry),
-        selected: d.choiceIndex === index,
-        kind: entry.kind,
-      })) ?? [];
+      background?.growth.map((entry, index) => {
+        const preview =
+          entry.kind === "skill" ? resolveConcreteEntry(entry, null) : null;
+        const duplicate =
+          preview !== null && isGrantBlocked(ownedFree, preview);
+        return {
+          index,
+          n: index + 1,
+          label: this.#entryLabel(entry),
+          selected: d.choiceIndex === index,
+          kind: entry.kind,
+          disabled: duplicate,
+        };
+      }) ?? [];
 
     const choiceEntry =
       d.choiceIndex !== null && background ? background.growth[d.choiceIndex] : undefined;
@@ -370,7 +384,11 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       selected: d.bonusFree.skillKey === key,
       disabled: countSkill(priorForBonus, key) >= MAX_SAME_SKILL,
     }));
-    const bonusResolved = resolveConcreteEntry({ kind: "anySkill" }, d.bonusFree);
+    const bonusResolvedRaw = resolveConcreteEntry({ kind: "anySkill" }, d.bonusFree);
+    const bonusResolved =
+      bonusResolvedRaw && !isGrantBlocked(priorForBonus, bonusResolvedRaw)
+        ? bonusResolvedRaw
+        : null;
 
     return {
       stepId,
@@ -389,13 +407,13 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       freeNeedsWild,
       freeWildIsCombat,
       freeWildPick: d.freeWild.skillKey,
-      freeSpecUI: this.#specUI("free", d.freeWild),
+      freeSpecUI: this.#specUI("free", d.freeWild, []),
       tableRows,
       choiceIndex: d.choiceIndex,
       choiceWildPick: d.choiceWild.skillKey,
       choiceNeedsWild,
       choiceWildIsCombat,
-      choiceSpecUI: this.#specUI("choice", d.choiceWild),
+      choiceSpecUI: this.#specUI("choice", d.choiceWild, ownedFree),
       roll1: d.roll1,
       roll2: d.roll2,
       roll1Label: roll1Entry ? this.#entryLabel(roll1Entry) : "",
@@ -409,7 +427,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
         d.roll1OriginalLabel,
       roll1FinalLabel: roll1State?.grant ? formatGrantLabel(roll1State.grant) : "",
       roll1WildPick: d.roll1Wild.skillKey,
-      roll1SpecUI: this.#specUI("roll1", d.roll1Wild),
+      roll1SpecUI: this.#specUI("roll1", d.roll1Wild, ownedBeforeRoll1),
       roll2NeedsCombat: roll2State?.needsCombatPick ?? false,
       roll2NeedsAny: roll2State?.needsAnySkill ?? false,
       roll2NeedsSpec: roll2State?.needsSpecialization ?? false,
@@ -419,11 +437,11 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
         d.roll2OriginalLabel,
       roll2FinalLabel: roll2State?.grant ? formatGrantLabel(roll2State.grant) : "",
       roll2WildPick: d.roll2Wild.skillKey,
-      roll2SpecUI: this.#specUI("roll2", d.roll2Wild),
+      roll2SpecUI: this.#specUI("roll2", d.roll2Wild, ownedBeforeRoll2),
       freeResolvedLabel: freeResolved ? formatGrantLabel(freeResolved) : "",
       bonusFreePick: d.bonusFree.skillKey,
       bonusSkillOptions,
-      bonusSpecUI: this.#specUI("bonus", d.bonusFree),
+      bonusSpecUI: this.#specUI("bonus", d.bonusFree, priorForBonus),
       bonusResolvedLabel: bonusResolved ? formatGrantLabel(bonusResolved) : "",
       classOptions,
       selectedClassHitDie: selectedClass?.hitDie ?? "",
@@ -456,10 +474,11 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   #specUI(
     target: "free" | "choice" | "roll1" | "roll2" | "bonus",
     pick: ResolvePick,
+    owned: readonly ResolvedSkillGrant[],
   ): {
     show: boolean;
     freeform: boolean;
-    fixedOptions: { leaf: string; label: string; selected: boolean }[];
+    fixedOptions: { leaf: string; label: string; selected: boolean; disabled: boolean }[];
     value: string;
     target: string;
   } {
@@ -469,11 +488,18 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     }
     const kind = SKILL_SPECIALIZATION_KIND[skillKey] ?? "none";
     const fixedOptions = hasFixedSpecializationCatalog(kind)
-      ? (SKILL_FIXED_SPECIALIZATIONS[skillKey] ?? []).map((leaf) => ({
-          leaf,
-          label: localize(`KEDOM.Specialization.${skillKey}.${leaf}`, leaf),
-          selected: pick.specLabel === leaf,
-        }))
+      ? (SKILL_FIXED_SPECIALIZATIONS[skillKey] ?? []).map((leaf) => {
+          const candidate = resolveConcreteEntry(
+            { kind: "anySkill" },
+            { skillKey, specLabel: leaf },
+          );
+          return {
+            leaf,
+            label: localize(`KEDOM.Specialization.${skillKey}.${leaf}`, leaf),
+            selected: pick.specLabel === leaf,
+            disabled: candidate !== null && isGrantBlocked(owned, candidate),
+          };
+        })
       : [];
     return {
       show: true,
@@ -493,10 +519,12 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   }
 
   #ownedGrants(opts?: {
+    includeChoice?: boolean;
     includeRoll1?: boolean;
     includeRoll2?: boolean;
     includeBonus?: boolean;
   }): ResolvedSkillGrant[] {
+    const includeChoice = opts?.includeChoice ?? true;
     const includeRoll1 = opts?.includeRoll1 ?? true;
     const includeRoll2 = opts?.includeRoll2 ?? true;
     const includeBonus = opts?.includeBonus ?? true;
@@ -510,7 +538,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const free = resolveConcreteEntry(bg.free, d.freeWild);
     if (free) out.push(free);
 
-    if (d.choiceIndex !== null) {
+    if (includeChoice && d.choiceIndex !== null) {
       const entry = bg.growth[d.choiceIndex];
       if (entry) {
         if (entry.kind === "skill") {
@@ -541,7 +569,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
 
     if (includeBonus) {
       const bonus = resolveConcreteEntry({ kind: "anySkill" }, d.bonusFree);
-      if (bonus) out.push(bonus);
+      if (bonus && !isGrantBlocked(out, bonus)) out.push(bonus);
     }
 
     return out;
@@ -607,8 +635,19 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
         }
         if (d.choiceIndex === null) return false;
         const choice = bg.growth[d.choiceIndex];
-        if (choice && choice.kind !== "skill" && !resolveConcreteEntry(choice, d.choiceWild)) {
-          return false;
+        if (choice) {
+          const chosen =
+            choice.kind === "skill"
+              ? resolveConcreteEntry(choice, null)
+              : resolveConcreteEntry(choice, d.choiceWild);
+          if (!chosen) return false;
+          const priorFree = this.#ownedGrants({
+            includeChoice: false,
+            includeRoll1: false,
+            includeRoll2: false,
+            includeBonus: false,
+          });
+          if (isGrantBlocked(priorFree, chosen)) return false;
         }
         if (d.roll1 === null || d.roll2 === null) return false;
         const r1 = resolveRolledEntry(
@@ -626,7 +665,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
         const bonus = resolveConcreteEntry({ kind: "anySkill" }, d.bonusFree);
         if (!bonus) return false;
         const prior = this.#ownedGrants({ includeBonus: false });
-        if (countSkill(prior, bonus.skillKey) >= MAX_SAME_SKILL) return false;
+        if (isGrantBlocked(prior, bonus)) return false;
         return true;
       }
       case "className":
@@ -816,6 +855,19 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   ): Promise<void> {
     const index = Number.parseInt(target.dataset.choiceIndex ?? "", 10);
     if (!Number.isFinite(index) || index < 0 || index > 7) return;
+    if (!this.#draft.regionKey || !this.#draft.backgroundKey) return;
+    const bg = getBackground(this.#draft.regionKey, this.#draft.backgroundKey);
+    const entry = bg?.growth[index];
+    if (entry?.kind === "skill") {
+      const preview = resolveConcreteEntry(entry, null);
+      const priorFree = this.#ownedGrants({
+        includeChoice: false,
+        includeRoll1: false,
+        includeRoll2: false,
+        includeBonus: false,
+      });
+      if (preview && isGrantBlocked(priorFree, preview)) return;
+    }
     this.#draft.choiceIndex = index;
     this.#draft.choiceWild = emptyPick();
     this.#draft.roll1 = null;
@@ -836,6 +888,20 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const key = target.dataset.skillKey as SkillKey | undefined;
     const leaf = target.dataset.specLeaf;
     if (leaf) {
+      const skillKey = this.#draft.choiceWild.skillKey;
+      if (skillKey) {
+        const prior = this.#ownedGrants({
+          includeChoice: false,
+          includeRoll1: false,
+          includeRoll2: false,
+          includeBonus: false,
+        });
+        const candidate = resolveConcreteEntry(
+          { kind: "anySkill" },
+          { skillKey, specLabel: leaf },
+        );
+        if (candidate && isGrantBlocked(prior, candidate)) return;
+      }
       this.#draft.choiceWild.specLabel = leaf;
       await this.render();
       return;
@@ -864,6 +930,19 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   ): Promise<void> {
     const leaf = target.dataset.specLeaf;
     if (leaf) {
+      const skillKey = this.#draft.roll1Wild.skillKey;
+      if (skillKey) {
+        const prior = this.#ownedGrants({
+          includeRoll1: false,
+          includeRoll2: false,
+          includeBonus: false,
+        });
+        const candidate = resolveConcreteEntry(
+          { kind: "anySkill" },
+          { skillKey, specLabel: leaf },
+        );
+        if (candidate && isGrantBlocked(prior, candidate)) return;
+      }
       this.#draft.roll1Wild.specLabel = leaf;
       await this.render();
       return;
@@ -893,6 +972,19 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   ): Promise<void> {
     const leaf = target.dataset.specLeaf;
     if (leaf) {
+      const skillKey = this.#draft.roll2Wild.skillKey;
+      if (skillKey) {
+        const prior = this.#ownedGrants({
+          includeRoll1: true,
+          includeRoll2: false,
+          includeBonus: false,
+        });
+        const candidate = resolveConcreteEntry(
+          { kind: "anySkill" },
+          { skillKey, specLabel: leaf },
+        );
+        if (candidate && isGrantBlocked(prior, candidate)) return;
+      }
       this.#draft.roll2Wild.specLabel = leaf;
       await this.render();
       return;
@@ -910,6 +1002,15 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   ): Promise<void> {
     const leaf = target.dataset.specLeaf;
     if (leaf) {
+      const prior = this.#ownedGrants({ includeBonus: false });
+      const skillKey = this.#draft.bonusFree.skillKey;
+      if (skillKey) {
+        const candidate = resolveConcreteEntry(
+          { kind: "anySkill" },
+          { skillKey, specLabel: leaf },
+        );
+        if (candidate && isGrantBlocked(prior, candidate)) return;
+      }
       this.#draft.bonusFree.specLabel = leaf;
       await this.render();
       return;

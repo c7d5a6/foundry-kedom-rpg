@@ -73,6 +73,31 @@ describe("resolveRolledEntry", () => {
     expect(result.rolledGrant?.skillKey).toBe("shoot");
   });
 
+  it("rejects a substitute that repeats an owned specialization", () => {
+    const owned = [grantFromSpec({ skillKey: "notice", specLabel: "Awareness" })];
+    const result = resolveRolledEntry(
+      { kind: "skill", skillKey: "notice", specLabel: "Awareness" },
+      owned,
+      { skillKey: "notice", specLabel: "awareness" },
+    );
+    expect(result.grant).toBeNull();
+    expect(result.substituted).toBe(true);
+    expect(result.needsSpecialization).toBe(true);
+    expect(result.needsAnySkill).toBe(false);
+  });
+
+  it("accepts a substitute with a different specialization of the same skill", () => {
+    const owned = [grantFromSpec({ skillKey: "notice", specLabel: "Awareness" })];
+    const result = resolveRolledEntry(
+      { kind: "skill", skillKey: "notice", specLabel: "Awareness" },
+      owned,
+      { skillKey: "notice", specLabel: "detail" },
+    );
+    expect(result.substituted).toBe(true);
+    expect(result.grant?.skillKey).toBe("notice");
+    expect(result.grant?.specialization?.slug).toBe("notice.detail");
+  });
+
   it("asks for combat pick on anyCombat without pick", () => {
     const result = resolveRolledEntry({ kind: "anyCombat" }, [], null);
     expect(result.needsCombatPick).toBe(true);

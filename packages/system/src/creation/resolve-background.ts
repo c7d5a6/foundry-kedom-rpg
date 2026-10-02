@@ -155,6 +155,60 @@ export type RolledResolveState = {
  * owned grants. Exact skill+spec duplicates or a 3rd copy of a skill require
  * an any-skill substitute.
  */
+/**
+ * Finish a wild / substitute pick. Rejects exact skill+spec duplicates and
+ * over-cap copies so the player cannot re-select e.g. Notice (Awareness).
+ */
+function resolveSubstitutePick(
+  owned: readonly ResolvedSkillGrant[],
+  pick: ResolvePick,
+  rolledGrant: ResolvedSkillGrant | null,
+): RolledResolveState {
+  const skillKey = pick.skillKey;
+  if (!skillKey) {
+    return {
+      grant: null,
+      rolledGrant,
+      needsCombatPick: false,
+      needsAnySkill: true,
+      needsSpecialization: false,
+      substituted: true,
+    };
+  }
+  const sub = finalizeWildGrant(skillKey, pick.specLabel);
+  if (!sub) {
+    return {
+      grant: null,
+      rolledGrant,
+      needsCombatPick: false,
+      needsAnySkill: false,
+      needsSpecialization: skillNeedsSpecialization(skillKey),
+      substituted: true,
+    };
+  }
+  if (isGrantBlocked(owned, sub)) {
+    // Same skill with room for another specialty → ask for a different one.
+    const canOtherSpec =
+      skillNeedsSpecialization(skillKey) && countSkill(owned, skillKey) < MAX_SAME_SKILL;
+    return {
+      grant: null,
+      rolledGrant,
+      needsCombatPick: false,
+      needsAnySkill: !canOtherSpec,
+      needsSpecialization: canOtherSpec,
+      substituted: true,
+    };
+  }
+  return {
+    grant: sub,
+    rolledGrant,
+    needsCombatPick: false,
+    needsAnySkill: false,
+    needsSpecialization: false,
+    substituted: true,
+  };
+}
+
 export function resolveRolledEntry(
   entry: GrowthEntry,
   owned: readonly ResolvedSkillGrant[],
@@ -164,25 +218,7 @@ export function resolveRolledEntry(
     if (!pick?.skillKey || !COMBAT_SKILLS.includes(pick.skillKey)) {
       // May be mid-substitute with a non-combat pick after a blocked combat pick.
       if (pick?.skillKey && !COMBAT_SKILLS.includes(pick.skillKey)) {
-        const sub = finalizeWildGrant(pick.skillKey, pick.specLabel);
-        if (!sub) {
-          return {
-            grant: null,
-            rolledGrant: null,
-            needsCombatPick: false,
-            needsAnySkill: false,
-            needsSpecialization: skillNeedsSpecialization(pick.skillKey),
-            substituted: true,
-          };
-        }
-        return {
-          grant: sub,
-          rolledGrant: null,
-          needsCombatPick: false,
-          needsAnySkill: false,
-          needsSpecialization: false,
-          substituted: true,
-        };
+        return resolveSubstitutePick(owned, pick, null);
       }
       return {
         grant: null,
@@ -241,12 +277,15 @@ export function resolveRolledEntry(
       };
     }
     if (isGrantBlocked(owned, grant)) {
+      const canOtherSpec =
+        skillNeedsSpecialization(pick.skillKey) &&
+        countSkill(owned, pick.skillKey) < MAX_SAME_SKILL;
       return {
         grant: null,
         rolledGrant: grant,
         needsCombatPick: false,
-        needsAnySkill: true,
-        needsSpecialization: false,
+        needsAnySkill: !canOtherSpec,
+        needsSpecialization: canOtherSpec,
         substituted: false,
       };
     }
@@ -284,25 +323,7 @@ export function resolveRolledEntry(
       substituted: false,
     };
   }
-  const sub = finalizeWildGrant(pick.skillKey, pick.specLabel);
-  if (!sub) {
-    return {
-      grant: null,
-      rolledGrant,
-      needsCombatPick: false,
-      needsAnySkill: false,
-      needsSpecialization: skillNeedsSpecialization(pick.skillKey),
-      substituted: true,
-    };
-  }
-  return {
-    grant: sub,
-    rolledGrant,
-    needsCombatPick: false,
-    needsAnySkill: false,
-    needsSpecialization: false,
-    substituted: true,
-  };
+  return resolveSubstitutePick(owned, pick, rolledGrant);
 }
 
 /** @deprecated Use resolveRolledEntry */
