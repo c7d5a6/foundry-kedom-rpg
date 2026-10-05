@@ -1,3 +1,6 @@
+> **Archived.** The Foundry POC is finished. Do not treat this file as a live roadmap — do not
+> edit it or read it for current work. Historical only; see [docs/archive/README.md](../README.md).
+
 # POC roadmap — Kedom Foundry system
 
 Goal: a **playable proof of concept** — create a character from setting hooks, roll
@@ -147,10 +150,11 @@ Luck `0–20` are done.
 |---|---|---|
 | Luck save proficiency ladder | Luck save tiers | [Q4](../rules/99-open-questions.md#q4--luck-save-proficiency) |
 | Background grant table in Foundry | §1.3 apply | [Q11](../rules/99-open-questions.md#q11--the-background-table-does-not-exist-yet) / nerland scratch |
-| Class HD / attack numbers | §1.4 / §3.1 derivation | [Q12](../rules/99-open-questions.md#q12--per-class-mechanics-are-unspecified) |
+| Class HD / remaining class numbers | §1.4 derivation | [Q12](../rules/99-open-questions.md#q12--per-class-mechanics-are-incomplete) |
 
-Until class numbers land, POC should use **explicit stubs** (fixed HD, flat attack bonus
-field). Luck pool rules are settled — no stub needed beyond UI.
+Until remaining class numbers land, POC should use **explicit stubs** where needed (HD is
+already on the authored Warrior / Expert rows). Kedom has no class attack progression — do
+not stub a rising AB track. Luck pool rules are settled — no stub needed beyond UI.
 
 ---
 

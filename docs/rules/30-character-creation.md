@@ -155,13 +155,15 @@ classes and the same twelve partials, with no additions or omissions on either s
 
 That is worth more than it looks. The generator also carries per-class `hd`, `ab`, `arts`, and
 talent values, and its `Summary.vue` implements the partial-combination maths: the better hit
-die of the two, a constrained attack bonus, and the union of arts. Those are WWN's numbers and
-need rebalancing for Kedom, but the **structure** of the hybrid chassis is already worked out
-and does not need inventing.
+die of the two, a constrained attack bonus, and the union of arts. Those are **WWN** numbers;
+Kedom keeps the hybrid chassis structure (better hit die, union of arts / talents / saves) but
+**has no class attack progression** — attacks are attribute mod + proficiency, not a rising
+`ab` track.
 
-What remains missing is per-class mechanics for Kedom: attack progressions, skill points per
-level, hit dice, and Effort pools —
-[Q12](99-open-questions.md#q12--per-class-mechanics-are-unspecified). The Priest and Beast have
+Hit dice are required on every class (Warrior / Expert full and partial are in
+`packages/system/src/config/classes.ts`). What remains open for Kedom is skill points per
+level and Effort pools —
+[Q12](99-open-questions.md#q12--per-class-mechanics-are-incomplete). The Priest and Beast have
 unported development notes (`📥 inbox/WWN Kedom - Quilisa priest.md`,
 `📥 inbox/WWN - Beast class.md`).
 
@@ -186,10 +188,10 @@ names themselves are Reflex / Fortitude / Will —
 ## Implementation note
 
 Race, background, and class are all **items** on the actor, not enumerations, because each
-grants things: bonus skills, attribute adjustments, class lists, talents, progressions. Grants
-are declarative data on the item, resolved by `src/derivations/`, following
-`foundryvtt-wwn`'s `classEdge` pattern where the class item carries `poolGrant`,
-`skillPointsPerLevel`, and `attackProgression`.
+grants things: bonus skills, attribute adjustments, class lists, talents, hit die, saves.
+Grants are declarative data on the item, resolved by `src/derivations/`, in the spirit of
+`foundryvtt-wwn`'s `classEdge` pattern (`poolGrant`, `skillPointsPerLevel`) — without WWN's
+`attackProgression`, which Kedom does not use.
 
 Player choices made at creation — which attribute took the Lizard's +1, which free
 specialisation label was written for Craft — are stored as resolved values on the actor, never

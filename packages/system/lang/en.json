@@ -82,6 +82,10 @@
       "trained": "Trained",
       "untrained": "Untrained"
     },
+    "Class": {
+      "warrior": "Warrior",
+      "expert": "Expert"
+    },
     "Outcome": {
       "cost": "Success at a Cost",
       "failure": "Failure",

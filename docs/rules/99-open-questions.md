@@ -27,21 +27,26 @@ missing is the Kedom content itself — the generator's 204 entries are WWN-flav
 **Blocks:** character creation, and the Forge authoring workflow, since backgrounds are the
 hinge between region, race, and skill choices ([../forge/schema.md](../forge/schema.md)).
 
-### Q12 — Per-class mechanics are unspecified
+### Q12 — Per-class mechanics are incomplete
 
 **The roster is now fixed** — five full classes and twelve partials, confirmed identically by
 the revised source and the public site's generator. See
 [30-character-creation.md](30-character-creation.md#classes).
 
-What is missing is every number: attack progressions, skill points per level, hit dice, and
-Effort pools. The generator carries WWN values for all of these, plus working
-partial-combination maths, so this is a rebalancing problem rather than a design-from-scratch
-problem.
+**Hit dice are required on every class row** in `packages/system/src/config/classes.ts`.
+Warrior and Expert (full and partial) are authored there; other classes are not in the Foundry
+config yet.
+
+Still open: skill points per level, and Effort / arts pools. Kedom has **no class attack
+progression** — attacks use attribute mod + proficiency
+([20-skills.md](20-skills.md), [40-combat.md](40-combat.md)). The WWN generator's `ab` track
+is not ported. Remaining open items are a rebalancing / authoring problem rather than
+design-from-scratch.
 
 The Priest and Beast have unported development notes
 (`📥 inbox/WWN Kedom - Quilisa priest.md`, `📥 inbox/WWN - Beast class.md`).
 
-**Blocks:** everything `src/derivations/` computes from class grants.
+**Blocks:** everything `src/derivations/` computes from class grants beyond hit dice.
 
 ### Q19 — The magic system does not exist yet
 
@@ -204,7 +209,8 @@ some WWN skills became specialisations: sneaking is Prowl/Sneak, not a skill.
 
 So the largest existing body of Kedom content cannot be imported as-is. Someone has to decide
 each mapping, and a few have no clean answer — WWN `pray` against Kedom's Worship and Conduct,
-for instance. Class `hd` and `ab` progressions are WWN's too.
+for instance. Class `hd` values in the generator are WWN's and need Kedom numbers; the
+generator's `ab` track is dropped entirely — Kedom has no class attack progression.
 
 ### Q26 — Description format for multi-target content
 
@@ -233,7 +239,10 @@ Each class should have a **primary** and **secondary** save that progress better
 third. Adventurer takes both partials' primaries; if those collide, the player picks any other
 save as secondary. See [30-character-creation.md](30-character-creation.md#saves).
 
-Missing: which save is primary/secondary for each of the twelve classes, which **attribute**
+Every class row in `packages/system/src/config/classes.ts` must carry primary and secondary
+saves. Warrior and Expert (full and partial) are filled there.
+
+Still missing for the rest of the roster: which save is primary/secondary, which **attribute**
 feeds Reflex / Fortitude / Will, and what the numerical "better progression" is (flat bonus
 per level? better tier costs? a separate save proficiency track?).
 

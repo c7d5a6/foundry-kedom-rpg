@@ -316,7 +316,7 @@ src/derivations/
   hp.ts            hit points from class hit die, Might, level
   ac.ts            armour class from the Reflex save; armor does not change it
   saves.ts         reflex, fortitude, will targets
-  attack.ts        attack bonus from class progression
+  attack.ts        attack total from attribute mod + proficiency (no class AB track)
   encumbrance.ts   readied and stowed slots from Might
   pools.ts         Effort from class grants minus commitments
   movement.ts      base movement less injury and encumbrance penalties

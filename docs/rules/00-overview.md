@@ -51,7 +51,6 @@ something not yet ported, it is listed in [99-open-questions.md](99-open-questio
 - [70-travel.md](70-travel.md) — overland travel and exploration procedure.
 - [80-criticals.md](80-criticals.md) — critical-injury **design** notes (not play severity rolls).
 - [99-open-questions.md](99-open-questions.md) — everything still undecided.
-- [POC roadmap](../system/roadmap-poc.md) — Foundry proof-of-concept scope and Done/Partial/Todo.
 
 ## Relationship to WWN
 

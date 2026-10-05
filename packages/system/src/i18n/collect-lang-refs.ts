@@ -11,6 +11,7 @@ import { SKILL_FIXED_SPECIALIZATIONS } from "../config/specializations.ts";
 import { ORIGIN_SUBTYPES } from "../config/origin.ts";
 import { CREATION_FREE_SPEC_I18N } from "../config/creation-spec-labels.ts";
 import { TALENT_CATEGORIES } from "../config/talent.ts";
+import { CLASS_TITLE_KEYS } from "../config/classes.ts";
 
 const CREATION_STEP_IDS = [
   "abilities",
@@ -97,6 +98,10 @@ const TEMPLATE_EXPANDERS: {
       ),
   },
   {
+    pattern: /^KEDOM\.Class\.\$\{[^}]+\}$/,
+    expand: () => CLASS_TITLE_KEYS.map((k) => `KEDOM.Class.${k}`),
+  },
+  {
     pattern: /^KEDOM\.Specialization\.\$\{[^}]+\}\.\$\{[^}]+\}$/,
     expand: () => fixedSpecializationLangKeys(),
   },
@@ -115,6 +120,7 @@ export function configDrivenLangKeys(): string[] {
     ...BODY_PART_KEYS.map((p) => `KEDOM.Wound.BodyPart.${p}`),
     ...ORIGIN_SUBTYPES.map((s) => `KEDOM.Origin.SubType.${s}`),
     ...TALENT_CATEGORIES.map((c) => `KEDOM.Talent.Category.${c}`),
+    ...CLASS_TITLE_KEYS.map((k) => `KEDOM.Class.${k}`),
     ...fixedSpecializationLangKeys(),
   ];
 }

@@ -3,9 +3,8 @@
 A low-fantasy OSR system in the Worlds Without Number tradition. **Requires Foundry v14.367 or
 later**; there is no v13 support.
 
-**Status: barebone playable.** Character actors with six abilities, nineteen skills, and skill
-checks that post `2d10` + attribute mod + proficiency to chat. No NPCs, items, packs, or
-migrations yet.
+**Status: playable post-POC.** Character create wizard, abilities, skills/saves/luck rolls,
+weapons, wounds, and related sheet/chat UX. Content packs and Forge pipeline still grow.
 
 ## Getting it into Foundry
 
@@ -33,8 +32,6 @@ ln -sfn "$(pwd)/packages/system/dist" "../foundrydata/Data/systems/kedom"
 
 - [Data model](../../docs/system/data-model.md) — actor and item types, the key-based skill
   and specialisation model
-- [POC roadmap](../../docs/system/roadmap-poc.md) — create character / rolls / combat: Done ·
-  Partial · Todo
 - [Roll pipeline](../../docs/system/roll-pipeline.md) — modifier collectors and the pure tier
   function
 - [UI design system](../../docs/system/ui-design-system.md) — CSS tokens, layers, and the

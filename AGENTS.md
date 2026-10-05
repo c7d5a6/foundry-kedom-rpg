@@ -7,8 +7,9 @@ Orientation for anyone — human or agent — working in this repository.
 Kedom RPG: an OSR tabletop system, a Foundry VTT system implementing it, and the tooling to
 author its content. An npm workspaces monorepo with a Go component.
 
-**Current state: scaffold.** Documentation, structure, and configuration exist. Almost no
-implementation code has been written.
+**Current state: post-POC.** The Foundry proof-of-concept is done (create character, rolls,
+luck, combat/wounds). Ongoing work is rules completeness, content, Forge, and polish — not
+re-litigating the POC checklist.
 
 ## Read these first
 
@@ -25,10 +26,14 @@ implementation code has been written.
 The research documents are not background reading. They contain measurements that settled
 specific arguments, and re-opening those arguments without new evidence wastes everyone's time.
 
+**Do not read or edit [docs/archive/](docs/archive/) by default.** It holds finished milestone
+docs (including the POC roadmap). Open them only when you need historical context.
+
 ## Layout
 
 ```
 docs/          research, game rules, system design, forge design
+docs/archive/  finished milestone docs — historical only, not default reading
 packages/
   system/      the Foundry VTT system (TypeScript, ApplicationV2 + Handlebars)
   forge/api/   content authoring backend (Go, SQLite)

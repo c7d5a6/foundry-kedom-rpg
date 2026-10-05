@@ -1,0 +1,13 @@
+---
+description: Do not read or edit archived milestone docs by default
+alwaysApply: true
+---
+
+# Archived docs
+
+Files under `docs/archive/` are **historical**. The Foundry POC and other finished milestones
+live here.
+
+- Do not use them as current design authority.
+- Do not edit them unless the user explicitly asks to correct the historical record.
+- Prefer `docs/rules/`, `docs/research/`, live `docs/system/`, and `docs/forge/`.
