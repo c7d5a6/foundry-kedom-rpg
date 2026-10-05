@@ -31,13 +31,97 @@
       {{/if}}
     </div>
 
+    <div class="kedom-item-sheet__field">
+      <label for="origin-slug">{{localize "KEDOM.Origin.slug"}}</label>
+      {{#if editable}}
+        <input id="origin-slug" type="text" name="system.slug" value="{{system.slug}}" />
+      {{else}}
+        <span>{{system.slug}}</span>
+      {{/if}}
+    </div>
+
     {{#if isClass}}
+      <div class="kedom-item-sheet__field">
+        <label for="origin-isfull">
+          <input
+            id="origin-isfull"
+            type="checkbox"
+            name="system.isFull"
+            {{#if system.isFull}}checked{{/if}}
+            {{#unless editable}}disabled{{/unless}}
+          />
+          {{localize "KEDOM.Origin.isFull"}}
+        </label>
+      </div>
+
       <div class="kedom-item-sheet__field">
         <label for="origin-hitdie">{{localize "KEDOM.Origin.hitDie"}}</label>
         {{#if editable}}
           <input id="origin-hitdie" type="text" name="system.hitDie" value="{{system.hitDie}}" />
         {{else}}
           <span>{{system.hitDie}}</span>
+        {{/if}}
+      </div>
+
+      <div class="kedom-item-sheet__field">
+        <label for="origin-hitdie-priority">{{localize "KEDOM.Origin.hitDiePriority"}}</label>
+        {{#if editable}}
+          <input
+            id="origin-hitdie-priority"
+            type="number"
+            name="system.hitDiePriority"
+            value="{{system.hitDiePriority}}"
+          />
+        {{else}}
+          <span>{{system.hitDiePriority}}</span>
+        {{/if}}
+      </div>
+
+      <div class="kedom-item-sheet__field">
+        <label for="origin-save-primary">{{localize "KEDOM.Origin.savePrimary"}}</label>
+        {{#if editable}}
+          <select id="origin-save-primary" name="system.saves.primary.save">
+            {{#each saveTrackOptionsPrimary}}
+              <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+            {{/each}}
+          </select>
+          <input
+            type="number"
+            name="system.saves.primary.priority"
+            value="{{system.saves.primary.priority}}"
+            aria-label="{{localize "KEDOM.Origin.savePriority"}}"
+          />
+        {{else}}
+          <span>{{system.saves.primary.save}} ({{system.saves.primary.priority}})</span>
+        {{/if}}
+      </div>
+
+      <div class="kedom-item-sheet__field">
+        <label for="origin-save-secondary">{{localize "KEDOM.Origin.saveSecondary"}}</label>
+        {{#if editable}}
+          <select id="origin-save-secondary" name="system.saves.secondary.save">
+            {{#each saveTrackOptionsSecondary}}
+              <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+            {{/each}}
+          </select>
+          <input
+            type="number"
+            name="system.saves.secondary.priority"
+            value="{{system.saves.secondary.priority}}"
+            aria-label="{{localize "KEDOM.Origin.savePriority"}}"
+          />
+        {{else}}
+          <span>{{system.saves.secondary.save}} ({{system.saves.secondary.priority}})</span>
+        {{/if}}
+      </div>
+
+      <div class="kedom-item-sheet__field kedom-item-sheet__field--block">
+        <label for="origin-class-json">{{localize "KEDOM.Origin.classJson"}}</label>
+        <p class="kedom-item-sheet__hint">{{localize "KEDOM.Origin.classJsonHint"}}</p>
+        {{#if editable}}
+          <textarea id="origin-class-json" name="classJson" rows="8">{{classJson}}</textarea>
+        {{else}}
+          <pre class="kedom-item-sheet__pre">{{classJson}}</pre>
         {{/if}}
       </div>
     {{/if}}

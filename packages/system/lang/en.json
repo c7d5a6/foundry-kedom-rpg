@@ -353,7 +353,8 @@
       "UnknownSkillSlug": "No skill is registered with the slug \"{slug}\".",
       "UnknownSpecializationSlug": "No specialization is registered with the slug \"{slug}\".",
       "NotAWeapon": "That item is not a weapon.",
-      "InvalidGrantsJson": "Grants JSON is invalid and was not saved."
+      "InvalidGrantsJson": "Grants JSON is invalid and was not saved.",
+      "InvalidClassJson": "Class JSON is invalid and was not saved."
     },
     "Weapon": {
       "skill": "Combat skill",
@@ -366,8 +367,16 @@
     },
     "Origin": {
       "subType": "Origin type",
+      "slug": "Slug",
       "description": "Description",
       "hitDie": "Hit die",
+      "hitDiePriority": "Hit die priority",
+      "isFull": "Full class (not Adventurer partial)",
+      "savePrimary": "Primary save",
+      "saveSecondary": "Secondary save",
+      "savePriority": "Save priority",
+      "classJson": "Class talents, picks, arts (JSON)",
+      "classJsonHint": "classTalentKeys, talentPicks { warrior, expert, any }, arts { skillKey, abilityKeys, receiveTableKey, artKeys }",
       "SubType": {
         "race": "Race",
         "background": "Background",

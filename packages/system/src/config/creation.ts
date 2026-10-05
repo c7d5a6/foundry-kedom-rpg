@@ -1,5 +1,11 @@
 import type { ProficiencyTier, SkillKey } from "./kedom.ts";
 import { SAVE_KEYS, type SaveKey } from "./kedom.ts";
+import { getClassOrigin } from "../creation/class-origins.ts";
+import {
+  combineClassOriginsBySlug,
+  combinedOriginSaveProficiencies,
+  originSaveProficiencies,
+} from "../creation/combine-class-origins.ts";
 
 export const CREATION_ABILITY_KEYS = ["mgh", "dex", "kno", "foc", "pre", "lck"] as const;
 export type CreationAbilityKey = (typeof CREATION_ABILITY_KEYS)[number];
@@ -79,44 +85,52 @@ export const REGIONS: ReadonlyArray<{ key: RegionKey; labelKey: string }> = [
   { key: "nerland", labelKey: "KEDOM.Creation.Region.nerland" },
 ];
 
-function saves(
-  trained: ReadonlyArray<SaveKey | "luck">,
-): ClassSaveProficiencies {
-  const out: ClassSaveProficiencies = {
-    reflex: "apprentice",
-    fortitude: "apprentice",
-    will: "apprentice",
-    luck: "apprentice",
+/** Wizard-facing class keys → origin item slug(s). Adventurer is two partials. */
+function classDefFromOrigin(key: string): ClassDef | undefined {
+  if (key === "adventurer") {
+    const combined = combineClassOriginsBySlug("warrior-partial", "expert-partial");
+    if (!combined) return undefined;
+    return {
+      key: "adventurer",
+      labelKey: "KEDOM.Creation.Class.adventurer",
+      hitDie: combined.hitDie,
+      talentPicks: combined.talentPicks,
+      classFeatures: [
+        ...(combined.classTalentKeys as FeatureKey[]),
+        "adventurerTalentPicks",
+      ],
+      saveProficiencies: combinedOriginSaveProficiencies(combined),
+    };
+  }
+
+  const origin = getClassOrigin(key);
+  if (!origin || !origin.system.isFull) return undefined;
+  const picks = origin.system.talentPicks;
+  const featureExtras: FeatureKey[] =
+    key === "warrior"
+      ? ["warriorTalentPicks"]
+      : key === "expert"
+        ? ["expertTalentPicks"]
+        : [];
+  return {
+    key,
+    labelKey:
+      key === "expert" ? "KEDOM.Creation.Class.expert" : "KEDOM.Creation.Class.warrior",
+    hitDie: origin.system.hitDie,
+    talentPicks: {
+      warrior: picks.warrior || undefined,
+      expert: picks.expert || undefined,
+      any: picks.any || undefined,
+    },
+    classFeatures: [...(origin.system.classTalentKeys as FeatureKey[]), ...featureExtras],
+    saveProficiencies: originSaveProficiencies(origin.system),
   };
-  for (const key of trained) out[key] = "trained";
-  return out;
 }
 
 export const CLASSES: ReadonlyArray<ClassDef> = [
-  {
-    key: "warrior",
-    labelKey: "KEDOM.Creation.Class.warrior",
-    hitDie: "1d6+2",
-    classFeatures: ["killingBlow", "veteransLuck", "warriorTalentPicks"],
-    talentPicks: { any: 1, warrior: 1 },
-    saveProficiencies: saves(["reflex", "fortitude"]),
-  },
-  {
-    key: "expert",
-    labelKey: "KEDOM.Creation.Class.expert",
-    hitDie: "1d6",
-    classFeatures: ["masterfulExpertise", "expertTalentPicks"],
-    talentPicks: { any: 1, expert: 1 },
-    saveProficiencies: saves(["reflex", "luck"]),
-  },
-  {
-    key: "adventurer",
-    labelKey: "KEDOM.Creation.Class.adventurer",
-    hitDie: "1d6",
-    classFeatures: ["killingBlow", "adventurerTalentPicks"],
-    talentPicks: { expert: 1, warrior: 1, any: 1 },
-    saveProficiencies: saves(["reflex", "fortitude"]),
-  },
+  classDefFromOrigin("warrior")!,
+  classDefFromOrigin("expert")!,
+  classDefFromOrigin("adventurer")!,
 ];
 
 export const CULTURES_BY_REGION: Record<RegionKey, readonly CultureDef[]> = {
@@ -150,7 +164,7 @@ export function getCulture(regionKey: RegionKey, cultureKey: string): CultureDef
 }
 
 export function getClass(classKey: string): ClassDef | undefined {
-  return CLASSES.find((c) => c.key === classKey);
+  return classDefFromOrigin(classKey) ?? CLASSES.find((c) => c.key === classKey);
 }
 
 /** Actor `system.saves` payload from class starting proficiencies. */

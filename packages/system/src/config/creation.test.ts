@@ -45,9 +45,10 @@ describe("CLASSES hit dice and features", () => {
       "masterfulExpertise",
       "expertTalentPicks",
     ]);
-    expect(getClass("adventurer")?.hitDie).toBe("1d6");
+    expect(getClass("adventurer")?.hitDie).toBe("1d6+2");
     expect(getClass("adventurer")?.classFeatures).toEqual([
       "killingBlow",
+      "masterfulExpertise",
       "adventurerTalentPicks",
     ]);
     expect(getClass("mage")).toBeUndefined();

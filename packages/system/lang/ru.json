@@ -353,7 +353,8 @@
       "UnknownSkillSlug": "Навык со слагом «{slug}» не зарегистрирован.",
       "UnknownSpecializationSlug": "Специализация со слагом «{slug}» не зарегистрирована.",
       "NotAWeapon": "Этот предмет не является оружием.",
-      "InvalidGrantsJson": "JSON даров некорректен и не был сохранён."
+      "InvalidGrantsJson": "JSON даров некорректен и не был сохранён.",
+      "InvalidClassJson": "JSON класса некорректен и не был сохранён."
     },
     "Weapon": {
       "skill": "Боевой навык",
@@ -366,8 +367,16 @@
     },
     "Origin": {
       "subType": "Тип происхождения",
+      "slug": "Слаг",
       "description": "Описание",
       "hitDie": "Кость хитов",
+      "hitDiePriority": "Приоритет кости хитов",
+      "isFull": "Полный класс (не половина Приключенца)",
+      "savePrimary": "Основной спасбросок",
+      "saveSecondary": "Вторичный спасбросок",
+      "savePriority": "Приоритет спасброска",
+      "classJson": "Таланты класса, выборы, искусства (JSON)",
+      "classJsonHint": "classTalentKeys, talentPicks { warrior, expert, any }, arts { skillKey, abilityKeys, receiveTableKey, artKeys }",
       "SubType": {
         "race": "Раса",
         "background": "Предыстория",

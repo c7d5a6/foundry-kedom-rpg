@@ -11,7 +11,8 @@ import { SKILL_FIXED_SPECIALIZATIONS } from "../config/specializations.ts";
 import { ORIGIN_SUBTYPES } from "../config/origin.ts";
 import { CREATION_FREE_SPEC_I18N } from "../config/creation-spec-labels.ts";
 import { TALENT_CATEGORIES } from "../config/talent.ts";
-import { CLASS_TITLE_KEYS } from "../config/classes.ts";
+/** Display titles for class families (shared by full / partial origin items). */
+const CLASS_TITLE_KEYS = ["warrior", "expert"] as const;
 
 const CREATION_STEP_IDS = [
   "abilities",

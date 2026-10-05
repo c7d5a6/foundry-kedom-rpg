@@ -1,4 +1,5 @@
 import {
+  CLASS_SAVE_TRACKS,
   ORIGIN_SUBTYPES,
   normalizeOriginSubtype,
   type OriginDataFields,
@@ -7,6 +8,12 @@ import type { GrantsFields } from "../../data/item/grants.ts";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
+
+type ClassJsonBlock = {
+  classTalentKeys: string[];
+  talentPicks: OriginDataFields["talentPicks"];
+  arts: OriginDataFields["arts"];
+};
 
 function formatGrantsJson(grants: GrantsFields | undefined): string {
   const g = grants ?? { skills: [], specializations: [], abilities: [] };
@@ -27,11 +34,48 @@ function parseGrantsJson(raw: string): GrantsFields | null {
   }
 }
 
+function formatClassJson(system: OriginDataFields): string {
+  const block: ClassJsonBlock = {
+    classTalentKeys: system.classTalentKeys ?? [],
+    talentPicks: system.talentPicks ?? { warrior: 0, expert: 0, any: 0 },
+    arts: system.arts ?? {
+      skillKey: "",
+      abilityKeys: [],
+      receiveTableKey: "",
+      artKeys: [],
+    },
+  };
+  return JSON.stringify(block, null, 2);
+}
+
+function parseClassJson(raw: string): ClassJsonBlock | null {
+  try {
+    const parsed = JSON.parse(raw) as ClassJsonBlock;
+    if (!parsed || typeof parsed !== "object") return null;
+    return {
+      classTalentKeys: Array.isArray(parsed.classTalentKeys) ? parsed.classTalentKeys : [],
+      talentPicks: {
+        warrior: Number(parsed.talentPicks?.warrior) || 0,
+        expert: Number(parsed.talentPicks?.expert) || 0,
+        any: Number(parsed.talentPicks?.any) || 0,
+      },
+      arts: {
+        skillKey: parsed.arts?.skillKey ?? "",
+        abilityKeys: Array.isArray(parsed.arts?.abilityKeys) ? parsed.arts.abilityKeys : [],
+        receiveTableKey: parsed.arts?.receiveTableKey ?? "",
+        artKeys: Array.isArray(parsed.arts?.artKeys) ? parsed.arts.artKeys : [],
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
 export class OriginSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static override DEFAULT_OPTIONS = {
     ...ItemSheetV2.DEFAULT_OPTIONS,
     classes: ["kedom", "sheet", "item", "origin"],
-    position: { width: 460, height: 520 },
+    position: { width: 480, height: 640 },
     window: {
       ...ItemSheetV2.DEFAULT_OPTIONS.window,
       resizable: true,
@@ -70,8 +114,19 @@ export class OriginSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         label: game.i18n.localize(`KEDOM.Origin.SubType.${value}`),
         selected: value === subType,
       })),
+      saveTrackOptionsPrimary: CLASS_SAVE_TRACKS.map((value) => ({
+        value,
+        label: game.i18n.localize(`KEDOM.Save.${value}`),
+        selected: system.saves?.primary?.save === value,
+      })),
+      saveTrackOptionsSecondary: CLASS_SAVE_TRACKS.map((value) => ({
+        value,
+        label: game.i18n.localize(`KEDOM.Save.${value}`),
+        selected: system.saves?.secondary?.save === value,
+      })),
       isClass: subType === "class",
       grantsJson: formatGrantsJson(system.grants),
+      classJson: formatClassJson(system),
       editable: this.isEditable,
     });
   }
@@ -82,14 +137,33 @@ export class OriginSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     formData: foundry.applications.ux.FormDataExtended,
   ) {
     const data = super._processFormData(event, form, formData);
-    const raw = form.querySelector<HTMLTextAreaElement>('textarea[name="grantsJson"]')?.value;
-    if (raw !== undefined) {
-      const parsed = parseGrantsJson(raw);
+    const grantsRaw = form.querySelector<HTMLTextAreaElement>(
+      'textarea[name="grantsJson"]',
+    )?.value;
+    if (grantsRaw !== undefined) {
+      const parsed = parseGrantsJson(grantsRaw);
       if (parsed) {
         foundry.utils.setProperty(data, "system.grants", parsed);
       } else {
         ui.notifications.warn(game.i18n.localize("KEDOM.Error.InvalidGrantsJson"));
       }
+    }
+    const classRaw = form.querySelector<HTMLTextAreaElement>(
+      'textarea[name="classJson"]',
+    )?.value;
+    if (classRaw !== undefined) {
+      const parsed = parseClassJson(classRaw);
+      if (parsed) {
+        foundry.utils.setProperty(data, "system.classTalentKeys", parsed.classTalentKeys);
+        foundry.utils.setProperty(data, "system.talentPicks", parsed.talentPicks);
+        foundry.utils.setProperty(data, "system.arts", parsed.arts);
+      } else {
+        ui.notifications.warn(game.i18n.localize("KEDOM.Error.InvalidClassJson"));
+      }
+    }
+    const isFull = form.querySelector<HTMLInputElement>('input[name="system.isFull"]');
+    if (isFull) {
+      foundry.utils.setProperty(data, "system.isFull", isFull.checked);
     }
     return data;
   }

@@ -2,6 +2,7 @@ import type { GrantsFields } from "../data/item/grants.ts";
 import type { OriginSubtype } from "../config/origin.ts";
 import type { TalentCategory } from "../config/talent.ts";
 import { featureTalentCreateData } from "./class-features.ts";
+import { CLASS_ORIGIN_SEEDS } from "./class-origins.ts";
 
 export type SampleItemData = {
   name: string;
@@ -68,18 +69,21 @@ export const CREATION_SAMPLES: SampleItemData[] = [
       ],
     }),
   }),
-  origin("sample-class-warrior", "Warrior", "class", {
-    description: "<p>Full Warrior — HD 1d6+2, Killing Blow, Veteran's Luck.</p>",
-    hitDie: "1d6+2",
-    grants: grants({
-      skills: [{ skillKey: "exert", proficiency: "apprentice" }],
-    }),
-  }),
-  origin("sample-class-expert", "Expert", "class", {
-    description: "<p>Full Expert — HD 1d6, Masterful Expertise.</p>",
-    hitDie: "1d6",
-    grants: grants({}),
-  }),
+  ...CLASS_ORIGIN_SEEDS.map((c) => ({
+    sampleId: `sample-class-${c.system.slug}`,
+    name: c.name,
+    type: "origin" as const,
+    img: c.img,
+    system: {
+      ...c.system,
+      grants:
+        c.system.slug === "warrior"
+          ? grants({
+              skills: [{ skillKey: "exert", proficiency: "apprentice" }],
+            })
+          : c.system.grants,
+    },
+  })),
   {
     sampleId: "sample-feature-killing-blow",
     ...featureTalentCreateData("killingBlow"),

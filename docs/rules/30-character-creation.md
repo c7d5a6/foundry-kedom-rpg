@@ -160,8 +160,8 @@ Kedom keeps the hybrid chassis structure (better hit die, union of arts / talent
 **has no class attack progression** — attacks are attribute mod + proficiency, not a rising
 `ab` track.
 
-Hit dice are required on every class (Warrior / Expert full and partial are in
-`packages/system/src/config/classes.ts`). What remains open for Kedom is skill points per
+Hit dice are required on every class origin item (Warrior / Expert full and partial seeds are in
+`packages/system/src/creation/class-origins.ts`). What remains open for Kedom is skill points per
 level and Effort pools —
 [Q12](99-open-questions.md#q12--per-class-mechanics-are-incomplete). The Priest and Beast have
 unported development notes (`📥 inbox/WWN Kedom - Quilisa priest.md`,

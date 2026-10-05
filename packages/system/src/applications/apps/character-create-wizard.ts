@@ -19,6 +19,8 @@ import {
   featureKeysForCreate,
   featureTalentCreateData,
 } from "../../creation/class-features.ts";
+import { getClassOrigin } from "../../creation/class-origins.ts";
+import { combineClassOriginsBySlug } from "../../creation/combine-class-origins.ts";
 import { abilityModifier } from "../../derivations/ability-mod.ts";
 import {
   backgroundsForRegion,
@@ -1050,6 +1052,39 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     await this.#createActor();
   }
 
+  /** Origin system payload for the embedded class item (from class origin seeds). */
+  #classOriginSystem(classKey: string, hitDieFallback: string): Record<string, unknown> {
+    if (classKey === "adventurer") {
+      const combined = combineClassOriginsBySlug("warrior-partial", "expert-partial");
+      if (!combined) {
+        return { subType: "class", slug: "adventurer", hitDie: hitDieFallback, isFull: true };
+      }
+      return {
+        subType: "class",
+        slug: "adventurer",
+        description: "",
+        isFull: true,
+        hitDie: combined.hitDie,
+        hitDiePriority: combined.hitDiePriority,
+        classTalentKeys: [...combined.classTalentKeys],
+        talentPicks: combined.talentPicks,
+        arts: {
+          skillKey: combined.arts.skillKey,
+          abilityKeys: [...combined.arts.abilityKeys],
+          receiveTableKey: "",
+          artKeys: [],
+        },
+        saves: combined.saves,
+        grants: { skills: [], specializations: [], abilities: [] },
+      };
+    }
+    const seed = getClassOrigin(classKey);
+    if (!seed) {
+      return { subType: "class", slug: classKey, hitDie: hitDieFallback, isFull: true };
+    }
+    return { ...seed.system };
+  }
+
   async #createActor(): Promise<void> {
     const d = this.#draft;
     if (!d.regionKey || !d.cultureKey || !d.backgroundKey || !d.classKey) return;
@@ -1129,11 +1164,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
         {
           name: classLabel,
           type: "origin",
-          system: {
-            subType: "class",
-            description: "",
-            hitDie: classDef.hitDie,
-          },
+          system: this.#classOriginSystem(d.classKey, classDef.hitDie),
         },
         ...featureItems,
       ],
