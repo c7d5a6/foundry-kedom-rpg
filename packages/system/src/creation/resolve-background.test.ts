@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildSpecialization,
+  entryNeedsPlayerSpecialization,
   grantFromSpec,
   isGrantBlocked,
   mergeSkillGrants,
+  resolveConcreteEntry,
   resolveRolledEntry,
   resolveRolledGrowth,
 } from "./resolve-background.ts";
@@ -34,12 +37,75 @@ describe("isGrantBlocked", () => {
   });
 });
 
+describe("entryNeedsPlayerSpecialization", () => {
+  it("is true for fixed/free skills with no authored spec", () => {
+    expect(entryNeedsPlayerSpecialization({ kind: "skill", skillKey: "notice" })).toBe(true);
+    expect(entryNeedsPlayerSpecialization({ kind: "skill", skillKey: "craft" })).toBe(true);
+  });
+
+  it("is false when a specialization is authored or skill has none", () => {
+    expect(
+      entryNeedsPlayerSpecialization({ kind: "skill", skillKey: "notice", specLabel: "awareness" }),
+    ).toBe(false);
+    expect(entryNeedsPlayerSpecialization({ kind: "skill", skillKey: "shoot" })).toBe(false);
+    expect(entryNeedsPlayerSpecialization({ kind: "anySkill" })).toBe(false);
+  });
+});
+
+describe("resolveConcreteEntry", () => {
+  it("blocks a concrete skill that needs a specialization until the player picks one", () => {
+    expect(resolveConcreteEntry({ kind: "skill", skillKey: "craft" }, null)).toBeNull();
+    expect(
+      resolveConcreteEntry({ kind: "skill", skillKey: "craft" }, { skillKey: "craft", specLabel: null }),
+    ).toBeNull();
+    const done = resolveConcreteEntry(
+      { kind: "skill", skillKey: "craft" },
+      { skillKey: "craft", specLabel: "Smithing" },
+    );
+    expect(done?.specialization?.label).toBe("Smithing");
+  });
+
+  it("returns authored concrete grants without a pick", () => {
+    const g = resolveConcreteEntry(
+      { kind: "skill", skillKey: "craft", specLabel: "Smithing" },
+      null,
+    );
+    expect(g?.specialization?.label).toBe("Smithing");
+  });
+});
+
+describe("buildSpecialization", () => {
+  it("accepts full catalog slugs from pack export", () => {
+    const g = buildSpecialization("notice", "notice.awareness");
+    expect(g.slug).toBe("notice.awareness");
+  });
+
+  it("accepts English freeform labels", () => {
+    const g = buildSpecialization("craft", "Smithing");
+    expect(g.slug).toBe("craft.smithing");
+    expect(g.label).toBe("Smithing");
+  });
+});
+
 describe("resolveRolledEntry", () => {
   it("returns a concrete skill when not blocked", () => {
     const result = resolveRolledEntry({ kind: "skill", skillKey: "shoot" }, [], null);
     expect(result.needsAnySkill).toBe(false);
     expect(result.grant?.skillKey).toBe("shoot");
     expect(result.substituted).toBe(false);
+  });
+
+  it("requires a specialization for a concrete skill with none authored", () => {
+    const waiting = resolveRolledEntry({ kind: "skill", skillKey: "notice" }, [], null);
+    expect(waiting.needsSpecialization).toBe(true);
+    expect(waiting.grant).toBeNull();
+    const done = resolveRolledEntry(
+      { kind: "skill", skillKey: "notice" },
+      [],
+      { skillKey: "notice", specLabel: "awareness" },
+    );
+    expect(done.grant?.specialization?.slug).toBe("notice.awareness");
+    expect(done.needsSpecialization).toBe(false);
   });
 
   it("asks for any skill when rolled skill+spec is already owned", () => {

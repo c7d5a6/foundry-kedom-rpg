@@ -11,10 +11,13 @@
   import RichTextField from "$lib/RichTextField.svelte";
   import LinkPanel from "$lib/LinkPanel.svelte";
 
+  type SpecMode = "none" | "fixed" | "free" | "parameterized" | string;
+
   type GrowthDraft = {
     roll_index: number;
     skill_id: number;
     specialization_id: number;
+    specialization_label: string;
   };
 
   type Props = {
@@ -52,9 +55,11 @@
       label:
         skills.find((s) => s.id === background.free_skill_id)?.label ?? background.free_skill_slug,
     };
-    if (background.free_specialization_slug) {
-      link.detail = background.free_specialization_slug;
-    }
+    const detail =
+      background.free_specialization_label?.trim() ||
+      background.free_specialization_slug ||
+      "";
+    if (detail) link.detail = detail;
     return [link];
   });
 
@@ -64,6 +69,7 @@
   let enSort = $state(0);
   let freeSkillId = $state(0);
   let freeSpecId = $state(0);
+  let freeSpecLabel = $state("");
   let growth = $state<GrowthDraft[]>([]);
   let ruLabel = $state("");
   let ruDesc = $state("");
@@ -76,6 +82,7 @@
     enSort: number;
     freeSkillId: number;
     freeSpecId: number;
+    freeSpecLabel: string;
     growth: GrowthDraft[];
     ruLabel: string;
   };
@@ -86,9 +93,22 @@
     enSort: 0,
     freeSkillId: 0,
     freeSpecId: 0,
+    freeSpecLabel: "",
     growth: [],
     ruLabel: "",
   });
+
+  function skillMode(skillId: number): SpecMode {
+    return skills.find((s) => s.id === Number(skillId))?.specialization_mode ?? "none";
+  }
+
+  function showsCatalog(mode: SpecMode): boolean {
+    return mode === "fixed" || mode === "parameterized";
+  }
+
+  function showsFreeform(mode: SpecMode): boolean {
+    return mode === "free" || mode === "parameterized";
+  }
 
   function serializeGrowth(rows: GrowthDraft[]): string {
     return JSON.stringify(
@@ -96,6 +116,7 @@
         roll_index: r.roll_index,
         skill_id: Number(r.skill_id),
         specialization_id: Number(r.specialization_id) > 0 ? Number(r.specialization_id) : null,
+        specialization_label: r.specialization_label.trim(),
       })),
     );
   }
@@ -109,6 +130,7 @@
         roll_index: i,
         skill_id: g?.skill_id ?? skills[0]?.id ?? 0,
         specialization_id: g?.specialization_id ?? 0,
+        specialization_label: g?.specialization_label ?? "",
       });
     }
     return rows;
@@ -121,6 +143,7 @@
       enSort: background.sort_order,
       freeSkillId: background.free_skill_id,
       freeSpecId: background.free_specialization_id ?? 0,
+      freeSpecLabel: background.free_specialization_label ?? "",
       growth: growthFromEntity(background),
       ruLabel: background.translations?.label ?? "",
     };
@@ -132,6 +155,7 @@
     enSort = b.enSort;
     freeSkillId = b.freeSkillId;
     freeSpecId = b.freeSpecId;
+    freeSpecLabel = b.freeSpecLabel;
     growth = b.growth.map((r) => ({ ...r }));
     ruLabel = b.ruLabel;
   }
@@ -139,7 +163,7 @@
   async function ensureSpecsForForm(b: Baseline) {
     const ids = new Set<number>([b.freeSkillId, ...b.growth.map((g) => g.skill_id)]);
     for (const id of ids) {
-      if (id > 0) await loadSpecs(id);
+      if (id > 0 && showsCatalog(skillMode(id))) await loadSpecs(id);
     }
   }
 
@@ -168,6 +192,7 @@
       enSort !== baseline.enSort ||
       freeSkillId !== baseline.freeSkillId ||
       freeSpecId !== baseline.freeSpecId ||
+      freeSpecLabel !== baseline.freeSpecLabel ||
       serializeGrowth(growth) !== serializeGrowth(baseline.growth) ||
       ruLabel !== baseline.ruLabel,
   );
@@ -196,24 +221,58 @@
 
   async function onFreeSkillChange() {
     freeSpecId = 0;
-    await loadSpecs(Number(freeSkillId));
+    freeSpecLabel = "";
+    const id = Number(freeSkillId);
+    if (showsCatalog(skillMode(id))) await loadSpecs(id);
   }
 
   async function onGrowthSkillChange(row: GrowthDraft) {
     row.specialization_id = 0;
-    await loadSpecs(Number(row.skill_id));
+    row.specialization_label = "";
+    const id = Number(row.skill_id);
+    if (showsCatalog(skillMode(id))) await loadSpecs(id);
+  }
+
+  function onFreeCatalogChange() {
+    if (Number(freeSpecId) > 0) freeSpecLabel = "";
+  }
+
+  function onFreeLabelInput() {
+    if (freeSpecLabel.trim()) freeSpecId = 0;
+  }
+
+  function onGrowthCatalogChange(row: GrowthDraft) {
+    if (Number(row.specialization_id) > 0) row.specialization_label = "";
+  }
+
+  function onGrowthLabelInput(row: GrowthDraft) {
+    if (row.specialization_label.trim()) row.specialization_id = 0;
   }
 
   function toGrowthIn(): GrowthRowIn[] {
-    return growth.map((r) => ({
-      roll_index: r.roll_index,
-      skill_id: Number(r.skill_id),
-      specialization_id: Number(r.specialization_id) > 0 ? Number(r.specialization_id) : null,
-    }));
+    return growth.map((r) => {
+      const mode = skillMode(r.skill_id);
+      const id = Number(r.specialization_id) > 0 ? Number(r.specialization_id) : null;
+      const label = r.specialization_label.trim();
+      return {
+        roll_index: r.roll_index,
+        skill_id: Number(r.skill_id),
+        specialization_id: showsCatalog(mode) ? id : null,
+        specialization_label: showsFreeform(mode) ? label : "",
+      };
+    });
   }
 
-  function freeSpecPayload(): number | null {
+  function freeSpecIdPayload(): number | null {
+    const mode = skillMode(freeSkillId);
+    if (!showsCatalog(mode)) return null;
     return Number(freeSpecId) > 0 ? Number(freeSpecId) : null;
+  }
+
+  function freeSpecLabelPayload(): string {
+    const mode = skillMode(freeSkillId);
+    if (!showsFreeform(mode)) return "";
+    return freeSpecLabel.trim();
   }
 
   async function saveOverlay(field: TranslationField, value: string) {
@@ -246,7 +305,8 @@
         description: enDesc,
         comment: enComment,
         free_skill_id: Number(freeSkillId),
-        free_specialization_id: freeSpecPayload(),
+        free_specialization_id: freeSpecIdPayload(),
+        free_specialization_label: freeSpecLabelPayload(),
         sort_order: enSort,
         growth: toGrowthIn(),
       });
@@ -259,6 +319,7 @@
         enSort,
         freeSkillId,
         freeSpecId,
+        freeSpecLabel,
         growth: growth.map((r) => ({ ...r })),
         ruLabel,
       };
@@ -281,11 +342,13 @@
       comment: background.comment,
       free_skill_id: background.free_skill_id,
       free_specialization_id: background.free_specialization_id,
+      free_specialization_label: background.free_specialization_label ?? "",
       sort_order: background.sort_order,
       growth: background.growth.map((g) => ({
         roll_index: g.roll_index,
         skill_id: g.skill_id,
         specialization_id: g.specialization_id,
+        specialization_label: g.specialization_label ?? "",
       })),
     });
     enDesc = markdown;
@@ -311,6 +374,8 @@
       status = e instanceof Error ? e.message : String(e);
     }
   }
+
+  const freeMode = $derived(skillMode(freeSkillId));
 </script>
 
 <div class="forge-panel p-3">
@@ -364,15 +429,38 @@
           {/each}
         </select>
       </div>
-      <div class="forge-field">
-        <label for="bg-free-spec">Free specialization</label>
-        <select id="bg-free-spec" class="forge-input" bind:value={freeSpecId}>
-          <option value={0}>(none)</option>
-          {#each specsFor(Number(freeSkillId)) as sp (sp.id)}
-            <option value={sp.id}>{sp.label} ({sp.slug})</option>
-          {/each}
-        </select>
-      </div>
+      {#if showsCatalog(freeMode)}
+        <div class="forge-field">
+          <label for="bg-free-spec">Free specialization</label>
+          <select
+            id="bg-free-spec"
+            class="forge-input"
+            bind:value={freeSpecId}
+            onchange={onFreeCatalogChange}
+          >
+            <option value={0}>(none)</option>
+            {#each specsFor(Number(freeSkillId)) as sp (sp.id)}
+              <option value={sp.id}>{sp.label} ({sp.slug})</option>
+            {/each}
+          </select>
+        </div>
+      {/if}
+      {#if showsFreeform(freeMode)}
+        <div class="forge-field">
+          <label for="bg-free-spec-label"
+            >{freeMode === "parameterized"
+              ? "Freeform specialization"
+              : "Free specialization"}</label
+          >
+          <input
+            id="bg-free-spec-label"
+            class="forge-input"
+            bind:value={freeSpecLabel}
+            oninput={onFreeLabelInput}
+            placeholder="(optional English label)"
+          />
+        </div>
+      {/if}
       <div class="forge-field">
         <label for="bg-sort">Sort order</label>
         <input id="bg-sort" class="forge-input max-w-32" type="number" bind:value={enSort} />
@@ -405,9 +493,11 @@
     <h3 class="mb-2 font-display text-lg text-ink">Growth table (8 rows)</h3>
     <p class="mb-2 text-sm text-muted">
       Each roll_index 1–8 must be a unique skill+specialization, also distinct from the free grant.
+      Leave specialization empty to let the player choose at creation.
     </p>
     <div class="flex flex-col gap-1">
       {#each growth as row (row.roll_index)}
+        {@const mode = skillMode(row.skill_id)}
         <div class="flex flex-wrap items-end gap-2 rounded-md border border-line px-2.5 py-1.5">
           <span class="w-8 pb-1.5 font-mono text-xs text-muted">{row.roll_index}</span>
           <div class="forge-field mb-0 min-w-40 flex-1">
@@ -423,19 +513,34 @@
               {/each}
             </select>
           </div>
-          <div class="forge-field mb-0 min-w-40 flex-1">
-            <label for={`bg-growth-spec-${row.roll_index}`}>Specialization</label>
-            <select
-              id={`bg-growth-spec-${row.roll_index}`}
-              class="forge-input"
-              bind:value={row.specialization_id}
-            >
-              <option value={0}>(none)</option>
-              {#each specsFor(Number(row.skill_id)) as sp (sp.id)}
-                <option value={sp.id}>{sp.label}</option>
-              {/each}
-            </select>
-          </div>
+          {#if showsCatalog(mode)}
+            <div class="forge-field mb-0 min-w-40 flex-1">
+              <label for={`bg-growth-spec-${row.roll_index}`}>Specialization</label>
+              <select
+                id={`bg-growth-spec-${row.roll_index}`}
+                class="forge-input"
+                bind:value={row.specialization_id}
+                onchange={() => onGrowthCatalogChange(row)}
+              >
+                <option value={0}>(none)</option>
+                {#each specsFor(Number(row.skill_id)) as sp (sp.id)}
+                  <option value={sp.id}>{sp.label}</option>
+                {/each}
+              </select>
+            </div>
+          {/if}
+          {#if showsFreeform(mode)}
+            <div class="forge-field mb-0 min-w-40 flex-1">
+              <label for={`bg-growth-spec-label-${row.roll_index}`}>Freeform</label>
+              <input
+                id={`bg-growth-spec-label-${row.roll_index}`}
+                class="forge-input"
+                bind:value={row.specialization_label}
+                oninput={() => onGrowthLabelInput(row)}
+                placeholder="(optional)"
+              />
+            </div>
+          {/if}
         </div>
       {/each}
     </div>

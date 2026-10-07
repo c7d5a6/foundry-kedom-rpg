@@ -1,7 +1,8 @@
 -- name: ListBackgrounds :many
 SELECT
 	b.id, b.slug, b.label, b.description, b.comment,
-	b.free_skill_id, b.free_specialization_id, b.sort_order, b.foundry_id,
+	b.free_skill_id, b.free_specialization_id, b.free_specialization_label,
+	b.sort_order, b.foundry_id,
 	s.slug AS free_skill_slug,
 	sp.slug AS free_specialization_slug
 FROM background b
@@ -12,7 +13,8 @@ ORDER BY b.sort_order, b.id;
 -- name: GetBackground :one
 SELECT
 	b.id, b.slug, b.label, b.description, b.comment,
-	b.free_skill_id, b.free_specialization_id, b.sort_order, b.foundry_id,
+	b.free_skill_id, b.free_specialization_id, b.free_specialization_label,
+	b.sort_order, b.foundry_id,
 	s.slug AS free_skill_slug,
 	sp.slug AS free_specialization_slug
 FROM background b
@@ -23,7 +25,8 @@ WHERE b.id = ?;
 -- name: GetBackgroundBySlug :one
 SELECT
 	b.id, b.slug, b.label, b.description, b.comment,
-	b.free_skill_id, b.free_specialization_id, b.sort_order, b.foundry_id,
+	b.free_skill_id, b.free_specialization_id, b.free_specialization_label,
+	b.sort_order, b.foundry_id,
 	s.slug AS free_skill_slug,
 	sp.slug AS free_specialization_slug
 FROM background b
@@ -34,16 +37,22 @@ WHERE b.slug = ?;
 -- name: InsertBackground :one
 INSERT INTO background (
 	slug, label, description, comment,
-	free_skill_id, free_specialization_id, sort_order, foundry_id
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, slug, label, description, comment, free_skill_id, free_specialization_id, sort_order, foundry_id;
+	free_skill_id, free_specialization_id, free_specialization_label,
+	sort_order, foundry_id
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING id, slug, label, description, comment,
+	free_skill_id, free_specialization_id, free_specialization_label,
+	sort_order, foundry_id;
 
 -- name: UpdateBackground :one
 UPDATE background
 SET label = ?, description = ?, comment = ?,
-	free_skill_id = ?, free_specialization_id = ?, sort_order = ?
+	free_skill_id = ?, free_specialization_id = ?, free_specialization_label = ?,
+	sort_order = ?
 WHERE id = ?
-RETURNING id, slug, label, description, comment, free_skill_id, free_specialization_id, sort_order, foundry_id;
+RETURNING id, slug, label, description, comment,
+	free_skill_id, free_specialization_id, free_specialization_label,
+	sort_order, foundry_id;
 
 -- name: BackgroundSlugExists :one
 SELECT EXISTS(SELECT 1 FROM background WHERE slug = ?) AS present;
@@ -51,6 +60,7 @@ SELECT EXISTS(SELECT 1 FROM background WHERE slug = ?) AS present;
 -- name: ListBackgroundGrowth :many
 SELECT
 	bg.background_id, bg.roll_index, bg.skill_id, bg.specialization_id,
+	bg.specialization_label,
 	s.slug AS skill_slug,
 	sp.slug AS specialization_slug
 FROM background_growth bg
@@ -63,8 +73,9 @@ ORDER BY bg.roll_index;
 DELETE FROM background_growth WHERE background_id = ?;
 
 -- name: InsertBackgroundGrowth :exec
-INSERT INTO background_growth (background_id, roll_index, skill_id, specialization_id)
-VALUES (?, ?, ?, ?);
+INSERT INTO background_growth (
+	background_id, roll_index, skill_id, specialization_id, specialization_label
+) VALUES (?, ?, ?, ?, ?);
 
 -- name: DeleteBackground :exec
 DELETE FROM background WHERE id = ?;

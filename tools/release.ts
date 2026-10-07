@@ -1,6 +1,10 @@
 /**
- * Bump system.json version, build, zip dist, commit, tag, push, and create a
- * GitHub Release with system.json + kedom.zip via `gh` (no GitHub Actions).
+ * Bump system.json version, export forge content into the system, build, zip
+ * dist, commit, tag, push, and create a GitHub Release with system.json +
+ * kedom.zip via `gh` (no GitHub Actions).
+ *
+ * Content pipeline (same as `npm run system:prepare`):
+ *   forge:export:packs → packs:build (cleans LevelDB) → system:build
  *
  * Usage:
  *   npm run release -- patch
@@ -170,7 +174,8 @@ function main(): void {
     console.log(`[dry-run] write ${systemJsonPath} version=${version}`);
   }
 
-  run("npm", ["run", "system:build"], { dryRun, label: "npm run system:build" });
+  // Export packs+lang, wipe/rebuild LevelDB, then vite dist/.
+  run("npm", ["run", "system:prepare"], { dryRun, label: "npm run system:prepare" });
 
   const staging = dryRun
     ? join(tmpdir(), "kedom-release-dry-run")
@@ -187,9 +192,10 @@ function main(): void {
       console.log(`[dry-run] copy dist/system.json → ${stagedSystemJson}`);
     }
 
-    run("git", ["add", "packages/system/system.json"], {
+    // system.json version bump + any lang refresh from forge:export:packs.
+    run("git", ["add", "packages/system/system.json", "packages/system/lang"], {
       dryRun,
-      label: "git add packages/system/system.json",
+      label: "git add packages/system/system.json packages/system/lang",
     });
     run("git", ["commit", "-m", `release: ${tag}`], {
       dryRun,

@@ -110,14 +110,15 @@ func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 			}
 			growth[idx] = export.PackGrowth{
 				SkillKey: g.SkillSlug,
-				SpecSlug: g.SpecializationSlug,
+				SpecSlug: EffectiveSpecSlug(g.SpecializationSlug, g.SpecializationLabel),
 			}
 		}
 		out.Backgrounds = append(out.Backgrounds, export.PackBackground{
 			Slug: b.Slug, Label: b.Label, Description: b.Description,
 			FoundryID: b.FoundryID,
-			FreeSkillKey: b.FreeSkillSlug, FreeSpecSlug: b.FreeSpecializationSlug,
-			Growth: growth,
+			FreeSkillKey: b.FreeSkillSlug,
+			FreeSpecSlug: EffectiveSpecSlug(b.FreeSpecializationSlug, b.FreeSpecializationLabel),
+			Growth:       growth,
 		})
 	}
 

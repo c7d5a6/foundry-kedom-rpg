@@ -169,6 +169,8 @@ function pickToGrowth(pick: { skillKey?: string; specSlug?: string }): GrowthEnt
   const valid = SKILL_KEYS.includes(skillKey);
   const key = valid ? skillKey : ("lore" as SkillKey);
   const spec = pick.specSlug?.trim();
+  // Catalog packs may store full slugs (`notice.awareness`) or English freeform labels.
+  // resolve-background.buildSpecialization normalizes both forms.
   if (spec) return { kind: "skill", skillKey: key, specLabel: spec };
   return { kind: "skill", skillKey: key };
 }

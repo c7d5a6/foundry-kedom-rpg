@@ -1,4 +1,4 @@
-import { cpSync, existsSync, readdirSync } from "node:fs";
+import { cpSync, existsSync, readdirSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Plugin } from "vite";
 import { defineConfig } from "vite";
@@ -20,6 +20,10 @@ function copyCompendiumPacks(): Plugin {
           console.warn(`[kedom-copy-compendium-packs] skip ${name}: run npm run packs:build first`);
           continue;
         }
+        // Wipe dest first. A plain recursive copy into a leftover LevelDB (common when
+        // Foundry still has the pack open and emptyOutDir could not fully clear it)
+        // merges old documents into the new pack — e.g. a deleted third region.
+        rmSync(dest, { recursive: true, force: true });
         cpSync(src, dest, { recursive: true });
         console.log(`[kedom-copy-compendium-packs] ${name} → dist/packs/${name}`);
       }

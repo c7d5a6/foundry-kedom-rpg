@@ -68,12 +68,18 @@ because hot reload picks up pack changes without restarting.
 
 ```sh
 npm run forge:dump           # sqlite -> packages/content/dump.sql
-npm run forge:export:packs   # sqlite -> packs/_source/{origins,talents}/*.yml (+ lang)
-npm run packs:build          # packs/_source/**.yml -> packs/*/ LevelDB
+npm run forge:export:packs   # wipe+rewrite packs/_source/{origins,talents} (+ lang)
+npm run packs:build          # wipe packs/*/ LevelDB, then packs/_source/**.yml -> LevelDB
 npm run system:build         # copies LevelDB packs into packages/system/dist/packs/
+npm run system:prepare       # export packs+lang → packs:build → system:build (no release)
+npm run release -- patch     # bump version, system:prepare, zip, tag, GitHub Release
 npm run system:link          # symlink dist → Data/systems/kedom (once)
 npm run packs:extract        # packs/*/ -> YAML, for inspection only
 ```
+
+`system:prepare` is the usual post-Forge loop: refresh YAML and closed-vocab lang, clean and
+recompile LevelDB packs, then rebuild `dist/` so the linked Foundry system sees the new
+content. `release` runs that same pipeline before packaging.
 
 Foundry loads the system from `dist/` (via `system:link`). Pack LevelDB must be
 rebuilt **and** the system rebuilt (or at least re-copied) after content changes, or

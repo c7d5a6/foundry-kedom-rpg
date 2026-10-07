@@ -101,14 +101,18 @@ type PackInput struct {
 }
 
 // WritePacks writes YAML sources under outDir/origins and outDir/talents.
+// Each pack source directory is removed and recreated first so deleted entities
+// cannot leave stale YAML behind for packs:build.
 func WritePacks(outDir string, in PackInput) error {
 	originsDir := filepath.Join(outDir, "origins")
 	talentsDir := filepath.Join(outDir, "talents")
-	if err := os.MkdirAll(originsDir, 0o755); err != nil {
-		return err
-	}
-	if err := os.MkdirAll(talentsDir, 0o755); err != nil {
-		return err
+	for _, dir := range []string{originsDir, talentsDir} {
+		if err := os.RemoveAll(dir); err != nil {
+			return fmt.Errorf("clean pack source %s: %w", dir, err)
+		}
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return err
+		}
 	}
 
 	md := goldmark.New()

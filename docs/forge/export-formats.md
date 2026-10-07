@@ -95,9 +95,10 @@ slugs are unique.
 | `injuries` | hand-authored, not from Forge |
 | `journals` | setting text (planned) |
 
-`forge export packs` / `npm run forge:export:packs` writes `origins/` and `talents/` under
-`packs/_source/`, Markdown→HTML for descriptions, then optionally regenerates closed lang
-vocab. Region documents nest culture weights and per-pair backgrounds:
+`forge export packs` / `npm run forge:export:packs` wipes `origins/` and `talents/` under
+`packs/_source/`, rewrites them from SQLite (Markdown→HTML for descriptions), then
+optionally regenerates closed lang vocab. Region documents nest culture weights and
+per-pair backgrounds:
 
 ```yaml
 system:

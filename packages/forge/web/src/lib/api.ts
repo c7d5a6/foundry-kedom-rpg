@@ -206,6 +206,7 @@ export type GrowthRow = {
   skill_slug: string;
   specialization_id: number | null;
   specialization_slug: string;
+  specialization_label: string;
 };
 
 export type BackgroundUseLink = {
@@ -228,6 +229,7 @@ export type Background = {
   free_skill_slug: string;
   free_specialization_id: number | null;
   free_specialization_slug: string;
+  free_specialization_label: string;
   sort_order: number;
   foundry_id: string;
   growth: GrowthRow[];
@@ -325,6 +327,7 @@ export type GrowthRowIn = {
   roll_index: number;
   skill_id: number;
   specialization_id?: number | null;
+  specialization_label?: string;
 };
 
 export type CreateBackgroundBody = {
@@ -333,6 +336,7 @@ export type CreateBackgroundBody = {
   comment?: string;
   free_skill_id: number;
   free_specialization_id?: number | null;
+  free_specialization_label?: string;
   sort_order?: number;
   growth: GrowthRowIn[];
 };
@@ -343,6 +347,7 @@ export type UpdateBackgroundBody = {
   comment: string;
   free_skill_id: number;
   free_specialization_id: number | null;
+  free_specialization_label: string;
   sort_order: number;
   growth: GrowthRowIn[];
 };

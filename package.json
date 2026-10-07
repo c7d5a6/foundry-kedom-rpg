@@ -17,6 +17,7 @@
     "system:build": "npm run build -w @kedom/system",
     "system:watch": "npm run watch -w @kedom/system",
     "system:link": "tsx tools/link-foundry.ts",
+    "system:prepare": "tsx tools/prepare-system.ts",
     "release": "tsx tools/release.ts",
     "packs:build": "tsx tools/pack.ts",
     "packs:extract": "tsx tools/unpack.ts",

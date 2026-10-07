@@ -3,16 +3,15 @@
 Repository tasks. TypeScript run through `tsx`, per [Style.md](../Style.md): typed and portable,
 where a shell script is neither. Keep the toolbox small.
 
-**`dump-content.ts`, `link-foundry.ts`, and `release.ts` are implemented.** The pack / unpack
-tools are not yet.
-
-
 ## `pack.ts` — `npm run packs:build`
 
 Compiles `packages/system/packs/_source/**/*.yml` into LevelDB packs under
 `packages/system/packs/<name>/`, using `@foundryvtt/foundryvtt-cli`. In the shape of
 draw-steel's `tools/pullJSONtoLDB.mjs`.
 
+- **Cleans every LevelDB pack directory first** (anything under `packs/` that is not
+  `_source` / `_extracted` / other `_…` scratch dirs), then rebuilds from YAML. Stale packs
+  cannot survive a source removal.
 - One source directory per pack; the directory name is the pack name.
 - Reads `_id` from the document; **never generates one**. A regenerated `_id` breaks every
   reference to that document in every existing world.
@@ -40,11 +39,24 @@ Writes to a scratch directory, never over `packs/_source/`.
 
 Equivalent to pf2e's `build/link-foundry.ts` and draw-steel's `tools/create-symlinks.mjs`.
 
+## `prepare-system.ts` — `npm run system:prepare`
+
+Export forge content into the Foundry system and rebuild packs + `dist/`, **without**
+releasing. Same content pipeline `release` runs before it zips and publishes:
+
+```sh
+npm run system:prepare
+# → forge:export:packs (YAML + lang) → packs:build (clean LevelDB) → system:build
+```
+
+Use this after authoring in Forge when you want Foundry to pick up packs and translations.
+
 ## `release.ts` — `npm run release`
 
-**Implemented.** Local Foundry system release (no GitHub Actions). Bumps
-`packages/system/system.json`, builds `dist/`, zips it as `kedom.zip`, commits, tags,
-pushes, and creates a GitHub Release with `system.json` + `kedom.zip` via `gh`.
+Local Foundry system release (no GitHub Actions). Bumps `packages/system/system.json`,
+runs `system:prepare` (forge export → clean/rebuild packs → `dist/`), zips `kedom.zip`,
+commits version + lang, tags, pushes, and creates a GitHub Release with `system.json` +
+`kedom.zip` via `gh`.
 
 ```sh
 npm run release -- patch          # 0.0.1 → 0.0.2
@@ -59,6 +71,7 @@ Prerequisites:
 - Clean git working tree.
 - [`gh`](https://cli.github.com/) installed and authenticated (`gh auth status`).
 - `zip` on PATH (used to package `dist/`).
+- Forge API deps available (`go`, content.sqlite) so `forge:export:packs` can run.
 
 Foundry install / update manifest URL (after the first release exists):
 

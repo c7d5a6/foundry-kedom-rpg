@@ -59,12 +59,22 @@ export function grantFromSpec(spec: SkillGrantSpec): ResolvedSkillGrant {
   };
 }
 
+/** Normalize pack/catalog identity: `notice.awareness` → `awareness`, or leave labels alone. */
+export function normalizeSpecIdentity(skillKey: SkillKey, labelOrLeaf: string): string {
+  const trimmed = labelOrLeaf.trim();
+  const prefix = `${skillKey}.`;
+  if (trimmed.toLowerCase().startsWith(prefix)) {
+    return trimmed.slice(prefix.length);
+  }
+  return trimmed;
+}
+
 export function buildSpecialization(
   skillKey: SkillKey,
   labelOrLeaf: string,
 ): { slug: string; label: string } {
   const kind = SKILL_SPECIALIZATION_KIND[skillKey];
-  const trimmed = labelOrLeaf.trim();
+  const trimmed = normalizeSpecIdentity(skillKey, labelOrLeaf);
   if (kind === "fixed") {
     const leaves = SKILL_FIXED_SPECIALIZATIONS[skillKey] ?? [];
     const leaf =
@@ -75,16 +85,23 @@ export function buildSpecialization(
   if (kind === "parameterized") {
     const param = SKILL_FREE_PARAMETER[skillKey] ?? "environment";
     const fixed = SKILL_FIXED_SPECIALIZATIONS[skillKey] ?? [];
+    // Full slug may be survive.foraging or survive.environment.taiga
+    const paramPrefix = `${param}.`;
+    const asLeaf = trimmed.startsWith(paramPrefix) ? trimmed.slice(paramPrefix.length) : trimmed;
     if (fixed.some((l) => l === trimmed || l.toLowerCase() === trimmed.toLowerCase())) {
       const leaf = fixed.find((l) => l.toLowerCase() === trimmed.toLowerCase()) ?? trimmed;
       return { slug: specializationSlug(skillKey, leaf), label: displaySpecLabel(skillKey, leaf) };
     }
+    if (fixed.some((l) => l === asLeaf || l.toLowerCase() === asLeaf.toLowerCase())) {
+      const leaf = fixed.find((l) => l.toLowerCase() === asLeaf.toLowerCase()) ?? asLeaf;
+      return { slug: specializationSlug(skillKey, leaf), label: displaySpecLabel(skillKey, leaf) };
+    }
     return {
-      slug: freeParameterSpecializationSlug(skillKey, param, trimmed),
-      label: trimmed,
+      slug: freeParameterSpecializationSlug(skillKey, param, asLeaf),
+      label: asLeaf,
     };
   }
-  // free
+  // free — English freeform label (or already-slugified fragment)
   return { slug: freeSpecializationSlug(skillKey, trimmed), label: trimmed };
 }
 
@@ -108,11 +125,21 @@ export function skillNeedsSpecialization(skillKey: SkillKey): boolean {
   return SKILL_SPECIALIZATION_KIND[skillKey] !== "none";
 }
 
+/** True when a concrete skill grant needs a player-chosen specialization. */
+export function entryNeedsPlayerSpecialization(entry: GrowthEntry): boolean {
+  if (entry.kind !== "skill") return false;
+  if (entry.specLabel?.trim()) return false;
+  return skillNeedsSpecialization(entry.skillKey);
+}
+
 export function resolveConcreteEntry(
   entry: GrowthEntry,
   pick: ResolvePick | null,
 ): ResolvedSkillGrant | null {
   if (entry.kind === "skill") {
+    if (entryNeedsPlayerSpecialization(entry)) {
+      return finalizeWildGrant(entry.skillKey, pick?.specLabel ?? null);
+    }
     return grantFromSpec(entry);
   }
   if (entry.kind === "anyCombat") {
@@ -300,6 +327,54 @@ export function resolveRolledEntry(
   }
 
   // concrete skill from table
+  if (entryNeedsPlayerSpecialization(entry)) {
+    const incomplete: ResolvedSkillGrant = { skillKey: entry.skillKey, specialization: null };
+    const grant = finalizeWildGrant(entry.skillKey, pick?.specLabel ?? null);
+    if (!grant) {
+      return {
+        grant: null,
+        rolledGrant: incomplete,
+        needsCombatPick: false,
+        needsAnySkill: false,
+        needsSpecialization: true,
+        substituted: false,
+      };
+    }
+    if (isGrantBlocked(owned, grant)) {
+      const canOtherSpec =
+        skillNeedsSpecialization(entry.skillKey) && countSkill(owned, entry.skillKey) < MAX_SAME_SKILL;
+      if (canOtherSpec && (!pick?.skillKey || pick.skillKey === entry.skillKey)) {
+        return {
+          grant: null,
+          rolledGrant: grant,
+          needsCombatPick: false,
+          needsAnySkill: false,
+          needsSpecialization: true,
+          substituted: false,
+        };
+      }
+      if (!pick?.skillKey || pick.skillKey === entry.skillKey) {
+        return {
+          grant: null,
+          rolledGrant: grant,
+          needsCombatPick: false,
+          needsAnySkill: true,
+          needsSpecialization: false,
+          substituted: false,
+        };
+      }
+      return resolveSubstitutePick(owned, pick, grant);
+    }
+    return {
+      grant,
+      rolledGrant: grant,
+      needsCombatPick: false,
+      needsAnySkill: false,
+      needsSpecialization: false,
+      substituted: false,
+    };
+  }
+
   const rolledGrant = grantFromSpec(entry);
   if (!isGrantBlocked(owned, rolledGrant)) {
     return {

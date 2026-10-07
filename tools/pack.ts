@@ -2,6 +2,10 @@
  * Compile packs/_source YAML into LevelDB packs via @foundryvtt/foundryvtt-cli.
  * Usage: npm run packs:build
  *
+ * Always wipes every LevelDB pack directory under packs/ first (anything that is
+ * not `_source` / `_extracted` / other `_…` scratch dirs), then rebuilds from YAML.
+ * That way removed or empty sources cannot leave a stale Foundry pack behind.
+ *
  * fvtt CLI notes:
  * - `--type` is Module|System|World (not the document type).
  * - `--yaml` is a boolean flag.
@@ -37,9 +41,20 @@ function runFvtt(args: string[]): number {
   return result.status ?? 1;
 }
 
+/** Remove all compiled LevelDB pack dirs; leave `_source` / `_extracted` alone. */
+function cleanAllPacks(): void {
+  if (!existsSync(packsRoot)) return;
+  for (const entry of readdirSync(packsRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    if (entry.name.startsWith("_")) continue;
+    const dest = join(packsRoot, entry.name);
+    rmSync(dest, { recursive: true, force: true });
+    console.log(`cleaned ${entry.name}`);
+  }
+}
+
 function compilePack(name: string): void {
   const src = join(sourceRoot, name);
-  const dest = join(packsRoot, name);
   if (!existsSync(src)) {
     console.log(`skip ${name}: no ${src}`);
     return;
@@ -49,7 +64,6 @@ function compilePack(name: string): void {
     console.log(`skip ${name}: empty source`);
     return;
   }
-  rmSync(dest, { recursive: true, force: true });
 
   // outputDirectory is the parent; fvtt joins it with -n <name>.
   const status = runFvtt([
@@ -77,6 +91,7 @@ function compilePack(name: string): void {
   }
 }
 
+cleanAllPacks();
 for (const pack of PACKS) {
   compilePack(pack);
 }

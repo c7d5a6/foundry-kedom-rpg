@@ -250,14 +250,23 @@ join requires a matching `region_culture` row.
 
 ```
 background:         id, slug, label, description, comment,
-                    free_skill_id, free_specialization_id?, sort_order, foundry_id
-background_growth:  background_id, roll_index (1–8 UNIQUE), skill_id, specialization_id?
+                    free_skill_id, free_specialization_id?, free_specialization_label?,
+                    sort_order, foundry_id
+background_growth:  background_id, roll_index (1–8 UNIQUE), skill_id,
+                    specialization_id?, specialization_label?
 ```
+
+`free_specialization_id` / `specialization_id` reference a catalog `specialization` row
+(`fixed` / closed leaves of `parameterized`). `free_specialization_label` /
+`specialization_label` hold an English freeform label (`free` / open parameter of
+`parameterized`). At most one of id/label per grant; both may be empty (player fills at
+creation). Mode is taken from the skill’s `specialization_mode`. Freeform labels are not
+translated.
 
 Creation grants the free skill (+ optional specialization), then rolls **2×1d8** on the eight
 growth rows ([Q11](../rules/99-open-questions.md#q11--background-growth-free-skill--21d8)).
-Application validation: exactly eight growth rows; unique `(skill, specialization)` across
-free + growth for one background.
+Application validation: exactly eight growth rows; unique `(skill, specialization id|label)`
+across free + growth for one background.
 
 ### `class` (origins fields)
 

@@ -633,6 +633,7 @@ type GrowthRowDTO struct {
 	SkillSlug            string `json:"skill_slug"`
 	SpecializationID     *int64 `json:"specialization_id"`
 	SpecializationSlug   string `json:"specialization_slug"`
+	SpecializationLabel  string `json:"specialization_label"`
 }
 
 type BackgroundUseLink struct {
@@ -653,13 +654,14 @@ type BackgroundDTO struct {
 	Comment                string              `json:"comment"`
 	FreeSkillID            int64               `json:"free_skill_id"`
 	FreeSkillSlug          string              `json:"free_skill_slug"`
-	FreeSpecializationID   *int64              `json:"free_specialization_id"`
-	FreeSpecializationSlug string              `json:"free_specialization_slug"`
-	SortOrder              int64               `json:"sort_order"`
-	FoundryID              string              `json:"foundry_id"`
-	Growth                 []GrowthRowDTO      `json:"growth"`
-	UsedBy                 []BackgroundUseLink `json:"used_by"`
-	Translations           TranslationMap      `json:"translations"`
+	FreeSpecializationID    *int64              `json:"free_specialization_id"`
+	FreeSpecializationSlug  string              `json:"free_specialization_slug"`
+	FreeSpecializationLabel string              `json:"free_specialization_label"`
+	SortOrder               int64               `json:"sort_order"`
+	FoundryID               string              `json:"foundry_id"`
+	Growth                  []GrowthRowDTO      `json:"growth"`
+	UsedBy                  []BackgroundUseLink `json:"used_by"`
+	Translations            TranslationMap      `json:"translations"`
 }
 
 func (c *Content) ListBackgrounds(ctx context.Context, locale model.Locale) ([]BackgroundDTO, error) {
@@ -689,18 +691,18 @@ func (c *Content) GetBackground(ctx context.Context, id int64, locale model.Loca
 func (c *Content) backgroundFromListRow(ctx context.Context, row generated.ListBackgroundsRow, locale model.Locale) (BackgroundDTO, error) {
 	return c.buildBackgroundDTO(ctx, row.ID, row.Slug, row.Label, row.Description, row.Comment,
 		row.FreeSkillID, row.FreeSkillSlug, row.FreeSpecializationID, ptrStr(row.FreeSpecializationSlug),
-		row.SortOrder, row.FoundryID, locale)
+		row.FreeSpecializationLabel, row.SortOrder, row.FoundryID, locale)
 }
 
 func (c *Content) backgroundFromGetRow(ctx context.Context, row generated.GetBackgroundRow, locale model.Locale) (BackgroundDTO, error) {
 	return c.buildBackgroundDTO(ctx, row.ID, row.Slug, row.Label, row.Description, row.Comment,
 		row.FreeSkillID, row.FreeSkillSlug, row.FreeSpecializationID, ptrStr(row.FreeSpecializationSlug),
-		row.SortOrder, row.FoundryID, locale)
+		row.FreeSpecializationLabel, row.SortOrder, row.FoundryID, locale)
 }
 
 func (c *Content) buildBackgroundDTO(
 	ctx context.Context, id int64, slug, label, description, comment string,
-	freeSkillID int64, freeSkillSlug string, freeSpecID *int64, freeSpecSlug string,
+	freeSkillID int64, freeSkillSlug string, freeSpecID *int64, freeSpecSlug, freeSpecLabel string,
 	sortOrder int64, foundryID string, locale model.Locale,
 ) (BackgroundDTO, error) {
 	tr, err := c.translations(ctx, model.EntityBackground, id, locale)
@@ -716,6 +718,7 @@ func (c *Content) buildBackgroundDTO(
 		g = append(g, GrowthRowDTO{
 			RollIndex: row.RollIndex, SkillID: row.SkillID, SkillSlug: row.SkillSlug,
 			SpecializationID: row.SpecializationID, SpecializationSlug: ptrStr(row.SpecializationSlug),
+			SpecializationLabel: row.SpecializationLabel,
 		})
 	}
 	used, err := c.q.ListRegionCultureBackgroundsByBackground(ctx, id)
@@ -733,24 +736,27 @@ func (c *Content) buildBackgroundDTO(
 		ID: id, Slug: slug, Label: label, Description: description, Comment: comment,
 		FreeSkillID: freeSkillID, FreeSkillSlug: freeSkillSlug,
 		FreeSpecializationID: freeSpecID, FreeSpecializationSlug: freeSpecSlug,
+		FreeSpecializationLabel: freeSpecLabel,
 		SortOrder: sortOrder, FoundryID: foundryID, Growth: g, UsedBy: usedBy, Translations: tr,
 	}, nil
 }
 
 type GrowthRowIn struct {
-	RollIndex        int64  `json:"roll_index"`
-	SkillID          int64  `json:"skill_id"`
-	SpecializationID *int64 `json:"specialization_id"`
+	RollIndex           int64  `json:"roll_index"`
+	SkillID             int64  `json:"skill_id"`
+	SpecializationID    *int64 `json:"specialization_id"`
+	SpecializationLabel string `json:"specialization_label"`
 }
 
 type CreateBackgroundInput struct {
-	Label                string        `json:"label"`
-	Description          string        `json:"description"`
-	Comment              string        `json:"comment"`
-	FreeSkillID          int64         `json:"free_skill_id"`
-	FreeSpecializationID *int64        `json:"free_specialization_id"`
-	SortOrder            int64         `json:"sort_order"`
-	Growth               []GrowthRowIn `json:"growth"`
+	Label                   string        `json:"label"`
+	Description             string        `json:"description"`
+	Comment                 string        `json:"comment"`
+	FreeSkillID             int64         `json:"free_skill_id"`
+	FreeSpecializationID    *int64        `json:"free_specialization_id"`
+	FreeSpecializationLabel string        `json:"free_specialization_label"`
+	SortOrder               int64         `json:"sort_order"`
+	Growth                  []GrowthRowIn `json:"growth"`
 }
 
 func (c *Content) CreateBackground(ctx context.Context, in CreateBackgroundInput, locale model.Locale) (BackgroundDTO, error) {
@@ -758,7 +764,9 @@ func (c *Content) CreateBackground(ctx context.Context, in CreateBackgroundInput
 	if label == "" || in.FreeSkillID <= 0 {
 		return BackgroundDTO{}, fmt.Errorf("%w: label and free_skill_id required", ErrInvalid)
 	}
-	if err := validateGrowth(in.FreeSkillID, in.FreeSpecializationID, in.Growth); err != nil {
+	freeLabel := strings.TrimSpace(in.FreeSpecializationLabel)
+	normGrowth := normalizeGrowthIn(in.Growth)
+	if err := c.validateBackgroundGrants(ctx, in.FreeSkillID, in.FreeSpecializationID, freeLabel, normGrowth); err != nil {
 		return BackgroundDTO{}, err
 	}
 	slug, err := UniqueSlug(SlugFromLabel(label), func(s string) (bool, error) {
@@ -780,12 +788,13 @@ func (c *Content) CreateBackground(ctx context.Context, in CreateBackgroundInput
 	row, err := q.InsertBackground(ctx, generated.InsertBackgroundParams{
 		Slug: slug, Label: label, Description: in.Description, Comment: in.Comment,
 		FreeSkillID: in.FreeSkillID, FreeSpecializationID: in.FreeSpecializationID,
-		SortOrder: in.SortOrder, FoundryID: fid,
+		FreeSpecializationLabel: freeLabel,
+		SortOrder:               in.SortOrder, FoundryID: fid,
 	})
 	if err != nil {
 		return BackgroundDTO{}, fmt.Errorf("insert background: %w", err)
 	}
-	if err := writeGrowth(ctx, q, row.ID, in.Growth); err != nil {
+	if err := writeGrowth(ctx, q, row.ID, normGrowth); err != nil {
 		return BackgroundDTO{}, err
 	}
 	if err := tx.Commit(); err != nil {
@@ -795,20 +804,23 @@ func (c *Content) CreateBackground(ctx context.Context, in CreateBackgroundInput
 }
 
 type UpdateBackgroundInput struct {
-	Label                string        `json:"label"`
-	Description          string        `json:"description"`
-	Comment              string        `json:"comment"`
-	FreeSkillID          int64         `json:"free_skill_id"`
-	FreeSpecializationID *int64        `json:"free_specialization_id"`
-	SortOrder            int64         `json:"sort_order"`
-	Growth               []GrowthRowIn `json:"growth"`
+	Label                   string        `json:"label"`
+	Description             string        `json:"description"`
+	Comment                 string        `json:"comment"`
+	FreeSkillID             int64         `json:"free_skill_id"`
+	FreeSpecializationID    *int64        `json:"free_specialization_id"`
+	FreeSpecializationLabel string        `json:"free_specialization_label"`
+	SortOrder               int64         `json:"sort_order"`
+	Growth                  []GrowthRowIn `json:"growth"`
 }
 
 func (c *Content) UpdateBackground(ctx context.Context, id int64, in UpdateBackgroundInput, locale model.Locale) (BackgroundDTO, error) {
 	if strings.TrimSpace(in.Label) == "" || in.FreeSkillID <= 0 {
 		return BackgroundDTO{}, fmt.Errorf("%w: label and free_skill_id required", ErrInvalid)
 	}
-	if err := validateGrowth(in.FreeSkillID, in.FreeSpecializationID, in.Growth); err != nil {
+	freeLabel := strings.TrimSpace(in.FreeSpecializationLabel)
+	normGrowth := normalizeGrowthIn(in.Growth)
+	if err := c.validateBackgroundGrants(ctx, in.FreeSkillID, in.FreeSpecializationID, freeLabel, normGrowth); err != nil {
 		return BackgroundDTO{}, err
 	}
 	tx, q, err := c.begin(ctx)
@@ -820,7 +832,8 @@ func (c *Content) UpdateBackground(ctx context.Context, id int64, in UpdateBackg
 	_, err = q.UpdateBackground(ctx, generated.UpdateBackgroundParams{
 		Label: in.Label, Description: in.Description, Comment: in.Comment,
 		FreeSkillID: in.FreeSkillID, FreeSpecializationID: in.FreeSpecializationID,
-		SortOrder: in.SortOrder, ID: id,
+		FreeSpecializationLabel: freeLabel,
+		SortOrder:               in.SortOrder, ID: id,
 	})
 	if err != nil {
 		return BackgroundDTO{}, mapNotFound(err)
@@ -828,7 +841,7 @@ func (c *Content) UpdateBackground(ctx context.Context, id int64, in UpdateBackg
 	if err := q.DeleteBackgroundGrowth(ctx, id); err != nil {
 		return BackgroundDTO{}, err
 	}
-	if err := writeGrowth(ctx, q, id, in.Growth); err != nil {
+	if err := writeGrowth(ctx, q, id, normGrowth); err != nil {
 		return BackgroundDTO{}, err
 	}
 	if err := tx.Commit(); err != nil {
@@ -837,20 +850,98 @@ func (c *Content) UpdateBackground(ctx context.Context, id int64, in UpdateBackg
 	return c.GetBackground(ctx, id, locale)
 }
 
-func validateGrowth(freeSkillID int64, freeSpecID *int64, growth []GrowthRowIn) error {
+func normalizeGrowthIn(growth []GrowthRowIn) []GrowthRowIn {
+	out := make([]GrowthRowIn, len(growth))
+	for i, g := range growth {
+		out[i] = GrowthRowIn{
+			RollIndex:           g.RollIndex,
+			SkillID:             g.SkillID,
+			SpecializationID:    g.SpecializationID,
+			SpecializationLabel: strings.TrimSpace(g.SpecializationLabel),
+		}
+	}
+	return out
+}
+
+func grantKey(skillID int64, specID *int64, label string) string {
+	spec := int64(0)
+	if specID != nil {
+		spec = *specID
+	}
+	return fmt.Sprintf("%d|%d|%s", skillID, spec, strings.ToLower(strings.TrimSpace(label)))
+}
+
+func (c *Content) skillMode(ctx context.Context, skillID int64) (string, error) {
+	row, err := c.q.GetSkill(ctx, skillID)
+	if err != nil {
+		return "", fmt.Errorf("%w: unknown skill_id %d", ErrInvalid, skillID)
+	}
+	return row.SpecializationMode, nil
+}
+
+func (c *Content) validateSpecForMode(ctx context.Context, skillID int64, specID *int64, label string) error {
+	mode, err := c.skillMode(ctx, skillID)
+	if err != nil {
+		return err
+	}
+	hasID := specID != nil && *specID > 0
+	hasLabel := strings.TrimSpace(label) != ""
+	if hasID && hasLabel {
+		return fmt.Errorf("%w: specialization_id and specialization_label are mutually exclusive", ErrInvalid)
+	}
+	switch mode {
+	case "none":
+		if hasID || hasLabel {
+			return fmt.Errorf("%w: skill mode none forbids specialization", ErrInvalid)
+		}
+	case "fixed":
+		if hasLabel {
+			return fmt.Errorf("%w: skill mode fixed forbids freeform specialization_label", ErrInvalid)
+		}
+		if hasID {
+			if err := c.specBelongsToSkill(ctx, skillID, *specID); err != nil {
+				return err
+			}
+		}
+	case "free":
+		if hasID {
+			return fmt.Errorf("%w: skill mode free forbids specialization_id", ErrInvalid)
+		}
+	case "parameterized":
+		if hasID {
+			if err := c.specBelongsToSkill(ctx, skillID, *specID); err != nil {
+				return err
+			}
+		}
+	default:
+		return fmt.Errorf("%w: unknown specialization_mode %q", ErrInvalid, mode)
+	}
+	return nil
+}
+
+func (c *Content) specBelongsToSkill(ctx context.Context, skillID, specID int64) error {
+	row, err := c.q.GetSpecialization(ctx, specID)
+	if err != nil {
+		return fmt.Errorf("%w: unknown specialization_id %d", ErrInvalid, specID)
+	}
+	if row.SkillID != skillID {
+		return fmt.Errorf("%w: specialization %d does not belong to skill %d", ErrInvalid, specID, skillID)
+	}
+	return nil
+}
+
+func (c *Content) validateBackgroundGrants(
+	ctx context.Context, freeSkillID int64, freeSpecID *int64, freeLabel string, growth []GrowthRowIn,
+) error {
 	if len(growth) != 8 {
 		return fmt.Errorf("%w: growth must have exactly 8 rows", ErrInvalid)
 	}
-	type key struct {
-		skill int64
-		spec  int64
+	if err := c.validateSpecForMode(ctx, freeSkillID, freeSpecID, freeLabel); err != nil {
+		return err
 	}
-	seen := map[key]bool{}
-	freeKey := key{skill: freeSkillID}
-	if freeSpecID != nil {
-		freeKey.spec = *freeSpecID
+	seen := map[string]bool{
+		grantKey(freeSkillID, freeSpecID, freeLabel): true,
 	}
-	seen[freeKey] = true
 	indexes := map[int64]bool{}
 	for _, g := range growth {
 		if g.RollIndex < 1 || g.RollIndex > 8 {
@@ -863,10 +954,10 @@ func validateGrowth(freeSkillID int64, freeSpecID *int64, growth []GrowthRowIn) 
 		if g.SkillID <= 0 {
 			return fmt.Errorf("%w: growth skill_id required", ErrInvalid)
 		}
-		k := key{skill: g.SkillID}
-		if g.SpecializationID != nil {
-			k.spec = *g.SpecializationID
+		if err := c.validateSpecForMode(ctx, g.SkillID, g.SpecializationID, g.SpecializationLabel); err != nil {
+			return err
 		}
+		k := grantKey(g.SkillID, g.SpecializationID, g.SpecializationLabel)
 		if seen[k] {
 			return fmt.Errorf("%w: duplicate skill+specialization on background", ErrInvalid)
 		}
@@ -880,9 +971,18 @@ func writeGrowth(ctx context.Context, q *generated.Queries, backgroundID int64, 
 		if err := q.InsertBackgroundGrowth(ctx, generated.InsertBackgroundGrowthParams{
 			BackgroundID: backgroundID, RollIndex: g.RollIndex,
 			SkillID: g.SkillID, SpecializationID: g.SpecializationID,
+			SpecializationLabel: g.SpecializationLabel,
 		}); err != nil {
 			return fmt.Errorf("insert growth: %w", err)
 		}
 	}
 	return nil
+}
+
+// EffectiveSpecSlug for pack export: freeform English label, else catalog slug.
+func EffectiveSpecSlug(catalogSlug, freeformLabel string) string {
+	if strings.TrimSpace(freeformLabel) != "" {
+		return strings.TrimSpace(freeformLabel)
+	}
+	return strings.TrimSpace(catalogSlug)
 }

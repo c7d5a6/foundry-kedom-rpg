@@ -62,9 +62,13 @@ lang/ru.json             Russian UI strings
 
 ```sh
 npm run system:build                     # or: npm run build -w @kedom/system
+npm run system:prepare                   # forge export → clean/rebuild packs → dist/
 npm run system:watch                     # rebuild on change
 npm run system:link                      # symlink dist/ into Data/systems/kedom
 ```
+
+After authoring in Forge, prefer `system:prepare` so packs and closed-vocab lang land in
+`dist/` before you reload Foundry.
 
 `hotReload` is declared in the manifest, so Foundry picks up CSS, template, and language
 changes without a page refresh.

@@ -38,6 +38,7 @@ import {
 } from "../../creation/origins-catalog.ts";
 import {
   COMBAT_SKILLS,
+  entryNeedsPlayerSpecialization,
   formatGrantLabel,
   isGrantBlocked,
   mergeSkillGrants,
@@ -209,14 +210,20 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     for (const input of this.element?.querySelectorAll<HTMLInputElement>(
       "input[data-spec-target]",
     ) ?? []) {
+      const sync = () => {
+        const target = input.dataset.specTarget;
+        const value = input.value.trim();
+        if (target === "free") this.#draft.freeWild.specLabel = value || null;
+        else if (target === "roll1") this.#draft.roll1Wild.specLabel = value || null;
+        else if (target === "roll2") this.#draft.roll2Wild.specLabel = value || null;
+        this.#refreshNextButton();
+      };
+      // `input` keeps Next in sync while typing; `change` re-renders on blur/commit.
+      input.addEventListener("input", sync, opts);
       input.addEventListener(
         "change",
         () => {
-          const target = input.dataset.specTarget;
-          const value = input.value.trim();
-          if (target === "free") this.#draft.freeWild.specLabel = value || null;
-          else if (target === "roll1") this.#draft.roll1Wild.specLabel = value || null;
-          else if (target === "roll2") this.#draft.roll2Wild.specLabel = value || null;
+          sync();
           void this.render();
         },
         opts,
@@ -312,10 +319,20 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     }));
 
     const background = this.#selectedBackground(catalog);
-    const freeResolved = background ? resolveConcreteEntry(background.free, d.freeWild) : null;
     const freeNeedsWild =
       background?.free.kind === "anyCombat" || background?.free.kind === "anySkill";
     const freeWildIsCombat = background?.free.kind === "anyCombat";
+    // Concrete free skill without authored specialization → seed skill for Spec UI.
+    if (
+      background &&
+      entryNeedsPlayerSpecialization(background.free) &&
+      background.free.kind === "skill"
+    ) {
+      if (d.freeWild.skillKey !== background.free.skillKey) {
+        d.freeWild = { skillKey: background.free.skillKey, specLabel: d.freeWild.specLabel };
+      }
+    }
+    const freeResolved = background ? resolveConcreteEntry(background.free, d.freeWild) : null;
 
     const ownedFree = this.#ownedGrants(catalog, {
       includeRoll1: false,
@@ -347,6 +364,18 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       background && d.roll1 !== null ? (background.growth[d.roll1 - 1] ?? null) : null;
     const roll2Entry =
       background && d.roll2 !== null ? (background.growth[d.roll2 - 1] ?? null) : null;
+
+    // Seed fixed skill for Spec UI when a concrete growth row needs a player specialization.
+    if (roll1Entry && entryNeedsPlayerSpecialization(roll1Entry) && roll1Entry.kind === "skill") {
+      if (!d.roll1Wild.skillKey) {
+        d.roll1Wild = { skillKey: roll1Entry.skillKey, specLabel: d.roll1Wild.specLabel };
+      }
+    }
+    if (roll2Entry && entryNeedsPlayerSpecialization(roll2Entry) && roll2Entry.kind === "skill") {
+      if (!d.roll2Wild.skillKey) {
+        d.roll2Wild = { skillKey: roll2Entry.skillKey, specLabel: d.roll2Wild.specLabel };
+      }
+    }
 
     const roll1State =
       roll1Entry != null ? resolveRolledEntry(roll1Entry, ownedBeforeRoll1, d.roll1Wild) : null;
@@ -604,10 +633,8 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
         if (!d.backgroundKey) return false;
         const bg = getCatalogBackground(cat, d.backgroundKey);
         if (!bg) return false;
-        if (
-          (bg.free.kind === "anyCombat" || bg.free.kind === "anySkill") &&
-          !resolveConcreteEntry(bg.free, d.freeWild)
-        ) {
+        // Free grant must resolve (wild pick and/or required specialization).
+        if (!resolveConcreteEntry(bg.free, d.freeWild)) {
           return false;
         }
         if (d.roll1 === null || d.roll2 === null) return false;
