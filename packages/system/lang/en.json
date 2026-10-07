@@ -259,10 +259,10 @@
       "movement": "Movement",
       "resolve": "Resolve",
       "resolveShort": "RSV",
-      "strain": "Exhaustion",
-      "strainLimit": "Exhaustion Limit",
+      "strain": "System Strain",
+      "strainLimit": "Strain Limit",
       "strainLimitShort": "SL",
-      "strainShort": "E",
+      "strainShort": "SS",
       "wounds": "Wounds"
     },
     "Condition": {

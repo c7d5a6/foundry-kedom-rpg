@@ -30,49 +30,49 @@
     "Ability": {
       "dex": {
         "label": "Ловкость",
-        "abbr": "ЛВ"
+        "abbr": "ЛВК"
       },
       "foc": {
-        "label": "Фокус",
-        "abbr": "ФК"
+        "label": "Средоточие",
+        "abbr": "СРД"
       },
       "kno": {
         "label": "Знание",
-        "abbr": "ЗН"
+        "abbr": "ЗНН"
       },
       "lck": {
         "label": "Удача",
-        "abbr": "УД"
+        "abbr": "УДЧ"
       },
       "mgh": {
         "label": "Мощь",
         "abbr": "МЩ"
       },
       "pre": {
-        "label": "Харизма",
-        "abbr": "ХР"
+        "label": "Присутствие",
+        "abbr": "ПРС"
       }
     },
     "Skill": {
       "arcana": "Аркана",
       "conduct": "Обхождение",
-      "connect": "Контакт",
-      "convince": "Влияние",
+      "connect": "Связи",
+      "convince": "Убеждение",
       "craft": "Ремесло",
-      "exert": "Атлетика",
-      "guile": "Лукавство",
-      "heal": "Врачевание",
-      "investigate": "Исследование",
+      "exert": "Натуга",
+      "guile": "Хитрость",
+      "heal": "Лечение",
+      "investigate": "Расследование",
       "lore": "Предания",
       "notice": "Внимательность",
       "prowl": "Скрытность",
-      "punch": "Удар",
+      "punch": "Кулачный бой",
       "shoot": "Стрельба",
       "stab": "Холодное оружие",
       "survive": "Выживание",
       "travel": "Путешествия",
       "work": "Труд",
-      "worship": "Вероучение"
+      "worship": "Поклонение"
     },
     "Proficiency": {
       "apprentice": "Ученик",
@@ -259,10 +259,10 @@
       "movement": "Перемещение",
       "resolve": "Решимость",
       "resolveShort": "РШ",
-      "strain": "Изнурение",
-      "strainLimit": "Предел изнурения",
+      "strain": "Системное напряжение",
+      "strainLimit": "Предел напряжения",
       "strainLimitShort": "ПН",
-      "strainShort": "И",
+      "strainShort": "СН",
       "wounds": "Раны"
     },
     "Condition": {
@@ -348,78 +348,78 @@
     },
     "Specialization": {
       "conduct": {
-        "bureaucracy": "Бюрократия",
-        "etiquette": "Этикет",
-        "law": "Право",
-        "organizations": "Организации",
-        "politics": "Политика",
-        "rumors": "Слухи",
-        "streetwise": "Уличные порядки"
+        "bureaucracy": "Bureaucracy",
+        "etiquette": "Etiquette",
+        "law": "Law",
+        "organizations": "Organizations",
+        "politics": "Politics",
+        "rumors": "Rumors",
+        "streetwise": "Streetwise"
       },
       "convince": {
-        "charm": "Обаяние",
-        "command": "Приказ",
-        "deception": "Обман",
-        "haggle": "Торг",
-        "intimidation": "Запугивание",
-        "performance": "Представление",
-        "persuasion": "Убеждение"
+        "charm": "Charm",
+        "command": "Command",
+        "deception": "Deception",
+        "haggle": "Haggle",
+        "intimidation": "Intimidation",
+        "performance": "Performance",
+        "persuasion": "Persuasion"
       },
       "guile": {
-        "disguise": "Маскировка",
-        "forgery": "Подделка",
-        "fraud": "Мошенничество",
-        "gambling": "Азартные игры",
-        "poisons": "Яды",
-        "traps": "Ловушки"
+        "disguise": "Disguise",
+        "forgery": "Forgery",
+        "fraud": "Fraud",
+        "gambling": "Gambling",
+        "poisons": "Poisons",
+        "traps": "Traps"
       },
       "heal": {
-        "diagnosis": "Диагностика",
-        "firstaid": "Первая помощь",
-        "pharmacology": "Фармакология",
-        "psychology": "Психология",
-        "rehabilitation": "Восстановление",
-        "surgery": "Хирургия",
-        "toxicology": "Токсикология"
+        "diagnosis": "Diagnosis",
+        "firstaid": "First Aid",
+        "pharmacology": "Pharmacology",
+        "psychology": "Psychology",
+        "rehabilitation": "Rehabilitation",
+        "surgery": "Surgery",
+        "toxicology": "Toxicology"
       },
       "investigate": {
-        "appraisal": "Оценка",
-        "cryptography": "Шифры",
-        "investigation": "Расследование",
-        "libraryuse": "Письмена",
-        "research": "Изыскания",
-        "search": "Обыск"
+        "appraisal": "Appraisal",
+        "cryptography": "Cryptography",
+        "investigation": "Investigation",
+        "libraryuse": "Library Use",
+        "research": "Research",
+        "search": "Search"
       },
       "notice": {
-        "anomalies": "Аномалии",
-        "awareness": "Чуткость",
-        "detail": "Детали",
-        "farsight": "Дальнозоркость",
-        "hidden": "Скрытое",
-        "insight": "Проницательность",
-        "listen": "Слух"
+        "anomalies": "Anomalies",
+        "awareness": "Awareness",
+        "detail": "Detail",
+        "farsight": "Farsight",
+        "hidden": "Hidden",
+        "insight": "Insight",
+        "listen": "Listen"
       },
       "prowl": {
-        "backstabbing": "Удар в спину",
-        "climbing": "Лазание",
-        "hide": "Укрытие",
-        "lockpicking": "Взлом замков",
-        "sleightofhand": "Ловкость рук",
-        "sneaking": "Крадущийся шаг"
+        "backstabbing": "Backstabbing",
+        "climbing": "Climbing",
+        "hide": "Hide",
+        "lockpicking": "Lockpicking",
+        "sleightofhand": "Sleight of Hand",
+        "sneaking": "Sneaking"
       },
       "survive": {
-        "foraging": "Промысел",
-        "scouting": "Разведка",
-        "shelter": "Укрытие",
-        "tracking": "Следопытство"
+        "foraging": "Foraging",
+        "scouting": "Scouting",
+        "shelter": "Shelter",
+        "tracking": "Tracking"
       },
       "travel": {
-        "driving": "Вождение",
-        "hiking": "Пеший ход",
-        "navigation": "Навигация",
-        "orientation": "Ориентирование",
-        "riding": "Верховая езда",
-        "sailing": "Мореплавание"
+        "driving": "Driving",
+        "hiking": "Hiking",
+        "navigation": "Navigation",
+        "orientation": "Orientation",
+        "riding": "Riding",
+        "sailing": "Sailing"
       }
     },
     "Armor": {
