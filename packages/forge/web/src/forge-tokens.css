@@ -1,0 +1,43 @@
+/*
+ * Forge-only semantics: Kedom palette primitives, fixed dark authoring theme.
+ * Tuned for WCAG 2.x contrast level AAA (7:1 normal text on sheet / raised).
+ * Foundry sheet tokens in color.css are unchanged — do not reuse them verbatim here.
+ */
+@import "../../../system/src/styles/tokens/palette.css";
+
+:root {
+  --kedom-font-display: "Cormorant Garamond", "Palatino Linotype", Palatino, Georgia, serif;
+  --kedom-font-body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --kedom-font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  --kedom-radius-sm: 0.25rem;
+  --kedom-radius-md: 0.5rem;
+  --kedom-radius-lg: 0.75rem;
+
+  --kedom-shadow-1: 0 1px 2px color-mix(in srgb, black 55%, transparent);
+  --kedom-shadow-2: 0 8px 24px color-mix(in srgb, black 45%, transparent);
+
+  --forge-surface-sheet: var(--kedom-color-primary-600);
+  --forge-surface-raised: var(--kedom-color-primary-500);
+  --forge-surface-sunken: var(--kedom-color-primary-600);
+
+  --forge-text: var(--kedom-color-primary-50);
+  --forge-text-muted: var(--kedom-color-gold-100);
+  --forge-text-inverse: var(--kedom-color-primary-50);
+
+  /* Soft separators — not neon violet. AAA applies to text, not chrome hairlines. */
+  --forge-border: color-mix(in srgb, var(--kedom-color-primary-50) 12%, var(--kedom-color-primary-600));
+  --forge-border-strong: color-mix(
+    in srgb,
+    var(--kedom-color-primary-50) 22%,
+    var(--kedom-color-primary-600)
+  );
+
+  --forge-accent: var(--kedom-color-primary-50);
+  --forge-accent-fill: var(--kedom-color-primary-400);
+  --forge-accent-fill-hover: var(--kedom-color-primary-500);
+
+  --forge-status-ok: var(--kedom-color-gold-100);
+  --forge-status-warn: var(--kedom-color-secondary-100);
+  --forge-status-danger: var(--kedom-color-secondary-100);
+}

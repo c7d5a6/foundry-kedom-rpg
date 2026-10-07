@@ -213,15 +213,6 @@ each mapping, and a few have no clean answer — WWN `pray` against Kedom's Wors
 for instance. Class `hd` values in the generator are WWN's and need Kedom numbers; the
 generator's `ab` track is dropped entirely — Kedom has no class attack progression.
 
-### Q26 — Description format for multi-target content
-
-Entity prose has to reach a Foundry compendium (wants HTML), the public website (wants
-theme-neutral markup), and the Obsidian export (wants Markdown). The existing generator stores
-rendered HTML with inline styles and theme-specific attributes, which does not travel.
-
-Storing Markdown in SQLite and rendering per target is the obvious answer, but it needs
-deciding before content is authored at volume.
-
 ### Q28 — Do specialisations have their own proficiency tiers?
 
 The rule is *"`2d10 + STAT + skill/save proficiency`, if no specialization proficiency/2"* —
@@ -254,6 +245,22 @@ per level? better tier costs? a separate save proficiency track?).
 ## Recently resolved
 
 Kept for the record, because each shaped a decision already written into the docs.
+
+### Q26 — Description format for multi-target content — **Markdown in SQLite**
+
+Entity `description` (and Russian overlays) are **Markdown** in `content.sqlite`. Render per
+target at export time:
+
+| Target | Render |
+|---|---|
+| Forge UI preview | `markdown-it` → HTML |
+| Foundry pack YAML / sheets | Markdown → HTML on pack export (then `TextEditor.enrichHTML` in play) |
+| `forge:export:md` / Obsidian | Markdown as authored |
+| Public site | Markdown → theme-neutral HTML on site export |
+
+Do not store theme-specific or Foundry-enriched HTML in the database. Images may be
+`![alt](data:…)` while content is sparse; prefer asset paths once a media pipeline exists.
+Forge authoring: CodeMirror Markdown + live preview (`packages/forge/web`).
 
 ### Q1 — The core dice mechanic — **Settled for now**
 

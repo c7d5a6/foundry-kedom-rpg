@@ -80,6 +80,10 @@ id, slug, label, abbreviation, description, comment, sort_order
 
 `comment` is an authoring note shared across languages — not exported to play, not translated.
 
+`description` (and `translation` rows for field `description`) are **Markdown**. Foundry and
+the public site render to HTML on export — see
+[Q26](../rules/99-open-questions.md#q26--description-format-for-multi-target-content--markdown-in-sqlite).
+
 ### `skill`
 
 ```

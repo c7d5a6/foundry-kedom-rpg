@@ -55,7 +55,7 @@ img: systems/kedom/assets/skills/survive.webp
 system:
   slug: survive
   attribute: foc
-  description: <p>...</p>
+  description: <p>...</p>   # Markdown from SQLite, rendered to HTML on pack export
   specializationMode: parameterized
   specializations:
     - slug: survive.environment.forest

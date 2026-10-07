@@ -37,6 +37,12 @@
   let selectedVocab = $state<Vocab | null>(null);
 
   let completeness = $state<CompletenessItem[]>([]);
+  let editorDirty = $state(false);
+
+  function confirmLeave(): boolean {
+    if (!editorDirty) return true;
+    return window.confirm("You have unsaved changes. Leave without saving?");
+  }
 
   async function loadAttributes() {
     attributes = await api.attributes();
@@ -58,7 +64,6 @@
   }
 
   async function loadSkillSpecs() {
-    selectedSpec = null;
     skillSpecs = [];
     if (!selectedSkill) return;
     skillSpecs = await api.skillSpecs(selectedSkill.id);
@@ -110,7 +115,9 @@
   }
 
   async function go(next: Page) {
+    if (next !== page && !confirmLeave()) return;
     page = next;
+    editorDirty = false;
     loadError = "";
     try {
       if (next === "attributes") await loadAttributes();
@@ -126,18 +133,50 @@
     }
   }
 
+  function selectAttribute(a: Attribute) {
+    if (selectedAttr?.id === a.id) return;
+    if (!confirmLeave()) return;
+    selectedAttr = a;
+  }
+
+  async function selectSkill(s: Skill) {
+    if (selectedSkill?.id === s.id && !selectedSpec) return;
+    if (!confirmLeave()) return;
+    selectedSkill = s;
+    selectedSpec = null;
+    await loadSkillSpecs();
+  }
+
+  function selectSpec(sp: Specialization) {
+    if (selectedSpec?.id === sp.id) return;
+    if (!confirmLeave()) return;
+    selectedSpec = sp;
+  }
+
+  function selectClass(c: ClassRow) {
+    if (selectedClass?.id === c.id) return;
+    if (!confirmLeave()) return;
+    selectedClass = c;
+  }
+
+  function selectVocab(v: Vocab) {
+    if (selectedVocab?.id === v.id) return;
+    if (!confirmLeave()) return;
+    selectedVocab = v;
+  }
+
   onMount(() => {
     void go("attributes");
   });
 </script>
 
-<div class="grid min-h-screen lg:grid-cols-[15rem_1fr]">
-  <nav class="border-b border-line bg-raised/90 backdrop-blur lg:border-r lg:border-b-0">
-    <div class="px-4 pt-5 pb-3">
+<div class="grid min-h-screen grid-cols-[13rem_1fr]">
+  <nav class="border-r border-line bg-raised/95">
+    <div class="px-3 pt-3 pb-2">
       <p class="font-display text-3xl leading-none tracking-tight text-ink">Kedom</p>
-      <p class="mt-1 text-xs tracking-[0.18em] text-muted uppercase">Forge</p>
+      <p class="mt-0.5 text-xs tracking-[0.18em] text-muted uppercase">Forge</p>
     </div>
-    <div class="flex gap-1 overflow-x-auto px-3 pb-4 lg:flex-col">
+    <div class="flex flex-col gap-0.5 px-2 pb-2">
       <button type="button" class="forge-nav-btn" data-active={page === "attributes"} onclick={() => go("attributes")}
         >Attributes</button
       >
@@ -162,22 +201,22 @@
     </div>
   </nav>
 
-  <main class="px-4 py-5 sm:px-6 lg:px-8">
+  <main class="px-5 py-3">
     {#if loadError}
-      <p class="forge-panel mb-4 px-4 py-3 text-sm text-danger">
+      <p class="forge-panel mb-3 px-3 py-2 text-sm text-danger">
         API error: {loadError}. Is <code class="font-mono">npm run forge:api</code> running on :7777?
       </p>
     {/if}
 
     {#if page === "attributes"}
-      <div class="grid gap-4 xl:grid-cols-[16rem_1fr]">
-        <div class="forge-panel max-h-[calc(100vh-3rem)] overflow-auto">
+      <div class="grid grid-cols-[14rem_1fr] gap-3">
+        <div class="forge-panel max-h-[calc(100vh-1.5rem)] overflow-auto">
           {#each attributes as a (a.id)}
             <button
               type="button"
               class="forge-list-btn"
               data-active={selectedAttr?.id === a.id}
-              onclick={() => (selectedAttr = a)}
+              onclick={() => selectAttribute(a)}
             >
               <span class="block font-medium">{a.label}</span>
               <span class="mt-0.5 block font-mono text-xs text-muted">{a.slug}</span>
@@ -199,22 +238,19 @@
             }}
             translations={selectedAttr.translations ?? {}}
             onSaved={loadAttributes}
+            onDirtyChange={(d) => (editorDirty = d)}
           />
         {/if}
       </div>
     {:else if page === "skills"}
-      <div class="grid gap-4 xl:grid-cols-[18rem_1fr]">
-        <div class="forge-panel max-h-[calc(100vh-3rem)] overflow-auto">
+      <div class="grid grid-cols-[16rem_1fr] gap-3">
+        <div class="forge-panel max-h-[calc(100vh-1.5rem)] overflow-auto">
           {#each skills as s (s.id)}
             <button
               type="button"
               class="forge-list-btn"
               data-active={selectedSkill?.id === s.id && !selectedSpec}
-              onclick={async () => {
-                selectedSkill = s;
-                selectedSpec = null;
-                await loadSkillSpecs();
-              }}
+              onclick={() => void selectSkill(s)}
             >
               <span class="block font-medium">{s.label}</span>
               <span class="mt-0.5 block font-mono text-xs text-muted"
@@ -222,13 +258,13 @@
               >
             </button>
             {#if selectedSkill?.id === s.id && skillSpecs.length > 0}
-              <div class="ml-3 border-l-2 border-line py-1 pl-2">
+              <div class="ml-2 border-l-2 border-line py-0.5 pl-1.5">
                 {#each skillSpecs as sp (sp.id)}
                   <button
                     type="button"
                     class="forge-list-btn rounded-md border-0"
                     data-active={selectedSpec?.id === sp.id}
-                    onclick={() => (selectedSpec = sp)}
+                    onclick={() => selectSpec(sp)}
                   >
                     <span class="block text-sm">{sp.label}</span>
                     <span class="block font-mono text-[0.7rem] text-muted">{sp.slug}</span>
@@ -256,6 +292,7 @@
                 selectedSpec = skillSpecs.find((x) => x.id === selectedSpec!.id) ?? null;
               }
             }}
+            onDirtyChange={(d) => (editorDirty = d)}
           />
         {:else if selectedSkill}
           <SideBySideEditor
@@ -279,18 +316,19 @@
               })),
             }}
             onSaved={loadSkills}
+            onDirtyChange={(d) => (editorDirty = d)}
           />
         {/if}
       </div>
     {:else if page === "classes"}
-      <div class="grid gap-4 xl:grid-cols-[16rem_1fr]">
-        <div class="forge-panel max-h-[calc(100vh-3rem)] overflow-auto">
+      <div class="grid grid-cols-[14rem_1fr] gap-3">
+        <div class="forge-panel max-h-[calc(100vh-1.5rem)] overflow-auto">
           {#each classes as c (c.id)}
             <button
               type="button"
               class="forge-list-btn"
               data-active={selectedClass?.id === c.id}
-              onclick={() => (selectedClass = c)}
+              onclick={() => selectClass(c)}
             >
               <span class="block font-medium">{c.label}</span>
               <span class="mt-0.5 block font-mono text-xs text-muted"
@@ -312,17 +350,24 @@
             }}
             translations={selectedClass.translations ?? {}}
             onSaved={loadClasses}
+            onDirtyChange={(d) => (editorDirty = d)}
           />
         {/if}
       </div>
     {:else if page === "vocab"}
-      <div class="mb-4 flex flex-wrap items-center gap-2">
+      <div class="mb-3 flex flex-wrap items-center gap-2">
         <label class="text-xs tracking-wide text-muted uppercase" for="vocab-kind">Kind</label>
         <select
           id="vocab-kind"
-          class="forge-input w-auto py-1.5"
-          bind:value={vocabKind}
-          onchange={() => {
+          class="forge-input w-auto py-1"
+          value={vocabKind}
+          onchange={(ev) => {
+            const next = (ev.currentTarget as HTMLSelectElement).value as VocabKind;
+            if (!confirmLeave()) {
+              ev.currentTarget.value = vocabKind;
+              return;
+            }
+            vocabKind = next;
             selectedVocab = null;
             void loadVocab();
           }}
@@ -335,14 +380,14 @@
           Closed-vocab labels for Foundry <code class="font-mono">lang/*.json</code>.
         </p>
       </div>
-      <div class="grid gap-4 xl:grid-cols-[16rem_1fr]">
-        <div class="forge-panel max-h-[calc(100vh-6rem)] overflow-auto">
+      <div class="grid grid-cols-[14rem_1fr] gap-3">
+        <div class="forge-panel max-h-[calc(100vh-4.5rem)] overflow-auto">
           {#each vocabRows as v (v.id)}
             <button
               type="button"
               class="forge-list-btn"
               data-active={selectedVocab?.id === v.id}
-              onclick={() => (selectedVocab = v)}
+              onclick={() => selectVocab(v)}
             >
               <span class="block font-medium">{v.label}</span>
               <span class="mt-0.5 block font-mono text-xs text-muted">{v.slug}</span>
@@ -364,15 +409,16 @@
             }}
             translations={selectedVocab.translations ?? {}}
             onSaved={loadVocab}
+            onDirtyChange={(d) => (editorDirty = d)}
           />
         {/if}
       </div>
     {:else if page === "export"}
       <div class="forge-panel overflow-hidden">
-        <div class="flex flex-wrap items-end justify-between gap-3 border-b border-line px-4 py-3">
+        <div class="flex flex-wrap items-end justify-between gap-2 border-b border-line px-3 py-2">
           <div>
             <h2 class="font-display text-xl">Markdown export</h2>
-            <p class="mt-1 text-sm text-muted">
+            <p class="mt-0.5 text-sm text-muted">
               Barebones rulebook from current Forge content. Comments are omitted.
             </p>
           </div>
@@ -380,7 +426,7 @@
             <label class="text-xs tracking-wide text-muted uppercase" for="export-locale">Locale</label>
             <select
               id="export-locale"
-              class="forge-input w-auto py-1.5"
+              class="forge-input w-auto py-1"
               bind:value={exportLocale}
               onchange={() => void loadExportPreview()}
             >
@@ -394,41 +440,41 @@
           </div>
         </div>
         {#if exportStatus}
-          <p class="border-b border-line px-4 py-2 text-sm text-muted">{exportStatus}</p>
+          <p class="border-b border-line px-3 py-1.5 text-sm text-muted">{exportStatus}</p>
         {/if}
         <pre
-          class="max-h-[calc(100vh-12rem)] overflow-auto bg-sunken/30 p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap text-ink"
+          class="max-h-[calc(100vh-9rem)] overflow-auto bg-sunken/30 p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap text-ink"
           >{exportPreview}</pre
         >
       </div>
     {:else}
       <div class="forge-panel overflow-hidden">
-        <div class="border-b border-line px-4 py-3">
+        <div class="border-b border-line px-3 py-2">
           <h2 class="font-display text-xl">Completeness</h2>
-          <p class="mt-1 text-sm text-muted">
+          <p class="mt-0.5 text-sm text-muted">
             Missing Russian fields (empty English descriptions are not required yet).
           </p>
         </div>
         {#if completeness.length === 0}
-          <p class="px-4 py-6 text-ok">Nothing missing for the tracked fields.</p>
+          <p class="px-3 py-4 text-ok">Nothing missing for the tracked fields.</p>
         {:else}
           <div class="overflow-x-auto">
             <table class="w-full border-collapse text-sm">
               <thead class="bg-sunken/40 text-left text-muted">
                 <tr>
-                  <th class="px-4 py-2 font-medium">Kind</th>
-                  <th class="px-4 py-2 font-medium">Slug</th>
-                  <th class="px-4 py-2 font-medium">English</th>
-                  <th class="px-4 py-2 font-medium">Missing</th>
+                  <th class="px-3 py-1.5 font-medium">Kind</th>
+                  <th class="px-3 py-1.5 font-medium">Slug</th>
+                  <th class="px-3 py-1.5 font-medium">English</th>
+                  <th class="px-3 py-1.5 font-medium">Missing</th>
                 </tr>
               </thead>
               <tbody>
                 {#each completeness as row (row.entity_kind + row.entity_id)}
                   <tr class="border-t border-line">
-                    <td class="px-4 py-2">{row.entity_kind}</td>
-                    <td class="px-4 py-2"><code class="font-mono text-xs">{row.slug}</code></td>
-                    <td class="px-4 py-2">{row.label}</td>
-                    <td class="px-4 py-2 text-warn">{row.missing.join(", ")}</td>
+                    <td class="px-3 py-1.5">{row.entity_kind}</td>
+                    <td class="px-3 py-1.5"><code class="font-mono text-xs">{row.slug}</code></td>
+                    <td class="px-3 py-1.5">{row.label}</td>
+                    <td class="px-3 py-1.5 text-warn">{row.missing.join(", ")}</td>
                   </tr>
                 {/each}
               </tbody>

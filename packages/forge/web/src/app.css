@@ -1,4 +1,4 @@
-@import "../../../system/src/styles/tokens/color.css";
+@import "./forge-tokens.css";
 @import "tailwindcss";
 
 @theme {
@@ -6,19 +6,20 @@
   --font-body: var(--kedom-font-body);
   --font-mono: var(--kedom-font-mono);
 
-  --color-sheet: var(--kedom-surface-sheet);
-  --color-raised: var(--kedom-surface-raised);
-  --color-sunken: var(--kedom-surface-sunken);
-  --color-ink: var(--kedom-text-primary);
-  --color-muted: var(--kedom-text-muted);
-  --color-inverse: var(--kedom-text-inverse);
-  --color-line: var(--kedom-border-subtle);
-  --color-line-strong: var(--kedom-border-strong);
-  --color-accent: var(--kedom-accent);
-  --color-accent-hover: var(--kedom-accent-hover);
-  --color-ok: var(--kedom-tier-success);
-  --color-warn: var(--kedom-tier-cost);
-  --color-danger: var(--kedom-color-proficiency-legendary-text);
+  --color-sheet: var(--forge-surface-sheet);
+  --color-raised: var(--forge-surface-raised);
+  --color-sunken: var(--forge-surface-sunken);
+  --color-ink: var(--forge-text);
+  --color-muted: var(--forge-text-muted);
+  --color-inverse: var(--forge-text-inverse);
+  --color-line: var(--forge-border);
+  --color-line-strong: var(--forge-border-strong);
+  --color-accent: var(--forge-accent);
+  --color-accent-fill: var(--forge-accent-fill);
+  --color-accent-fill-hover: var(--forge-accent-fill-hover);
+  --color-ok: var(--forge-status-ok);
+  --color-warn: var(--forge-status-warn);
+  --color-danger: var(--forge-status-danger);
 
   --radius-sm: var(--kedom-radius-sm);
   --radius-md: var(--kedom-radius-md);
@@ -29,14 +30,22 @@
 
 @layer base {
   html {
-    color-scheme: light dark;
+    color-scheme: dark;
   }
 
   body {
-    @apply m-0 min-h-screen bg-sheet font-body text-ink antialiased;
+    @apply m-0 min-h-screen min-w-[72rem] bg-sheet font-body text-ink antialiased;
     background-image:
-      radial-gradient(ellipse at top left, color-mix(in srgb, var(--kedom-color-primary-300) 18%, transparent), transparent 45%),
-      radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--kedom-color-gold-300) 14%, transparent), transparent 50%);
+      radial-gradient(
+        ellipse at top left,
+        color-mix(in srgb, var(--kedom-color-primary-400) 22%, transparent),
+        transparent 45%
+      ),
+      radial-gradient(
+        ellipse at bottom right,
+        color-mix(in srgb, var(--kedom-color-gold-500) 16%, transparent),
+        transparent 50%
+      );
   }
 
   button,
@@ -47,17 +56,22 @@
   }
 
   ::selection {
-    background: color-mix(in srgb, var(--kedom-accent) 28%, transparent);
+    background: color-mix(in srgb, var(--forge-accent-fill) 22%, transparent);
   }
 }
 
+/*
+  Compact density: keep type sizes; shrink padding/margins.
+  Hierarchy (tight → loose): related → field → component → section → page.
+  See packages/forge/web/README.md § UI density.
+*/
 @layer components {
   .forge-panel {
-    @apply rounded-lg border border-line bg-raised shadow-panel;
+    @apply rounded-md border border-line bg-raised shadow-panel;
   }
 
   .forge-nav-btn {
-    @apply w-full rounded-md px-3 py-2 text-left text-sm text-ink transition;
+    @apply w-full rounded-md border-l-2 border-transparent px-2.5 py-1.5 text-left text-sm text-ink transition;
   }
 
   .forge-nav-btn:hover {
@@ -65,11 +79,11 @@
   }
 
   .forge-nav-btn[data-active="true"] {
-    @apply bg-accent/15 font-medium text-accent;
+    @apply border-accent-fill bg-sunken/80 font-medium text-ink;
   }
 
   .forge-list-btn {
-    @apply block w-full border-b border-line px-3 py-2.5 text-left transition last:border-b-0;
+    @apply block w-full border-b border-line px-2.5 py-1.5 text-left transition last:border-b-0;
   }
 
   .forge-list-btn:hover {
@@ -77,11 +91,11 @@
   }
 
   .forge-list-btn[data-active="true"] {
-    @apply bg-accent/12;
+    @apply border-l-2 border-accent-fill bg-sunken/70 pl-[calc(0.625rem-2px)];
   }
 
   .forge-field {
-    @apply mb-3 grid gap-1.5;
+    @apply mb-2 grid gap-1;
   }
 
   .forge-field label {
@@ -89,15 +103,15 @@
   }
 
   .forge-input {
-    @apply w-full rounded-md border border-line bg-sheet px-3 py-2 text-ink outline-none transition;
+    @apply w-full rounded-md border border-line-strong bg-sheet px-2.5 py-1.5 text-ink outline-none transition;
   }
 
   .forge-input:focus {
-    @apply border-accent ring-2 ring-accent/20;
+    @apply border-accent-fill ring-2 ring-accent-fill/25;
   }
 
   .forge-btn {
-    @apply cursor-pointer rounded-md border border-line bg-sheet px-3.5 py-2 text-sm transition;
+    @apply cursor-pointer rounded-md border border-line-strong bg-sheet px-3 py-1.5 text-sm text-ink transition;
   }
 
   .forge-btn:hover {
@@ -105,10 +119,89 @@
   }
 
   .forge-btn-primary {
-    @apply border-accent bg-accent text-inverse;
+    @apply border-accent-fill bg-accent-fill text-inverse;
   }
 
   .forge-btn-primary:hover {
-    @apply bg-accent-hover border-accent-hover;
+    @apply border-accent-fill-hover bg-accent-fill-hover;
+  }
+
+  .forge-btn:disabled,
+  .forge-btn-primary:disabled {
+    @apply cursor-not-allowed opacity-45;
+  }
+
+  .forge-btn:disabled:hover,
+  .forge-btn-primary:disabled:hover {
+    @apply border-line-strong bg-sheet;
+  }
+
+  .forge-btn-primary:disabled:hover {
+    @apply border-accent-fill bg-accent-fill;
+  }
+
+  .forge-rich-view {
+    @apply relative min-h-16 rounded-md border border-line bg-sheet px-2.5 py-2;
+  }
+
+  .forge-rich-edit-btn {
+    @apply absolute top-1.5 right-1.5 z-10 opacity-0 transition-opacity;
+  }
+
+  .forge-rich-view:hover .forge-rich-edit-btn,
+  .forge-rich-view:focus-within .forge-rich-edit-btn {
+    @apply opacity-100;
+  }
+
+  .forge-rich-edit {
+    @apply overflow-hidden rounded-md border border-line-strong bg-sheet;
+  }
+
+  .forge-rich-toolbar {
+    @apply flex flex-wrap items-center gap-1 border-b border-line bg-raised/80 px-1.5 py-1;
+  }
+
+  .forge-rich-toolbar .forge-btn {
+    @apply px-2 py-0.5 text-xs;
+  }
+
+  .forge-md-editor {
+    @apply min-h-28 overflow-auto;
+  }
+
+  .forge-md-editor .cm-editor {
+    @apply h-full min-h-28;
+  }
+
+  .forge-prose {
+    @apply text-sm leading-relaxed text-ink;
+  }
+
+  .forge-prose :where(p + p) {
+    @apply mt-2;
+  }
+
+  .forge-prose :where(a) {
+    @apply text-muted underline;
+  }
+
+  .forge-prose :where(img) {
+    @apply my-2 max-h-48 max-w-full rounded-sm;
+  }
+
+  .forge-prose :where(ul, ol) {
+    @apply my-2 pl-5;
+  }
+
+  .forge-prose :where(li + li) {
+    @apply mt-0.5;
+  }
+
+  .forge-prose :where(code) {
+    @apply font-mono text-xs;
+  }
+
+  .forge-prose :where(pre) {
+    @apply my-2 overflow-x-auto rounded-sm bg-sunken/40 p-2 font-mono text-xs;
   }
 }

@@ -1,0 +1,56 @@
+---
+description: Forge web UI — compact density, Tailwind, shared forge-* classes
+globs: packages/forge/web/**/*.{svelte,css,ts}
+alwaysApply: false
+---
+# Forge UI conventions
+
+Full write-up: `packages/forge/web/README.md`. Foundry sheet CSS (`kedom-css.mdc`) does
+**not** apply here.
+
+## Stack
+
+- **Tailwind v4** (`@tailwindcss/vite`) for layout and one-off spacing.
+- **`app.css`** for repeated chrome: `.forge-panel`, `.forge-nav-btn`, `.forge-list-btn`,
+  `.forge-field`, `.forge-input`, `.forge-btn`.
+- **`forge-tokens.css`** for Forge-only `--forge-*` semantics (AAA **dark** theme from Kedom
+  `palette.css` primitives). Do not import Foundry `color.css` semantics into Forge.
+- **No responsive breakpoints** — desktop authoring only (`min-w-[72rem]`, fixed columns).
+- **No Svelte scoped CSS** unless a component is truly isolated; keep density in one place.
+
+## Density
+
+Compact UI: **keep type sizes**, shrink padding and margins.
+
+| Level | Role | Typical classes |
+|---|---|---|
+| related | label↔control, nested indent | `gap-1`, `mt-0.5`, nested `ml-2 pl-1.5` |
+| field | control chrome, list/nav rows | `px-2.5 py-1.5`, `.forge-field` `mb-2` |
+| component | panel inset, section titles | `p-3`, `mb-2` / `pb-2` |
+| section | columns, toolbar↔content | `gap-3`, `mb-3` |
+| page | main chrome, sidebar width | `px-5 py-3`, sidebar `13rem`, lists `14–16rem` |
+
+## Colour / AAA
+
+- Normal text uses `text-ink` / `text-muted` on `sheet` / `raised` — mapped in
+  `forge-tokens.css` for ≥7:1 on dark violet surfaces.
+- Primary actions: `forge-btn-primary` uses **fill** tokens (`accent-fill` + `inverse`), not
+  bright violet text on a light wash.
+- Active nav/list: left **border** + sunken background, not low-contrast accent text alone.
+- Status: `text-ok` / `text-warn` / `text-danger` use dark palette steps, not in-game tier
+  golds meant for dark Foundry sheets.
+
+## Editing
+
+- Page **Save** / **Cancel** cover metadata only; disabled until dirty; Cancel restores
+  baseline; nav/entity switches confirm when dirty.
+- **Description** uses `RichTextField`: Markdown in SQLite (Q26). View by default
+  (markdown-it preview), Edit on hover (CodeMirror + preview), field-local Save.
+  Does not participate in page dirty state.
+
+## Do not
+
+- Do not add `sm:` / `md:` / `lg:` layout variants for Forge.
+- Do not use Foundry sheet BEM (`.kedom-*`) or cascade layers here.
+- Do not shrink type to fake density or import `color.css` dark defaults into Forge.
+- Do not fold description edits into page Save dirty tracking.
