@@ -11,21 +11,20 @@ does in the meantime. Nothing here has been silently resolved — answered quest
 
 ## Blocking
 
-### Q11 — The background table does not exist yet
+### Q11 — Background growth: free skill + 2×1d8
 
-`WWN Kedom Hack.md` says: roll **2d8** for a background; it grants a free skill; then either
-roll three times on it, or roll once and take two "bold".
+**Settled for Kedom creation:** each background grants one **free** skill (optional
+specialization) and an **eight-row growth table**. At creation the player takes the free
+grant and rolls **2×1d8** on that table (two independent rolls). Forge stores this as
+`background` + `background_growth` (`roll_index` 1–8); packs and the create wizard use the
+same shape ([../forge/schema.md](../forge/schema.md)).
 
-Missing: the table itself, what the three rolls are *for* (skills? equipment? traits?), and
-what "bold" means.
+The older WWN wording (“roll three times / take two bold”) is **not** used. Legacy draft
+tables may still contain `anyCombat` / `anySkill` wildcards; authored Forge rows are concrete
+skill(+spec) pairs with uniqueness across free + growth.
 
-**Partially answered by the WWN generator**, which implements exactly this mechanic: a free
-skill, a **two-entry** quick list (the "bold" options), and an **eight-entry `1d8` table**
-rolled twice. So "bold" means the pre-picked pair, and the rolls are for skills. What is still
-missing is the Kedom content itself — the generator's 204 entries are WWN-flavoured (Q25).
-
-**Blocks:** character creation, and the Forge authoring workflow, since backgrounds are the
-hinge between region, race, and skill choices ([../forge/schema.md](../forge/schema.md)).
+**Still open:** the full Kedom background *content* (Nerland lists, etc.) — schema and
+pipeline are ready; authoring is not finished (Q25).
 
 ### Q12 — Per-class mechanics are incomplete
 

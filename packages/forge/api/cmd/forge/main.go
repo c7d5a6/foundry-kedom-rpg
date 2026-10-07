@@ -52,6 +52,7 @@ Usage:
   forge serve  [options]          start the authoring API (default)
   forge export md [options]       write barebones markdown rulebook
   forge export lang [options]     regenerate closed-vocab sections in lang/{en,ru}.json
+  forge export packs [options]    write origins+talents YAML under packs/_source
 
 serve options:
   -addr string         listen address (default ":7777")
@@ -102,15 +103,17 @@ func runServe(args []string) error {
 
 func runExport(args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("usage: forge export md|lang …")
+		return fmt.Errorf("usage: forge export md|lang|packs …")
 	}
 	switch args[0] {
 	case "md":
 		return runExportMarkdown(args[1:])
 	case "lang":
 		return runExportLang(args[1:])
+	case "packs":
+		return runExportPacks(args[1:])
 	default:
-		return fmt.Errorf("usage: forge export md|lang …")
+		return fmt.Errorf("usage: forge export md|lang|packs …")
 	}
 }
 
@@ -179,6 +182,50 @@ func runExportLang(args []string) error {
 		return err
 	}
 	fmt.Printf("wrote closed vocab into %s/{en,ru}.json\n", langDir)
+	return nil
+}
+
+func runExportPacks(args []string) error {
+	fs := flag.NewFlagSet("export packs", flag.ContinueOnError)
+	out := fs.String("out", "", "packs _source directory")
+	langOut := fs.String("lang", "", "lang directory (default packages/system/lang; empty string skips)")
+	skipLang := fs.Bool("skip-lang", false, "do not regenerate closed-vocab lang files first")
+	dbPath := fs.String("db", "", "path to content.sqlite")
+	migrations := fs.String("migrations", "", "path to migrations dir")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	repoRoot, database, _, err := openDB(*dbPath, *migrations)
+	if err != nil {
+		return err
+	}
+	defer database.Close()
+
+	packsDir := *out
+	if packsDir == "" {
+		packsDir = service.DefaultPacksSourceDir(repoRoot)
+	}
+	if !filepath.IsAbs(packsDir) {
+		packsDir = filepath.Join(repoRoot, packsDir)
+	}
+
+	langDir := ""
+	if !*skipLang {
+		langDir = *langOut
+		if langDir == "" {
+			langDir = filepath.Join(repoRoot, "packages", "system", "lang")
+		}
+		if !filepath.IsAbs(langDir) {
+			langDir = filepath.Join(repoRoot, langDir)
+		}
+	}
+
+	content := service.New(database)
+	if err := content.ExportPacks(context.Background(), packsDir, langDir); err != nil {
+		return err
+	}
+	fmt.Printf("wrote packs to %s\n", packsDir)
 	return nil
 }
 

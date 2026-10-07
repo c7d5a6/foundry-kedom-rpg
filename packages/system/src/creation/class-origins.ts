@@ -21,12 +21,20 @@ function emptyArts(): OriginDataFields["arts"] {
   return { skillKey: "", abilityKeys: [], receiveTableKey: "", artKeys: [] };
 }
 
+function emptyGrowth(): OriginDataFields["growth"] {
+  return Array.from({ length: 8 }, () => ({ skillKey: "", specSlug: "" }));
+}
+
 function classOrigin(
   slug: string,
   name: string,
-  fields: Omit<OriginDataFields, "subType" | "slug" | "description" | "grants" | "arts"> & {
+  fields: Pick<
+    OriginDataFields,
+    "isFull" | "hitDie" | "hitDiePriority" | "classTalentKeys" | "talentPicks" | "saves"
+  > & {
     description?: string;
     arts?: OriginDataFields["arts"];
+    talentSlug?: string;
   },
 ): ClassOriginCreateData {
   return {
@@ -38,6 +46,11 @@ function classOrigin(
       slug,
       description: fields.description ?? "",
       grants: emptyGrants(),
+      cultures: [],
+      talentSlug: fields.talentSlug ?? "",
+      classSlugs: [],
+      free: { skillKey: "", specSlug: "" },
+      growth: emptyGrowth(),
       isFull: fields.isFull,
       hitDie: fields.hitDie,
       hitDiePriority: fields.hitDiePriority,

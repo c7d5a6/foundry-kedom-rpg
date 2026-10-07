@@ -3,6 +3,7 @@
   import type { EntityKind, TranslationField, TranslationMap } from "$lib/api";
   import { api } from "$lib/api";
   import RichTextField from "$lib/RichTextField.svelte";
+  import LinkPanel from "$lib/LinkPanel.svelte";
 
   type Props = {
     kind: EntityKind;
@@ -24,7 +25,26 @@
       specialization_mode: string;
       attributes: { id: number; slug: string; label: string }[];
     };
+    /** When editing a class: talent + progression fields from ClassDTO. */
+    classControls?: {
+      hit_die: string;
+      talent_id: number | null;
+      hit_die_priority: number;
+      talent_picks_warrior: number;
+      talent_picks_expert: number;
+      talent_picks_any: number;
+      save_primary: string;
+      save_primary_priority: number;
+      save_secondary: string;
+      save_secondary_priority: number;
+      arts_skill_key: string;
+      class_talent_keys: string;
+      talents: { id: number; slug: string; label: string }[];
+    };
+    /** Cultures that allow this class (class editor only). */
+    linkedCultures?: { slug: string; label: string }[];
     onSaved: () => void | Promise<void>;
+    onDeleted?: () => void | Promise<void>;
     /** Page-level form dirty (excludes Markdown description fields). */
     onDirtyChange?: (dirty: boolean) => void;
   };
@@ -38,9 +58,20 @@
     showAbbreviation = false,
     showDescription = true,
     skillControls = undefined,
+    classControls = undefined,
+    linkedCultures = [],
     onSaved,
+    onDeleted,
     onDirtyChange,
   }: Props = $props();
+
+  const cultureLinks = $derived(linkedCultures.map((c) => ({ slug: c.slug, label: c.label })));
+  const talentLinks = $derived.by(() => {
+    if (kind !== "class" || !classControls?.talent_id) return [];
+    const t = classControls.talents.find((x) => x.id === classControls.talent_id);
+    if (!t) return [];
+    return [{ slug: t.slug, label: t.label }];
+  });
 
   let enLabel = $state("");
   let enAbbr = $state("");
@@ -49,6 +80,18 @@
   let enSort = $state(0);
   let skillAttributeId = $state(0);
   let skillMode = $state("fixed");
+  let classHitDie = $state("");
+  let classTalentId = $state(0);
+  let classHitDiePriority = $state(0);
+  let classTalentPicksWarrior = $state(0);
+  let classTalentPicksExpert = $state(0);
+  let classTalentPicksAny = $state(0);
+  let classSavePrimary = $state("");
+  let classSavePrimaryPriority = $state(0);
+  let classSaveSecondary = $state("");
+  let classSaveSecondaryPriority = $state(0);
+  let classArtsSkillKey = $state("");
+  let classTalentKeys = $state("");
   let ruLabel = $state("");
   let ruAbbr = $state("");
   let ruDesc = $state("");
@@ -62,6 +105,18 @@
     enSort: number;
     skillAttributeId: number;
     skillMode: string;
+    classHitDie: string;
+    classTalentId: number;
+    classHitDiePriority: number;
+    classTalentPicksWarrior: number;
+    classTalentPicksExpert: number;
+    classTalentPicksAny: number;
+    classSavePrimary: string;
+    classSavePrimaryPriority: number;
+    classSaveSecondary: string;
+    classSaveSecondaryPriority: number;
+    classArtsSkillKey: string;
+    classTalentKeys: string;
     ruLabel: string;
     ruAbbr: string;
   };
@@ -73,6 +128,18 @@
     enSort: 0,
     skillAttributeId: 0,
     skillMode: "fixed",
+    classHitDie: "",
+    classTalentId: 0,
+    classHitDiePriority: 0,
+    classTalentPicksWarrior: 0,
+    classTalentPicksExpert: 0,
+    classTalentPicksAny: 0,
+    classSavePrimary: "",
+    classSavePrimaryPriority: 0,
+    classSaveSecondary: "",
+    classSaveSecondaryPriority: 0,
+    classArtsSkillKey: "",
+    classTalentKeys: "",
     ruLabel: "",
     ruAbbr: "",
   });
@@ -85,6 +152,18 @@
       enSort: en.sort_order,
       skillAttributeId: skillControls?.attribute_id ?? 0,
       skillMode: skillControls?.specialization_mode ?? "fixed",
+      classHitDie: classControls?.hit_die ?? "",
+      classTalentId: classControls?.talent_id ?? 0,
+      classHitDiePriority: classControls?.hit_die_priority ?? 0,
+      classTalentPicksWarrior: classControls?.talent_picks_warrior ?? 0,
+      classTalentPicksExpert: classControls?.talent_picks_expert ?? 0,
+      classTalentPicksAny: classControls?.talent_picks_any ?? 0,
+      classSavePrimary: classControls?.save_primary ?? "",
+      classSavePrimaryPriority: classControls?.save_primary_priority ?? 0,
+      classSaveSecondary: classControls?.save_secondary ?? "",
+      classSaveSecondaryPriority: classControls?.save_secondary_priority ?? 0,
+      classArtsSkillKey: classControls?.arts_skill_key ?? "",
+      classTalentKeys: classControls?.class_talent_keys ?? "",
       ruLabel: translations.label ?? "",
       ruAbbr: translations.abbreviation ?? "",
     };
@@ -97,8 +176,67 @@
     enSort = b.enSort;
     skillAttributeId = b.skillAttributeId;
     skillMode = b.skillMode;
+    classHitDie = b.classHitDie;
+    classTalentId = b.classTalentId;
+    classHitDiePriority = b.classHitDiePriority;
+    classTalentPicksWarrior = b.classTalentPicksWarrior;
+    classTalentPicksExpert = b.classTalentPicksExpert;
+    classTalentPicksAny = b.classTalentPicksAny;
+    classSavePrimary = b.classSavePrimary;
+    classSavePrimaryPriority = b.classSavePrimaryPriority;
+    classSaveSecondary = b.classSaveSecondary;
+    classSaveSecondaryPriority = b.classSaveSecondaryPriority;
+    classArtsSkillKey = b.classArtsSkillKey;
+    classTalentKeys = b.classTalentKeys;
     ruLabel = b.ruLabel;
     ruAbbr = b.ruAbbr;
+  }
+
+  function classTalentPayload(): number | null {
+    return classTalentId > 0 ? Number(classTalentId) : null;
+  }
+
+  function classPatchBody(label: string, description: string, comment: string, sortOrder: number) {
+    return {
+      label,
+      description,
+      comment,
+      sort_order: sortOrder,
+      hit_die: classHitDie,
+      talent_id: classTalentPayload(),
+      hit_die_priority: Number(classHitDiePriority),
+      talent_picks_warrior: Number(classTalentPicksWarrior),
+      talent_picks_expert: Number(classTalentPicksExpert),
+      talent_picks_any: Number(classTalentPicksAny),
+      save_primary: classSavePrimary,
+      save_primary_priority: Number(classSavePrimaryPriority),
+      save_secondary: classSaveSecondary,
+      save_secondary_priority: Number(classSaveSecondaryPriority),
+      arts_skill_key: classArtsSkillKey,
+      class_talent_keys: classTalentKeys || "[]",
+    };
+  }
+
+  function classPatchFromProps(description: string) {
+    if (!classControls) throw new Error("classControls required");
+    return {
+      label: en.label,
+      description,
+      comment: en.comment,
+      sort_order: en.sort_order,
+      hit_die: classControls.hit_die,
+      talent_id: classControls.talent_id,
+      hit_die_priority: classControls.hit_die_priority,
+      talent_picks_warrior: classControls.talent_picks_warrior,
+      talent_picks_expert: classControls.talent_picks_expert,
+      talent_picks_any: classControls.talent_picks_any,
+      save_primary: classControls.save_primary,
+      save_primary_priority: classControls.save_primary_priority,
+      save_secondary: classControls.save_secondary,
+      save_secondary_priority: classControls.save_secondary_priority,
+      arts_skill_key: classControls.arts_skill_key,
+      class_talent_keys: classControls.class_talent_keys || "[]",
+    };
   }
 
   function resetFromProps() {
@@ -126,6 +264,18 @@
       enSort !== baseline.enSort ||
       skillAttributeId !== baseline.skillAttributeId ||
       skillMode !== baseline.skillMode ||
+      classHitDie !== baseline.classHitDie ||
+      classTalentId !== baseline.classTalentId ||
+      classHitDiePriority !== baseline.classHitDiePriority ||
+      classTalentPicksWarrior !== baseline.classTalentPicksWarrior ||
+      classTalentPicksExpert !== baseline.classTalentPicksExpert ||
+      classTalentPicksAny !== baseline.classTalentPicksAny ||
+      classSavePrimary !== baseline.classSavePrimary ||
+      classSavePrimaryPriority !== baseline.classSavePrimaryPriority ||
+      classSaveSecondary !== baseline.classSaveSecondary ||
+      classSaveSecondaryPriority !== baseline.classSaveSecondaryPriority ||
+      classArtsSkillKey !== baseline.classArtsSkillKey ||
+      classTalentKeys !== baseline.classTalentKeys ||
       ruLabel !== baseline.ruLabel ||
       ruAbbr !== baseline.ruAbbr,
   );
@@ -194,7 +344,7 @@
       } else if (kind === "specialization") {
         await api.patchSpecialization(id, shared);
       } else if (kind === "class") {
-        await api.patchClass(id, shared);
+        await api.patchClass(id, classPatchBody(enLabel, enDesc, enComment, enSort));
       } else {
         await api.patchVocab(id, {
           label: enLabel,
@@ -218,6 +368,18 @@
         enSort,
         skillAttributeId,
         skillMode,
+        classHitDie,
+        classTalentId,
+        classHitDiePriority,
+        classTalentPicksWarrior,
+        classTalentPicksExpert,
+        classTalentPicksAny,
+        classSavePrimary,
+        classSavePrimaryPriority,
+        classSaveSecondary,
+        classSaveSecondaryPriority,
+        classArtsSkillKey,
+        classTalentKeys,
         ruLabel,
         ruAbbr,
       };
@@ -257,7 +419,7 @@
     } else if (kind === "specialization") {
       await api.patchSpecialization(id, shared);
     } else if (kind === "class") {
-      await api.patchClass(id, shared);
+      await api.patchClass(id, classPatchFromProps(markdown));
     } else {
       throw new Error("description not supported for this kind");
     }
@@ -270,6 +432,21 @@
     ruDesc = markdown;
     await onSaved();
   }
+
+  async function remove() {
+    if (kind !== "class") return;
+    if (!window.confirm(`Delete class “${en.label}”?`)) return;
+    error = false;
+    status = "Deleting…";
+    try {
+      await api.deleteClass(id);
+      status = "Deleted";
+      await onDeleted?.();
+    } catch (e) {
+      error = true;
+      status = e instanceof Error ? e.message : String(e);
+    }
+  }
 </script>
 
 <div class="forge-panel p-3">
@@ -281,9 +458,17 @@
       </p>
     </div>
     <div class="flex items-center gap-2">
+      {#if kind === "class"}
+        <button type="button" class="forge-btn text-danger" onclick={() => void remove()}
+          >Delete</button
+        >
+      {/if}
       <button type="button" class="forge-btn" disabled={!dirty} onclick={cancel}>Cancel</button>
-      <button type="button" class="forge-btn forge-btn-primary" disabled={!dirty} onclick={() => void save()}
-        >Save</button
+      <button
+        type="button"
+        class="forge-btn forge-btn-primary"
+        disabled={!dirty}
+        onclick={() => void save()}>Save</button
       >
       {#if status}
         <span class="text-sm {error ? 'text-danger' : 'text-ok'}">{status}</span>
@@ -337,6 +522,108 @@
           </select>
         </div>
       {/if}
+      {#if kind === "class" && classControls}
+        <div class="forge-field">
+          <label for="class-talent">Talent</label>
+          <select id="class-talent" class="forge-input" bind:value={classTalentId}>
+            <option value={0}>(none)</option>
+            {#each classControls.talents as t (t.id)}
+              <option value={t.id}>{t.label} ({t.slug})</option>
+            {/each}
+          </select>
+        </div>
+        <div class="forge-field">
+          <label for="class-hit-die">Hit die</label>
+          <input id="class-hit-die" class="forge-input font-mono" bind:value={classHitDie} />
+        </div>
+        <div class="forge-field">
+          <label for="class-hit-die-pri">Hit die priority</label>
+          <input
+            id="class-hit-die-pri"
+            class="forge-input max-w-32"
+            type="number"
+            bind:value={classHitDiePriority}
+          />
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="forge-field">
+            <label for="class-picks-w">Talent picks warrior</label>
+            <input
+              id="class-picks-w"
+              class="forge-input"
+              type="number"
+              bind:value={classTalentPicksWarrior}
+            />
+          </div>
+          <div class="forge-field">
+            <label for="class-picks-e">Talent picks expert</label>
+            <input
+              id="class-picks-e"
+              class="forge-input"
+              type="number"
+              bind:value={classTalentPicksExpert}
+            />
+          </div>
+          <div class="forge-field">
+            <label for="class-picks-a">Talent picks any</label>
+            <input
+              id="class-picks-a"
+              class="forge-input"
+              type="number"
+              bind:value={classTalentPicksAny}
+            />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="forge-field">
+            <label for="class-save-pri">Save primary</label>
+            <input
+              id="class-save-pri"
+              class="forge-input font-mono"
+              bind:value={classSavePrimary}
+            />
+          </div>
+          <div class="forge-field">
+            <label for="class-save-pri-n">Priority</label>
+            <input
+              id="class-save-pri-n"
+              class="forge-input"
+              type="number"
+              bind:value={classSavePrimaryPriority}
+            />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="forge-field">
+            <label for="class-save-sec">Save secondary</label>
+            <input
+              id="class-save-sec"
+              class="forge-input font-mono"
+              bind:value={classSaveSecondary}
+            />
+          </div>
+          <div class="forge-field">
+            <label for="class-save-sec-n">Priority</label>
+            <input
+              id="class-save-sec-n"
+              class="forge-input"
+              type="number"
+              bind:value={classSaveSecondaryPriority}
+            />
+          </div>
+        </div>
+        <div class="forge-field">
+          <label for="class-arts">Arts skill key</label>
+          <input id="class-arts" class="forge-input font-mono" bind:value={classArtsSkillKey} />
+        </div>
+        <div class="forge-field">
+          <label for="class-talent-keys">Class talent keys (JSON)</label>
+          <textarea
+            id="class-talent-keys"
+            class="forge-input min-h-16 resize-y font-mono text-xs"
+            bind:value={classTalentKeys}></textarea>
+        </div>
+      {/if}
     </section>
 
     <section>
@@ -383,8 +670,12 @@
         id="comment"
         class="forge-input min-h-16 resize-y"
         bind:value={enComment}
-        placeholder="Author notes — not translated, not shown in play"
-      ></textarea>
+        placeholder="Author notes — not translated, not shown in play"></textarea>
     </div>
   </div>
+
+  {#if kind === "class"}
+    <LinkPanel title="Linked cultures" links={cultureLinks} empty="Not linked to any culture." />
+    <LinkPanel title="Talent" links={talentLinks} empty="No talent linked." />
+  {/if}
 </div>

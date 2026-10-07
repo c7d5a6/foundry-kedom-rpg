@@ -106,16 +106,16 @@ Gains one additional art as an Elementalist.
 
 ## Backgrounds
 
-Roll **2d8** for a background. The background grants a free skill, and the player may either
-**roll three times** on it, or **roll once and take two "bold"** options.
+Each background grants a **free skill** (optional specialization) and an **eight-row growth
+table**. At creation: take the free grant, then roll **2×1d8** on that table. See
+[Q11](99-open-questions.md#q11--background-growth-free-skill--21d8).
 
-The background table itself is not in the source, nor is the meaning of "bold". This is the
-largest gap in character creation —
-[Q11](99-open-questions.md#q11--the-background-table-does-not-exist-yet).
-
-Backgrounds are also the pivot of the Forge authoring workflow: a region has races, each race
-has backgrounds, and each background offers skills to choose from. See
+Background lists are **region × culture** scoped in Forge (`region_culture_background`). The
+same culture can offer different backgrounds in different regions. See
 [../forge/schema.md](../forge/schema.md).
+
+**Content gap:** full Nerland (and other) background lists are not authored yet; the create
+wizard falls back to draft config until packs are exported.
 
 ## Classes
 

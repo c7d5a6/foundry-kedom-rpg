@@ -39,3 +39,5 @@ Dependency flow: `handler → service → repository`. One direction.
 ## Identity
 
 `id`, `slug`, and `foundry_id` are identity and never change: no regeneration on export, no rewriting in a migration. `label` is the mutable human-readable field. Conflating identity with display name is the specific mistake CoC7, WFRP4e, and SWFFG all made (`docs/research/04-skill-systems.md`).
+
+On **create**, derive `slug` from the English label (`UniqueSlug` / kebab-case); do not require authors to type a slug. Updates must not change `slug`. Culture = `race` table (UI “Culture”). Background lists use ternary `region_culture_background` with integer `region_culture.weight` (Foundry UI shows percentages).

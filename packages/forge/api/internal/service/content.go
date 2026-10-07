@@ -14,15 +14,17 @@ import (
 var (
 	ErrNotFound = errors.New("not found")
 	ErrInvalid  = errors.New("invalid request")
+	ErrConflict = errors.New("conflict")
 )
 
 // Content is the Forge authoring API for core vocabulary.
 type Content struct {
-	q *generated.Queries
+	db *sql.DB
+	q  *generated.Queries
 }
 
-func New(db *sql.DB) *Content {
-	return &Content{q: generated.New(db)}
+func New(database *sql.DB) *Content {
+	return &Content{db: database, q: generated.New(database)}
 }
 
 type TranslationMap map[model.TranslationField]string
@@ -68,16 +70,30 @@ type SpecializationDTO struct {
 }
 
 type ClassDTO struct {
-	ID           int64          `json:"id"`
-	Slug         string         `json:"slug"`
-	Label        string         `json:"label"`
-	Description  string         `json:"description"`
-	Comment      string         `json:"comment"`
-	IsFull       bool           `json:"is_full"`
-	IsPartial    bool           `json:"is_partial"`
-	SortOrder    int64          `json:"sort_order"`
-	FoundryID    string         `json:"foundry_id"`
-	Translations TranslationMap `json:"translations"`
+	ID                    int64          `json:"id"`
+	Slug                  string         `json:"slug"`
+	Label                 string         `json:"label"`
+	Description           string         `json:"description"`
+	Comment               string         `json:"comment"`
+	IsFull                bool           `json:"is_full"`
+	IsPartial             bool           `json:"is_partial"`
+	HitDie                string         `json:"hit_die"`
+	TalentID              *int64         `json:"talent_id"`
+	TalentSlug            string         `json:"talent_slug"`
+	HitDiePriority        int64          `json:"hit_die_priority"`
+	TalentPicksWarrior    int64          `json:"talent_picks_warrior"`
+	TalentPicksExpert     int64          `json:"talent_picks_expert"`
+	TalentPicksAny        int64          `json:"talent_picks_any"`
+	SavePrimary           string         `json:"save_primary"`
+	SavePrimaryPriority   int64          `json:"save_primary_priority"`
+	SaveSecondary         string         `json:"save_secondary"`
+	SaveSecondaryPriority int64          `json:"save_secondary_priority"`
+	ArtsSkillKey          string         `json:"arts_skill_key"`
+	ClassTalentKeys       string         `json:"class_talent_keys"`
+	SortOrder             int64          `json:"sort_order"`
+	FoundryID             string         `json:"foundry_id"`
+	LinkedCultures        []EntityRef    `json:"linked_cultures"`
+	Translations          TranslationMap `json:"translations"`
 }
 
 type CompletenessItem struct {
@@ -301,6 +317,50 @@ func (c *Content) UpdateSpecialization(ctx context.Context, id int64, in UpdateS
 	return c.GetSpecialization(ctx, id, locale)
 }
 
+func classDTOFromList(row generated.ListClassesRow, tr TranslationMap, cultures []EntityRef) ClassDTO {
+	return ClassDTO{
+		ID: row.ID, Slug: row.Slug, Label: row.Label, Description: row.Description, Comment: row.Comment,
+		IsFull: row.IsFull, IsPartial: row.IsPartial, HitDie: ptrStr(row.HitDie),
+		TalentID: row.TalentID, TalentSlug: ptrStr(row.TalentSlug),
+		HitDiePriority: row.HitDiePriority,
+		TalentPicksWarrior: row.TalentPicksWarrior, TalentPicksExpert: row.TalentPicksExpert,
+		TalentPicksAny: row.TalentPicksAny,
+		SavePrimary: row.SavePrimary, SavePrimaryPriority: row.SavePrimaryPriority,
+		SaveSecondary: row.SaveSecondary, SaveSecondaryPriority: row.SaveSecondaryPriority,
+		ArtsSkillKey: row.ArtsSkillKey, ClassTalentKeys: row.ClassTalentKeys,
+		SortOrder: row.SortOrder, FoundryID: row.FoundryID,
+		LinkedCultures: cultures, Translations: tr,
+	}
+}
+
+func classDTOFromGet(row generated.GetClassRow, tr TranslationMap, cultures []EntityRef) ClassDTO {
+	return ClassDTO{
+		ID: row.ID, Slug: row.Slug, Label: row.Label, Description: row.Description, Comment: row.Comment,
+		IsFull: row.IsFull, IsPartial: row.IsPartial, HitDie: ptrStr(row.HitDie),
+		TalentID: row.TalentID, TalentSlug: ptrStr(row.TalentSlug),
+		HitDiePriority: row.HitDiePriority,
+		TalentPicksWarrior: row.TalentPicksWarrior, TalentPicksExpert: row.TalentPicksExpert,
+		TalentPicksAny: row.TalentPicksAny,
+		SavePrimary: row.SavePrimary, SavePrimaryPriority: row.SavePrimaryPriority,
+		SaveSecondary: row.SaveSecondary, SaveSecondaryPriority: row.SaveSecondaryPriority,
+		ArtsSkillKey: row.ArtsSkillKey, ClassTalentKeys: row.ClassTalentKeys,
+		SortOrder: row.SortOrder, FoundryID: row.FoundryID,
+		LinkedCultures: cultures, Translations: tr,
+	}
+}
+
+func (c *Content) classCultures(ctx context.Context, classID int64) ([]EntityRef, error) {
+	rows, err := c.q.ListRaceClassesByClass(ctx, classID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]EntityRef, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, EntityRef{ID: r.RaceID, Slug: r.RaceSlug, Label: r.RaceLabel})
+	}
+	return out, nil
+}
+
 func (c *Content) ListClasses(ctx context.Context, locale model.Locale) ([]ClassDTO, error) {
 	rows, err := c.q.ListClasses(ctx)
 	if err != nil {
@@ -312,11 +372,11 @@ func (c *Content) ListClasses(ctx context.Context, locale model.Locale) ([]Class
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, ClassDTO{
-			ID: row.ID, Slug: row.Slug, Label: row.Label, Description: row.Description, Comment: row.Comment,
-			IsFull: row.IsFull, IsPartial: row.IsPartial,
-			SortOrder: row.SortOrder, FoundryID: row.FoundryID, Translations: tr,
-		})
+		cultures, err := c.classCultures(ctx, row.ID)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, classDTOFromList(row, tr, cultures))
 	}
 	return out, nil
 }
@@ -330,26 +390,49 @@ func (c *Content) GetClass(ctx context.Context, id int64, locale model.Locale) (
 	if err != nil {
 		return ClassDTO{}, err
 	}
-	return ClassDTO{
-		ID: row.ID, Slug: row.Slug, Label: row.Label, Description: row.Description, Comment: row.Comment,
-		IsFull: row.IsFull, IsPartial: row.IsPartial,
-		SortOrder: row.SortOrder, FoundryID: row.FoundryID, Translations: tr,
-	}, nil
+	cultures, err := c.classCultures(ctx, row.ID)
+	if err != nil {
+		return ClassDTO{}, err
+	}
+	return classDTOFromGet(row, tr, cultures), nil
 }
 
 type UpdateClassInput struct {
-	Label       string `json:"label"`
-	Description string `json:"description"`
-	Comment     string `json:"comment"`
-	SortOrder   int64  `json:"sort_order"`
+	Label                 string `json:"label"`
+	Description           string `json:"description"`
+	Comment               string `json:"comment"`
+	SortOrder             int64  `json:"sort_order"`
+	HitDie                string `json:"hit_die"`
+	TalentID              *int64 `json:"talent_id"`
+	HitDiePriority        int64  `json:"hit_die_priority"`
+	TalentPicksWarrior    int64  `json:"talent_picks_warrior"`
+	TalentPicksExpert     int64  `json:"talent_picks_expert"`
+	TalentPicksAny        int64  `json:"talent_picks_any"`
+	SavePrimary           string `json:"save_primary"`
+	SavePrimaryPriority   int64  `json:"save_primary_priority"`
+	SaveSecondary         string `json:"save_secondary"`
+	SaveSecondaryPriority int64  `json:"save_secondary_priority"`
+	ArtsSkillKey          string `json:"arts_skill_key"`
+	ClassTalentKeys       string `json:"class_talent_keys"`
 }
 
 func (c *Content) UpdateClass(ctx context.Context, id int64, in UpdateClassInput, locale model.Locale) (ClassDTO, error) {
 	if strings.TrimSpace(in.Label) == "" {
 		return ClassDTO{}, fmt.Errorf("%w: label required", ErrInvalid)
 	}
+	hitDie := in.HitDie
+	keys := in.ClassTalentKeys
+	if keys == "" {
+		keys = "[]"
+	}
 	_, err := c.q.UpdateClass(ctx, generated.UpdateClassParams{
-		Label: in.Label, Description: in.Description, Comment: in.Comment, SortOrder: in.SortOrder, ID: id,
+		Label: in.Label, Description: in.Description, Comment: in.Comment, SortOrder: in.SortOrder,
+		HitDie: &hitDie, TalentID: in.TalentID, HitDiePriority: in.HitDiePriority,
+		TalentPicksWarrior: in.TalentPicksWarrior, TalentPicksExpert: in.TalentPicksExpert,
+		TalentPicksAny: in.TalentPicksAny,
+		SavePrimary: in.SavePrimary, SavePrimaryPriority: in.SavePrimaryPriority,
+		SaveSecondary: in.SaveSecondary, SaveSecondaryPriority: in.SaveSecondaryPriority,
+		ArtsSkillKey: in.ArtsSkillKey, ClassTalentKeys: keys, ID: id,
 	})
 	if err != nil {
 		return ClassDTO{}, mapNotFound(err)
@@ -565,7 +648,8 @@ func mapNotFound(err error) error {
 
 func validKind(k model.EntityKind) bool {
 	switch k {
-	case model.EntityAttribute, model.EntitySkill, model.EntitySpecialization, model.EntityClass:
+	case model.EntityAttribute, model.EntitySkill, model.EntitySpecialization, model.EntityClass,
+		model.EntityRace, model.EntityRegion, model.EntityBackground, model.EntityTalent:
 		return true
 	default:
 		return model.IsVocabKind(k)

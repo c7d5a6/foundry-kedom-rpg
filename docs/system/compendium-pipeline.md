@@ -67,10 +67,10 @@ because hot reload picks up pack changes without restarting.
 ## Commands
 
 ```sh
-npm run forge:dump      # sqlite -> packages/content/dump.sql
-                     # (export to YAML is triggered from the Forge UI or its CLI)
-npm run packs:build     # packs/_source/**.yml -> packs/*/ LevelDB
-npm run packs:extract   # packs/*/ -> YAML, for inspection only
+npm run forge:dump           # sqlite -> packages/content/dump.sql
+npm run forge:export:packs   # sqlite -> packs/_source/{origins,talents}/*.yml (+ lang)
+npm run packs:build          # packs/_source/**.yml -> packs/*/ LevelDB
+npm run packs:extract        # packs/*/ -> YAML, for inspection only
 ```
 
 `tools/pack.ts` and `tools/unpack.ts` wrap `@foundryvtt/foundryvtt-cli`, in the shape of
@@ -81,19 +81,20 @@ draw-steel's `tools/pullJSONtoLDB.mjs` and `tools/pushLDBtoJSON.mjs`.
 ```
 packages/system/packs/
   _source/                  committed YAML
-    skills/
-    origins/                races, backgrounds, classes
+    origins/                region, race, background, class
+    talents/                talent items
+    skills/                 (planned)
     conditions/             Active Effect documents
     injuries/               the critical-injury tables
     gear/
     journals/               setting text from the vault
-  skills/                   generated LevelDB, gitignored
+  origins/                  generated LevelDB, gitignored
+  talents/
   ...
 ```
 
-Declared in `system.json` under `packs[]` with `packFolders[]` for sidebar grouping. The array
-is currently empty — packs get declared as content is authored, since a declared pack with no
-LevelDB directory is a load error.
+Declared in `system.json` under `packs[]` with `packFolders[]`. Empty `_source` dirs are fine;
+`packs:build` skips empty packs. Compile LevelDB before relying on packs in Foundry.
 
 ## Conditions and injuries are content
 

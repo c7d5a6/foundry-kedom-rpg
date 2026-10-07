@@ -8,7 +8,11 @@ go 1.26.5
 // SQLite is modernc.org/sqlite (pure Go) rather than mattn/go-sqlite3 so
 // CGO_ENABLED=0 builds and cross-compilation work with no C toolchain. It is
 // slower on writes, which does not matter for a single-user authoring tool.
-require modernc.org/sqlite v1.56.0
+require (
+	github.com/yuin/goldmark v1.8.6
+	gopkg.in/yaml.v3 v3.0.1
+	modernc.org/sqlite v1.56.0
+)
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect

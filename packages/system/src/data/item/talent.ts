@@ -7,13 +7,20 @@ const { HTMLField, StringField } = foundry.data.fields;
 
 function talentSchema() {
   return {
+    /** Identity slug — links from culture/class `talentSlug`. */
+    slug: new StringField({
+      required: true,
+      nullable: false,
+      blank: true,
+      initial: "",
+    }),
     description: new HTMLField({ required: true, nullable: false, blank: true, initial: "" }),
     category: new StringField({
       required: true,
       nullable: false,
       blank: false,
       choices: [...TALENT_CATEGORIES],
-      initial: "any",
+      initial: "general",
     }),
     featureKey: new StringField({
       required: true,
@@ -28,6 +35,7 @@ function talentSchema() {
 export type TalentSchema = ReturnType<typeof talentSchema>;
 
 export type TalentDataFields = {
+  slug: string;
   description: string;
   category: TalentCategory;
   featureKey: string;

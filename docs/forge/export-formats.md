@@ -88,15 +88,29 @@ slugs are unique.
 
 | Pack | Rows |
 |---|---|
-| `skills` | `skill` with its `specialization` rows |
-| `origins` | `race`, `background`, `class` as `origin` items with a `subType` |
+| `skills` | `skill` with its `specialization` rows (planned) |
+| `origins` | `region`, `race` (culture), `background`, `class` as `origin` items with a `subType` |
+| `talents` | `talent` items (`slug`, category, featureKey, grants) |
 | `conditions` | hand-authored, not from Forge |
 | `injuries` | hand-authored, not from Forge |
-| `journals` | region and race descriptive text |
+| `journals` | setting text (planned) |
 
-`race_grant`, `skill_choice`, and `skill_choice_option` do not get packs of their own — they
-export as nested arrays on the owning document, matching the `grants` and `choices` shape in
-[../system/data-model.md](../system/data-model.md#references-between-documents).
+`forge export packs` / `npm run forge:export:packs` writes `origins/` and `talents/` under
+`packs/_source/`, Markdown→HTML for descriptions, then optionally regenerates closed lang
+vocab. Region documents nest culture weights and per-pair backgrounds:
+
+```yaml
+system:
+  subType: region
+  slug: nerland
+  cultures:
+    - slug: human_nerlander
+      weight: 12
+      backgroundSlugs: [farmer, soldier]
+```
+
+Culture origins carry `talentSlug` and `classSlugs[]`. Background lists for the wizard come
+from the **selected region’s** culture entry, not only from the culture item.
 
 **YAML is English.** Russian does not belong here. A bilingual pack would make every content
 diff noise, and Foundry would still only display `name`. Russian content is the Babele

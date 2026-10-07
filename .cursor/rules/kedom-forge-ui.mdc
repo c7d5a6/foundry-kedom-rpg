@@ -47,6 +47,10 @@ Compact UI: **keep type sizes**, shrink padding and margins.
 - **Description** uses `RichTextField`: Markdown in SQLite (Q26). View by default
   (markdown-it preview), Edit on hover (CodeMirror + preview), field-local Save.
   Does not participate in page dirty state.
+- **Create:** label in → API auto-slug; show slug read-only after create (immutable).
+- **Nav content order:** Attributes → Skills → Regions → Cultures → Classes → Talents →
+  **Backgrounds last** → Vocabulary → Completeness → Export. Region background assignment
+  blocks sit last on the region page.
 
 ## Do not
 

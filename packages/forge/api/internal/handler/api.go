@@ -38,8 +38,10 @@ func (a *API) Mount(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/specializations/{id}", a.getSpec)
 	mux.HandleFunc("PATCH /api/specializations/{id}", a.patchSpec)
 	mux.HandleFunc("GET /api/classes", a.listClasses)
+	mux.HandleFunc("POST /api/classes", a.createClass)
 	mux.HandleFunc("GET /api/classes/{id}", a.getClass)
 	mux.HandleFunc("PATCH /api/classes/{id}", a.patchClass)
+	mux.HandleFunc("DELETE /api/classes/{id}", a.deleteClass)
 	mux.HandleFunc("GET /api/vocab", a.listVocab)
 	mux.HandleFunc("GET /api/vocab/{id}", a.getVocab)
 	mux.HandleFunc("PATCH /api/vocab/{id}", a.patchVocab)
@@ -47,6 +49,7 @@ func (a *API) Mount(mux *http.ServeMux) {
 	mux.HandleFunc("DELETE /api/translations", a.deleteTranslation)
 	mux.HandleFunc("GET /api/completeness", a.completeness)
 	mux.HandleFunc("GET /api/export/markdown", a.exportMarkdown)
+	a.mountOrigins(mux)
 }
 
 func (a *API) health(w http.ResponseWriter, _ *http.Request) {
@@ -148,6 +151,15 @@ func (a *API) listClasses(w http.ResponseWriter, r *http.Request) {
 	a.respond(w, rows, err)
 }
 
+func (a *API) createClass(w http.ResponseWriter, r *http.Request) {
+	var in service.CreateClassInput
+	if !decode(w, r, &in) {
+		return
+	}
+	row, err := a.content.CreateClass(r.Context(), in, locale(r))
+	a.respond(w, row, err)
+}
+
 func (a *API) getClass(w http.ResponseWriter, r *http.Request) {
 	id, ok := pathID(w, r)
 	if !ok {
@@ -168,6 +180,19 @@ func (a *API) patchClass(w http.ResponseWriter, r *http.Request) {
 	}
 	row, err := a.content.UpdateClass(r.Context(), id, in, locale(r))
 	a.respond(w, row, err)
+}
+
+func (a *API) deleteClass(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+	err := a.content.DeleteClass(r.Context(), id)
+	if err != nil {
+		a.respond(w, nil, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
 func (a *API) listVocab(w http.ResponseWriter, r *http.Request) {
@@ -277,6 +302,8 @@ func (a *API) respond(w http.ResponseWriter, body any, err error) {
 		writeError(w, http.StatusNotFound, err.Error())
 	case errors.Is(err, service.ErrInvalid):
 		writeError(w, http.StatusBadRequest, err.Error())
+	case errors.Is(err, service.ErrConflict):
+		writeError(w, http.StatusConflict, err.Error())
 	default:
 		a.log.Printf("handler error: %v", err)
 		writeError(w, http.StatusInternalServerError, "internal error")

@@ -15,6 +15,10 @@ RETURNING id, entity_kind, entity_id, locale, field, value;
 DELETE FROM translation
 WHERE entity_kind = ? AND entity_id = ? AND locale = ? AND field = ?;
 
+-- name: DeleteTranslationsForEntity :exec
+DELETE FROM translation
+WHERE entity_kind = ? AND entity_id = ?;
+
 -- name: ListAllTranslationsForLocale :many
 SELECT id, entity_kind, entity_id, locale, field, value
 FROM translation

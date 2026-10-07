@@ -81,9 +81,10 @@ implementation of the same content graph [schema.md](schema.md) models.
 
 **Gaps it exposes:**
 
-- **No weight column.** The generator needs an integer `toRoll` per race to build d20 ranges.
-  `region_race.prevalence` is a three-value enum (`common`/`uncommon`/`rare`), which cannot
-  reconstruct "Nitól is 3/20, Half-Orc is 1/20". A `weight INTEGER` column is needed wherever a
+- **Weight column (implemented in Forge).** `region_culture.weight` is a positive integer; the
+  Foundry wizard displays percentages. Site export still needs the same integer when ported —
+  do not reintroduce a prevalence enum. Historical note: the generator’s `toRoll` / d20 ranges
+  map to that integer weight. A `weight INTEGER` column is needed wherever a
   list is rollable.
 - **Background skill tables are ordered, not just a set.** A WWN background has a free skill, a
   **2-entry** quick-skill list, and an **8-entry** `1d8` table with **deliberate duplicates**

@@ -43,3 +43,7 @@ sql:
             go_type: "bool"
           - column: "*.is_partial"
             go_type: "bool"
+          - column: "*.is_prefilled_slot"
+            go_type: "bool"
+          - column: "race_class.is_prefilled_slot"
+            go_type: "bool"

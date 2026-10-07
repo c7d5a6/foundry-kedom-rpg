@@ -132,7 +132,7 @@ export const CREATION_SAMPLES: SampleItemData[] = [
     system: {
       description:
         "<p>Expert-pool talent — advantage on Heal checks via Active Effect (no proficiency grant).</p>",
-      category: "expert",
+      category: "skills",
       featureKey: "",
       grants: grants({}),
     },

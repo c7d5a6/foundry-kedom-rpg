@@ -256,8 +256,8 @@ That is deliberate:
 - The sidebar / compendium still use `document.name` (Babele) once packs exist.
 
 Edit labels in Forge (Attributes, Skills, Specializations, or Vocabulary), then re-export lang. Do not
-hand-edit closed sections in the JSON files. When YAML pack export lands, it will call the
-same lang emitter first so packs and UI strings stay aligned.
+hand-edit closed sections in the JSON files. `forge export packs` runs the lang emitter first
+(unless `-skip-lang`) so packs and UI strings stay aligned.
 
 ## Completeness, not blocking
 

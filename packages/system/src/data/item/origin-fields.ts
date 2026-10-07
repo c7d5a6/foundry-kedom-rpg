@@ -17,12 +17,33 @@ export type ClassArtsFields = {
   artKeys: string[];
 };
 
+/** Culture entry nested on a region origin. */
+export type RegionCultureFields = {
+  slug: string;
+  weight: number;
+  backgroundSlugs: string[];
+};
+
+export type BackgroundSkillPickFields = {
+  skillKey: string;
+  specSlug: string;
+};
+
 /** Plain origin system fields (no Foundry dependency — safe for unit tests). */
 export type OriginDataFields = {
   subType: OriginSubtype;
   slug: string;
   description: string;
   grants: GrantsFields;
+  /** Region only. */
+  cultures: RegionCultureFields[];
+  /** Race (culture) only. */
+  talentSlug: string;
+  classSlugs: string[];
+  /** Background only. */
+  free: BackgroundSkillPickFields;
+  growth: BackgroundSkillPickFields[];
+  /** Class only. */
   isFull: boolean;
   hitDie: string;
   hitDiePriority: number;

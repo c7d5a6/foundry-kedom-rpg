@@ -2,18 +2,6 @@
 -- Source: packages/content/content.sqlite
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
-CREATE TABLE schema_migrations (
-	version    TEXT NOT NULL PRIMARY KEY,
-	applied_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
-);
-INSERT INTO schema_migrations VALUES('0001_core_vocab','2026-09-20T19:14:04Z');
-INSERT INTO schema_migrations VALUES('0002_seed_core_vocab','2026-09-20T19:14:04Z');
-INSERT INTO schema_migrations VALUES('0003_entity_comment','2026-09-20T20:59:42Z');
-INSERT INTO schema_migrations VALUES('0004_vocab','2026-09-21T09:52:16Z');
-INSERT INTO schema_migrations VALUES('0005_seed_closed_vocab','2026-09-21T09:52:16Z');
-INSERT INTO schema_migrations VALUES('0006_outcome_cost_ru','2026-09-21T18:18:05Z');
-INSERT INTO schema_migrations VALUES('0007_travel_focus','2026-09-21T19:08:31Z');
-INSERT INTO schema_migrations VALUES('0008_strain_resolve_vocab','2026-09-22T21:45:23Z');
 CREATE TABLE attribute (
 	id           INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug         TEXT NOT NULL UNIQUE
@@ -23,12 +11,132 @@ CREATE TABLE attribute (
 	description  TEXT NOT NULL DEFAULT '',
 	sort_order   INTEGER NOT NULL DEFAULT 0
 , comment TEXT NOT NULL DEFAULT '');
-INSERT INTO attribute VALUES(1,'mgh','Might','MGH','',1,'');
-INSERT INTO attribute VALUES(2,'dex','Dexterity','DEX','',2,'');
-INSERT INTO attribute VALUES(3,'kno','Knowledge','KNO','',3,'');
-INSERT INTO attribute VALUES(4,'foc','Focus','FOC','',4,'');
-INSERT INTO attribute VALUES(5,'pre','Presence','PRE','',5,'');
-INSERT INTO attribute VALUES(6,'lck','Luck','LCK','',6,'');
+INSERT INTO "attribute" VALUES(1,'mgh','Might','MGH','',1,'');
+INSERT INTO "attribute" VALUES(2,'dex','Dexterity','DEX','',2,'');
+INSERT INTO "attribute" VALUES(3,'kno','Knowledge','KNO','',3,'');
+INSERT INTO "attribute" VALUES(4,'foc','Focus','FOC','',4,'');
+INSERT INTO "attribute" VALUES(5,'pre','Presence','PRE','',5,'');
+INSERT INTO "attribute" VALUES(6,'lck','Luck','LCK','',6,'');
+CREATE TABLE background (
+	id                      INTEGER PRIMARY KEY AUTOINCREMENT,
+	slug                    TEXT NOT NULL UNIQUE
+		CHECK (length(slug) > 0 AND slug NOT GLOB '*[^a-z0-9.-]*'),
+	label                   TEXT NOT NULL CHECK (length(label) > 0),
+	description             TEXT NOT NULL DEFAULT '',
+	comment                 TEXT NOT NULL DEFAULT '',
+	free_skill_id           INTEGER NOT NULL REFERENCES skill (id),
+	free_specialization_id  INTEGER REFERENCES specialization (id),
+	sort_order              INTEGER NOT NULL DEFAULT 0,
+	foundry_id              TEXT NOT NULL UNIQUE
+		CHECK (length(foundry_id) = 16 AND foundry_id NOT GLOB '*[^A-Za-z0-9]*')
+);
+INSERT INTO "background" VALUES(1,'smith','Smith','','',5,NULL,0,'IYDk7m8GhrCvmLu9');
+CREATE TABLE background_growth (
+	background_id      INTEGER NOT NULL REFERENCES background (id) ON DELETE CASCADE,
+	roll_index         INTEGER NOT NULL CHECK (roll_index BETWEEN 1 AND 8),
+	skill_id           INTEGER NOT NULL REFERENCES skill (id),
+	specialization_id  INTEGER REFERENCES specialization (id),
+	PRIMARY KEY (background_id, roll_index)
+);
+INSERT INTO "background_growth" VALUES(1,1,7,17);
+INSERT INTO "background_growth" VALUES(1,2,2,NULL);
+INSERT INTO "background_growth" VALUES(1,3,3,NULL);
+INSERT INTO "background_growth" VALUES(1,4,4,NULL);
+INSERT INTO "background_growth" VALUES(1,5,6,NULL);
+INSERT INTO "background_growth" VALUES(1,6,7,NULL);
+INSERT INTO "background_growth" VALUES(1,7,8,NULL);
+INSERT INTO "background_growth" VALUES(1,8,9,NULL);
+CREATE TABLE class (
+	id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+	slug                   TEXT NOT NULL UNIQUE
+		CHECK (length(slug) > 0 AND slug NOT GLOB '*[^a-z0-9-]*'),
+	label                  TEXT NOT NULL CHECK (length(label) > 0),
+	description            TEXT NOT NULL DEFAULT '',
+	is_full                INTEGER NOT NULL DEFAULT 0 CHECK (is_full IN (0, 1)),
+	is_partial             INTEGER NOT NULL DEFAULT 0 CHECK (is_partial IN (0, 1)),
+	attack_progression     TEXT,
+	skill_points_per_level INTEGER,
+	hit_die                TEXT,
+	sort_order             INTEGER NOT NULL DEFAULT 0,
+	foundry_id             TEXT NOT NULL UNIQUE
+		CHECK (length(foundry_id) = 16 AND foundry_id NOT GLOB '*[^A-Za-z0-9]*'), comment TEXT NOT NULL DEFAULT '', talent_id INTEGER REFERENCES talent (id), hit_die_priority INTEGER NOT NULL DEFAULT 0, talent_picks_warrior INTEGER NOT NULL DEFAULT 0, talent_picks_expert INTEGER NOT NULL DEFAULT 0, talent_picks_any INTEGER NOT NULL DEFAULT 0, save_primary TEXT NOT NULL DEFAULT 'reflex', save_primary_priority INTEGER NOT NULL DEFAULT 0, save_secondary TEXT NOT NULL DEFAULT 'fortitude', save_secondary_priority INTEGER NOT NULL DEFAULT 0, arts_skill_key TEXT NOT NULL DEFAULT '', class_talent_keys TEXT NOT NULL DEFAULT '[]',
+	CHECK (is_full = 1 OR is_partial = 1)
+);
+INSERT INTO "class" VALUES(1,'warrior','Warrior','',1,1,NULL,NULL,NULL,1,'kdmcls0warrior00','',NULL,0,0,0,0,'reflex',0,'fortitude',0,'','[]');
+INSERT INTO "class" VALUES(2,'expert','Expert','',1,1,NULL,NULL,NULL,2,'kdmcls00expert00','',NULL,0,0,0,0,'reflex',0,'fortitude',0,'','[]');
+INSERT INTO "class" VALUES(3,'queran-arcanist','Queran Arcanist','',1,1,NULL,NULL,NULL,3,'kdmcls0queranar0','',NULL,0,0,0,0,'reflex',0,'fortitude',0,'','[]');
+INSERT INTO "class" VALUES(4,'elementalist','Elementalist','',1,1,NULL,NULL,NULL,4,'kdmcls0elemental','',NULL,0,0,0,0,'reflex',0,'fortitude',0,'','[]');
+INSERT INTO "class" VALUES(5,'necromancer','Necromancer','',1,1,NULL,NULL,NULL,5,'kdmcls0necroman0','',NULL,0,0,0,0,'reflex',0,'fortitude',0,'','[]');
+INSERT INTO "class" VALUES(6,'priest','Priest','',0,1,NULL,NULL,NULL,6,'kdmcls00priest00','',NULL,0,0,0,0,'reflex',0,'fortitude',0,'','[]');
+INSERT INTO "class" VALUES(7,'wise','Wise','',0,1,NULL,NULL,NULL,7,'kdmcls0000wise00','',NULL,0,0,0,0,'reflex',0,'fortitude',0,'','[]');
+INSERT INTO "class" VALUES(8,'accursed','Accursed','',0,1,NULL,NULL,NULL,8,'kdmcls0accursed0','',NULL,0,0,0,0,'reflex',0,'fortitude',0,'','[]');
+INSERT INTO "class" VALUES(9,'duelist','Duelist','',0,1,NULL,NULL,NULL,9,'kdmcls0duelist00','',NULL,0,0,0,0,'reflex',0,'fortitude',0,'','[]');
+INSERT INTO "class" VALUES(10,'empath','Empath','',0,1,NULL,NULL,NULL,10,'kdmcls00empath00','',NULL,0,0,0,0,'reflex',0,'fortitude',0,'','[]');
+INSERT INTO "class" VALUES(11,'rune-guardian','Rune Guardian','',0,1,NULL,NULL,NULL,11,'kdmcls0runeguard','',NULL,0,0,0,0,'reflex',0,'fortitude',0,'','[]');
+INSERT INTO "class" VALUES(12,'beast','Beast','',0,1,NULL,NULL,'',12,'kdmcls000beast00','',1,0,0,0,0,'reflex',0,'fortitude',0,'','[]');
+CREATE TABLE race (
+	id              INTEGER PRIMARY KEY AUTOINCREMENT,
+	slug            TEXT NOT NULL UNIQUE
+		CHECK (length(slug) > 0 AND slug NOT GLOB '*[^a-z0-9.-]*'),
+	label           TEXT NOT NULL CHECK (length(label) > 0),
+	description     TEXT NOT NULL DEFAULT '',
+	comment         TEXT NOT NULL DEFAULT '',
+	parent_race_id  INTEGER REFERENCES race (id),
+	talent_id       INTEGER REFERENCES talent (id),
+	sort_order      INTEGER NOT NULL DEFAULT 0,
+	foundry_id      TEXT NOT NULL UNIQUE
+		CHECK (length(foundry_id) = 16 AND foundry_id NOT GLOB '*[^A-Za-z0-9]*')
+);
+INSERT INTO "race" VALUES(1,'nerlander','Nerlander','','',NULL,NULL,0,'y06EnpADw6wbEHQu');
+CREATE TABLE race_class (
+	race_id           INTEGER NOT NULL REFERENCES race (id) ON DELETE CASCADE,
+	class_id          INTEGER NOT NULL REFERENCES class (id) ON DELETE CASCADE,
+	is_prefilled_slot INTEGER NOT NULL DEFAULT 0 CHECK (is_prefilled_slot IN (0, 1)),
+	PRIMARY KEY (race_id, class_id)
+);
+CREATE TABLE region (
+	id          INTEGER PRIMARY KEY AUTOINCREMENT,
+	slug        TEXT NOT NULL UNIQUE
+		CHECK (length(slug) > 0 AND slug NOT GLOB '*[^a-z0-9.-]*'),
+	label       TEXT NOT NULL CHECK (length(label) > 0),
+	description TEXT NOT NULL DEFAULT '',
+	comment     TEXT NOT NULL DEFAULT '',
+	sort_order  INTEGER NOT NULL DEFAULT 0,
+	foundry_id  TEXT NOT NULL UNIQUE
+		CHECK (length(foundry_id) = 16 AND foundry_id NOT GLOB '*[^A-Za-z0-9]*')
+);
+INSERT INTO "region" VALUES(1,'nerland','Nerland','','',0,'BDkq2s3KPkvoI1EU');
+CREATE TABLE region_culture (
+	region_id INTEGER NOT NULL REFERENCES region (id) ON DELETE CASCADE,
+	race_id   INTEGER NOT NULL REFERENCES race (id) ON DELETE CASCADE,
+	weight    INTEGER NOT NULL CHECK (weight > 0),
+	PRIMARY KEY (region_id, race_id)
+);
+INSERT INTO "region_culture" VALUES(1,1,1);
+CREATE TABLE region_culture_background (
+	region_id     INTEGER NOT NULL,
+	race_id       INTEGER NOT NULL,
+	background_id INTEGER NOT NULL REFERENCES background (id) ON DELETE CASCADE,
+	sort_order    INTEGER NOT NULL DEFAULT 0,
+	PRIMARY KEY (region_id, race_id, background_id),
+	FOREIGN KEY (region_id, race_id) REFERENCES region_culture (region_id, race_id) ON DELETE CASCADE
+);
+INSERT INTO "region_culture_background" VALUES(1,1,1,0);
+CREATE TABLE schema_migrations (
+	version    TEXT NOT NULL PRIMARY KEY,
+	applied_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+);
+INSERT INTO "schema_migrations" VALUES('0001_core_vocab','2026-09-20T19:14:04Z');
+INSERT INTO "schema_migrations" VALUES('0002_seed_core_vocab','2026-09-20T19:14:04Z');
+INSERT INTO "schema_migrations" VALUES('0003_entity_comment','2026-09-20T20:59:42Z');
+INSERT INTO "schema_migrations" VALUES('0004_vocab','2026-09-21T09:52:16Z');
+INSERT INTO "schema_migrations" VALUES('0005_seed_closed_vocab','2026-09-21T09:52:16Z');
+INSERT INTO "schema_migrations" VALUES('0006_outcome_cost_ru','2026-09-21T18:18:05Z');
+INSERT INTO "schema_migrations" VALUES('0007_travel_focus','2026-09-21T19:08:31Z');
+INSERT INTO "schema_migrations" VALUES('0008_strain_resolve_vocab','2026-09-22T21:45:23Z');
+INSERT INTO "schema_migrations" VALUES('0009_rename_focus_to_talent','2026-10-07T11:12:38Z');
+INSERT INTO "schema_migrations" VALUES('0010_origins_pipeline','2026-10-07T12:55:26Z');
+INSERT INTO "schema_migrations" VALUES('0011_talent_categories','2026-10-07T13:17:55Z');
 CREATE TABLE skill (
 	id                   INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug                 TEXT NOT NULL UNIQUE
@@ -43,25 +151,25 @@ CREATE TABLE skill (
 	foundry_id           TEXT NOT NULL UNIQUE
 		CHECK (length(foundry_id) = 16 AND foundry_id NOT GLOB '*[^A-Za-z0-9]*')
 , comment TEXT NOT NULL DEFAULT '');
-INSERT INTO skill VALUES(1,'arcana','Arcana','',3,'free',0,1,'kdmskl00arcana00','');
-INSERT INTO skill VALUES(2,'connect','Connect','',5,'free',0,2,'kdmskl00connect0','');
-INSERT INTO skill VALUES(3,'conduct','Conduct','',5,'fixed',0,3,'kdmskl00conduct0','');
-INSERT INTO skill VALUES(4,'convince','Convince','',5,'fixed',0,4,'kdmskl0convince0','');
-INSERT INTO skill VALUES(5,'craft','Craft','',2,'free',0,5,'kdmskl000craft00','');
-INSERT INTO skill VALUES(6,'exert','Exert','',1,'none',0,6,'kdmskl000exert00','');
-INSERT INTO skill VALUES(7,'guile','Guile','',3,'fixed',0,7,'kdmskl000guile00','');
-INSERT INTO skill VALUES(8,'heal','Heal','',3,'fixed',0,8,'kdmskl0000heal00','');
-INSERT INTO skill VALUES(9,'investigate','Investigate','',3,'fixed',0,9,'kdmsklinvestiga0','');
-INSERT INTO skill VALUES(10,'lore','Lore','',3,'free',0,10,'kdmskl0000lore00','');
-INSERT INTO skill VALUES(11,'notice','Notice','',4,'fixed',0,11,'kdmskl00notice00','');
-INSERT INTO skill VALUES(12,'prowl','Prowl','',2,'fixed',0,12,'kdmskl000prowl00','');
-INSERT INTO skill VALUES(13,'punch','Punch','',1,'none',0,13,'kdmskl000punch00','');
-INSERT INTO skill VALUES(14,'shoot','Shoot','',2,'none',0,14,'kdmskl000shoot00','');
-INSERT INTO skill VALUES(15,'stab','Stab','',1,'none',0,15,'kdmskl0000stab00','');
-INSERT INTO skill VALUES(16,'survive','Survive','',4,'parameterized',0,16,'kdmskl0survive00','');
-INSERT INTO skill VALUES(17,'travel','Travel','',4,'fixed',0,17,'kdmskl00travel00','');
-INSERT INTO skill VALUES(18,'work','Work','',1,'free',0,18,'kdmskl0000work00','');
-INSERT INTO skill VALUES(19,'worship','Worship','',5,'free',0,19,'kdmskl0worship00','');
+INSERT INTO "skill" VALUES(1,'arcana','Arcana','',3,'free',0,1,'kdmskl00arcana00','');
+INSERT INTO "skill" VALUES(2,'connect','Connect','',5,'free',0,2,'kdmskl00connect0','');
+INSERT INTO "skill" VALUES(3,'conduct','Conduct','',5,'fixed',0,3,'kdmskl00conduct0','');
+INSERT INTO "skill" VALUES(4,'convince','Convince','',5,'fixed',0,4,'kdmskl0convince0','');
+INSERT INTO "skill" VALUES(5,'craft','Craft','',2,'free',0,5,'kdmskl000craft00','');
+INSERT INTO "skill" VALUES(6,'exert','Exert','',1,'none',0,6,'kdmskl000exert00','');
+INSERT INTO "skill" VALUES(7,'guile','Guile','',3,'fixed',0,7,'kdmskl000guile00','');
+INSERT INTO "skill" VALUES(8,'heal','Heal','',3,'fixed',0,8,'kdmskl0000heal00','');
+INSERT INTO "skill" VALUES(9,'investigate','Investigate','',3,'fixed',0,9,'kdmsklinvestiga0','');
+INSERT INTO "skill" VALUES(10,'lore','Lore','',3,'free',0,10,'kdmskl0000lore00','');
+INSERT INTO "skill" VALUES(11,'notice','Notice','',4,'fixed',0,11,'kdmskl00notice00','');
+INSERT INTO "skill" VALUES(12,'prowl','Prowl','',2,'fixed',0,12,'kdmskl000prowl00','');
+INSERT INTO "skill" VALUES(13,'punch','Punch','',1,'none',0,13,'kdmskl000punch00','');
+INSERT INTO "skill" VALUES(14,'shoot','Shoot','',2,'none',0,14,'kdmskl000shoot00','');
+INSERT INTO "skill" VALUES(15,'stab','Stab','',1,'none',0,15,'kdmskl0000stab00','');
+INSERT INTO "skill" VALUES(16,'survive','Survive','',4,'parameterized',0,16,'kdmskl0survive00','');
+INSERT INTO "skill" VALUES(17,'travel','Travel','',4,'fixed',0,17,'kdmskl00travel00','');
+INSERT INTO "skill" VALUES(18,'work','Work','',1,'free',0,18,'kdmskl0000work00','');
+INSERT INTO "skill" VALUES(19,'worship','Worship','',5,'free',0,19,'kdmskl0worship00','');
 CREATE TABLE specialization (
 	id          INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug        TEXT NOT NULL UNIQUE
@@ -74,90 +182,256 @@ CREATE TABLE specialization (
 	foundry_id  TEXT NOT NULL UNIQUE
 		CHECK (length(foundry_id) = 16 AND foundry_id NOT GLOB '*[^A-Za-z0-9]*')
 , comment TEXT NOT NULL DEFAULT '');
-INSERT INTO specialization VALUES(1,'conduct.bureaucracy','Bureaucracy','',3,NULL,1,'kdmsp00000000001','');
-INSERT INTO specialization VALUES(2,'conduct.etiquette','Etiquette','',3,NULL,2,'kdmsp00000000002','');
-INSERT INTO specialization VALUES(3,'conduct.law','Law','',3,NULL,3,'kdmsp00000000003','');
-INSERT INTO specialization VALUES(4,'conduct.organizations','Organizations','',3,NULL,4,'kdmsp00000000004','');
-INSERT INTO specialization VALUES(5,'conduct.politics','Politics','',3,NULL,5,'kdmsp00000000005','');
-INSERT INTO specialization VALUES(6,'conduct.rumors','Rumors','',3,NULL,6,'kdmsp00000000006','');
-INSERT INTO specialization VALUES(7,'conduct.streetwise','Streetwise','',3,NULL,7,'kdmsp00000000007','');
-INSERT INTO specialization VALUES(8,'convince.charm','Charm','',4,NULL,1,'kdmsp00000000008','');
-INSERT INTO specialization VALUES(9,'convince.command','Command','',4,NULL,2,'kdmsp00000000009','');
-INSERT INTO specialization VALUES(10,'convince.deception','Deception','',4,NULL,3,'kdmsp00000000010','');
-INSERT INTO specialization VALUES(11,'convince.haggle','Haggle','',4,NULL,4,'kdmsp00000000011','');
-INSERT INTO specialization VALUES(12,'convince.intimidation','Intimidation','',4,NULL,5,'kdmsp00000000012','');
-INSERT INTO specialization VALUES(13,'convince.performance','Performance','',4,NULL,6,'kdmsp00000000013','');
-INSERT INTO specialization VALUES(14,'convince.persuasion','Persuasion','',4,NULL,7,'kdmsp00000000014','');
-INSERT INTO specialization VALUES(15,'guile.disguise','Disguise','',7,NULL,1,'kdmsp00000000015','');
-INSERT INTO specialization VALUES(16,'guile.forgery','Forgery','',7,NULL,2,'kdmsp00000000016','');
-INSERT INTO specialization VALUES(17,'guile.fraud','Fraud','',7,NULL,3,'kdmsp00000000017','');
-INSERT INTO specialization VALUES(18,'guile.gambling','Gambling','',7,NULL,4,'kdmsp00000000018','');
-INSERT INTO specialization VALUES(19,'guile.poisons','Poisons','',7,NULL,5,'kdmsp00000000019','');
-INSERT INTO specialization VALUES(20,'guile.traps','Traps','',7,NULL,6,'kdmsp00000000020','');
-INSERT INTO specialization VALUES(21,'heal.diagnosis','Diagnosis','',8,NULL,1,'kdmsp00000000021','');
-INSERT INTO specialization VALUES(22,'heal.firstaid','First Aid','',8,NULL,2,'kdmsp00000000022','');
-INSERT INTO specialization VALUES(23,'heal.pharmacology','Pharmacology','',8,NULL,3,'kdmsp00000000023','');
-INSERT INTO specialization VALUES(24,'heal.psychology','Psychology','',8,NULL,4,'kdmsp00000000024','');
-INSERT INTO specialization VALUES(25,'heal.rehabilitation','Rehabilitation','',8,NULL,5,'kdmsp00000000025','');
-INSERT INTO specialization VALUES(26,'heal.surgery','Surgery','',8,NULL,6,'kdmsp00000000026','');
-INSERT INTO specialization VALUES(27,'heal.toxicology','Toxicology','',8,NULL,7,'kdmsp00000000027','');
-INSERT INTO specialization VALUES(28,'investigate.appraisal','Appraisal','',9,NULL,1,'kdmsp00000000028','');
-INSERT INTO specialization VALUES(29,'investigate.cryptography','Cryptography','',9,NULL,2,'kdmsp00000000029','');
-INSERT INTO specialization VALUES(30,'investigate.investigation','Investigation','',9,NULL,3,'kdmsp00000000030','');
-INSERT INTO specialization VALUES(31,'investigate.libraryuse','Library Use','',9,NULL,4,'kdmsp00000000031','');
-INSERT INTO specialization VALUES(32,'investigate.research','Research','',9,NULL,5,'kdmsp00000000032','');
-INSERT INTO specialization VALUES(33,'investigate.search','Search','',9,NULL,6,'kdmsp00000000033','');
-INSERT INTO specialization VALUES(34,'notice.anomalies','Anomalies','',11,NULL,1,'kdmsp00000000034','');
-INSERT INTO specialization VALUES(35,'notice.awareness','Awareness','',11,NULL,2,'kdmsp00000000035','');
-INSERT INTO specialization VALUES(36,'notice.detail','Detail','',11,NULL,3,'kdmsp00000000036','');
-INSERT INTO specialization VALUES(37,'notice.farsight','Farsight','',11,NULL,4,'kdmsp00000000037','');
-INSERT INTO specialization VALUES(38,'notice.hidden','Hidden','',11,NULL,5,'kdmsp00000000038','');
-INSERT INTO specialization VALUES(39,'notice.insight','Insight','',11,NULL,6,'kdmsp00000000039','');
-INSERT INTO specialization VALUES(40,'notice.listen','Listen','',11,NULL,7,'kdmsp00000000040','');
-INSERT INTO specialization VALUES(41,'prowl.backstabbing','Backstabbing','',12,NULL,1,'kdmsp00000000041','');
-INSERT INTO specialization VALUES(42,'prowl.climbing','Climbing','',12,NULL,2,'kdmsp00000000042','');
-INSERT INTO specialization VALUES(43,'prowl.hide','Hide','',12,NULL,3,'kdmsp00000000043','');
-INSERT INTO specialization VALUES(44,'prowl.lockpicking','Lockpicking','',12,NULL,4,'kdmsp00000000044','');
-INSERT INTO specialization VALUES(45,'prowl.sleightofhand','Sleight of Hand','',12,NULL,5,'kdmsp00000000045','');
-INSERT INTO specialization VALUES(46,'prowl.sneaking','Sneaking','',12,NULL,6,'kdmsp00000000046','');
-INSERT INTO specialization VALUES(47,'survive.foraging','Foraging','',16,NULL,1,'kdmsp00000000047','');
-INSERT INTO specialization VALUES(48,'survive.scouting','Scouting','',16,NULL,2,'kdmsp00000000048','');
-INSERT INTO specialization VALUES(49,'survive.shelter','Shelter','',16,NULL,3,'kdmsp00000000049','');
-INSERT INTO specialization VALUES(50,'survive.tracking','Tracking','',16,NULL,4,'kdmsp00000000050','');
-INSERT INTO specialization VALUES(51,'travel.hiking','Hiking','',17,NULL,1,'kdmsp00000000051','');
-INSERT INTO specialization VALUES(52,'travel.riding','Riding','',17,NULL,2,'kdmsp00000000052','');
-INSERT INTO specialization VALUES(53,'travel.driving','Driving','',17,NULL,3,'kdmsp00000000053','');
-INSERT INTO specialization VALUES(54,'travel.sailing','Sailing','',17,NULL,4,'kdmsp00000000054','');
-INSERT INTO specialization VALUES(55,'travel.navigation','Navigation','',17,NULL,5,'kdmsp00000000055','');
-INSERT INTO specialization VALUES(56,'travel.orientation','Orientation','',17,NULL,6,'kdmsp00000000056','');
-CREATE TABLE class (
-	id                     INTEGER PRIMARY KEY AUTOINCREMENT,
-	slug                   TEXT NOT NULL UNIQUE
-		CHECK (length(slug) > 0 AND slug NOT GLOB '*[^a-z0-9-]*'),
-	label                  TEXT NOT NULL CHECK (length(label) > 0),
-	description            TEXT NOT NULL DEFAULT '',
-	is_full                INTEGER NOT NULL DEFAULT 0 CHECK (is_full IN (0, 1)),
-	is_partial             INTEGER NOT NULL DEFAULT 0 CHECK (is_partial IN (0, 1)),
-	attack_progression     TEXT,
-	skill_points_per_level INTEGER,
-	hit_die                TEXT,
-	sort_order             INTEGER NOT NULL DEFAULT 0,
-	foundry_id             TEXT NOT NULL UNIQUE
-		CHECK (length(foundry_id) = 16 AND foundry_id NOT GLOB '*[^A-Za-z0-9]*'), comment TEXT NOT NULL DEFAULT '',
-	CHECK (is_full = 1 OR is_partial = 1)
+INSERT INTO "specialization" VALUES(1,'conduct.bureaucracy','Bureaucracy','',3,NULL,1,'kdmsp00000000001','');
+INSERT INTO "specialization" VALUES(2,'conduct.etiquette','Etiquette','',3,NULL,2,'kdmsp00000000002','');
+INSERT INTO "specialization" VALUES(3,'conduct.law','Law','',3,NULL,3,'kdmsp00000000003','');
+INSERT INTO "specialization" VALUES(4,'conduct.organizations','Organizations','',3,NULL,4,'kdmsp00000000004','');
+INSERT INTO "specialization" VALUES(5,'conduct.politics','Politics','',3,NULL,5,'kdmsp00000000005','');
+INSERT INTO "specialization" VALUES(6,'conduct.rumors','Rumors','',3,NULL,6,'kdmsp00000000006','');
+INSERT INTO "specialization" VALUES(7,'conduct.streetwise','Streetwise','',3,NULL,7,'kdmsp00000000007','');
+INSERT INTO "specialization" VALUES(8,'convince.charm','Charm','',4,NULL,1,'kdmsp00000000008','');
+INSERT INTO "specialization" VALUES(9,'convince.command','Command','',4,NULL,2,'kdmsp00000000009','');
+INSERT INTO "specialization" VALUES(10,'convince.deception','Deception','',4,NULL,3,'kdmsp00000000010','');
+INSERT INTO "specialization" VALUES(11,'convince.haggle','Haggle','',4,NULL,4,'kdmsp00000000011','');
+INSERT INTO "specialization" VALUES(12,'convince.intimidation','Intimidation','',4,NULL,5,'kdmsp00000000012','');
+INSERT INTO "specialization" VALUES(13,'convince.performance','Performance','',4,NULL,6,'kdmsp00000000013','');
+INSERT INTO "specialization" VALUES(14,'convince.persuasion','Persuasion','',4,NULL,7,'kdmsp00000000014','');
+INSERT INTO "specialization" VALUES(15,'guile.disguise','Disguise','',7,NULL,1,'kdmsp00000000015','');
+INSERT INTO "specialization" VALUES(16,'guile.forgery','Forgery','',7,NULL,2,'kdmsp00000000016','');
+INSERT INTO "specialization" VALUES(17,'guile.fraud','Fraud','',7,NULL,3,'kdmsp00000000017','');
+INSERT INTO "specialization" VALUES(18,'guile.gambling','Gambling','',7,NULL,4,'kdmsp00000000018','');
+INSERT INTO "specialization" VALUES(19,'guile.poisons','Poisons','',7,NULL,5,'kdmsp00000000019','');
+INSERT INTO "specialization" VALUES(20,'guile.traps','Traps','',7,NULL,6,'kdmsp00000000020','');
+INSERT INTO "specialization" VALUES(21,'heal.diagnosis','Diagnosis','',8,NULL,1,'kdmsp00000000021','');
+INSERT INTO "specialization" VALUES(22,'heal.firstaid','First Aid','',8,NULL,2,'kdmsp00000000022','');
+INSERT INTO "specialization" VALUES(23,'heal.pharmacology','Pharmacology','',8,NULL,3,'kdmsp00000000023','');
+INSERT INTO "specialization" VALUES(24,'heal.psychology','Psychology','',8,NULL,4,'kdmsp00000000024','');
+INSERT INTO "specialization" VALUES(25,'heal.rehabilitation','Rehabilitation','',8,NULL,5,'kdmsp00000000025','');
+INSERT INTO "specialization" VALUES(26,'heal.surgery','Surgery','',8,NULL,6,'kdmsp00000000026','');
+INSERT INTO "specialization" VALUES(27,'heal.toxicology','Toxicology','',8,NULL,7,'kdmsp00000000027','');
+INSERT INTO "specialization" VALUES(28,'investigate.appraisal','Appraisal','',9,NULL,1,'kdmsp00000000028','');
+INSERT INTO "specialization" VALUES(29,'investigate.cryptography','Cryptography','',9,NULL,2,'kdmsp00000000029','');
+INSERT INTO "specialization" VALUES(30,'investigate.investigation','Investigation','',9,NULL,3,'kdmsp00000000030','');
+INSERT INTO "specialization" VALUES(31,'investigate.libraryuse','Library Use','',9,NULL,4,'kdmsp00000000031','');
+INSERT INTO "specialization" VALUES(32,'investigate.research','Research','',9,NULL,5,'kdmsp00000000032','');
+INSERT INTO "specialization" VALUES(33,'investigate.search','Search','',9,NULL,6,'kdmsp00000000033','');
+INSERT INTO "specialization" VALUES(34,'notice.anomalies','Anomalies','',11,NULL,1,'kdmsp00000000034','');
+INSERT INTO "specialization" VALUES(35,'notice.awareness','Awareness','',11,NULL,2,'kdmsp00000000035','');
+INSERT INTO "specialization" VALUES(36,'notice.detail','Detail','',11,NULL,3,'kdmsp00000000036','');
+INSERT INTO "specialization" VALUES(37,'notice.farsight','Farsight','',11,NULL,4,'kdmsp00000000037','');
+INSERT INTO "specialization" VALUES(38,'notice.hidden','Hidden','',11,NULL,5,'kdmsp00000000038','');
+INSERT INTO "specialization" VALUES(39,'notice.insight','Insight','',11,NULL,6,'kdmsp00000000039','');
+INSERT INTO "specialization" VALUES(40,'notice.listen','Listen','',11,NULL,7,'kdmsp00000000040','');
+INSERT INTO "specialization" VALUES(41,'prowl.backstabbing','Backstabbing','',12,NULL,1,'kdmsp00000000041','');
+INSERT INTO "specialization" VALUES(42,'prowl.climbing','Climbing','',12,NULL,2,'kdmsp00000000042','');
+INSERT INTO "specialization" VALUES(43,'prowl.hide','Hide','',12,NULL,3,'kdmsp00000000043','');
+INSERT INTO "specialization" VALUES(44,'prowl.lockpicking','Lockpicking','',12,NULL,4,'kdmsp00000000044','');
+INSERT INTO "specialization" VALUES(45,'prowl.sleightofhand','Sleight of Hand','',12,NULL,5,'kdmsp00000000045','');
+INSERT INTO "specialization" VALUES(46,'prowl.sneaking','Sneaking','',12,NULL,6,'kdmsp00000000046','');
+INSERT INTO "specialization" VALUES(47,'survive.foraging','Foraging','',16,NULL,1,'kdmsp00000000047','');
+INSERT INTO "specialization" VALUES(48,'survive.scouting','Scouting','',16,NULL,2,'kdmsp00000000048','');
+INSERT INTO "specialization" VALUES(49,'survive.shelter','Shelter','',16,NULL,3,'kdmsp00000000049','');
+INSERT INTO "specialization" VALUES(50,'survive.tracking','Tracking','',16,NULL,4,'kdmsp00000000050','');
+INSERT INTO "specialization" VALUES(51,'travel.hiking','Hiking','',17,NULL,1,'kdmsp00000000051','');
+INSERT INTO "specialization" VALUES(52,'travel.riding','Riding','',17,NULL,2,'kdmsp00000000052','');
+INSERT INTO "specialization" VALUES(53,'travel.driving','Driving','',17,NULL,3,'kdmsp00000000053','');
+INSERT INTO "specialization" VALUES(54,'travel.sailing','Sailing','',17,NULL,4,'kdmsp00000000054','');
+INSERT INTO "specialization" VALUES(55,'travel.navigation','Navigation','',17,NULL,5,'kdmsp00000000055','');
+INSERT INTO "specialization" VALUES(56,'travel.orientation','Orientation','',17,NULL,6,'kdmsp00000000056','');
+CREATE TABLE "talent" (
+	id           INTEGER PRIMARY KEY AUTOINCREMENT,
+	slug         TEXT NOT NULL UNIQUE
+		CHECK (length(slug) > 0 AND slug NOT GLOB '*[^a-z0-9.-]*'),
+	label        TEXT NOT NULL CHECK (length(label) > 0),
+	description  TEXT NOT NULL DEFAULT '',
+	comment      TEXT NOT NULL DEFAULT '',
+	category     TEXT NOT NULL DEFAULT 'general'
+		CHECK (category IN ('class', 'culture', 'skills', 'combat', 'general', 'other')),
+	feature_key  TEXT NOT NULL DEFAULT '',
+	grants_json  TEXT NOT NULL DEFAULT '{"skills":[],"specializations":[],"abilities":[]}',
+	sort_order   INTEGER NOT NULL DEFAULT 0,
+	foundry_id   TEXT NOT NULL UNIQUE
+		CHECK (length(foundry_id) = 16 AND foundry_id NOT GLOB '*[^A-Za-z0-9]*')
 );
-INSERT INTO class VALUES(1,'warrior','Warrior','',1,1,NULL,NULL,NULL,1,'kdmcls0warrior00','');
-INSERT INTO class VALUES(2,'expert','Expert','',1,1,NULL,NULL,NULL,2,'kdmcls00expert00','');
-INSERT INTO class VALUES(3,'queran-arcanist','Queran Arcanist','',1,1,NULL,NULL,NULL,3,'kdmcls0queranar0','');
-INSERT INTO class VALUES(4,'elementalist','Elementalist','',1,1,NULL,NULL,NULL,4,'kdmcls0elemental','');
-INSERT INTO class VALUES(5,'necromancer','Necromancer','',1,1,NULL,NULL,NULL,5,'kdmcls0necroman0','');
-INSERT INTO class VALUES(6,'priest','Priest','',0,1,NULL,NULL,NULL,6,'kdmcls00priest00','');
-INSERT INTO class VALUES(7,'wise','Wise','',0,1,NULL,NULL,NULL,7,'kdmcls0000wise00','');
-INSERT INTO class VALUES(8,'accursed','Accursed','',0,1,NULL,NULL,NULL,8,'kdmcls0accursed0','');
-INSERT INTO class VALUES(9,'duelist','Duelist','',0,1,NULL,NULL,NULL,9,'kdmcls0duelist00','');
-INSERT INTO class VALUES(10,'empath','Empath','',0,1,NULL,NULL,NULL,10,'kdmcls00empath00','');
-INSERT INTO class VALUES(11,'rune-guardian','Rune Guardian','',0,1,NULL,NULL,NULL,11,'kdmcls0runeguard','');
-INSERT INTO class VALUES(12,'beast','Beast','',0,1,NULL,NULL,NULL,12,'kdmcls000beast00','');
+INSERT INTO "talent" VALUES(1,'class-talent','Class talent','','','general','','{"skills":[],"specializations":[],"abilities":[]}',0,'f9SyW2GroeHChmL1');
+CREATE TABLE "translation" (
+	id          INTEGER PRIMARY KEY AUTOINCREMENT,
+	entity_kind TEXT NOT NULL
+		CHECK (entity_kind IN (
+			'attribute', 'skill', 'specialization', 'class',
+			'background', 'region', 'talent', 'power', 'condition', 'injury', 'race',
+			'proficiency', 'outcome', 'save', 'difficulty', 'derived',
+			'injury_severity', 'injury_location', 'injury_weapon'
+		)),
+	entity_id   INTEGER NOT NULL,
+	locale      TEXT NOT NULL CHECK (locale != 'en' AND length(locale) > 0),
+	field       TEXT NOT NULL CHECK (field IN ('label', 'abbreviation', 'description')),
+	value       TEXT NOT NULL CHECK (length(value) > 0),
+	UNIQUE (entity_kind, entity_id, locale, field)
+);
+INSERT INTO "translation" VALUES(1,'attribute',1,'ru','label','Мощь');
+INSERT INTO "translation" VALUES(2,'attribute',1,'ru','abbreviation','МЩ');
+INSERT INTO "translation" VALUES(3,'attribute',2,'ru','label','Ловкость');
+INSERT INTO "translation" VALUES(4,'attribute',2,'ru','abbreviation','ЛВ');
+INSERT INTO "translation" VALUES(5,'attribute',3,'ru','label','Знание');
+INSERT INTO "translation" VALUES(6,'attribute',3,'ru','abbreviation','ЗН');
+INSERT INTO "translation" VALUES(7,'attribute',4,'ru','label','Фокус');
+INSERT INTO "translation" VALUES(8,'attribute',4,'ru','abbreviation','ФК');
+INSERT INTO "translation" VALUES(9,'attribute',5,'ru','label','Харизма');
+INSERT INTO "translation" VALUES(10,'attribute',5,'ru','abbreviation','ХР');
+INSERT INTO "translation" VALUES(11,'attribute',6,'ru','label','Удача');
+INSERT INTO "translation" VALUES(12,'attribute',6,'ru','abbreviation','УД');
+INSERT INTO "translation" VALUES(13,'skill',1,'ru','label','Аркана');
+INSERT INTO "translation" VALUES(14,'skill',2,'ru','label','Контакт');
+INSERT INTO "translation" VALUES(15,'skill',3,'ru','label','Обхождение');
+INSERT INTO "translation" VALUES(16,'skill',4,'ru','label','Влияние');
+INSERT INTO "translation" VALUES(17,'skill',5,'ru','label','Ремесло');
+INSERT INTO "translation" VALUES(18,'skill',6,'ru','label','Атлетика');
+INSERT INTO "translation" VALUES(19,'skill',7,'ru','label','Лукавство');
+INSERT INTO "translation" VALUES(20,'skill',8,'ru','label','Врачевание');
+INSERT INTO "translation" VALUES(21,'skill',9,'ru','label','Исследование');
+INSERT INTO "translation" VALUES(22,'skill',10,'ru','label','Предания');
+INSERT INTO "translation" VALUES(23,'skill',11,'ru','label','Внимательность');
+INSERT INTO "translation" VALUES(24,'skill',12,'ru','label','Скрытность');
+INSERT INTO "translation" VALUES(25,'skill',13,'ru','label','Удар');
+INSERT INTO "translation" VALUES(26,'skill',14,'ru','label','Стрельба');
+INSERT INTO "translation" VALUES(27,'skill',15,'ru','label','Холодное оружие');
+INSERT INTO "translation" VALUES(28,'skill',16,'ru','label','Выживание');
+INSERT INTO "translation" VALUES(29,'skill',17,'ru','label','Путешествия');
+INSERT INTO "translation" VALUES(30,'skill',18,'ru','label','Труд');
+INSERT INTO "translation" VALUES(31,'skill',19,'ru','label','Вероучение');
+INSERT INTO "translation" VALUES(32,'class',1,'ru','label','Воин');
+INSERT INTO "translation" VALUES(33,'class',2,'ru','label','Эксперт');
+INSERT INTO "translation" VALUES(34,'class',3,'ru','label','Кверанский арканист');
+INSERT INTO "translation" VALUES(35,'class',4,'ru','label','Элементалист');
+INSERT INTO "translation" VALUES(36,'class',5,'ru','label','Некромант');
+INSERT INTO "translation" VALUES(37,'class',6,'ru','label','Жрец');
+INSERT INTO "translation" VALUES(38,'class',7,'ru','label','Ведун');
+INSERT INTO "translation" VALUES(39,'class',8,'ru','label','Проклятый');
+INSERT INTO "translation" VALUES(40,'class',9,'ru','label','Дуэлянт');
+INSERT INTO "translation" VALUES(41,'class',10,'ru','label','Эмпат');
+INSERT INTO "translation" VALUES(42,'class',11,'ru','label','Рунный защитник');
+INSERT INTO "translation" VALUES(43,'class',12,'ru','label','Зверь');
+INSERT INTO "translation" VALUES(52,'specialization',1,'ru','label','Бюрократия');
+INSERT INTO "translation" VALUES(53,'specialization',2,'ru','label','Этикет');
+INSERT INTO "translation" VALUES(54,'specialization',3,'ru','label','Право');
+INSERT INTO "translation" VALUES(55,'specialization',4,'ru','label','Организации');
+INSERT INTO "translation" VALUES(56,'specialization',5,'ru','label','Политика');
+INSERT INTO "translation" VALUES(57,'specialization',6,'ru','label','Слухи');
+INSERT INTO "translation" VALUES(58,'specialization',7,'ru','label','Уличные порядки');
+INSERT INTO "translation" VALUES(59,'specialization',8,'ru','label','Обаяние');
+INSERT INTO "translation" VALUES(60,'specialization',9,'ru','label','Приказ');
+INSERT INTO "translation" VALUES(61,'specialization',10,'ru','label','Обман');
+INSERT INTO "translation" VALUES(62,'specialization',11,'ru','label','Торг');
+INSERT INTO "translation" VALUES(63,'specialization',12,'ru','label','Запугивание');
+INSERT INTO "translation" VALUES(64,'specialization',14,'ru','label','Убеждение');
+INSERT INTO "translation" VALUES(65,'specialization',13,'ru','label','Представление');
+INSERT INTO "translation" VALUES(68,'specialization',15,'ru','label','Маскировка');
+INSERT INTO "translation" VALUES(69,'specialization',16,'ru','label','Подделка');
+INSERT INTO "translation" VALUES(70,'specialization',17,'ru','label','Мошенничество');
+INSERT INTO "translation" VALUES(71,'specialization',19,'ru','label','Яды');
+INSERT INTO "translation" VALUES(72,'specialization',18,'ru','label','Азартные игры');
+INSERT INTO "translation" VALUES(73,'specialization',20,'ru','label','Ловушки');
+INSERT INTO "translation" VALUES(75,'specialization',21,'ru','label','Диагностика');
+INSERT INTO "translation" VALUES(76,'specialization',22,'ru','label','Первая помощь');
+INSERT INTO "translation" VALUES(77,'specialization',23,'ru','label','Фармакология');
+INSERT INTO "translation" VALUES(78,'specialization',24,'ru','label','Психология');
+INSERT INTO "translation" VALUES(79,'specialization',25,'ru','label','Восстановление');
+INSERT INTO "translation" VALUES(80,'specialization',26,'ru','label','Хирургия');
+INSERT INTO "translation" VALUES(81,'specialization',27,'ru','label','Токсикология');
+INSERT INTO "translation" VALUES(83,'specialization',28,'ru','label','Оценка');
+INSERT INTO "translation" VALUES(84,'specialization',30,'ru','label','Расследование');
+INSERT INTO "translation" VALUES(85,'specialization',31,'ru','label','Письмена');
+INSERT INTO "translation" VALUES(86,'specialization',32,'ru','label','Изыскания');
+INSERT INTO "translation" VALUES(87,'specialization',33,'ru','label','Обыск');
+INSERT INTO "translation" VALUES(88,'specialization',34,'ru','label','Аномалии');
+INSERT INTO "translation" VALUES(89,'specialization',35,'ru','label','Чуткость');
+INSERT INTO "translation" VALUES(90,'specialization',36,'ru','label','Детали');
+INSERT INTO "translation" VALUES(91,'specialization',37,'ru','label','Дальнозоркость');
+INSERT INTO "translation" VALUES(92,'specialization',38,'ru','label','Скрытое');
+INSERT INTO "translation" VALUES(93,'specialization',39,'ru','label','Проницательность');
+INSERT INTO "translation" VALUES(94,'specialization',40,'ru','label','Слух');
+INSERT INTO "translation" VALUES(95,'specialization',41,'ru','label','Удар в спину');
+INSERT INTO "translation" VALUES(96,'specialization',42,'ru','label','Лазание');
+INSERT INTO "translation" VALUES(97,'specialization',43,'ru','label','Укрытие');
+INSERT INTO "translation" VALUES(98,'specialization',44,'ru','label','Взлом замков');
+INSERT INTO "translation" VALUES(99,'specialization',45,'ru','label','Ловкость рук');
+INSERT INTO "translation" VALUES(100,'specialization',46,'ru','label','Крадущийся шаг');
+INSERT INTO "translation" VALUES(103,'specialization',48,'ru','label','Разведка');
+INSERT INTO "translation" VALUES(104,'specialization',49,'ru','label','Укрытие');
+INSERT INTO "translation" VALUES(105,'specialization',50,'ru','label','Следопытство');
+INSERT INTO "translation" VALUES(106,'specialization',51,'ru','label','Пеший ход');
+INSERT INTO "translation" VALUES(107,'specialization',52,'ru','label','Верховая езда');
+INSERT INTO "translation" VALUES(108,'specialization',53,'ru','label','Вождение');
+INSERT INTO "translation" VALUES(109,'specialization',54,'ru','label','Мореплавание');
+INSERT INTO "translation" VALUES(110,'specialization',55,'ru','label','Навигация');
+INSERT INTO "translation" VALUES(111,'specialization',56,'ru','label','Ориентирование');
+INSERT INTO "translation" VALUES(114,'specialization',29,'ru','label','Шифры');
+INSERT INTO "translation" VALUES(117,'specialization',47,'ru','label','Промысел');
+INSERT INTO "translation" VALUES(118,'proficiency',2,'ru','label','Ученик');
+INSERT INTO "translation" VALUES(119,'proficiency',4,'ru','label','Эксперт');
+INSERT INTO "translation" VALUES(120,'proficiency',6,'ru','label','Легендарный');
+INSERT INTO "translation" VALUES(121,'proficiency',5,'ru','label','Мастер');
+INSERT INTO "translation" VALUES(122,'proficiency',3,'ru','label','Обученный');
+INSERT INTO "translation" VALUES(123,'proficiency',1,'ru','label','Необученный');
+INSERT INTO "translation" VALUES(124,'outcome',8,'ru','label','Успех с последствиями');
+INSERT INTO "translation" VALUES(125,'outcome',7,'ru','label','Провал');
+INSERT INTO "translation" VALUES(126,'outcome',9,'ru','label','Успех');
+INSERT INTO "translation" VALUES(127,'save',11,'ru','label','Стойкость');
+INSERT INTO "translation" VALUES(128,'save',10,'ru','label','Реакция');
+INSERT INTO "translation" VALUES(129,'save',12,'ru','label','Воля');
+INSERT INTO "translation" VALUES(130,'difficulty',13,'ru','label','Сложно');
+INSERT INTO "translation" VALUES(131,'difficulty',14,'ru','label','Трудно');
+INSERT INTO "translation" VALUES(132,'difficulty',16,'ru','label','Невероятно трудно');
+INSERT INTO "translation" VALUES(133,'difficulty',15,'ru','label','Очень трудно');
+INSERT INTO "translation" VALUES(134,'derived',22,'ru','label','Класс брони');
+INSERT INTO "translation" VALUES(135,'derived',24,'ru','label','КБ в ближнем бою');
+INSERT INTO "translation" VALUES(136,'derived',25,'ru','label','КБ против стрельбы');
+INSERT INTO "translation" VALUES(137,'derived',23,'ru','label','КБ');
+INSERT INTO "translation" VALUES(138,'derived',26,'ru','label','Бонус атаки');
+INSERT INTO "translation" VALUES(139,'derived',29,'ru','label','Нагрузка');
+INSERT INTO "translation" VALUES(140,'derived',31,'ru','label','Опыт');
+INSERT INTO "translation" VALUES(141,'derived',17,'ru','label','Пункты здоровья');
+INSERT INTO "translation" VALUES(142,'derived',18,'ru','label','ПЗ');
+INSERT INTO "translation" VALUES(143,'derived',27,'ru','label','Инициатива');
+INSERT INTO "translation" VALUES(144,'derived',30,'ru','label','Уровень');
+INSERT INTO "translation" VALUES(145,'derived',28,'ru','label','Перемещение');
+INSERT INTO "translation" VALUES(146,'derived',19,'ru','label','Изнурение');
+INSERT INTO "translation" VALUES(147,'derived',20,'ru','label','И');
+INSERT INTO "translation" VALUES(148,'derived',21,'ru','label','Раны');
+INSERT INTO "translation" VALUES(149,'condition',35,'ru','label','Ослеплён');
+INSERT INTO "translation" VALUES(150,'condition',36,'ru','label','Оглох');
+INSERT INTO "translation" VALUES(151,'condition',37,'ru','label','Горит');
+INSERT INTO "translation" VALUES(152,'condition',33,'ru','label','Парализован');
+INSERT INTO "translation" VALUES(153,'condition',34,'ru','label','Лежит');
+INSERT INTO "translation" VALUES(154,'condition',39,'ru','label','Болен');
+INSERT INTO "translation" VALUES(155,'condition',38,'ru','label','Замедлён');
+INSERT INTO "translation" VALUES(156,'condition',41,'ru','label','Перенапряжён');
+INSERT INTO "translation" VALUES(157,'condition',32,'ru','label','Оглушён');
+INSERT INTO "translation" VALUES(158,'condition',40,'ru','label','Ранен');
+INSERT INTO "translation" VALUES(159,'injury_severity',43,'ru','label','Серьёзная');
+INSERT INTO "translation" VALUES(160,'injury_severity',42,'ru','label','Лёгкая');
+INSERT INTO "translation" VALUES(161,'injury_severity',44,'ru','label','Тяжёлая');
+INSERT INTO "translation" VALUES(162,'injury_location',47,'ru','label','Руки');
+INSERT INTO "translation" VALUES(163,'injury_location',49,'ru','label','Кровотечение');
+INSERT INTO "translation" VALUES(164,'injury_location',46,'ru','label','Туловище');
+INSERT INTO "translation" VALUES(165,'injury_location',45,'ru','label','Голова');
+INSERT INTO "translation" VALUES(166,'injury_location',48,'ru','label','Ноги');
+INSERT INTO "translation" VALUES(167,'injury_weapon',50,'ru','label','Стрела');
+INSERT INTO "translation" VALUES(168,'injury_weapon',52,'ru','label','Дробящее');
+INSERT INTO "translation" VALUES(169,'injury_weapon',51,'ru','label','Пуля');
+INSERT INTO "translation" VALUES(170,'injury_weapon',53,'ru','label','Когти');
+INSERT INTO "translation" VALUES(171,'injury_weapon',54,'ru','label','Режущее');
+INSERT INTO "translation" VALUES(172,'injury_weapon',57,'ru','label','Взрыв');
+INSERT INTO "translation" VALUES(173,'injury_weapon',55,'ru','label','Пламя');
+INSERT INTO "translation" VALUES(174,'injury_weapon',56,'ru','label','Колющее');
+INSERT INTO "translation" VALUES(185,'derived',62,'ru','label','Урон в ближнем бою');
+INSERT INTO "translation" VALUES(186,'derived',60,'ru','label','Решимость');
+INSERT INTO "translation" VALUES(187,'derived',61,'ru','label','РШ');
+INSERT INTO "translation" VALUES(188,'derived',58,'ru','label','Предел изнурения');
+INSERT INTO "translation" VALUES(189,'derived',59,'ru','label','ПН');
+INSERT INTO "translation" VALUES(193,'derived',58,'ru','abbreviation','ПИ');
+INSERT INTO "translation" VALUES(195,'derived',60,'ru','abbreviation','РШ');
 CREATE TABLE vocab (
 	id           INTEGER PRIMARY KEY AUTOINCREMENT,
 	kind         TEXT NOT NULL
@@ -173,246 +447,113 @@ CREATE TABLE vocab (
 	comment      TEXT NOT NULL DEFAULT '',
 	UNIQUE (kind, slug)
 );
-INSERT INTO vocab VALUES(1,'proficiency','untrained','Untrained','',1,'');
-INSERT INTO vocab VALUES(2,'proficiency','apprentice','Apprentice','',2,'');
-INSERT INTO vocab VALUES(3,'proficiency','trained','Trained','',3,'');
-INSERT INTO vocab VALUES(4,'proficiency','expert','Expert','',4,'');
-INSERT INTO vocab VALUES(5,'proficiency','master','Master','',5,'');
-INSERT INTO vocab VALUES(6,'proficiency','legendary','Legendary','',6,'');
-INSERT INTO vocab VALUES(7,'outcome','failure','Failure','',1,'');
-INSERT INTO vocab VALUES(8,'outcome','cost','Success at a Cost','',2,'');
-INSERT INTO vocab VALUES(9,'outcome','success','Success','',3,'');
-INSERT INTO vocab VALUES(10,'save','reflex','Reflex','',1,'');
-INSERT INTO vocab VALUES(11,'save','fortitude','Fortitude','',2,'');
-INSERT INTO vocab VALUES(12,'save','will','Will','',3,'');
-INSERT INTO vocab VALUES(13,'difficulty','challenging','Challenging','',1,'');
-INSERT INTO vocab VALUES(14,'difficulty','hard','Hard','',2,'');
-INSERT INTO vocab VALUES(15,'difficulty','veryHard','Very Hard','',3,'');
-INSERT INTO vocab VALUES(16,'difficulty','incrediblyHard','Incredibly Hard','',4,'');
-INSERT INTO vocab VALUES(17,'derived','hp','Hit Points','',1,'');
-INSERT INTO vocab VALUES(18,'derived','hpShort','HP','',2,'');
-INSERT INTO vocab VALUES(19,'derived','strain','Exhaustion','',3,'');
-INSERT INTO vocab VALUES(20,'derived','strainShort','E','',4,'');
-INSERT INTO vocab VALUES(21,'derived','wounds','Wounds','',5,'');
-INSERT INTO vocab VALUES(22,'derived','ac','Armor Class','',6,'');
-INSERT INTO vocab VALUES(23,'derived','acShort','AC','',7,'');
-INSERT INTO vocab VALUES(24,'derived','acMelee','Melee AC','',8,'');
-INSERT INTO vocab VALUES(25,'derived','acRanged','Ranged AC','',9,'');
-INSERT INTO vocab VALUES(26,'derived','attackBonus','Attack Bonus','',10,'');
-INSERT INTO vocab VALUES(27,'derived','initiative','Initiative','',11,'');
-INSERT INTO vocab VALUES(28,'derived','movement','Movement','',12,'');
-INSERT INTO vocab VALUES(29,'derived','encumbrance','Encumbrance','',13,'');
-INSERT INTO vocab VALUES(30,'derived','level','Level','',14,'');
-INSERT INTO vocab VALUES(31,'derived','experience','Experience','',15,'');
-INSERT INTO vocab VALUES(32,'condition','stunned','Stunned','',1,'');
-INSERT INTO vocab VALUES(33,'condition','paralyzed','Paralyzed','',2,'');
-INSERT INTO vocab VALUES(34,'condition','prone','Prone','',3,'');
-INSERT INTO vocab VALUES(35,'condition','blinded','Blinded','',4,'');
-INSERT INTO vocab VALUES(36,'condition','deafened','Deafened','',5,'');
-INSERT INTO vocab VALUES(37,'condition','ignited','Ignited','',6,'');
-INSERT INTO vocab VALUES(38,'condition','slowed','Slowed','',7,'');
-INSERT INTO vocab VALUES(39,'condition','sickened','Sickened','',8,'');
-INSERT INTO vocab VALUES(40,'condition','wounded','Wounded','',9,'');
-INSERT INTO vocab VALUES(41,'condition','strained','Strained','',10,'');
-INSERT INTO vocab VALUES(42,'injury_severity','minor','Minor','',1,'');
-INSERT INTO vocab VALUES(43,'injury_severity','major','Major','',2,'');
-INSERT INTO vocab VALUES(44,'injury_severity','severe','Severe','',3,'');
-INSERT INTO vocab VALUES(45,'injury_location','head','Head','',1,'');
-INSERT INTO vocab VALUES(46,'injury_location','body','Body','',2,'');
-INSERT INTO vocab VALUES(47,'injury_location','arms','Arms','',3,'');
-INSERT INTO vocab VALUES(48,'injury_location','legs','Legs','',4,'');
-INSERT INTO vocab VALUES(49,'injury_location','bleed','Bleeding','',5,'');
-INSERT INTO vocab VALUES(50,'injury_weapon','arrow','Arrow','',1,'');
-INSERT INTO vocab VALUES(51,'injury_weapon','bullet','Bullet','',2,'');
-INSERT INTO vocab VALUES(52,'injury_weapon','blunt','Blunt','',3,'');
-INSERT INTO vocab VALUES(53,'injury_weapon','claws','Claws','',4,'');
-INSERT INTO vocab VALUES(54,'injury_weapon','cutting','Cutting','',5,'');
-INSERT INTO vocab VALUES(55,'injury_weapon','flame','Flame','',6,'');
-INSERT INTO vocab VALUES(56,'injury_weapon','piercing','Piercing','',7,'');
-INSERT INTO vocab VALUES(57,'injury_weapon','explosion','Explosion','',8,'');
-INSERT INTO vocab VALUES(58,'derived','strainLimit','Exhaustion Limit','EL',16,'');
-INSERT INTO vocab VALUES(59,'derived','strainLimitShort','SL','',17,'');
-INSERT INTO vocab VALUES(60,'derived','resolve','Resolve','RSV',18,'');
-INSERT INTO vocab VALUES(61,'derived','resolveShort','RSV','',19,'');
-INSERT INTO vocab VALUES(62,'derived','meleeDamage','Melee Damage','',20,'');
-CREATE TABLE IF NOT EXISTS "translation" (
-	id          INTEGER PRIMARY KEY AUTOINCREMENT,
-	entity_kind TEXT NOT NULL
-		CHECK (entity_kind IN (
-			'attribute', 'skill', 'specialization', 'class',
-			'background', 'region', 'talent', 'power', 'condition', 'injury', 'race',
-			'proficiency', 'outcome', 'save', 'difficulty', 'derived',
-			'injury_severity', 'injury_location', 'injury_weapon'
-		)),
-	entity_id   INTEGER NOT NULL,
-	locale      TEXT NOT NULL CHECK (locale != 'en' AND length(locale) > 0),
-	field       TEXT NOT NULL CHECK (field IN ('label', 'abbreviation', 'description')),
-	value       TEXT NOT NULL CHECK (length(value) > 0),
-	UNIQUE (entity_kind, entity_id, locale, field)
-);
-INSERT INTO translation VALUES(1,'attribute',1,'ru','label','Мощь');
-INSERT INTO translation VALUES(2,'attribute',1,'ru','abbreviation','МЩ');
-INSERT INTO translation VALUES(3,'attribute',2,'ru','label','Ловкость');
-INSERT INTO translation VALUES(4,'attribute',2,'ru','abbreviation','ЛВ');
-INSERT INTO translation VALUES(5,'attribute',3,'ru','label','Знание');
-INSERT INTO translation VALUES(6,'attribute',3,'ru','abbreviation','ЗН');
-INSERT INTO translation VALUES(7,'attribute',4,'ru','label','Фокус');
-INSERT INTO translation VALUES(8,'attribute',4,'ru','abbreviation','ФК');
-INSERT INTO translation VALUES(9,'attribute',5,'ru','label','Харизма');
-INSERT INTO translation VALUES(10,'attribute',5,'ru','abbreviation','ХР');
-INSERT INTO translation VALUES(11,'attribute',6,'ru','label','Удача');
-INSERT INTO translation VALUES(12,'attribute',6,'ru','abbreviation','УД');
-INSERT INTO translation VALUES(13,'skill',1,'ru','label','Аркана');
-INSERT INTO translation VALUES(14,'skill',2,'ru','label','Контакт');
-INSERT INTO translation VALUES(15,'skill',3,'ru','label','Обхождение');
-INSERT INTO translation VALUES(16,'skill',4,'ru','label','Влияние');
-INSERT INTO translation VALUES(17,'skill',5,'ru','label','Ремесло');
-INSERT INTO translation VALUES(18,'skill',6,'ru','label','Атлетика');
-INSERT INTO translation VALUES(19,'skill',7,'ru','label','Лукавство');
-INSERT INTO translation VALUES(20,'skill',8,'ru','label','Врачевание');
-INSERT INTO translation VALUES(21,'skill',9,'ru','label','Исследование');
-INSERT INTO translation VALUES(22,'skill',10,'ru','label','Предания');
-INSERT INTO translation VALUES(23,'skill',11,'ru','label','Внимательность');
-INSERT INTO translation VALUES(24,'skill',12,'ru','label','Скрытность');
-INSERT INTO translation VALUES(25,'skill',13,'ru','label','Удар');
-INSERT INTO translation VALUES(26,'skill',14,'ru','label','Стрельба');
-INSERT INTO translation VALUES(27,'skill',15,'ru','label','Холодное оружие');
-INSERT INTO translation VALUES(28,'skill',16,'ru','label','Выживание');
-INSERT INTO translation VALUES(29,'skill',17,'ru','label','Путешествия');
-INSERT INTO translation VALUES(30,'skill',18,'ru','label','Труд');
-INSERT INTO translation VALUES(31,'skill',19,'ru','label','Вероучение');
-INSERT INTO translation VALUES(32,'class',1,'ru','label','Воин');
-INSERT INTO translation VALUES(33,'class',2,'ru','label','Эксперт');
-INSERT INTO translation VALUES(34,'class',3,'ru','label','Кверанский арканист');
-INSERT INTO translation VALUES(35,'class',4,'ru','label','Элементалист');
-INSERT INTO translation VALUES(36,'class',5,'ru','label','Некромант');
-INSERT INTO translation VALUES(37,'class',6,'ru','label','Жрец');
-INSERT INTO translation VALUES(38,'class',7,'ru','label','Ведун');
-INSERT INTO translation VALUES(39,'class',8,'ru','label','Проклятый');
-INSERT INTO translation VALUES(40,'class',9,'ru','label','Дуэлянт');
-INSERT INTO translation VALUES(41,'class',10,'ru','label','Эмпат');
-INSERT INTO translation VALUES(42,'class',11,'ru','label','Рунный защитник');
-INSERT INTO translation VALUES(43,'class',12,'ru','label','Зверь');
-INSERT INTO translation VALUES(52,'specialization',1,'ru','label','Бюрократия');
-INSERT INTO translation VALUES(53,'specialization',2,'ru','label','Этикет');
-INSERT INTO translation VALUES(54,'specialization',3,'ru','label','Право');
-INSERT INTO translation VALUES(55,'specialization',4,'ru','label','Организации');
-INSERT INTO translation VALUES(56,'specialization',5,'ru','label','Политика');
-INSERT INTO translation VALUES(57,'specialization',6,'ru','label','Слухи');
-INSERT INTO translation VALUES(58,'specialization',7,'ru','label','Уличные порядки');
-INSERT INTO translation VALUES(59,'specialization',8,'ru','label','Обаяние');
-INSERT INTO translation VALUES(60,'specialization',9,'ru','label','Приказ');
-INSERT INTO translation VALUES(61,'specialization',10,'ru','label','Обман');
-INSERT INTO translation VALUES(62,'specialization',11,'ru','label','Торг');
-INSERT INTO translation VALUES(63,'specialization',12,'ru','label','Запугивание');
-INSERT INTO translation VALUES(64,'specialization',14,'ru','label','Убеждение');
-INSERT INTO translation VALUES(65,'specialization',13,'ru','label','Представление');
-INSERT INTO translation VALUES(68,'specialization',15,'ru','label','Маскировка');
-INSERT INTO translation VALUES(69,'specialization',16,'ru','label','Подделка');
-INSERT INTO translation VALUES(70,'specialization',17,'ru','label','Мошенничество');
-INSERT INTO translation VALUES(71,'specialization',19,'ru','label','Яды');
-INSERT INTO translation VALUES(72,'specialization',18,'ru','label','Азартные игры');
-INSERT INTO translation VALUES(73,'specialization',20,'ru','label','Ловушки');
-INSERT INTO translation VALUES(75,'specialization',21,'ru','label','Диагностика');
-INSERT INTO translation VALUES(76,'specialization',22,'ru','label','Первая помощь');
-INSERT INTO translation VALUES(77,'specialization',23,'ru','label','Фармакология');
-INSERT INTO translation VALUES(78,'specialization',24,'ru','label','Психология');
-INSERT INTO translation VALUES(79,'specialization',25,'ru','label','Восстановление');
-INSERT INTO translation VALUES(80,'specialization',26,'ru','label','Хирургия');
-INSERT INTO translation VALUES(81,'specialization',27,'ru','label','Токсикология');
-INSERT INTO translation VALUES(83,'specialization',28,'ru','label','Оценка');
-INSERT INTO translation VALUES(84,'specialization',30,'ru','label','Расследование');
-INSERT INTO translation VALUES(85,'specialization',31,'ru','label','Письмена');
-INSERT INTO translation VALUES(86,'specialization',32,'ru','label','Изыскания');
-INSERT INTO translation VALUES(87,'specialization',33,'ru','label','Обыск');
-INSERT INTO translation VALUES(88,'specialization',34,'ru','label','Аномалии');
-INSERT INTO translation VALUES(89,'specialization',35,'ru','label','Чуткость');
-INSERT INTO translation VALUES(90,'specialization',36,'ru','label','Детали');
-INSERT INTO translation VALUES(91,'specialization',37,'ru','label','Дальнозоркость');
-INSERT INTO translation VALUES(92,'specialization',38,'ru','label','Скрытое');
-INSERT INTO translation VALUES(93,'specialization',39,'ru','label','Проницательность');
-INSERT INTO translation VALUES(94,'specialization',40,'ru','label','Слух');
-INSERT INTO translation VALUES(95,'specialization',41,'ru','label','Удар в спину');
-INSERT INTO translation VALUES(96,'specialization',42,'ru','label','Лазание');
-INSERT INTO translation VALUES(97,'specialization',43,'ru','label','Укрытие');
-INSERT INTO translation VALUES(98,'specialization',44,'ru','label','Взлом замков');
-INSERT INTO translation VALUES(99,'specialization',45,'ru','label','Ловкость рук');
-INSERT INTO translation VALUES(100,'specialization',46,'ru','label','Крадущийся шаг');
-INSERT INTO translation VALUES(103,'specialization',48,'ru','label','Разведка');
-INSERT INTO translation VALUES(104,'specialization',49,'ru','label','Укрытие');
-INSERT INTO translation VALUES(105,'specialization',50,'ru','label','Следопытство');
-INSERT INTO translation VALUES(106,'specialization',51,'ru','label','Пеший ход');
-INSERT INTO translation VALUES(107,'specialization',52,'ru','label','Верховая езда');
-INSERT INTO translation VALUES(108,'specialization',53,'ru','label','Вождение');
-INSERT INTO translation VALUES(109,'specialization',54,'ru','label','Мореплавание');
-INSERT INTO translation VALUES(110,'specialization',55,'ru','label','Навигация');
-INSERT INTO translation VALUES(111,'specialization',56,'ru','label','Ориентирование');
-INSERT INTO translation VALUES(114,'specialization',29,'ru','label','Шифры');
-INSERT INTO translation VALUES(117,'specialization',47,'ru','label','Промысел');
-INSERT INTO translation VALUES(118,'proficiency',2,'ru','label','Ученик');
-INSERT INTO translation VALUES(119,'proficiency',4,'ru','label','Эксперт');
-INSERT INTO translation VALUES(120,'proficiency',6,'ru','label','Легендарный');
-INSERT INTO translation VALUES(121,'proficiency',5,'ru','label','Мастер');
-INSERT INTO translation VALUES(122,'proficiency',3,'ru','label','Обученный');
-INSERT INTO translation VALUES(123,'proficiency',1,'ru','label','Необученный');
-INSERT INTO translation VALUES(124,'outcome',8,'ru','label','Успех с последствиями');
-INSERT INTO translation VALUES(125,'outcome',7,'ru','label','Провал');
-INSERT INTO translation VALUES(126,'outcome',9,'ru','label','Успех');
-INSERT INTO translation VALUES(127,'save',11,'ru','label','Стойкость');
-INSERT INTO translation VALUES(128,'save',10,'ru','label','Реакция');
-INSERT INTO translation VALUES(129,'save',12,'ru','label','Воля');
-INSERT INTO translation VALUES(130,'difficulty',13,'ru','label','Сложно');
-INSERT INTO translation VALUES(131,'difficulty',14,'ru','label','Трудно');
-INSERT INTO translation VALUES(132,'difficulty',16,'ru','label','Невероятно трудно');
-INSERT INTO translation VALUES(133,'difficulty',15,'ru','label','Очень трудно');
-INSERT INTO translation VALUES(134,'derived',22,'ru','label','Класс брони');
-INSERT INTO translation VALUES(135,'derived',24,'ru','label','КБ в ближнем бою');
-INSERT INTO translation VALUES(136,'derived',25,'ru','label','КБ против стрельбы');
-INSERT INTO translation VALUES(137,'derived',23,'ru','label','КБ');
-INSERT INTO translation VALUES(138,'derived',26,'ru','label','Бонус атаки');
-INSERT INTO translation VALUES(139,'derived',29,'ru','label','Нагрузка');
-INSERT INTO translation VALUES(140,'derived',31,'ru','label','Опыт');
-INSERT INTO translation VALUES(141,'derived',17,'ru','label','Пункты здоровья');
-INSERT INTO translation VALUES(142,'derived',18,'ru','label','ПЗ');
-INSERT INTO translation VALUES(143,'derived',27,'ru','label','Инициатива');
-INSERT INTO translation VALUES(144,'derived',30,'ru','label','Уровень');
-INSERT INTO translation VALUES(145,'derived',28,'ru','label','Перемещение');
-INSERT INTO translation VALUES(146,'derived',19,'ru','label','Изнурение');
-INSERT INTO translation VALUES(147,'derived',20,'ru','label','И');
-INSERT INTO translation VALUES(148,'derived',21,'ru','label','Раны');
-INSERT INTO translation VALUES(149,'condition',35,'ru','label','Ослеплён');
-INSERT INTO translation VALUES(150,'condition',36,'ru','label','Оглох');
-INSERT INTO translation VALUES(151,'condition',37,'ru','label','Горит');
-INSERT INTO translation VALUES(152,'condition',33,'ru','label','Парализован');
-INSERT INTO translation VALUES(153,'condition',34,'ru','label','Лежит');
-INSERT INTO translation VALUES(154,'condition',39,'ru','label','Болен');
-INSERT INTO translation VALUES(155,'condition',38,'ru','label','Замедлён');
-INSERT INTO translation VALUES(156,'condition',41,'ru','label','Перенапряжён');
-INSERT INTO translation VALUES(157,'condition',32,'ru','label','Оглушён');
-INSERT INTO translation VALUES(158,'condition',40,'ru','label','Ранен');
-INSERT INTO translation VALUES(159,'injury_severity',43,'ru','label','Серьёзная');
-INSERT INTO translation VALUES(160,'injury_severity',42,'ru','label','Лёгкая');
-INSERT INTO translation VALUES(161,'injury_severity',44,'ru','label','Тяжёлая');
-INSERT INTO translation VALUES(162,'injury_location',47,'ru','label','Руки');
-INSERT INTO translation VALUES(163,'injury_location',49,'ru','label','Кровотечение');
-INSERT INTO translation VALUES(164,'injury_location',46,'ru','label','Туловище');
-INSERT INTO translation VALUES(165,'injury_location',45,'ru','label','Голова');
-INSERT INTO translation VALUES(166,'injury_location',48,'ru','label','Ноги');
-INSERT INTO translation VALUES(167,'injury_weapon',50,'ru','label','Стрела');
-INSERT INTO translation VALUES(168,'injury_weapon',52,'ru','label','Дробящее');
-INSERT INTO translation VALUES(169,'injury_weapon',51,'ru','label','Пуля');
-INSERT INTO translation VALUES(170,'injury_weapon',53,'ru','label','Когти');
-INSERT INTO translation VALUES(171,'injury_weapon',54,'ru','label','Режущее');
-INSERT INTO translation VALUES(172,'injury_weapon',57,'ru','label','Взрыв');
-INSERT INTO translation VALUES(173,'injury_weapon',55,'ru','label','Пламя');
-INSERT INTO translation VALUES(174,'injury_weapon',56,'ru','label','Колющее');
-INSERT INTO translation VALUES(185,'derived',62,'ru','label','Урон в ближнем бою');
-INSERT INTO translation VALUES(186,'derived',60,'ru','label','Решимость');
-INSERT INTO translation VALUES(187,'derived',61,'ru','label','РШ');
-INSERT INTO translation VALUES(188,'derived',58,'ru','label','Предел изнурения');
-INSERT INTO translation VALUES(189,'derived',59,'ru','label','ПН');
-INSERT INTO translation VALUES(193,'derived',58,'ru','abbreviation','ПИ');
-INSERT INTO translation VALUES(195,'derived',60,'ru','abbreviation','РШ');
+INSERT INTO "vocab" VALUES(1,'proficiency','untrained','Untrained','',1,'');
+INSERT INTO "vocab" VALUES(2,'proficiency','apprentice','Apprentice','',2,'');
+INSERT INTO "vocab" VALUES(3,'proficiency','trained','Trained','',3,'');
+INSERT INTO "vocab" VALUES(4,'proficiency','expert','Expert','',4,'');
+INSERT INTO "vocab" VALUES(5,'proficiency','master','Master','',5,'');
+INSERT INTO "vocab" VALUES(6,'proficiency','legendary','Legendary','',6,'');
+INSERT INTO "vocab" VALUES(7,'outcome','failure','Failure','',1,'');
+INSERT INTO "vocab" VALUES(8,'outcome','cost','Success at a Cost','',2,'');
+INSERT INTO "vocab" VALUES(9,'outcome','success','Success','',3,'');
+INSERT INTO "vocab" VALUES(10,'save','reflex','Reflex','',1,'');
+INSERT INTO "vocab" VALUES(11,'save','fortitude','Fortitude','',2,'');
+INSERT INTO "vocab" VALUES(12,'save','will','Will','',3,'');
+INSERT INTO "vocab" VALUES(13,'difficulty','challenging','Challenging','',1,'');
+INSERT INTO "vocab" VALUES(14,'difficulty','hard','Hard','',2,'');
+INSERT INTO "vocab" VALUES(15,'difficulty','veryHard','Very Hard','',3,'');
+INSERT INTO "vocab" VALUES(16,'difficulty','incrediblyHard','Incredibly Hard','',4,'');
+INSERT INTO "vocab" VALUES(17,'derived','hp','Hit Points','',1,'');
+INSERT INTO "vocab" VALUES(18,'derived','hpShort','HP','',2,'');
+INSERT INTO "vocab" VALUES(19,'derived','strain','Exhaustion','',3,'');
+INSERT INTO "vocab" VALUES(20,'derived','strainShort','E','',4,'');
+INSERT INTO "vocab" VALUES(21,'derived','wounds','Wounds','',5,'');
+INSERT INTO "vocab" VALUES(22,'derived','ac','Armor Class','',6,'');
+INSERT INTO "vocab" VALUES(23,'derived','acShort','AC','',7,'');
+INSERT INTO "vocab" VALUES(24,'derived','acMelee','Melee AC','',8,'');
+INSERT INTO "vocab" VALUES(25,'derived','acRanged','Ranged AC','',9,'');
+INSERT INTO "vocab" VALUES(26,'derived','attackBonus','Attack Bonus','',10,'');
+INSERT INTO "vocab" VALUES(27,'derived','initiative','Initiative','',11,'');
+INSERT INTO "vocab" VALUES(28,'derived','movement','Movement','',12,'');
+INSERT INTO "vocab" VALUES(29,'derived','encumbrance','Encumbrance','',13,'');
+INSERT INTO "vocab" VALUES(30,'derived','level','Level','',14,'');
+INSERT INTO "vocab" VALUES(31,'derived','experience','Experience','',15,'');
+INSERT INTO "vocab" VALUES(32,'condition','stunned','Stunned','',1,'');
+INSERT INTO "vocab" VALUES(33,'condition','paralyzed','Paralyzed','',2,'');
+INSERT INTO "vocab" VALUES(34,'condition','prone','Prone','',3,'');
+INSERT INTO "vocab" VALUES(35,'condition','blinded','Blinded','',4,'');
+INSERT INTO "vocab" VALUES(36,'condition','deafened','Deafened','',5,'');
+INSERT INTO "vocab" VALUES(37,'condition','ignited','Ignited','',6,'');
+INSERT INTO "vocab" VALUES(38,'condition','slowed','Slowed','',7,'');
+INSERT INTO "vocab" VALUES(39,'condition','sickened','Sickened','',8,'');
+INSERT INTO "vocab" VALUES(40,'condition','wounded','Wounded','',9,'');
+INSERT INTO "vocab" VALUES(41,'condition','strained','Strained','',10,'');
+INSERT INTO "vocab" VALUES(42,'injury_severity','minor','Minor','',1,'');
+INSERT INTO "vocab" VALUES(43,'injury_severity','major','Major','',2,'');
+INSERT INTO "vocab" VALUES(44,'injury_severity','severe','Severe','',3,'');
+INSERT INTO "vocab" VALUES(45,'injury_location','head','Head','',1,'');
+INSERT INTO "vocab" VALUES(46,'injury_location','body','Body','',2,'');
+INSERT INTO "vocab" VALUES(47,'injury_location','arms','Arms','',3,'');
+INSERT INTO "vocab" VALUES(48,'injury_location','legs','Legs','',4,'');
+INSERT INTO "vocab" VALUES(49,'injury_location','bleed','Bleeding','',5,'');
+INSERT INTO "vocab" VALUES(50,'injury_weapon','arrow','Arrow','',1,'');
+INSERT INTO "vocab" VALUES(51,'injury_weapon','bullet','Bullet','',2,'');
+INSERT INTO "vocab" VALUES(52,'injury_weapon','blunt','Blunt','',3,'');
+INSERT INTO "vocab" VALUES(53,'injury_weapon','claws','Claws','',4,'');
+INSERT INTO "vocab" VALUES(54,'injury_weapon','cutting','Cutting','',5,'');
+INSERT INTO "vocab" VALUES(55,'injury_weapon','flame','Flame','',6,'');
+INSERT INTO "vocab" VALUES(56,'injury_weapon','piercing','Piercing','',7,'');
+INSERT INTO "vocab" VALUES(57,'injury_weapon','explosion','Explosion','',8,'');
+INSERT INTO "vocab" VALUES(58,'derived','strainLimit','Exhaustion Limit','EL',16,'');
+INSERT INTO "vocab" VALUES(59,'derived','strainLimitShort','SL','',17,'');
+INSERT INTO "vocab" VALUES(60,'derived','resolve','Resolve','RSV',18,'');
+INSERT INTO "vocab" VALUES(61,'derived','resolveShort','RSV','',19,'');
+INSERT INTO "vocab" VALUES(62,'derived','meleeDamage','Melee Damage','',20,'');
+CREATE TRIGGER attribute_delete_translations
+AFTER DELETE ON attribute
+BEGIN
+	DELETE FROM translation WHERE entity_kind = 'attribute' AND entity_id = OLD.id;
+END;
+CREATE TRIGGER skill_delete_translations
+AFTER DELETE ON skill
+BEGIN
+	DELETE FROM translation WHERE entity_kind = 'skill' AND entity_id = OLD.id;
+END;
+CREATE TRIGGER specialization_delete_translations
+AFTER DELETE ON specialization
+BEGIN
+	DELETE FROM translation WHERE entity_kind = 'specialization' AND entity_id = OLD.id;
+END;
+CREATE TRIGGER class_delete_translations
+AFTER DELETE ON class
+BEGIN
+	DELETE FROM translation WHERE entity_kind = 'class' AND entity_id = OLD.id;
+END;
+CREATE TRIGGER vocab_delete_translations
+AFTER DELETE ON vocab
+BEGIN
+	DELETE FROM translation WHERE entity_kind = OLD.kind AND entity_id = OLD.id;
+END;
+CREATE TRIGGER race_delete_translations
+AFTER DELETE ON race
+BEGIN
+	DELETE FROM translation WHERE entity_kind = 'race' AND entity_id = OLD.id;
+END;
+CREATE TRIGGER region_delete_translations
+AFTER DELETE ON region
+BEGIN
+	DELETE FROM translation WHERE entity_kind = 'region' AND entity_id = OLD.id;
+END;
+CREATE TRIGGER background_delete_translations
+AFTER DELETE ON background
+BEGIN
+	DELETE FROM translation WHERE entity_kind = 'background' AND entity_id = OLD.id;
+END;
+CREATE TRIGGER talent_delete_translations
+AFTER DELETE ON talent
+BEGIN
+	DELETE FROM translation WHERE entity_kind = 'talent' AND entity_id = OLD.id;
+END;
 CREATE TRIGGER translation_insert_entity_exists
 BEFORE INSERT ON translation
 BEGIN
@@ -429,6 +570,18 @@ BEGIN
 		WHEN NEW.entity_kind = 'class'
 			AND NOT EXISTS (SELECT 1 FROM class WHERE id = NEW.entity_id)
 			THEN RAISE(ABORT, 'translation.entity_id: class not found')
+		WHEN NEW.entity_kind = 'race'
+			AND NOT EXISTS (SELECT 1 FROM race WHERE id = NEW.entity_id)
+			THEN RAISE(ABORT, 'translation.entity_id: race not found')
+		WHEN NEW.entity_kind = 'region'
+			AND NOT EXISTS (SELECT 1 FROM region WHERE id = NEW.entity_id)
+			THEN RAISE(ABORT, 'translation.entity_id: region not found')
+		WHEN NEW.entity_kind = 'background'
+			AND NOT EXISTS (SELECT 1 FROM background WHERE id = NEW.entity_id)
+			THEN RAISE(ABORT, 'translation.entity_id: background not found')
+		WHEN NEW.entity_kind = 'talent'
+			AND NOT EXISTS (SELECT 1 FROM talent WHERE id = NEW.entity_id)
+			THEN RAISE(ABORT, 'translation.entity_id: talent not found')
 		WHEN NEW.entity_kind IN (
 				'proficiency', 'outcome', 'save', 'difficulty', 'derived',
 				'condition', 'injury_severity', 'injury_location', 'injury_weapon'
@@ -455,6 +608,18 @@ BEGIN
 		WHEN NEW.entity_kind = 'class'
 			AND NOT EXISTS (SELECT 1 FROM class WHERE id = NEW.entity_id)
 			THEN RAISE(ABORT, 'translation.entity_id: class not found')
+		WHEN NEW.entity_kind = 'race'
+			AND NOT EXISTS (SELECT 1 FROM race WHERE id = NEW.entity_id)
+			THEN RAISE(ABORT, 'translation.entity_id: race not found')
+		WHEN NEW.entity_kind = 'region'
+			AND NOT EXISTS (SELECT 1 FROM region WHERE id = NEW.entity_id)
+			THEN RAISE(ABORT, 'translation.entity_id: region not found')
+		WHEN NEW.entity_kind = 'background'
+			AND NOT EXISTS (SELECT 1 FROM background WHERE id = NEW.entity_id)
+			THEN RAISE(ABORT, 'translation.entity_id: background not found')
+		WHEN NEW.entity_kind = 'talent'
+			AND NOT EXISTS (SELECT 1 FROM talent WHERE id = NEW.entity_id)
+			THEN RAISE(ABORT, 'translation.entity_id: talent not found')
 		WHEN NEW.entity_kind IN (
 				'proficiency', 'outcome', 'save', 'difficulty', 'derived',
 				'condition', 'injury_severity', 'injury_location', 'injury_weapon'
@@ -465,31 +630,5 @@ BEGIN
 			THEN RAISE(ABORT, 'translation.entity_id: vocab not found')
 	END;
 END;
-CREATE TRIGGER attribute_delete_translations
-AFTER DELETE ON attribute
-BEGIN
-	DELETE FROM translation WHERE entity_kind = 'attribute' AND entity_id = OLD.id;
-END;
-CREATE TRIGGER skill_delete_translations
-AFTER DELETE ON skill
-BEGIN
-	DELETE FROM translation WHERE entity_kind = 'skill' AND entity_id = OLD.id;
-END;
-CREATE TRIGGER specialization_delete_translations
-AFTER DELETE ON specialization
-BEGIN
-	DELETE FROM translation WHERE entity_kind = 'specialization' AND entity_id = OLD.id;
-END;
-CREATE TRIGGER class_delete_translations
-AFTER DELETE ON class
-BEGIN
-	DELETE FROM translation WHERE entity_kind = 'class' AND entity_id = OLD.id;
-END;
-CREATE TRIGGER vocab_delete_translations
-AFTER DELETE ON vocab
-BEGIN
-	DELETE FROM translation WHERE entity_kind = OLD.kind AND entity_id = OLD.id;
-END;
-
 COMMIT;
 PRAGMA foreign_keys=ON;

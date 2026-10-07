@@ -21,9 +21,11 @@ Agent rule: [`.cursor/rules/kedom-forge-ui.mdc`](../../../.cursor/rules/kedom-fo
 ## This slice
 
 - Attributes, skills (with nested specialisations), classes
-- Side-by-side English / Russian editor
+- Regions, Cultures (`race`), Talents, Backgrounds (nav last among content)
+- Side-by-side English / Russian editor; create with **auto-slug** from label
 - Completeness checklist for missing Russian fields
 - **Export MD** — barebones rulebook preview + download (`en` / `ru`)
+- Pack YAML: `npm run forge:export:packs` from the API CLI
 
 English fields are editable so you can refine the skeletal vocabulary as you go. Once content
 is locked for play, treat English as read-only and only extend Russian overlays (see

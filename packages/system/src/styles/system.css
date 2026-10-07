@@ -2819,6 +2819,43 @@ button.kedom-skill__tag.is-blocked:hover {
   font-size: 1rem;
 }
 
+.kedom-create-wizard__selection-detail {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.kedom-create-wizard__desc {
+  font-size: 0.9em;
+  line-height: 1.35;
+}
+
+.kedom-create-wizard__desc > *:first-child {
+  margin-top: 0;
+}
+
+.kedom-create-wizard__desc > *:last-child {
+  margin-bottom: 0;
+}
+
+.kedom-create-wizard__talent h4 {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+.kedom-create-wizard__hp-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.kedom-create-wizard__skill.is-duplicate {
+  opacity: 0.55;
+}
+
 .kedom-create-wizard__rolls {
   display: grid;
   gap: 0.75rem;

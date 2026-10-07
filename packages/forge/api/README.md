@@ -34,6 +34,8 @@ npm run forge:web              # :5173, proxies /api → :7777
 npm run forge:dump             # regenerate packages/content/dump.sql
 npm run forge:export:md        # barebones rulebook → exports/markdown/
 npm run forge:export:md -- -locale=ru
+npm run forge:export:lang      # closed vocab → packages/system/lang/{en,ru}.json
+npm run forge:export:packs     # origins+talents YAML → packs/_source/ (lang first)
 npm run forge:sqlc             # regenerate internal/repository/generated (gitignored)
 ```
 

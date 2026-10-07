@@ -14,27 +14,30 @@ integrity by hand, which is the reason SQLite is the source of truth
 
 ```mermaid
 flowchart TD
-  region --> region_race
-  region_race --> race
-  race --> race_grant
+  region --> region_culture
+  region_culture --> race
+  region --> region_culture_background
+  race --> region_culture_background
+  region_culture_background --> background
   race --> race_class
   race_class --> class
-  race --> race_background
-  race_background --> background
-  background --> skill_choice
-  skill_choice --> skill_choice_option
-  skill_choice_option --> skill
-  skill_choice_option --> specialization
+  race --> talentC[talent]
+  class --> talentK[talent]
+  background --> background_growth
+  background_growth --> skill
+  background --> freeSkill[skill]
   skill --> specialization
   attribute --> skill
-  race_grant --> skill
-  race_grant --> specialization
-  race_grant --> attribute
   translation -.-> skill
   translation -.-> race
   translation -.-> class
   translation -.-> background
+  translation -.-> region
+  translation -.-> talent
 ```
+
+`race` is the **culture** table (Forge UI label “Culture”; Foundry `origin` `subType: "race"`).
+Background lists are **region × culture** scoped via `region_culture_background`, not culture-only.
 
 `translation` is an overlay, not a parent. English `label` / `description` live on the entity;
 Russian lives in `translation`. See [localisation.md](localisation.md).
@@ -47,7 +50,7 @@ mistake this whole schema is designed to avoid:
 | Column | Mutable? | Purpose |
 |---|---|---|
 | `id` | never | SQLite primary key. Internal to Forge. |
-| `slug` | never | Cross-system identity. Referenced by the Foundry system and by exports. |
+| `slug` | never (after create) | Cross-system identity. Referenced by the Foundry system and by exports. **Auto-generated** from the English label on create (`kebab-case`); uniqueness enforced with `-2`, `-3`, … suffixes. Authors do not type a slug; updates never change it. |
 | `foundry_id` | never | The 16-character Foundry document `_id`, stored so re-export does not regenerate it. |
 | `label` | freely | What humans read. **English**, the canonical display name. Russian lives in `translation`. |
 
@@ -201,52 +204,66 @@ but none of the progression numbers exist yet
 `attack_progression`, `skill_points_per_level`, and `hit_die` stay nullable. They are named
 after WWN's `classEdge` fields because those are known to be the right shape.
 
-### `region` and `region_race`
+### `talent`
+
+Character talents (not “feats”). Linked from cultures and classes by **slug** after export.
 
 ```
-region:       id, slug, label, description, parent_region_id, sort_order, foundry_id
-region_race:  region_id, race_id, prevalence ('common'|'uncommon'|'rare'), notes
+talent: id, slug, label, description, comment,
+        category ('class'|'culture'|'skills'|'combat'|'general'|'other'),
+        feature_key, grants_json, sort_order, foundry_id
 ```
 
-Many-to-many: a race appears in several regions, with different prevalence. `prevalence` is
-what makes the region view useful rather than just a grouping.
+Cultures and classes that link a talent are shown on the talent’s Forge page (and reverse links
+appear on culture/class/background/region pages for pack-exported entities).
 
-### `background` and `race_background`
+`grants_json` matches the Foundry talent `grants` shape. Active Effect authoring in Forge is
+deferred.
 
-```
-background:       id, slug, label, description, roll_result, free_skill_id, sort_order, foundry_id
-race_background:  race_id, background_id
-```
-
-`roll_result` is the entry's slot on the `2d8` background table, and `free_skill_id` is the
-skill it grants outright.
-
-Backgrounds are joined to **races**, not regions, since the workflow is region → races →
-backgrounds and the region link comes through the race. If a background ever needs to be
-region-specific independently of race, that is a second join table, not a column.
-
-> The background table does not exist in the source yet — the mechanic is "roll 2d8, then
-> either roll three times on it or roll once and take two bold", with no table, no explanation
-> of what the three rolls produce, and no definition of "bold"
-> ([Q11](../rules/99-open-questions.md#q11--the-background-table-does-not-exist-yet)). This is
-> the largest content gap, and it sits at the centre of this schema.
-
-### `skill_choice` and `skill_choice_option`
-
-The "pick N of M" mechanic, and the reason a relational store earns its place.
+### `race` (culture)
 
 ```
-skill_choice:         id, background_id, pick_count, label, sort_order
-skill_choice_option:  id, skill_choice_id, skill_id (nullable),
-                      specialization_id (nullable), granted_level
+race: id, slug, label, description, comment, parent_race_id?, talent_id?,
+      sort_order, foundry_id
+race_class: race_id, class_id, is_prefilled_slot
 ```
 
-A background has zero or more choices; each has `pick_count` and a list of options; each
-option points at a skill **or** a specialisation, mirroring `race_grant.kind`.
+UI label is **Culture**. Allowed classes are culture-global (`race_class`); background lists
+are not — see `region_culture_background`.
 
-Expressing this in YAML by hand is exactly where name-based references creep in, because
-there is no constraint stopping you from writing a skill name that does not exist. Here a
-foreign key does.
+### `region`, `region_culture`, `region_culture_background`
+
+```
+region:                     id, slug, label, description, comment, sort_order, foundry_id
+region_culture:             region_id, race_id, weight INTEGER CHECK (weight > 0)
+region_culture_background:  region_id, race_id, background_id, sort_order
+                            FK (region_id, race_id) → region_culture
+```
+
+Integer **weight** (not prevalence enum). The create wizard displays percentages
+(`round(100 * weight / sum)`; last culture absorbs rounding so the UI totals 100).
+
+The same culture can have **different background lists in different regions**. The ternary
+join requires a matching `region_culture` row.
+
+### `background` and `background_growth`
+
+```
+background:         id, slug, label, description, comment,
+                    free_skill_id, free_specialization_id?, sort_order, foundry_id
+background_growth:  background_id, roll_index (1–8 UNIQUE), skill_id, specialization_id?
+```
+
+Creation grants the free skill (+ optional specialization), then rolls **2×1d8** on the eight
+growth rows ([Q11](../rules/99-open-questions.md#q11--background-growth-free-skill--21d8)).
+Application validation: exactly eight growth rows; unique `(skill, specialization)` across
+free + growth for one background.
+
+### `class` (origins fields)
+
+In addition to roster flags, class rows carry Foundry progression fields used by pack export:
+`talent_id`, `hit_die` / `hit_die_priority`, talent picks, prioritized saves, `arts_skill_key`,
+`class_talent_keys` (JSON array). **Effort** authoring is deferred.
 
 ### `translation`
 
@@ -306,33 +323,19 @@ be bypassed:
 
 ## Known gaps
 
-Found by reading the working WWN character generator on the public site, which implements this
-same content graph. Details and evidence in
+**Full Nerland (and other) content** is not authored yet — the schema and export path exist;
+pack YAML stays empty until Forge is filled. Draft wizard config remains the fallback.
+
+**Wildcards in growth rows** (`any combat` / `any skill`) appear in legacy draft tables and the
+WWN generator. Authored Forge growth rows are concrete skill(+spec) pairs; wildcards are not a
+first-class column.
+
+**Effort / Active Effects** are not authored in Forge yet.
+
+Class skill/save die is settled (`2d10`); Luck save and Strain roll use `d20`. Remaining open
+questions (class numbers beyond hit die, magic) still argue for keeping progressions as data
+rather than code constants. See also
 [public-site-export.md](public-site-export.md#what-it-confirms-about-the-forge-schema).
-
-**No roll weights.** A rollable list needs an integer weight per entry to build ranges — the
-generator gives Nitól 3/20 and Half-Orc 1/20 off a `toRoll` field. `region_race.prevalence` is
-a three-value enum and cannot reconstruct that. Anything that can be rolled on needs
-`weight INTEGER`.
-
-**`skill_choice_option` cannot express a roll table.** A background's `1d8` skill table is
-**ordered** and contains **deliberate duplicates** — `["pray", "pray"]` is how a background
-doubles the odds of that skill. That needs a `roll_index`, and the option list must not be
-constrained unique. `pick_count` covers the separate two-skill quick list, not this.
-
-**Wildcards are not modelled.** `any combat` and `any skill` appear throughout the generator's
-background tables. A wildcard is a real option kind, alongside `skill` and `specialization` in
-`skill_choice_option`, not an unresolved reference.
-
-**`granted_level` is now the wrong type.** Proficiency became a six-value tier rather than an
-integer level ([../rules/20-skills.md](../rules/20-skills.md#proficiency)), so
-`skill_choice_option.granted_level` and the grant columns should carry a tier slug. The
-`race_grant.level` column is unaffected — that one really is a character level, gating the
-Dwarf's level-2 ability.
-
-These are recorded, not fixed. Class skill/save die is settled (`2d10`); Luck save and Strain
-roll use `d20`. Remaining open questions (backgrounds, class numbers, magic) still argue for
-keeping enums and progressions as data rather than code constants.
 
 ## What is not in here
 

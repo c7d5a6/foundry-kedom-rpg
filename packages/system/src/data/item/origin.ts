@@ -1,5 +1,5 @@
 import { grantsSchema } from "./grants.ts";
-import { CLASS_SAVE_TRACKS, type OriginDataFields } from "./origin-fields.ts";
+import { CLASS_SAVE_TRACKS } from "./origin-fields.ts";
 import {
   ORIGIN_SUBTYPES,
   normalizeOriginSubtype,
@@ -132,6 +132,47 @@ function originSchema() {
       primary: prioritizedSaveSchema(),
       secondary: prioritizedSaveSchema(),
     }),
+    /** Region: weighted cultures with per-pair background slugs. */
+    cultures: new ArrayField(
+      new SchemaField({
+        slug: new StringField({ required: true, nullable: false, blank: false, initial: "" }),
+        weight: new NumberField({
+          required: true,
+          nullable: false,
+          integer: true,
+          positive: true,
+          initial: 1,
+        }),
+        backgroundSlugs: new ArrayField(
+          new StringField({ required: true, nullable: false, blank: false, initial: "" }),
+          { initial: [] },
+        ),
+      }),
+      { initial: [] },
+    ),
+    /** Race (culture): talent + allowed class slugs. */
+    talentSlug: new StringField({
+      required: true,
+      nullable: false,
+      blank: true,
+      initial: "",
+    }),
+    classSlugs: new ArrayField(
+      new StringField({ required: true, nullable: false, blank: false, initial: "" }),
+      { initial: [] },
+    ),
+    /** Background: free grant + exactly eight growth rows (indexes 0–7 = rolls 1–8). */
+    free: new SchemaField({
+      skillKey: new StringField({ required: true, nullable: false, blank: true, initial: "" }),
+      specSlug: new StringField({ required: true, nullable: false, blank: true, initial: "" }),
+    }),
+    growth: new ArrayField(
+      new SchemaField({
+        skillKey: new StringField({ required: true, nullable: false, blank: true, initial: "" }),
+        specSlug: new StringField({ required: true, nullable: false, blank: true, initial: "" }),
+      }),
+      { initial: () => Array.from({ length: 8 }, () => ({ skillKey: "", specSlug: "" })) },
+    ),
   };
 }
 
