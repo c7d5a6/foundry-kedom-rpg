@@ -70,8 +70,14 @@ because hot reload picks up pack changes without restarting.
 npm run forge:dump           # sqlite -> packages/content/dump.sql
 npm run forge:export:packs   # sqlite -> packs/_source/{origins,talents}/*.yml (+ lang)
 npm run packs:build          # packs/_source/**.yml -> packs/*/ LevelDB
+npm run system:build         # copies LevelDB packs into packages/system/dist/packs/
+npm run system:link          # symlink dist → Data/systems/kedom (once)
 npm run packs:extract        # packs/*/ -> YAML, for inspection only
 ```
+
+Foundry loads the system from `dist/` (via `system:link`). Pack LevelDB must be
+rebuilt **and** the system rebuilt (or at least re-copied) after content changes, or
+the Compendium sidebar still shows the old (or empty) packs.
 
 `tools/pack.ts` and `tools/unpack.ts` wrap `@foundryvtt/foundryvtt-cli`, in the shape of
 draw-steel's `tools/pullJSONtoLDB.mjs` and `tools/pushLDBtoJSON.mjs`.

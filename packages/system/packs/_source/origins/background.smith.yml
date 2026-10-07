@@ -15,8 +15,8 @@ system:
   cultures: []
   description: ""
   free:
-    skillKey: craft
-    specSlug: ""
+    skillKey: guile
+    specSlug: guile.disguise
   grants:
     abilities: []
     skills: []

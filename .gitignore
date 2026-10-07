@@ -13,6 +13,9 @@ packages/forge/api/bin/
 packages/system/packs/*/
 !packages/system/packs/_source/
 
+# foundryvtt-cli local config (written under XDG_DATA_HOME by tools/pack.ts)
+.fvtt-cli/
+
 # Generated code. Regenerate with `npm run forge:types` / `npm run forge:sqlc`.
 packages/shared/src/generated/
 packages/forge/api/internal/repository/generated/

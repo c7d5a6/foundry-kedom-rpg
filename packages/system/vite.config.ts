@@ -1,8 +1,31 @@
+import { cpSync, existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
+import type { Plugin } from "vite";
 import { defineConfig } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 
 const root = import.meta.dirname;
+
+/** Copy compiled ClassicLevel packs into dist (gitignored paths skip static-copy globs). */
+function copyCompendiumPacks(): Plugin {
+  const packNames = ["origins", "talents"] as const;
+  return {
+    name: "kedom-copy-compendium-packs",
+    closeBundle() {
+      const outDir = resolve(root, "dist");
+      for (const name of packNames) {
+        const src = resolve(root, "packs", name);
+        const dest = resolve(outDir, "packs", name);
+        if (!existsSync(src) || readdirSync(src).length === 0) {
+          console.warn(`[kedom-copy-compendium-packs] skip ${name}: run npm run packs:build first`);
+          continue;
+        }
+        cpSync(src, dest, { recursive: true });
+        console.log(`[kedom-copy-compendium-packs] ${name} → dist/packs/${name}`);
+      }
+    },
+  };
+}
 
 /**
  * Builds the system into `dist/`, which is what gets symlinked into
@@ -70,5 +93,6 @@ export default defineConfig({
       ],
       silent: false,
     }),
+    copyCompendiumPacks(),
   ],
 });

@@ -1,6 +1,12 @@
 /**
  * Compile packs/_source YAML into LevelDB packs via @foundryvtt/foundryvtt-cli.
  * Usage: npm run packs:build
+ *
+ * fvtt CLI notes:
+ * - `--type` is Module|System|World (not the document type).
+ * - `--yaml` is a boolean flag.
+ * - `--outputDirectory` is the *parent* packs folder; the CLI appends `-n` name.
+ * - The CLI always touches an `.fvttrc.yml` under XDG_DATA_HOME / ~/.local/share.
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
@@ -11,8 +17,25 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const systemDir = join(root, "packages", "system");
 const sourceRoot = join(systemDir, "packs", "_source");
 const packsRoot = join(systemDir, "packs");
+const fvttHome = join(root, ".fvtt-cli");
 
+const SYSTEM_ID = "kedom";
 const PACKS = ["origins", "talents"] as const;
+
+function runFvtt(args: string[]): number {
+  mkdirSync(fvttHome, { recursive: true });
+  const result = spawnSync("npx", ["--no-install", "fvtt", ...args], {
+    cwd: systemDir,
+    stdio: "inherit",
+    shell: true,
+    env: {
+      ...process.env,
+      // Keep the CLI config out of the real home dir (and sandbox-writable).
+      XDG_DATA_HOME: fvttHome,
+    },
+  });
+  return result.status ?? 1;
+}
 
 function compilePack(name: string): void {
   const src = join(sourceRoot, name);
@@ -27,33 +50,28 @@ function compilePack(name: string): void {
     return;
   }
   rmSync(dest, { recursive: true, force: true });
-  mkdirSync(dest, { recursive: true });
 
-  const result = spawnSync(
-    "npx",
-    [
-      "--no-install",
-      "fvtt",
-      "package",
-      "pack",
-      "-n",
-      name,
-      "--type",
-      "Item",
-      "-t",
-      "yaml",
-      "--inputDirectory",
-      src,
-      "--outputDirectory",
-      dest,
-    ],
-    { cwd: systemDir, stdio: "inherit", shell: true },
-  );
-  if (result.status !== 0) {
-    // Fallback: copy note when CLI unavailable — still leave _source as SoT.
+  // outputDirectory is the parent; fvtt joins it with -n <name>.
+  const status = runFvtt([
+    "package",
+    "pack",
+    "--id",
+    SYSTEM_ID,
+    "--type",
+    "System",
+    "-n",
+    name,
+    "--yaml",
+    "--inputDirectory",
+    src,
+    "--outputDirectory",
+    packsRoot,
+  ]);
+  if (status !== 0) {
     console.warn(
-      `fvtt pack failed for ${name} (exit ${result.status ?? "?"}). YAML sources remain in packs/_source/${name}.`,
+      `fvtt pack failed for ${name} (exit ${status}). YAML sources remain in packs/_source/${name}.`,
     );
+    process.exitCode = 1;
   } else {
     console.log(`packed ${name} (${files.length} docs)`);
   }

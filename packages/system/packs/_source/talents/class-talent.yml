@@ -4,7 +4,7 @@ _key: '!items!f9SyW2GroeHChmL1'
 img: icons/svg/upgrade.svg
 name: Class talent
 system:
-  category: general
+  category: class
   description: ""
   featureKey: ""
   grants:
