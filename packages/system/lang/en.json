@@ -422,13 +422,120 @@
         "sailing": "Sailing"
       }
     },
-    "Armor": {
-      "woundBonus": "Wound bonus",
-      "woundBonusHint": "Flat bonus added to Luck saves on the wound table while this armor is owned. Does not affect Defense."
-    },
-    "Class": {
-      "expert": "Expert",
-      "warrior": "Warrior"
+    "AbilityDescription": {},
+    "SkillDescription": {},
+    "SpecializationDescription": {},
+    "Content": {
+      "Region": {
+        "nerland": {
+          "label": "Náirland",
+          "description": "\u003cp\u003eСуровый северный край холодных зим, тайги и бедных земель, отрезанный Дварфскими горами и морями от Нитэля. Здесь живут высокие светловолосые нерланцы: прямые, преданные долгу, ценящие договор и привыкшие к тяжёлому труду. Рядом с ними торгуют дварфы, оседают полурослики, а с окраин лесов и гор грозят гоблины, альпас и более тёмные и древние ужасы. Чтут старых богов и западные культы Мортизара.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://www.gailerauktionen.de/_Resources/Persistent/b/5/b/e/b5be965b20fd3f492bee350f01b67e00a2cdc10b/309-4.jpg\" alt=\"link\"\u003e\u003c/p\u003e"
+        },
+        "nirland": {
+          "label": "Náirland",
+          "description": "\u003cp\u003eСуровый северный край холодных зим, тайги и бедных земель, отрезанный Дварфскими горами и морями от Нитэля. Здесь живут высокие светловолосые нерланцы: прямые, преданные долгу, ценящие договор и привыкшие к тяжёлому труду. Рядом с ними торгуют дварфы, оседают полурослики, а с окраин лесов и гор грозят гоблины, альпас и более тёмные и древние ужасы. Чтут старых богов и западные культы Мортизара.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://www.gailerauktionen.de/_Resources/Persistent/b/5/b/e/b5be965b20fd3f492bee350f01b67e00a2cdc10b/309-4.jpg\" alt=\"link\"\u003e\u003c/p\u003e"
+        }
+      },
+      "Culture": {
+        "item": {
+          "label": "Нитольцы",
+          "description": "\u003cp\u003eНитольцев можно встретить по всему миру. Часто они бегут в другие земли, спасаясь от проблем, долгов или просто от скуки, и быстро приживаются в новых местах.\u003c/p\u003e\n\u003cp\u003eТемноволосые и экспрессивные, эти индивидуалисты слывут резкими и самодостаточными, порой даже эгоистичными, в глазах других культур.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/ancestry/nithel.webp\" alt=\"\"\u003e\u003c/p\u003e"
+        },
+        "item-2": {
+          "label": "Фероры",
+          "description": "\u003cp\u003eФероры — загадочные южане с длинными именами и яркой одеждой, родом из земель по ту сторону внутренних морей. Немногие из них осмеливаются пересекать пустыни и попадать в чужие края.\u003c/p\u003e\n\u003cp\u003eЭти люди практикуют таинственные магические ритуалы и верования, оставаясь закрытой группой. Информация о них редко покидает пределы их общин. В глазах других культур они формальны, вежливы, скрытны и склонны к манипуляциям.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/ancestry/saroja.webp\" alt=\"link\"\u003e\u003c/p\u003e"
+        },
+        "item-3": {
+          "label": "Нерланцы",
+          "description": "\u003cp\u003eНерланцы — могучие дикари с севера, отгороженные от южных земель горами и редко появляющиеся там.\u003c/p\u003e\n\u003cp\u003eФизически сильные и грубые, они весьма востребованы для разнообразных тяжёлых работ. Многие из них отличаются в искусствах ремесел, часто работая кузнецами или плотниками, но также часто можно увидеть их с оружием в руках.\u003c/p\u003e\n\u003cp\u003eНерланцев легко узнать по высокому росту, светлым волосам и коже, простой одежде и грубому акценту. Другие культуры оценивают их как прямых, преданных долгу и простых людей. Как и дварфы, они ценят договоры, что делает их взаимоотношения взаимно уважительными.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/ancestry/nerland.webp\" alt=\"link\"\u003e\u003c/p\u003e"
+        },
+        "item-4": {
+          "label": "Дварфские горы"
+        }
+      },
+      "Background": {
+        "acolyte": {
+          "label": "Acolyte"
+        },
+        "apprentice": {
+          "label": "Apprentice"
+        },
+        "bandit": {
+          "label": "Bandit"
+        },
+        "bard": {
+          "label": "Bard"
+        },
+        "blacksmith": {
+          "label": "Blacksmith"
+        },
+        "carter": {
+          "label": "Carter"
+        },
+        "cooper": {
+          "label": "Cooper"
+        },
+        "criminal": {
+          "label": "Criminal"
+        },
+        "elder": {
+          "label": "Elder"
+        },
+        "farmer": {
+          "label": "Farmer"
+        },
+        "healer": {
+          "label": "Healer"
+        },
+        "hunter": {
+          "label": "Hunter"
+        },
+        "mercenary": {
+          "label": "Mercenary"
+        },
+        "merchant": {
+          "label": "Merchant"
+        },
+        "nomad": {
+          "label": "Nomad"
+        },
+        "pilgrim": {
+          "label": "Pilgrim"
+        },
+        "shepherd": {
+          "label": "Shepherd"
+        },
+        "slave": {
+          "label": "Slave"
+        },
+        "traveler": {
+          "label": "Traveler"
+        },
+        "wildling": {
+          "label": "Wildling"
+        }
+      },
+      "Class": {
+        "expert": {
+          "label": "Expert"
+        },
+        "warrior": {
+          "label": "Warrior"
+        }
+      },
+      "Talent": {
+        "dwarven-focus": {
+          "label": "Dwarven focus",
+          "description": "\u003cp\u003eGain Exert as a bonus skill. You have a natural resistance to magic, gaining a +2 bonus on all saves against hostile magical effects. You need only half the usual amount of food, water, and air and gain a +1 CON modifier.\u003c/p\u003e"
+        },
+        "human": {
+          "label": "Human"
+        },
+        "item": {
+          "label": "Смертельный удар",
+          "description": "\u003cp\u003eWhenever a Warrior inflicts damage with any attack, spell, or special ability they may add half their character level, rounded up, to the damage done. This damage is also added to any Shock they may inflict.\u003c/p\u003e"
+        }
+      }
     },
     "Creation": {
       "AnyCombat": "Any combat skill",
@@ -463,7 +570,11 @@
       "Culture": {
         "dwarf": "Dwarf",
         "halfling": "Halfling",
-        "human_nerlander": "Nerlander"
+        "human_nerlander": "Nerlander",
+        "item": "Нитольцы",
+        "item-2": "Фероры",
+        "item-3": "Нерланцы",
+        "item-4": "Дварфские горы"
       },
       "FreeSpec": {
         "armorer": "Armorer",
@@ -487,7 +598,8 @@
         "trade": "Trade"
       },
       "Region": {
-        "nerland": "Náirland"
+        "nerland": "Náirland",
+        "nirland": "Náirland"
       },
       "Step": {
         "abilities": "Attributes",
@@ -541,6 +653,14 @@
         "Title": "Create Character",
         "WasRolled": "Rolled: {skill}"
       }
+    },
+    "Armor": {
+      "woundBonus": "Wound bonus",
+      "woundBonusHint": "Flat bonus added to Luck saves on the wound table while this armor is owned. Does not affect Defense."
+    },
+    "Class": {
+      "expert": "Expert",
+      "warrior": "Warrior"
     },
     "DifficultyColumn": {
       "easy": "Easy",

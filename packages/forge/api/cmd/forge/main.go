@@ -181,7 +181,7 @@ func runExportLang(args []string) error {
 	if err := content.ExportLang(context.Background(), langDir); err != nil {
 		return err
 	}
-	fmt.Printf("wrote closed vocab into %s/{en,ru}.json\n", langDir)
+	fmt.Printf("wrote closed vocab + content into %s/{en,ru}.json\n", langDir)
 	return nil
 }
 

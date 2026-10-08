@@ -14,7 +14,7 @@ import { featureKeysForCreate, featureTalentCreateData } from "../../creation/cl
 import { getClassOrigin } from "../../creation/class-origins.ts";
 import { combineClassOriginsBySlug } from "../../creation/combine-class-origins.ts";
 import { abilityModifier } from "../../derivations/ability-mod.ts";
-import { localizeCreationSpecLabel } from "../../config/creation-spec-labels.ts";
+import { localizePersistedSpecLabel } from "../../config/creation-spec-labels.ts";
 import {
   SKILL_FIXED_SPECIALIZATIONS,
   SKILL_SPECIALIZATION_KIND,
@@ -413,6 +413,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       ? getCatalogTalent(catalog, selectedClass.talentSlug)
       : undefined;
 
+    const regionDescriptionHtml = region ? await enrichHtml(region.description) : "";
     const cultureDescriptionHtml = culture ? await enrichHtml(culture.description) : "";
     const cultureTalentHtml = cultureTalent ? await enrichHtml(cultureTalent.description) : "";
     const backgroundDescriptionHtml = background ? await enrichHtml(background.description) : "";
@@ -428,6 +429,8 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       abilitiesRolled: d.abilitiesRolled,
       abilityRows,
       regions,
+      regionDescriptionHtml,
+      showRegionDetail: Boolean(region),
       cultures,
       backgrounds,
       backgroundKey: d.backgroundKey,
@@ -546,7 +549,8 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     if (entry.kind === "anySkill") return localize("KEDOM.Creation.AnySkill");
     const skill = localize(`KEDOM.Skill.${entry.skillKey}`, entry.skillKey);
     if (!entry.specLabel) return skill;
-    return `${skill} (${localizeCreationSpecLabel(entry.specLabel)})`;
+    const spec = localizePersistedSpecLabel(entry.skillKey, entry.specLabel, entry.specLabel);
+    return `${skill} (${spec})`;
   }
 
   #ownedGrants(
@@ -1077,10 +1081,23 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const items: CatalogItemPayload[] = [];
     const seenTalents = new Set<string>();
 
+    const region = getCatalogRegion(catalog, d.regionKey!);
+    const regionLabel = region?.name ?? d.regionKey ?? "";
+
     if (catalog.fromPacks) {
+      const regionPayload = catalog.originBySlug.get(d.regionKey!);
       const racePayload = catalog.originBySlug.get(d.cultureKey);
       const bgPayload = catalog.originBySlug.get(d.backgroundKey);
       const classPayload = catalog.originBySlug.get(d.classKey);
+      if (regionPayload) items.push(regionPayload);
+      else if (region) {
+        items.push({
+          name: regionLabel,
+          type: "origin",
+          img: "icons/svg/village.svg",
+          system: { subType: "region", slug: d.regionKey, description: region.description },
+        });
+      }
       if (racePayload) items.push(racePayload);
       else {
         items.push({
@@ -1117,16 +1134,30 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     } else {
       items.push(
         {
+          name: regionLabel,
+          type: "origin",
+          img: "icons/svg/village.svg",
+          system: {
+            subType: "region",
+            slug: d.regionKey,
+            description: region?.description ?? "",
+          },
+        },
+        {
           name: cultureLabel,
           type: "origin",
           img: "icons/svg/mystery-man.svg",
-          system: { subType: "race", description: "" },
+          system: { subType: "race", slug: d.cultureKey, description: culture.description },
         },
         {
           name: backgroundLabel,
           type: "origin",
           img: "icons/svg/book.svg",
-          system: { subType: "background", description: "" },
+          system: {
+            subType: "background",
+            slug: d.backgroundKey,
+            description: background.description,
+          },
         },
         {
           name: classLabel,

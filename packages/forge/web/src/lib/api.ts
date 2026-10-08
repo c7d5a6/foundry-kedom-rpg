@@ -200,9 +200,12 @@ export type Region = {
   translations: TranslationMap;
 };
 
+export type GrantKind = "skill" | "anyCombat" | "anySkill";
+
 export type GrowthRow = {
   roll_index: number;
-  skill_id: number;
+  grant_kind: GrantKind | string;
+  skill_id: number | null;
   skill_slug: string;
   specialization_id: number | null;
   specialization_slug: string;
@@ -225,7 +228,8 @@ export type Background = {
   label: string;
   description: string;
   comment: string;
-  free_skill_id: number;
+  free_grant_kind: GrantKind | string;
+  free_skill_id: number | null;
   free_skill_slug: string;
   free_specialization_id: number | null;
   free_specialization_slug: string;
@@ -325,7 +329,8 @@ export type UpdateRegionBody = {
 
 export type GrowthRowIn = {
   roll_index: number;
-  skill_id: number;
+  grant_kind: GrantKind | string;
+  skill_id?: number | null;
   specialization_id?: number | null;
   specialization_label?: string;
 };
@@ -334,7 +339,8 @@ export type CreateBackgroundBody = {
   label: string;
   description?: string;
   comment?: string;
-  free_skill_id: number;
+  free_grant_kind?: GrantKind | string;
+  free_skill_id?: number | null;
   free_specialization_id?: number | null;
   free_specialization_label?: string;
   sort_order?: number;
@@ -345,7 +351,8 @@ export type UpdateBackgroundBody = {
   label: string;
   description: string;
   comment: string;
-  free_skill_id: number;
+  free_grant_kind: GrantKind | string;
+  free_skill_id: number | null;
   free_specialization_id: number | null;
   free_specialization_label: string;
   sort_order: number;

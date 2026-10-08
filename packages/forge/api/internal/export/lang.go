@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// LangClosedInput is closed-vocabulary data for Foundry lang JSON.
+// LangClosedInput is closed-vocabulary + catalog content for Foundry lang JSON.
 type LangClosedInput struct {
 	Ability        map[string]AbilityLabel
 	Skill          map[string]string
@@ -22,12 +22,31 @@ type LangClosedInput struct {
 	Condition      map[string]string
 	Injury         InjuryLabels
 	Specialization map[string]map[string]string // skill slug → leaf → label
+
+	// Descriptions for closed vocab (labels stay in Ability / Skill / Specialization).
+	AbilityDescription        map[string]string
+	SkillDescription          map[string]string
+	SpecializationDescription map[string]map[string]string
+
+	// Catalog content (origins + talents): label + HTML description by slug.
+	Region     map[string]ContentEntry
+	Culture    map[string]ContentEntry // race
+	Background map[string]ContentEntry
+	Class      map[string]ContentEntry
+	Talent     map[string]ContentEntry
 }
 
 // AbilityLabel is the Foundry Ability i18n shape.
 type AbilityLabel struct {
-	Label string
-	Abbr  string
+	Label       string
+	Abbr        string
+	Description string
+}
+
+// ContentEntry is a Forge-authored label + description for Foundry Content.* keys.
+type ContentEntry struct {
+	Label       string
+	Description string
 }
 
 // InjuryLabels mirrors KEDOM.Injury nesting.
@@ -58,6 +77,8 @@ var kedomKeyOrder = []string{
 	"Sheet", "Chat",
 	"Save", "Difficulty", "Attributes", "Condition", "Injury",
 	"Roll", "Error", "Settings", "Specialization",
+	"AbilityDescription", "SkillDescription", "SpecializationDescription",
+	"Content", "Creation",
 }
 
 // WriteLangFile merges closed vocab into an existing lang JSON file.
@@ -99,6 +120,11 @@ func WriteLangFile(path string, closed LangClosedInput) error {
 		{k: "WeaponType", v: stringMapToOrdered(closed.Injury.WeaponType)},
 	})
 	kedom["Specialization"] = specializationToOrdered(closed.Specialization)
+	kedom["AbilityDescription"] = stringMapToOrdered(closed.AbilityDescription)
+	kedom["SkillDescription"] = stringMapToOrdered(closed.SkillDescription)
+	kedom["SpecializationDescription"] = specializationToOrdered(closed.SpecializationDescription)
+	kedom["Content"] = contentRootToOrdered(closed)
+	applyCreationCatalogLabels(kedom, closed)
 
 	root["KEDOM"] = kedom
 
@@ -259,12 +285,81 @@ func abilityToOrdered(m map[string]AbilityLabel) orderedObject {
 	out := make(orderedObject, 0, len(keys))
 	for _, k := range keys {
 		a := m[k]
-		out = append(out, kv{k: k, v: orderedObject{
+		fields := orderedObject{
 			{k: "label", v: a.Label},
 			{k: "abbr", v: a.Abbr},
-		}})
+		}
+		if strings.TrimSpace(a.Description) != "" {
+			fields = append(fields, kv{k: "description", v: a.Description})
+		}
+		out = append(out, kv{k: k, v: fields})
 	}
 	return out
+}
+
+func contentEntryToOrdered(e ContentEntry) orderedObject {
+	fields := orderedObject{{k: "label", v: e.Label}}
+	if strings.TrimSpace(e.Description) != "" {
+		fields = append(fields, kv{k: "description", v: e.Description})
+	}
+	return fields
+}
+
+func contentMapToOrdered(m map[string]ContentEntry) orderedObject {
+	keys := sortedStringKeys(m)
+	out := make(orderedObject, 0, len(keys))
+	for _, k := range keys {
+		out = append(out, kv{k: k, v: contentEntryToOrdered(m[k])})
+	}
+	return out
+}
+
+func contentRootToOrdered(closed LangClosedInput) orderedObject {
+	return orderedObject{
+		{k: "Region", v: contentMapToOrdered(closed.Region)},
+		{k: "Culture", v: contentMapToOrdered(closed.Culture)},
+		{k: "Background", v: contentMapToOrdered(closed.Background)},
+		{k: "Class", v: contentMapToOrdered(closed.Class)},
+		{k: "Talent", v: contentMapToOrdered(closed.Talent)},
+	}
+}
+
+// applyCreationCatalogLabels merges Forge catalog labels into Creation.Region/Culture/…
+// while preserving Wizard / Step / FreeSpec chrome keys.
+func applyCreationCatalogLabels(kedom map[string]any, closed LangClosedInput) {
+	creation, _ := kedom["Creation"].(map[string]any)
+	if creation == nil {
+		creation = map[string]any{}
+	}
+	creation["Region"] = mergeCreationLabelMap(creation["Region"], closed.Region)
+	creation["Culture"] = mergeCreationLabelMap(creation["Culture"], closed.Culture)
+	creation["Background"] = mergeCreationLabelMap(creation["Background"], closed.Background)
+	creation["Class"] = mergeCreationLabelMap(creation["Class"], closed.Class)
+	kedom["Creation"] = creation
+}
+
+func mergeCreationLabelMap(existing any, forge map[string]ContentEntry) orderedObject {
+	merged := map[string]string{}
+	switch m := existing.(type) {
+	case map[string]any:
+		for k, v := range m {
+			if s, ok := v.(string); ok {
+				merged[k] = s
+			}
+		}
+	case orderedObject:
+		for _, item := range m {
+			if s, ok := item.v.(string); ok {
+				merged[item.k] = s
+			}
+		}
+	}
+	for k, e := range forge {
+		if strings.TrimSpace(e.Label) != "" {
+			merged[k] = e.Label
+		}
+	}
+	return stringMapToOrdered(merged)
 }
 
 func stringMapToOrdered(m map[string]string) orderedObject {

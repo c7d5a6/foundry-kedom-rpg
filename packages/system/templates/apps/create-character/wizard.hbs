@@ -43,6 +43,13 @@
           </button>
         {{/each}}
       </div>
+      {{#if showRegionDetail}}
+        <section class="kedom-create-wizard__selection-detail">
+          {{#if regionDescriptionHtml}}
+            <div class="kedom-create-wizard__desc">{{{regionDescriptionHtml}}}</div>
+          {{/if}}
+        </section>
+      {{/if}}
     {{/if}}
 
     {{#if (eq stepId "culture")}}

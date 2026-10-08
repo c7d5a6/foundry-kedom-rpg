@@ -305,6 +305,11 @@ func WritePacks(outDir string, in PackInput) error {
 	return nil
 }
 
+// RenderDescriptionHTML turns Forge Markdown into HTML for packs / lang JSON.
+func RenderDescriptionHTML(src string) string {
+	return renderMD(goldmark.New(), src)
+}
+
 func renderMD(md goldmark.Markdown, src string) string {
 	src = strings.TrimSpace(src)
 	if src == "" {

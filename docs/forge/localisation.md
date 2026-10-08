@@ -22,9 +22,11 @@ compendium still shows English when opened, and putting "Roll" in the database m
 sheet cannot switch language without a re-export. Keep them apart.
 
 System UI strings land in the two JSON files. **Closed vocabulary** (ability/skill names,
-proficiency, outcomes, …) is authored in Forge and written by `forge export lang`.
-**Sheet chrome** (tabs, buttons, errors) stays hand-authored. Content translations are
-authored in Forge against the English row, stored in SQLite, and exported (Babele when built).
+proficiency, outcomes, …) and **catalog content labels/descriptions** (region, culture,
+background, class, talent) are authored in Forge and written by `forge export lang` into
+`KEDOM.*` / `KEDOM.Content.*`. **Sheet chrome** (tabs, buttons, errors) stays hand-authored.
+Pack document `name` fields stay English; Babele (when built) still covers the sidebar /
+compendium browser. The create wizard and sheet identity tips localize by slug from lang.
 
 ## English is canonical, Russian is an overlay
 
@@ -205,11 +207,27 @@ or the Handlebars `localize` helper. Hard-coded English in a template is a bug.
 missing key falls back to English automatically; that is Foundry's default and is how partial
 work stays playable.
 
-### Content, via Babele
+### Content labels in lang (`KEDOM.Content.*`)
+
+`forge export lang` also writes slug-keyed catalog strings:
+
+```
+KEDOM.Content.Region.nirland.label / .description
+KEDOM.Content.Culture.{slug}.*
+KEDOM.Content.Background.{slug}.*
+KEDOM.Content.Class.{slug}.*
+KEDOM.Content.Talent.{slug}.*
+```
+
+Labels are merged into `KEDOM.Creation.{Region,Culture,Background,Class}` for the wizard.
+Descriptions are HTML (Markdown rendered at export). Missing Russian overlays fall back to
+the English canonical text, same as closed vocab.
+
+### Content in the sidebar, via Babele (planned)
 
 The system **does not require** Babele. A Russian client without the module still gets a
-Russian sheet (UI strings) and English compendia (documents). With Babele active, the system
-registers the generated overlay on `init`:
+Russian sheet (UI + `KEDOM.Content` lookups) and English compendium **document names**.
+With Babele active, the system registers the generated overlay on `init`:
 
 ```
 if (game.babele) {

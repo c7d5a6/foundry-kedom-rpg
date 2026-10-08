@@ -23,6 +23,10 @@ import {
   specializationSlug,
 } from "../../config/specializations.ts";
 import { localizePersistedSpecLabel } from "../../config/creation-spec-labels.ts";
+import {
+  localizeContentDescription,
+  localizeContentLabel,
+} from "../../i18n/content-labels.ts";
 import type {
   CharacterData,
   SaveFields,
@@ -525,7 +529,66 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const culture = (detailsRaw.culture ?? "").trim();
     const background = (detailsRaw.background ?? "").trim();
     const className = (detailsRaw.class ?? "").trim();
-    const identityLine = [culture, background, className].filter(Boolean).join(" · ");
+    const regionSlug = (detailsRaw.region ?? "").trim();
+
+    const originItems = this.actor.items.filter((item) => (item.type as string) === "origin");
+    const findOrigin = (subType: string, label: string, slugHint = "") => {
+      const bySlug = slugHint
+        ? originItems.find((item) => {
+            const sys = item.system as unknown as { subType?: string; slug?: string };
+            return sys.subType === subType && (sys.slug ?? "") === slugHint;
+          })
+        : undefined;
+      if (bySlug) return bySlug;
+      return originItems.find((item) => {
+        const sys = item.system as unknown as { subType?: string };
+        if (sys.subType !== subType) return false;
+        if (!label) return true;
+        return item.name === label;
+      });
+    };
+
+    const identityTip = async (
+      kind: "Region" | "Culture" | "Background" | "Class",
+      displayLabel: string,
+      item: Item.Implementation | undefined,
+      slugHint = "",
+    ): Promise<{ label: string; tooltipHtml: string } | null> => {
+      if (!displayLabel && !slugHint) return null;
+      const sys = item?.system as unknown as { slug?: string; description?: string } | undefined;
+      const slug = (slugHint || sys?.slug || "").trim();
+      const label = slug
+        ? localizeContentLabel(kind, slug, displayLabel || item?.name || slug)
+        : displayLabel;
+      if (!label) return null;
+      const packDesc = sys?.description ?? "";
+      const raw = slug ? localizeContentDescription(kind, slug, packDesc) : packDesc;
+      const plain = raw.replace(/<[^>]*>/g, "").trim();
+      if (!plain) return { label, tooltipHtml: "" };
+      const tooltipHtml = await TextEditor.enrichHTML(raw, {
+        secrets: this.actor.isOwner,
+        relativeTo: item,
+      });
+      return { label, tooltipHtml };
+    };
+
+    const regionItem = findOrigin("region", "", regionSlug);
+    const raceItem = findOrigin("race", culture);
+    const backgroundItem = findOrigin("background", background);
+    const classItem = findOrigin("class", className);
+    const raceSlug = ((raceItem?.system as unknown as { slug?: string } | undefined)?.slug ?? "").trim();
+    const backgroundSlug = (
+      (backgroundItem?.system as unknown as { slug?: string } | undefined)?.slug ?? ""
+    ).trim();
+    const classSlug = ((classItem?.system as unknown as { slug?: string } | undefined)?.slug ?? "").trim();
+    const identityParts = (
+      await Promise.all([
+        identityTip("Region", regionItem?.name ?? regionSlug, regionItem, regionSlug),
+        identityTip("Culture", culture, raceItem, raceSlug),
+        identityTip("Background", background, backgroundItem, backgroundSlug),
+        identityTip("Class", className, classItem, classSlug),
+      ])
+    ).filter((p): p is { label: string; tooltipHtml: string } => p !== null);
 
     const talentItems = this.actor.items
       .filter((item) => (item.type as string) === "talent")
@@ -600,7 +663,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       actorEffects,
       itemEffects,
       level,
-      identityLine,
+      identityParts,
       tabs,
       primaryTab: this.#primaryTab,
       isSkillsTab: this.#primaryTab === SHEET_TABS.SKILLS,

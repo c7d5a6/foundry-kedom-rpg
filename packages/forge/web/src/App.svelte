@@ -201,18 +201,29 @@
   /** Distinct skill(+spec) pairs for background create growth rows. */
   function defaultGrowthForCreate(freeSkillId: number): {
     roll_index: number;
+    grant_kind: "skill";
     skill_id: number;
     specialization_id: number | null;
   }[] {
     const freeKey = `${freeSkillId}:`;
     const used = new Set<string>([freeKey]);
-    const rows: { roll_index: number; skill_id: number; specialization_id: number | null }[] = [];
+    const rows: {
+      roll_index: number;
+      grant_kind: "skill";
+      skill_id: number;
+      specialization_id: number | null;
+    }[] = [];
     for (const s of skills) {
       if (rows.length >= 8) break;
       const key = `${s.id}:`;
       if (used.has(key)) continue;
       used.add(key);
-      rows.push({ roll_index: rows.length + 1, skill_id: s.id, specialization_id: null });
+      rows.push({
+        roll_index: rows.length + 1,
+        grant_kind: "skill",
+        skill_id: s.id,
+        specialization_id: null,
+      });
     }
     return rows;
   }
@@ -382,8 +393,10 @@
     try {
       const created = await api.createBackground({
         label,
+        free_grant_kind: "skill",
         free_skill_id: Number(newBackgroundFreeSkill),
         free_specialization_id: null,
+        free_specialization_label: "",
         growth,
       });
       newBackgroundLabel = "";

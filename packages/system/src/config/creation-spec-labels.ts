@@ -46,12 +46,38 @@ function slugifyLabel(label: string): string {
     .replaceAll(/^\.+|\.+$/g, "");
 }
 
-/** Localize a creation-table free-form specialization label (English canonical). */
-export function localizeCreationSpecLabel(label: string): string {
-  const leaf =
+function i18nProp(root: unknown, path: string): unknown {
+  let cur: unknown = root;
+  for (const part of path.split(".")) {
+    if (!cur || typeof cur !== "object") return undefined;
+    cur = (cur as Record<string, unknown>)[part];
+  }
+  return cur;
+}
+
+function freeSpecLeafForLabel(label: string): string | undefined {
+  const direct =
     CREATION_FREE_SPEC_I18N[label] ??
     SLUG_TO_I18N[slugifyLabel(label)] ??
     SLUG_TO_I18N[label];
+  if (direct) return direct;
+  if (typeof game === "undefined" || !game.i18n) return undefined;
+
+  const tables: unknown[] = [i18nProp(game.i18n.translations, "KEDOM.Creation.FreeSpec")];
+  const fallback = (game.i18n as { _fallback?: unknown })._fallback;
+  if (fallback) tables.push(i18nProp(fallback, "KEDOM.Creation.FreeSpec"));
+  for (const table of tables) {
+    if (!table || typeof table !== "object") continue;
+    for (const [leaf, value] of Object.entries(table as Record<string, unknown>)) {
+      if (value === label) return leaf;
+    }
+  }
+  return undefined;
+}
+
+/** Localize a creation-table free-form specialization label (English canonical). */
+export function localizeCreationSpecLabel(label: string): string {
+  const leaf = freeSpecLeafForLabel(label);
   if (!leaf) return label;
   const path = `KEDOM.Creation.FreeSpec.${leaf}`;
   if (typeof game === "undefined" || !game.i18n?.localize) return label;
@@ -84,11 +110,18 @@ export function localizePersistedSpecLabel(
   const fromTail = localizeCreationSpecLabel(tail);
   if (fromTail !== tail) return fromTail;
 
-  // Fixed catalog leaf
-  const fixedPath = `KEDOM.Specialization.${skillKey}.${withoutSkill}`;
+  // Fixed catalog leaf (`skill.leaf` pack slug or bare leaf).
   if (typeof game !== "undefined" && game.i18n?.localize) {
-    const v = game.i18n.localize(fixedPath);
-    if (v && v !== fixedPath) return v;
+    const candidates = [
+      `KEDOM.Specialization.${skillKey}.${withoutSkill}`,
+      `KEDOM.Specialization.${skillKey}.${tail}`,
+      slug.includes(".") ? `KEDOM.Specialization.${slug}` : "",
+    ];
+    for (const path of candidates) {
+      if (!path) continue;
+      const v = game.i18n.localize(path);
+      if (v && v !== path) return v;
+    }
   }
 
   return fallbackLabel;

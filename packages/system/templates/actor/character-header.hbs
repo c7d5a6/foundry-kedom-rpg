@@ -150,8 +150,22 @@
           <span class="kedom-identity__level-value">{{level}}</span>
         {{/if}}
       </div>
-      {{#if identityLine}}
-        <p class="kedom-identity__line">{{identityLine}}</p>
+      {{#if identityParts.length}}
+        <p class="kedom-identity__line">
+          {{#each identityParts}}
+            {{#unless @first}}<span class="kedom-identity__sep" aria-hidden="true"> · </span>{{/unless}}
+            {{#if tooltipHtml}}
+              <span
+                class="kedom-identity__tip"
+                data-tooltip-html="{{tooltipHtml}}"
+                data-tooltip-class="kedom-identity-tooltip"
+                data-tooltip-direction="DOWN"
+              >{{label}}</span>
+            {{else}}
+              <span>{{label}}</span>
+            {{/if}}
+          {{/each}}
+        </p>
       {{/if}}
     </div>
   </div>

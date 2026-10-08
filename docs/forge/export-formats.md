@@ -15,8 +15,9 @@ target carries which language — is in [localisation.md](localisation.md).
 
 The site target and the Babele overlay are designed but **not built**; see
 [public-site-export.md](public-site-export.md) and [localisation.md](localisation.md).
-**lang JSON** closed-vocab export is implemented (`npm run forge:export:lang`). Future YAML
-export will invoke it first so UI labels stay aligned with pack English names.
+**lang JSON** export is implemented (`npm run forge:export:lang`): closed vocab plus catalog
+`KEDOM.Content.*` (region/culture/background/class/talent labels and HTML descriptions).
+`forge export packs` invokes it first so UI labels stay aligned with pack English names.
 
 ## Rules that apply to all five
 

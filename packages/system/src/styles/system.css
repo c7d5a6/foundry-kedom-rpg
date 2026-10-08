@@ -1174,6 +1174,32 @@
   line-height: 1.25;
 }
 
+.kedom.sheet .kedom-identity__tip {
+  cursor: help;
+  border-bottom: 1px dotted color-mix(in srgb, currentColor 55%, transparent);
+}
+
+.kedom.sheet .kedom-identity__sep {
+  opacity: 0.7;
+}
+
+#tooltip.kedom-identity-tooltip {
+  max-width: min(28rem, 90vw);
+  text-align: left;
+  white-space: normal;
+  line-height: 1.35;
+  font-size: 0.85rem;
+}
+
+#tooltip.kedom-identity-tooltip img {
+  max-width: 100%;
+  height: auto;
+}
+
+#tooltip.kedom-identity-tooltip a {
+  text-decoration: underline;
+}
+
 .kedom.sheet .kedom-identity__place {
   display: flex;
   flex-wrap: wrap;

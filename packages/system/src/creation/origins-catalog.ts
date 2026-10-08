@@ -18,6 +18,10 @@ import {
 } from "../config/backgrounds-draft.ts";
 import { getCulture as getDraftCulture } from "../config/creation.ts";
 import { SKILL_KEYS, type SkillKey } from "../config/kedom.ts";
+import {
+  localizeContentDescription,
+  localizeContentLabel,
+} from "../i18n/content-labels.ts";
 
 export type CatalogCulture = {
   slug: string;
@@ -165,7 +169,10 @@ function toPayload(doc: Item.Implementation): CatalogItemPayload {
 }
 
 function pickToGrowth(pick: { skillKey?: string; specSlug?: string }): GrowthEntry {
-  const skillKey = (pick.skillKey ?? "") as SkillKey;
+  const raw = (pick.skillKey ?? "").trim();
+  if (raw === "anyCombat") return { kind: "anyCombat" };
+  if (raw === "anySkill") return { kind: "anySkill" };
+  const skillKey = raw as SkillKey;
   const valid = SKILL_KEYS.includes(skillKey);
   const key = valid ? skillKey : ("lore" as SkillKey);
   const spec = pick.specSlug?.trim();
@@ -186,10 +193,11 @@ function indexTalents(talentDocs: Item.Implementation[]): {
     const sys = talentSystem(doc);
     if (!sys) continue;
     const slug = slugOf(doc, sys);
+    const packDesc = sys.description ?? "";
     const entry: CatalogTalent = {
       slug,
-      name: doc.name ?? slug,
-      description: sys.description ?? "",
+      name: localizeContentLabel("Talent", slug, doc.name ?? slug),
+      description: localizeContentDescription("Talent", slug, packDesc),
       featureKey: sys.featureKey ?? "",
     };
     talents.set(slug, entry);
@@ -239,10 +247,11 @@ function buildFromPacks(
   for (const doc of bgDocs) {
     const sys = originSystem(doc)!;
     const slug = sys.slug || slugOf(doc, sys);
+    const packDesc = sys.description ?? "";
     backgrounds.set(slug, {
       slug,
-      name: doc.name ?? slug,
-      description: sys.description ?? "",
+      name: localizeContentLabel("Background", slug, doc.name ?? slug),
+      description: localizeContentDescription("Background", slug, packDesc),
       free: pickToGrowth(sys.free ?? { skillKey: "", specSlug: "" }),
       growth: (sys.growth ?? []).map((g) => pickToGrowth(g)),
     });
@@ -262,22 +271,26 @@ function buildFromPacks(
     const cultures: CatalogCulture[] = entries.map((c, i) => {
       const race = raceBySlug.get(c.slug);
       const raceSys = race ? originSystem(race) : null;
+      const raceSlug = raceSys?.slug || c.slug;
+      const raceDesc = raceSys?.description ?? "";
       return {
         slug: c.slug,
-        name: race?.name ?? c.slug,
+        name: localizeContentLabel("Culture", raceSlug, race?.name ?? c.slug),
         weight: c.weight,
         percent: pcts[i] ?? 0,
-        description: raceSys?.description ?? "",
+        description: localizeContentDescription("Culture", raceSlug, raceDesc),
         talentSlug: raceSys?.talentSlug ?? "",
         classSlugs: raceSys?.classSlugs ?? [],
         backgroundSlugs: c.backgroundSlugs ?? [],
         disabled: false,
       };
     });
+    const regionSlug = sys.slug || slugOf(doc, sys);
+    const regionDesc = sys.description ?? "";
     return {
-      slug: sys.slug || slugOf(doc, sys),
-      name: doc.name ?? sys.slug,
-      description: sys.description ?? "",
+      slug: regionSlug,
+      name: localizeContentLabel("Region", regionSlug, doc.name ?? regionSlug),
+      description: localizeContentDescription("Region", regionSlug, regionDesc),
       cultures,
     };
   });
@@ -286,10 +299,11 @@ function buildFromPacks(
     const sys = originSystem(doc)!;
     const slug = sys.slug || slugOf(doc, sys);
     const def = CLASSES.find((c) => c.key === slug) ?? null;
+    const packDesc = sys.description ?? "";
     return {
       slug,
-      name: doc.name ?? slug,
-      description: sys.description ?? "",
+      name: localizeContentLabel("Class", slug, doc.name ?? slug),
+      description: localizeContentDescription("Class", slug, packDesc),
       hitDie: sys.hitDie || def?.hitDie || "1d6",
       talentSlug: sys.talentSlug ?? "",
       isFull: sys.isFull !== false,
