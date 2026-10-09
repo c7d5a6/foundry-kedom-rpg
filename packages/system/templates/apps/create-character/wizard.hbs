@@ -270,6 +270,45 @@
                 </div>
               </div>
             </li>
+
+            <li>
+              <p class="kedom-create-wizard__step-label">{{localize "KEDOM.Creation.Wizard.BonusSkill"}}</p>
+              <p class="hint">{{localize "KEDOM.Creation.Wizard.PickBonusSkill"}}</p>
+              <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
+                {{#each bonusSkillOptions}}
+                  <button
+                    type="button"
+                    class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}"
+                    data-action="setBonusWild"
+                    data-skill-key="{{key}}"
+                    {{#if disabled}}disabled{{/if}}
+                  >{{label}}</button>
+                {{/each}}
+              </div>
+              {{#if bonusSpecUI.show}}
+                <div class="kedom-create-wizard__spec">
+                  <p class="hint">{{localize "KEDOM.Creation.Wizard.PickSpecialization"}}</p>
+                  {{#if bonusSpecUI.fixedOptions.length}}
+                    <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
+                      {{#each bonusSpecUI.fixedOptions}}
+                        <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setBonusWild" data-spec-leaf="{{leaf}}" {{#if disabled}}disabled{{/if}}>{{label}}</button>
+                      {{/each}}
+                    </div>
+                  {{/if}}
+                  {{#if bonusSpecUI.freeform}}
+                    <label>
+                      <span>{{localize "KEDOM.Creation.Wizard.SpecLabel"}}</span>
+                      <input type="text" data-spec-target="bonus" value="{{bonusSpecUI.value}}" />
+                    </label>
+                  {{/if}}
+                </div>
+              {{/if}}
+              {{#if bonusResolvedLabel}}
+                <div class="kedom-create-wizard__skill-chips">
+                  <span class="kedom-create-wizard__skill is-substitute">{{bonusResolvedLabel}}</span>
+                </div>
+              {{/if}}
+            </li>
           </ol>
         </section>
       {{/if}}

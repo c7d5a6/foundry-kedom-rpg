@@ -15,7 +15,9 @@ does in the meantime. Nothing here has been silently resolved — answered quest
 
 **Settled for Kedom creation:** each background grants one **free** skill (optional
 specialization) and an **eight-row growth table**. At creation the player takes the free
-grant and rolls **2×1d8** on that table (two independent rolls). Forge stores this as
+grant, rolls **2×1d8** on that table (two independent rolls), then picks **any one additional
+skill** (the WWN “outside interests” pick). That bonus pick may not repeat an owned
+specialization or raise a skill that already has two grants. Forge stores free + growth as
 `background` + `background_growth` (`roll_index` 1–8); packs and the create wizard use the
 same shape ([../forge/schema.md](../forge/schema.md)).
 

@@ -107,7 +107,9 @@ Gains one additional art as an Elementalist.
 ## Backgrounds
 
 Each background grants a **free skill** (optional specialization) and an **eight-row growth
-table**. At creation: take the free grant, then roll **2×1d8** on that table. See
+table**. At creation: take the free grant, roll **2×1d8** on that table, then pick **any one
+additional skill** (outside interests). You may not pick a specialization you already have, or
+a skill already granted twice. See
 [Q11](99-open-questions.md#q11--background-growth-free-skill--21d8).
 
 Background lists are **region × culture** scoped in Forge (`region_culture_background`). The

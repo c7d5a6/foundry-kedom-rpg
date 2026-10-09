@@ -45,6 +45,33 @@ export function isGrantBlocked(
   return owned.some((g) => grantKey(g) === key);
 }
 
+/**
+ * Extra “any skill” pick at creation: block skills already at the two-grant cap,
+ * and block specializations already owned. A second bare (no-spec) copy of a
+ * skill is allowed so it can rise to Trained.
+ */
+export function isBonusSkillPickBlocked(
+  owned: readonly ResolvedSkillGrant[],
+  candidate: ResolvedSkillGrant,
+): boolean {
+  if (countSkill(owned, candidate.skillKey) >= MAX_SAME_SKILL) return true;
+  if (!candidate.specialization) return false;
+  const key = grantKey(candidate);
+  return owned.some((g) => grantKey(g) === key);
+}
+
+/** Resolve the background-step bonus any-skill pick against already owned grants. */
+export function resolveBonusSkillPick(
+  owned: readonly ResolvedSkillGrant[],
+  pick: ResolvePick,
+): ResolvedSkillGrant | null {
+  if (!pick.skillKey) return null;
+  const grant = finalizeWildGrant(pick.skillKey, pick.specLabel);
+  if (!grant) return null;
+  if (isBonusSkillPickBlocked(owned, grant)) return null;
+  return grant;
+}
+
 export function entrySkillKey(entry: GrowthEntry): SkillKey | null {
   return entry.kind === "skill" ? entry.skillKey : null;
 }
@@ -114,11 +141,13 @@ function displaySpecLabel(skillKey: SkillKey, leaf: string): string {
 }
 
 function slugifyLoose(label: string): string {
-  return label
-    .trim()
-    .toLowerCase()
-    .replaceAll(/[^\p{L}\p{N}]+/gu, "")
-    .slice(0, 32) || "custom";
+  return (
+    label
+      .trim()
+      .toLowerCase()
+      .replaceAll(/[^\p{L}\p{N}]+/gu, "")
+      .slice(0, 32) || "custom"
+  );
 }
 
 export function skillNeedsSpecialization(skillKey: SkillKey): boolean {
@@ -342,7 +371,8 @@ export function resolveRolledEntry(
     }
     if (isGrantBlocked(owned, grant)) {
       const canOtherSpec =
-        skillNeedsSpecialization(entry.skillKey) && countSkill(owned, entry.skillKey) < MAX_SAME_SKILL;
+        skillNeedsSpecialization(entry.skillKey) &&
+        countSkill(owned, entry.skillKey) < MAX_SAME_SKILL;
       if (canOtherSpec && (!pick?.skillKey || pick.skillKey === entry.skillKey)) {
         return {
           grant: null,
@@ -411,7 +441,11 @@ export function resolveRolledGrowth(
     skillKey,
     specialization: null,
   }));
-  const state = resolveRolledEntry(entry, owned, wildPick ? { skillKey: wildPick, specLabel: null } : null);
+  const state = resolveRolledEntry(
+    entry,
+    owned,
+    wildPick ? { skillKey: wildPick, specLabel: null } : null,
+  );
   return {
     grant: state.grant,
     needsAnySkill: state.needsAnySkill,
@@ -424,9 +458,7 @@ export function resolveRolledGrowth(
  */
 export function mergeSkillGrants(grants: readonly ResolvedSkillGrant[]): {
   proficiency: Partial<Record<SkillKey, "apprentice" | "trained">>;
-  specializations: Partial<
-    Record<SkillKey, { slug: string; label: string; selected: boolean }[]>
-  >;
+  specializations: Partial<Record<SkillKey, { slug: string; label: string; selected: boolean }[]>>;
 } {
   const proficiency: Partial<Record<SkillKey, "apprentice" | "trained">> = {};
   const specializations: Partial<
@@ -455,8 +487,7 @@ export function mergeSkillGrants(grants: readonly ResolvedSkillGrant[]): {
 
 export function formatGrantLabel(grant: ResolvedSkillGrant): string {
   const skillPath = `KEDOM.Skill.${grant.skillKey}`;
-  const skill =
-    typeof game !== "undefined" ? game.i18n?.localize?.(skillPath) : undefined;
+  const skill = typeof game !== "undefined" ? game.i18n?.localize?.(skillPath) : undefined;
   const skillLabel = skill && skill !== skillPath ? skill : grant.skillKey;
   if (!grant.specialization) return skillLabel;
   const spec = localizePersistedSpecLabel(

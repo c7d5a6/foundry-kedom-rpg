@@ -3,8 +3,10 @@ import {
   buildSpecialization,
   entryNeedsPlayerSpecialization,
   grantFromSpec,
+  isBonusSkillPickBlocked,
   isGrantBlocked,
   mergeSkillGrants,
+  resolveBonusSkillPick,
   resolveConcreteEntry,
   resolveRolledEntry,
   resolveRolledGrowth,
@@ -37,6 +39,33 @@ describe("isGrantBlocked", () => {
   });
 });
 
+describe("isBonusSkillPickBlocked / resolveBonusSkillPick", () => {
+  it("allows a second bare skill so it can rise to Trained", () => {
+    const owned = [grantFromSpec({ skillKey: "shoot" })];
+    expect(isBonusSkillPickBlocked(owned, grantFromSpec({ skillKey: "shoot" }))).toBe(false);
+    expect(resolveBonusSkillPick(owned, { skillKey: "shoot", specLabel: null })?.skillKey).toBe(
+      "shoot",
+    );
+  });
+
+  it("blocks a third bare skill and an already-owned specialization", () => {
+    const owned = [
+      grantFromSpec({ skillKey: "craft", specLabel: "Smithing" }),
+      grantFromSpec({ skillKey: "craft", specLabel: "Armorer" }),
+    ];
+    expect(
+      isBonusSkillPickBlocked(owned, grantFromSpec({ skillKey: "craft", specLabel: "Repair" })),
+    ).toBe(true);
+    expect(resolveBonusSkillPick(owned, { skillKey: "craft", specLabel: "Smithing" })).toBeNull();
+  });
+
+  it("allows a new specialization when the skill still has room", () => {
+    const owned = [grantFromSpec({ skillKey: "craft", specLabel: "Smithing" })];
+    const grant = resolveBonusSkillPick(owned, { skillKey: "craft", specLabel: "Armorer" });
+    expect(grant?.specialization?.label).toBe("Armorer");
+  });
+});
+
 describe("entryNeedsPlayerSpecialization", () => {
   it("is true for fixed/free skills with no authored spec", () => {
     expect(entryNeedsPlayerSpecialization({ kind: "skill", skillKey: "notice" })).toBe(true);
@@ -56,7 +85,10 @@ describe("resolveConcreteEntry", () => {
   it("blocks a concrete skill that needs a specialization until the player picks one", () => {
     expect(resolveConcreteEntry({ kind: "skill", skillKey: "craft" }, null)).toBeNull();
     expect(
-      resolveConcreteEntry({ kind: "skill", skillKey: "craft" }, { skillKey: "craft", specLabel: null }),
+      resolveConcreteEntry(
+        { kind: "skill", skillKey: "craft" },
+        { skillKey: "craft", specLabel: null },
+      ),
     ).toBeNull();
     const done = resolveConcreteEntry(
       { kind: "skill", skillKey: "craft" },
@@ -99,11 +131,10 @@ describe("resolveRolledEntry", () => {
     const waiting = resolveRolledEntry({ kind: "skill", skillKey: "notice" }, [], null);
     expect(waiting.needsSpecialization).toBe(true);
     expect(waiting.grant).toBeNull();
-    const done = resolveRolledEntry(
-      { kind: "skill", skillKey: "notice" },
-      [],
-      { skillKey: "notice", specLabel: "awareness" },
-    );
+    const done = resolveRolledEntry({ kind: "skill", skillKey: "notice" }, [], {
+      skillKey: "notice",
+      specLabel: "awareness",
+    });
     expect(done.grant?.specialization?.slug).toBe("notice.awareness");
     expect(done.needsSpecialization).toBe(false);
   });
@@ -129,11 +160,10 @@ describe("resolveRolledEntry", () => {
 
   it("accepts a substitute skill when blocked", () => {
     const owned = [grantFromSpec({ skillKey: "shoot" })];
-    const result = resolveRolledEntry(
-      { kind: "skill", skillKey: "shoot" },
-      owned,
-      { skillKey: "exert", specLabel: null },
-    );
+    const result = resolveRolledEntry({ kind: "skill", skillKey: "shoot" }, owned, {
+      skillKey: "exert",
+      specLabel: null,
+    });
     expect(result.substituted).toBe(true);
     expect(result.grant?.skillKey).toBe("exert");
     expect(result.rolledGrant?.skillKey).toBe("shoot");
@@ -171,17 +201,15 @@ describe("resolveRolledEntry", () => {
 
   it("substitutes any skill when combat pick is blocked", () => {
     const owned = [grantFromSpec({ skillKey: "punch" })];
-    const waiting = resolveRolledEntry(
-      { kind: "anyCombat" },
-      owned,
-      { skillKey: "punch", specLabel: null },
-    );
+    const waiting = resolveRolledEntry({ kind: "anyCombat" }, owned, {
+      skillKey: "punch",
+      specLabel: null,
+    });
     expect(waiting.needsAnySkill).toBe(true);
-    const done = resolveRolledEntry(
-      { kind: "anyCombat" },
-      owned,
-      { skillKey: "lore", specLabel: "History" },
-    );
+    const done = resolveRolledEntry({ kind: "anyCombat" }, owned, {
+      skillKey: "lore",
+      specLabel: "History",
+    });
     expect(done.grant?.skillKey).toBe("lore");
     expect(done.substituted).toBe(true);
   });
