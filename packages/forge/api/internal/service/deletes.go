@@ -72,26 +72,16 @@ func (c *Content) DeleteRace(ctx context.Context, id int64) error {
 	if _, err := c.q.GetRace(ctx, id); err != nil {
 		return mapNotFound(err)
 	}
-	children, err := c.q.ListChildRaces(ctx, &id)
-	if err != nil {
-		return err
-	}
 	regions, err := c.q.ListRegionCulturesByRace(ctx, id)
 	if err != nil {
 		return err
 	}
-	var childSlugs, regionSlugs []string
-	for _, ch := range children {
-		childSlugs = append(childSlugs, ch.Slug)
-	}
+	var regionSlugs []string
 	for _, r := range regions {
 		regionSlugs = append(regionSlugs, r.RegionSlug)
 	}
-	if len(childSlugs)+len(regionSlugs) > 0 {
-		return conflictBlocked(
-			formatRefs("child cultures", childSlugs),
-			formatRefs("regions", regionSlugs),
-		)
+	if len(regionSlugs) > 0 {
+		return conflictBlocked(formatRefs("regions", regionSlugs))
 	}
 	tx, q, err := c.begin(ctx)
 	if err != nil {

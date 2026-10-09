@@ -70,12 +70,13 @@ implementation of the same content graph [schema.md](schema.md) models.
 **Confirmed:**
 
 - **Sub-cultures are real and mechanical.** `niziel`, `ferori`, `nerland`, `half-elf`, and
-  `half-orc` are human sub-cultures, and **each has its own background list**. That is direct
-  evidence for `race.parent_race_id`, and it largely answers
+  `half-orc` are human sub-cultures, and **each has its own background list**. Model them as
+  separate culture rows (not a parent-link column); that largely answers
   [Q9](../rules/99-open-questions.md#q9--human-sub-cultures-need-mechanics): human cultures do
   carry mechanical weight, at least through backgrounds.
-- **`race_class.is_prefilled_slot` is right.** The generator's `forcedClass` is the same idea:
-  Rats force Expert, Lizards force partial-Beast, Gnomes force Elementalist.
+- **Forced Adventurer slots are real.** The generator's `forcedClass` (Rats force Expert,
+  Lizards force partial-Beast, Gnomes force Elementalist) still needs a creation-time model
+  when Adventurer is wired — not a dormant join-table flag.
 - **Backgrounds belong to races, not regions.** `backgrounds` is keyed by culture id, exactly
   as `race_background` assumes.
 

@@ -1,6 +1,6 @@
 -- name: ListRaces :many
 SELECT
-	r.id, r.slug, r.label, r.description, r.comment, r.parent_race_id, r.talent_id,
+	r.id, r.slug, r.label, r.description, r.comment, r.talent_id,
 	r.sort_order, r.foundry_id,
 	t.slug AS talent_slug
 FROM race r
@@ -9,7 +9,7 @@ ORDER BY r.sort_order, r.id;
 
 -- name: GetRace :one
 SELECT
-	r.id, r.slug, r.label, r.description, r.comment, r.parent_race_id, r.talent_id,
+	r.id, r.slug, r.label, r.description, r.comment, r.talent_id,
 	r.sort_order, r.foundry_id,
 	t.slug AS talent_slug
 FROM race r
@@ -18,7 +18,7 @@ WHERE r.id = ?;
 
 -- name: GetRaceBySlug :one
 SELECT
-	r.id, r.slug, r.label, r.description, r.comment, r.parent_race_id, r.talent_id,
+	r.id, r.slug, r.label, r.description, r.comment, r.talent_id,
 	r.sort_order, r.foundry_id,
 	t.slug AS talent_slug
 FROM race r
@@ -26,21 +26,21 @@ LEFT JOIN talent t ON t.id = r.talent_id
 WHERE r.slug = ?;
 
 -- name: InsertRace :one
-INSERT INTO race (slug, label, description, comment, parent_race_id, talent_id, sort_order, foundry_id)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, slug, label, description, comment, parent_race_id, talent_id, sort_order, foundry_id;
+INSERT INTO race (slug, label, description, comment, talent_id, sort_order, foundry_id)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+RETURNING id, slug, label, description, comment, talent_id, sort_order, foundry_id;
 
 -- name: UpdateRace :one
 UPDATE race
-SET label = ?, description = ?, comment = ?, parent_race_id = ?, talent_id = ?, sort_order = ?
+SET label = ?, description = ?, comment = ?, talent_id = ?, sort_order = ?
 WHERE id = ?
-RETURNING id, slug, label, description, comment, parent_race_id, talent_id, sort_order, foundry_id;
+RETURNING id, slug, label, description, comment, talent_id, sort_order, foundry_id;
 
 -- name: RaceSlugExists :one
 SELECT EXISTS(SELECT 1 FROM race WHERE slug = ?) AS present;
 
 -- name: ListRaceClasses :many
-SELECT rc.race_id, rc.class_id, rc.is_prefilled_slot, c.slug AS class_slug, c.label AS class_label
+SELECT rc.race_id, rc.class_id, c.slug AS class_slug, c.label AS class_label
 FROM race_class rc
 JOIN class c ON c.id = rc.class_id
 WHERE rc.race_id = ?
@@ -50,13 +50,10 @@ ORDER BY c.sort_order, c.id;
 DELETE FROM race_class WHERE race_id = ?;
 
 -- name: InsertRaceClass :exec
-INSERT INTO race_class (race_id, class_id, is_prefilled_slot) VALUES (?, ?, ?);
+INSERT INTO race_class (race_id, class_id) VALUES (?, ?);
 
 -- name: DeleteRace :exec
 DELETE FROM race WHERE id = ?;
-
--- name: ListChildRaces :many
-SELECT id, slug, label FROM race WHERE parent_race_id = ? ORDER BY sort_order, id;
 
 -- name: ListRegionCulturesByRace :many
 SELECT

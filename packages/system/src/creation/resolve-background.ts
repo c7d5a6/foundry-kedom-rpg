@@ -431,28 +431,6 @@ export function resolveRolledEntry(
   return resolveSubstitutePick(owned, pick, rolledGrant);
 }
 
-/** @deprecated Use resolveRolledEntry */
-export function resolveRolledGrowth(
-  entry: GrowthEntry,
-  ownedSkillKeys: ReadonlySet<SkillKey>,
-  wildPick: SkillKey | null,
-): { grant: ResolvedSkillGrant | null; needsAnySkill: boolean; needsCombatPick: boolean } {
-  const owned: ResolvedSkillGrant[] = [...ownedSkillKeys].map((skillKey) => ({
-    skillKey,
-    specialization: null,
-  }));
-  const state = resolveRolledEntry(
-    entry,
-    owned,
-    wildPick ? { skillKey: wildPick, specLabel: null } : null,
-  );
-  return {
-    grant: state.grant,
-    needsAnySkill: state.needsAnySkill,
-    needsCombatPick: state.needsCombatPick,
-  };
-}
-
 /** Merge resolved grants into skill update maps.
  * One grant → Apprentice; two grants of the same skill → Trained (+ both specs).
  */

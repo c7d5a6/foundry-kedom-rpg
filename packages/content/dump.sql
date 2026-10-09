@@ -23,6 +23,7 @@ INSERT INTO schema_migrations VALUES('0014_luck_save_vocab','2026-10-08T21:48:44
 INSERT INTO schema_migrations VALUES('0015_talent_effects','2026-10-09T13:53:23Z');
 INSERT INTO schema_migrations VALUES('0016_region_banner','2026-10-09T13:53:23Z');
 INSERT INTO schema_migrations VALUES('0017_drop_feature_keys','2026-10-09T15:56:19Z');
+INSERT INTO schema_migrations VALUES('0018_drop_unused_columns','2026-10-09T16:44:10Z');
 CREATE TABLE attribute (
 	id           INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug         TEXT NOT NULL UNIQUE
@@ -147,16 +148,14 @@ CREATE TABLE class (
 	description            TEXT NOT NULL DEFAULT '',
 	is_full                INTEGER NOT NULL DEFAULT 0 CHECK (is_full IN (0, 1)),
 	is_partial             INTEGER NOT NULL DEFAULT 0 CHECK (is_partial IN (0, 1)),
-	attack_progression     TEXT,
-	skill_points_per_level INTEGER,
 	hit_die                TEXT,
 	sort_order             INTEGER NOT NULL DEFAULT 0,
 	foundry_id             TEXT NOT NULL UNIQUE
 		CHECK (length(foundry_id) = 16 AND foundry_id NOT GLOB '*[^A-Za-z0-9]*'), comment TEXT NOT NULL DEFAULT '', talent_id INTEGER REFERENCES talent (id), hit_die_priority INTEGER NOT NULL DEFAULT 0, talent_picks_warrior INTEGER NOT NULL DEFAULT 0, talent_picks_expert INTEGER NOT NULL DEFAULT 0, talent_picks_any INTEGER NOT NULL DEFAULT 0, save_primary TEXT NOT NULL DEFAULT 'reflex', save_primary_priority INTEGER NOT NULL DEFAULT 0, save_secondary TEXT NOT NULL DEFAULT 'fortitude', save_secondary_priority INTEGER NOT NULL DEFAULT 0, arts_skill_key TEXT NOT NULL DEFAULT '',
 	CHECK (is_full = 1 OR is_partial = 1)
 );
-INSERT INTO class VALUES(1,'warrior','Warrior',replace('Воин — герой, рожденный для битвы, несущий в себе врожденный дар к физическому насилию. От свирепых варваров и закаленных наемников до смелых деревенских парней и простых работников с талантом к кровопролитию — воины происходят из самых разных слоев общества. Формально они не всегда являются солдатами или ветеранами, но любой искатель приключений, встречающий вызовы грубой силой, может быть воином.\n\nВоины обладают большим запасом здоровья, чем любой другой класс, выдерживая раны и трудности, которые бы сломили обычных людей. Они обладают превосходным боевым мастерством и наносят сокрушительный урон, делая их грозными противниками в бою.\n\n![link](https://kedom.owlbeardm.com/img/class/warrior.webp)','\n',char(10)),1,1,NULL,NULL,'1d6+2',1,'kdmcls0warrior00','',3,1000,1,0,1,'reflex',1000,'fortitude',1000,'');
-INSERT INTO class VALUES(2,'expert','Expert',replace('Эксперты — мастера искусств, блистающие в ролях воров, дипломатов, целителей, ученых, исследователей или ремесленников. Эти герои посвящают себя совершенствованию своих умений, доводя их до уровня легенд, способные на поистине волшебные подвиги. Обладая невероятным талантом к успеху, многие Эксперты способны в последний момент вырывая победу из пасти поражения. Их неутомимая жажда знаний и самосовершенствования простирается даже на умения, выходящие за рамки их основной специализации.\n\nХотя их основное внимание сосредоточено на мирных умениях, Эксперты далеки от беззащитности. Многие из них способны постоять за себя в бою, а некоторые, как смертельные ассасины, используют свою скрытность и обман для быстрого летального эффекта. Эксперты — это воплощение стремления к знанию и мастерству, а их путь — это путь искусства и тайны.\n\n![link](https://kedom.owlbeardm.com/img/class/expert.webp)','\n',char(10)),1,1,NULL,NULL,'',2,'kdmcls00expert00','',NULL,0,0,0,0,'reflex',0,'fortitude',0,'');
+INSERT INTO class VALUES(1,'warrior','Warrior',replace('Воин — герой, рожденный для битвы, несущий в себе врожденный дар к физическому насилию. От свирепых варваров и закаленных наемников до смелых деревенских парней и простых работников с талантом к кровопролитию — воины происходят из самых разных слоев общества. Формально они не всегда являются солдатами или ветеранами, но любой искатель приключений, встречающий вызовы грубой силой, может быть воином.\n\nВоины обладают большим запасом здоровья, чем любой другой класс, выдерживая раны и трудности, которые бы сломили обычных людей. Они обладают превосходным боевым мастерством и наносят сокрушительный урон, делая их грозными противниками в бою.\n\n![link](https://kedom.owlbeardm.com/img/class/warrior.webp)','\n',char(10)),1,1,'1d6+2',1,'kdmcls0warrior00','',3,1000,1,0,1,'reflex',1000,'fortitude',1000,'');
+INSERT INTO class VALUES(2,'expert','Expert',replace('Эксперты — мастера искусств, блистающие в ролях воров, дипломатов, целителей, ученых, исследователей или ремесленников. Эти герои посвящают себя совершенствованию своих умений, доводя их до уровня легенд, способные на поистине волшебные подвиги. Обладая невероятным талантом к успеху, многие Эксперты способны в последний момент вырывая победу из пасти поражения. Их неутомимая жажда знаний и самосовершенствования простирается даже на умения, выходящие за рамки их основной специализации.\n\nХотя их основное внимание сосредоточено на мирных умениях, Эксперты далеки от беззащитности. Многие из них способны постоять за себя в бою, а некоторые, как смертельные ассасины, используют свою скрытность и обман для быстрого летального эффекта. Эксперты — это воплощение стремления к знанию и мастерству, а их путь — это путь искусства и тайны.\n\n![link](https://kedom.owlbeardm.com/img/class/expert.webp)','\n',char(10)),1,1,'',2,'kdmcls00expert00','',NULL,0,0,0,0,'reflex',0,'fortitude',0,'');
 CREATE TABLE vocab (
 	id           INTEGER PRIMARY KEY AUTOINCREMENT,
 	kind         TEXT NOT NULL
@@ -432,16 +431,15 @@ CREATE TABLE race (
 	label           TEXT NOT NULL CHECK (length(label) > 0),
 	description     TEXT NOT NULL DEFAULT '',
 	comment         TEXT NOT NULL DEFAULT '',
-	parent_race_id  INTEGER REFERENCES race (id),
 	talent_id       INTEGER REFERENCES talent (id),
 	sort_order      INTEGER NOT NULL DEFAULT 0,
 	foundry_id      TEXT NOT NULL UNIQUE
 		CHECK (length(foundry_id) = 16 AND foundry_id NOT GLOB '*[^A-Za-z0-9]*')
 );
-INSERT INTO race VALUES(1,'item','Нитольцы',replace('Нитольцев можно встретить по всему миру. Часто они бегут в другие земли, спасаясь от проблем, долгов или просто от скуки, и быстро приживаются в новых местах.\n\nТемноволосые и экспрессивные, эти индивидуалисты слывут резкими и самодостаточными, порой даже эгоистичными, в глазах других культур.\n\n![](https://kedom.owlbeardm.com/img/ancestry/nithel.webp)','\n',char(10)),'',NULL,1,0,'33ABGpBGpTzLH9Cf');
-INSERT INTO race VALUES(2,'item-2','Фероры',replace('Фероры — загадочные южане с длинными именами и яркой одеждой, родом из земель по ту сторону внутренних морей. Немногие из них осмеливаются пересекать пустыни и попадать в чужие края.\n\nЭти люди практикуют таинственные магические ритуалы и верования, оставаясь закрытой группой. Информация о них редко покидает пределы их общин. В глазах других культур они формальны, вежливы, скрытны и склонны к манипуляциям.\n\n![link](https://kedom.owlbeardm.com/img/ancestry/saroja.webp)','\n',char(10)),'',NULL,1,0,'zqOxFcayFdHSq4Ul');
-INSERT INTO race VALUES(3,'item-3','Нерланцы',replace('Нерланцы — могучие дикари с севера, отгороженные от южных земель горами и редко появляющиеся там.\n\nФизически сильные и грубые, они весьма востребованы для разнообразных тяжёлых работ. Многие из них отличаются в искусствах ремесел, часто работая кузнецами или плотниками, но также часто можно увидеть их с оружием в руках.\n\nНерланцев легко узнать по высокому росту, светлым волосам и коже, простой одежде и грубому акценту. Другие культуры оценивают их как прямых, преданных долгу и простых людей. Как и дварфы, они ценят договоры, что делает их взаимоотношения взаимно уважительными.\n\n\n![link](https://kedom.owlbeardm.com/img/ancestry/nerland.webp)','\n',char(10)),'',NULL,1,0,'MBaYkdbJHATDHP9X');
-INSERT INTO race VALUES(4,'item-4','Дварфские горы','','',NULL,2,0,'UImssJYmBVxFHPlb');
+INSERT INTO race VALUES(1,'item','Нитольцы',replace('Нитольцев можно встретить по всему миру. Часто они бегут в другие земли, спасаясь от проблем, долгов или просто от скуки, и быстро приживаются в новых местах.\n\nТемноволосые и экспрессивные, эти индивидуалисты слывут резкими и самодостаточными, порой даже эгоистичными, в глазах других культур.\n\n![](https://kedom.owlbeardm.com/img/ancestry/nithel.webp)','\n',char(10)),'',1,0,'33ABGpBGpTzLH9Cf');
+INSERT INTO race VALUES(2,'item-2','Фероры',replace('Фероры — загадочные южане с длинными именами и яркой одеждой, родом из земель по ту сторону внутренних морей. Немногие из них осмеливаются пересекать пустыни и попадать в чужие края.\n\nЭти люди практикуют таинственные магические ритуалы и верования, оставаясь закрытой группой. Информация о них редко покидает пределы их общин. В глазах других культур они формальны, вежливы, скрытны и склонны к манипуляциям.\n\n![link](https://kedom.owlbeardm.com/img/ancestry/saroja.webp)','\n',char(10)),'',1,0,'zqOxFcayFdHSq4Ul');
+INSERT INTO race VALUES(3,'item-3','Нерланцы',replace('Нерланцы — могучие дикари с севера, отгороженные от южных земель горами и редко появляющиеся там.\n\nФизически сильные и грубые, они весьма востребованы для разнообразных тяжёлых работ. Многие из них отличаются в искусствах ремесел, часто работая кузнецами или плотниками, но также часто можно увидеть их с оружием в руках.\n\nНерланцев легко узнать по высокому росту, светлым волосам и коже, простой одежде и грубому акценту. Другие культуры оценивают их как прямых, преданных долгу и простых людей. Как и дварфы, они ценят договоры, что делает их взаимоотношения взаимно уважительными.\n\n\n![link](https://kedom.owlbeardm.com/img/ancestry/nerland.webp)','\n',char(10)),'',1,0,'MBaYkdbJHATDHP9X');
+INSERT INTO race VALUES(4,'item-4','Дварфские горы','','',2,0,'UImssJYmBVxFHPlb');
 CREATE TABLE region (
 	id          INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug        TEXT NOT NULL UNIQUE
@@ -463,16 +461,6 @@ CREATE TABLE region_culture (
 INSERT INTO region_culture VALUES(2,1,4);
 INSERT INTO region_culture VALUES(2,2,1);
 INSERT INTO region_culture VALUES(2,3,20);
-CREATE TABLE race_class (
-	race_id           INTEGER NOT NULL REFERENCES race (id) ON DELETE CASCADE,
-	class_id          INTEGER NOT NULL REFERENCES class (id) ON DELETE CASCADE,
-	is_prefilled_slot INTEGER NOT NULL DEFAULT 0 CHECK (is_prefilled_slot IN (0, 1)),
-	PRIMARY KEY (race_id, class_id)
-);
-INSERT INTO race_class VALUES(1,1,0);
-INSERT INTO race_class VALUES(1,2,0);
-INSERT INTO race_class VALUES(3,1,0);
-INSERT INTO race_class VALUES(3,2,0);
 CREATE TABLE IF NOT EXISTS "talent" (
 	id           INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug         TEXT NOT NULL UNIQUE
@@ -738,6 +726,15 @@ INSERT INTO region_culture_background VALUES(2,3,20,16);
 INSERT INTO region_culture_background VALUES(2,3,21,17);
 INSERT INTO region_culture_background VALUES(2,3,22,18);
 INSERT INTO region_culture_background VALUES(2,3,23,19);
+CREATE TABLE IF NOT EXISTS "race_class" (
+	race_id  INTEGER NOT NULL REFERENCES race (id) ON DELETE CASCADE,
+	class_id INTEGER NOT NULL REFERENCES class (id) ON DELETE CASCADE,
+	PRIMARY KEY (race_id, class_id)
+);
+INSERT INTO race_class VALUES(1,1);
+INSERT INTO race_class VALUES(1,2);
+INSERT INTO race_class VALUES(3,1);
+INSERT INTO race_class VALUES(3,2);
 CREATE TRIGGER attribute_delete_translations
 AFTER DELETE ON attribute
 BEGIN

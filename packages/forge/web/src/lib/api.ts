@@ -143,7 +143,6 @@ export type RaceClassLink = {
   class_id: number;
   class_slug: string;
   class_label: string;
-  is_prefilled_slot: boolean;
 };
 
 /** Culture in UI — race table in API. */
@@ -170,7 +169,6 @@ export type Race = {
   label: string;
   description: string;
   comment: string;
-  parent_race_id: number | null;
   talent_id: number | null;
   talent_slug: string;
   sort_order: number;
@@ -296,7 +294,6 @@ export type CreateRaceBody = {
   label: string;
   description?: string;
   comment?: string;
-  parent_race_id?: number | null;
   talent_id?: number | null;
   sort_order?: number;
   class_ids?: number[];
@@ -306,7 +303,6 @@ export type UpdateRaceBody = {
   label: string;
   description: string;
   comment: string;
-  parent_race_id: number | null;
   talent_id: number | null;
   sort_order: number;
   class_ids: number[];

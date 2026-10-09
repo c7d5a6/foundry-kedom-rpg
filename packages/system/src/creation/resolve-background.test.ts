@@ -9,7 +9,6 @@ import {
   resolveBonusSkillPick,
   resolveConcreteEntry,
   resolveRolledEntry,
-  resolveRolledGrowth,
 } from "./resolve-background.ts";
 
 describe("isGrantBlocked", () => {
@@ -212,17 +211,6 @@ describe("resolveRolledEntry", () => {
     });
     expect(done.grant?.skillKey).toBe("lore");
     expect(done.substituted).toBe(true);
-  });
-});
-
-describe("resolveRolledGrowth (compat)", () => {
-  it("still works with skill-key sets", () => {
-    const result = resolveRolledGrowth(
-      { kind: "skill", skillKey: "shoot" },
-      new Set(["shoot"]),
-      "exert",
-    );
-    expect(result.grant?.skillKey).toBe("exert");
   });
 });
 

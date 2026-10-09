@@ -172,8 +172,6 @@
       "Region": "Region",
       "RegionPlaceholder": "Birthplace / region",
       "ResolveHint": "Strain Save thresholds use Resolve and current Strain",
-      "SamplesAdded": "Added {count} sample item(s).",
-      "SamplesAlreadyAdded": "Sample origins and talents are already on this character.",
       "SkillAdvHint": "a",
       "SkillBaseDice": "Dice",
       "SkillBaseDiceHint": "{dice}d",

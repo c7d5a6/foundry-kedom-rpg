@@ -244,10 +244,9 @@ func (c *Content) UpdateTalent(ctx context.Context, id int64, in UpdateTalentInp
 // --- Race (culture) ---
 
 type RaceClassLink struct {
-	ClassID         int64  `json:"class_id"`
-	ClassSlug       string `json:"class_slug"`
-	ClassLabel      string `json:"class_label"`
-	IsPrefilledSlot bool   `json:"is_prefilled_slot"`
+	ClassID    int64  `json:"class_id"`
+	ClassSlug  string `json:"class_slug"`
+	ClassLabel string `json:"class_label"`
 }
 
 type RaceRegionLink struct {
@@ -273,7 +272,6 @@ type RaceDTO struct {
 	Label             string              `json:"label"`
 	Description       string              `json:"description"`
 	Comment           string              `json:"comment"`
-	ParentRaceID      *int64              `json:"parent_race_id"`
 	TalentID          *int64              `json:"talent_id"`
 	TalentSlug        string              `json:"talent_slug"`
 	SortOrder         int64               `json:"sort_order"`
@@ -292,7 +290,7 @@ func (c *Content) ListRaces(ctx context.Context, locale model.Locale) ([]RaceDTO
 	out := make([]RaceDTO, 0, len(rows))
 	for _, row := range rows {
 		dto, err := c.raceDTO(ctx, row.ID, row.Slug, row.Label, row.Description, row.Comment,
-			row.ParentRaceID, row.TalentID, ptrStr(row.TalentSlug), row.SortOrder, row.FoundryID, locale)
+			row.TalentID, ptrStr(row.TalentSlug), row.SortOrder, row.FoundryID, locale)
 		if err != nil {
 			return nil, err
 		}
@@ -307,12 +305,12 @@ func (c *Content) GetRace(ctx context.Context, id int64, locale model.Locale) (R
 		return RaceDTO{}, mapNotFound(err)
 	}
 	return c.raceDTO(ctx, row.ID, row.Slug, row.Label, row.Description, row.Comment,
-		row.ParentRaceID, row.TalentID, ptrStr(row.TalentSlug), row.SortOrder, row.FoundryID, locale)
+		row.TalentID, ptrStr(row.TalentSlug), row.SortOrder, row.FoundryID, locale)
 }
 
 func (c *Content) raceDTO(
 	ctx context.Context, id int64, slug, label, description, comment string,
-	parentID, talentID *int64, talentSlug string, sortOrder int64, foundryID string, locale model.Locale,
+	talentID *int64, talentSlug string, sortOrder int64, foundryID string, locale model.Locale,
 ) (RaceDTO, error) {
 	tr, err := c.translations(ctx, model.EntityRace, id, locale)
 	if err != nil {
@@ -326,7 +324,6 @@ func (c *Content) raceDTO(
 	for _, l := range links {
 		classes = append(classes, RaceClassLink{
 			ClassID: l.ClassID, ClassSlug: l.ClassSlug, ClassLabel: l.ClassLabel,
-			IsPrefilledSlot: l.IsPrefilledSlot,
 		})
 	}
 	regs, err := c.q.ListRegionCulturesByRace(ctx, id)
@@ -353,20 +350,19 @@ func (c *Content) raceDTO(
 	}
 	return RaceDTO{
 		ID: id, Slug: slug, Label: label, Description: description, Comment: comment,
-		ParentRaceID: parentID, TalentID: talentID, TalentSlug: talentSlug,
+		TalentID: talentID, TalentSlug: talentSlug,
 		SortOrder: sortOrder, FoundryID: foundryID, Classes: classes,
 		LinkedRegions: linkedRegs, LinkedBackgrounds: linkedBgs, Translations: tr,
 	}, nil
 }
 
 type CreateRaceInput struct {
-	Label        string  `json:"label"`
-	Description  string  `json:"description"`
-	Comment      string  `json:"comment"`
-	ParentRaceID *int64  `json:"parent_race_id"`
-	TalentID     *int64  `json:"talent_id"`
-	SortOrder    int64   `json:"sort_order"`
-	ClassIDs     []int64 `json:"class_ids"`
+	Label       string  `json:"label"`
+	Description string  `json:"description"`
+	Comment     string  `json:"comment"`
+	TalentID    *int64  `json:"talent_id"`
+	SortOrder   int64   `json:"sort_order"`
+	ClassIDs    []int64 `json:"class_ids"`
 }
 
 func (c *Content) CreateRace(ctx context.Context, in CreateRaceInput, locale model.Locale) (RaceDTO, error) {
@@ -392,14 +388,14 @@ func (c *Content) CreateRace(ctx context.Context, in CreateRaceInput, locale mod
 
 	row, err := q.InsertRace(ctx, generated.InsertRaceParams{
 		Slug: slug, Label: label, Description: in.Description, Comment: in.Comment,
-		ParentRaceID: in.ParentRaceID, TalentID: in.TalentID, SortOrder: in.SortOrder, FoundryID: fid,
+		TalentID: in.TalentID, SortOrder: in.SortOrder, FoundryID: fid,
 	})
 	if err != nil {
 		return RaceDTO{}, fmt.Errorf("insert race: %w", err)
 	}
 	for _, cid := range in.ClassIDs {
 		if err := q.InsertRaceClass(ctx, generated.InsertRaceClassParams{
-			RaceID: row.ID, ClassID: cid, IsPrefilledSlot: false,
+			RaceID: row.ID, ClassID: cid,
 		}); err != nil {
 			return RaceDTO{}, fmt.Errorf("insert race class: %w", err)
 		}
@@ -411,13 +407,12 @@ func (c *Content) CreateRace(ctx context.Context, in CreateRaceInput, locale mod
 }
 
 type UpdateRaceInput struct {
-	Label        string  `json:"label"`
-	Description  string  `json:"description"`
-	Comment      string  `json:"comment"`
-	ParentRaceID *int64  `json:"parent_race_id"`
-	TalentID     *int64  `json:"talent_id"`
-	SortOrder    int64   `json:"sort_order"`
-	ClassIDs     []int64 `json:"class_ids"`
+	Label       string  `json:"label"`
+	Description string  `json:"description"`
+	Comment     string  `json:"comment"`
+	TalentID    *int64  `json:"talent_id"`
+	SortOrder   int64   `json:"sort_order"`
+	ClassIDs    []int64 `json:"class_ids"`
 }
 
 func (c *Content) UpdateRace(ctx context.Context, id int64, in UpdateRaceInput, locale model.Locale) (RaceDTO, error) {
@@ -432,7 +427,7 @@ func (c *Content) UpdateRace(ctx context.Context, id int64, in UpdateRaceInput, 
 
 	_, err = q.UpdateRace(ctx, generated.UpdateRaceParams{
 		Label: in.Label, Description: in.Description, Comment: in.Comment,
-		ParentRaceID: in.ParentRaceID, TalentID: in.TalentID, SortOrder: in.SortOrder, ID: id,
+		TalentID: in.TalentID, SortOrder: in.SortOrder, ID: id,
 	})
 	if err != nil {
 		return RaceDTO{}, mapNotFound(err)
@@ -442,7 +437,7 @@ func (c *Content) UpdateRace(ctx context.Context, id int64, in UpdateRaceInput, 
 	}
 	for _, cid := range in.ClassIDs {
 		if err := q.InsertRaceClass(ctx, generated.InsertRaceClassParams{
-			RaceID: id, ClassID: cid, IsPrefilledSlot: false,
+			RaceID: id, ClassID: cid,
 		}); err != nil {
 			return RaceDTO{}, fmt.Errorf("insert race class: %w", err)
 		}

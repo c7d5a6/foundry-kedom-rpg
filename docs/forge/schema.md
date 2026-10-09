@@ -132,15 +132,13 @@ needs.
 
 ```
 id, slug, label, description
-parent_race_id          nullable; self-reference for sub-cultures
 unarmored_ac            nullable; Lizards are 13
 sort_order
 foundry_id
 ```
 
-`parent_race_id` handles human sub-cultures such as the Nitól — currently flavour-only, but
-the setting notes list several, and if they gain mechanics they need to be first-class
-([Q9](../rules/99-open-questions.md#q9--human-sub-cultures-need-mechanics)).
+Human sub-cultures (Nitól and others) are modelled as separate culture rows when they need
+mechanics ([Q9](../rules/99-open-questions.md#q9--human-sub-cultures-need-mechanics)).
 
 ### `race_grant`
 
@@ -183,9 +181,9 @@ re-derived.
 ```
 class:       id, slug, label, description, comment,
              is_full (0|1), is_partial (0|1),
-             attack_progression, skill_points_per_level, hit_die,
+             hit_die,
              sort_order, foundry_id
-race_class:  race_id, class_id, is_prefilled_slot
+race_class:  race_id, class_id
 ```
 
 `is_full` and `is_partial` are independent booleans because the five full classes are **also**
@@ -193,15 +191,15 @@ selectable as Adventurer partials. At least one must be true. Adventurer itself 
 row — it is two partials combined at character creation.
 
 The class list is a many-to-many with races because that is the main mechanical weight of
-choosing a race. `is_prefilled_slot` captures the Adventurer pattern: most non-human races can
-*only* be Adventurers with one of the two slots already filled.
+choosing a race. Forced Adventurer slots (when a culture must fill one partial) will be
+modelled when Adventurer creation is wired — not as a dormant `race_class` flag.
 
 The class roster is now fixed — five with `is_full` and `is_partial`, plus seven partial-only,
 listed in [../rules/30-character-creation.md](../rules/30-character-creation.md#classes) —
-but none of the progression numbers exist yet
-([Q12](../rules/99-open-questions.md#q12--per-class-mechanics-are-unspecified)), so
-`attack_progression`, `skill_points_per_level`, and `hit_die` stay nullable. They are named
-after WWN's `classEdge` fields because those are known to be the right shape.
+but per-class progression numbers are still unspecified
+([Q12](../rules/99-open-questions.md#q12--per-class-mechanics-are-unspecified)). `hit_die` is
+authored; attack progression and skill points per level are not columns until those numbers
+exist.
 
 ### `talent`
 
@@ -228,9 +226,9 @@ values). A class still links one talent; creation copies that item’s effects o
 ### `race` (culture)
 
 ```
-race: id, slug, label, description, comment, parent_race_id?, talent_id?,
+race: id, slug, label, description, comment, talent_id?,
       sort_order, foundry_id
-race_class: race_id, class_id, is_prefilled_slot
+race_class: race_id, class_id
 ```
 
 UI label is **Culture**. Allowed classes are culture-global (`race_class`); background lists

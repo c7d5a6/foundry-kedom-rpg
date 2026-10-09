@@ -172,8 +172,6 @@
       "Region": "Регион",
       "RegionPlaceholder": "Место рождения / регион",
       "ResolveHint": "Пороги испытания напряжения — Решимость и текущее напряжение",
-      "SamplesAdded": "Добавлено образцов: {count}.",
-      "SamplesAlreadyAdded": "Образцы происхождений и талантов уже есть у этого персонажа.",
       "SkillAdvHint": "a",
       "SkillBaseDice": "Кости",
       "SkillBaseDiceHint": "{dice}d",
