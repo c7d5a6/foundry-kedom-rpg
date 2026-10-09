@@ -38,6 +38,7 @@
   let enDesc = $state("");
   let enComment = $state("");
   let enSort = $state(0);
+  let bannerImg = $state("");
   let cultureRows = $state<CultureDraft[]>([]);
   let backgroundRows = $state<BackgroundDraft[]>([]);
   let addCultureId = $state<number | "">("");
@@ -52,6 +53,7 @@
     enLabel: string;
     enComment: string;
     enSort: number;
+    bannerImg: string;
     cultureRows: CultureDraft[];
     backgroundRows: BackgroundDraft[];
     ruLabel: string;
@@ -61,6 +63,7 @@
     enLabel: "",
     enComment: "",
     enSort: 0,
+    bannerImg: "",
     cultureRows: [],
     backgroundRows: [],
     ruLabel: "",
@@ -96,6 +99,7 @@
       enLabel: region.label,
       enComment: region.comment ?? "",
       enSort: region.sort_order,
+      bannerImg: region.banner_img ?? "",
       cultureRows: region.cultures.map((c) => ({ race_id: c.race_id, weight: c.weight })),
       backgroundRows: region.backgrounds.map((b) => ({
         race_id: b.race_id,
@@ -110,6 +114,7 @@
     enLabel = b.enLabel;
     enComment = b.enComment;
     enSort = b.enSort;
+    bannerImg = b.bannerImg;
     cultureRows = b.cultureRows.map((r) => ({ ...r }));
     backgroundRows = b.backgroundRows.map((r) => ({ ...r }));
     ruLabel = b.ruLabel;
@@ -141,6 +146,7 @@
     enLabel !== baseline.enLabel ||
       enComment !== baseline.enComment ||
       enSort !== baseline.enSort ||
+      bannerImg !== baseline.bannerImg ||
       serializeCultures(cultureRows) !== serializeCultures(baseline.cultureRows) ||
       serializeBackgrounds(backgroundRows) !== serializeBackgrounds(baseline.backgroundRows) ||
       ruLabel !== baseline.ruLabel,
@@ -296,6 +302,7 @@
         description: enDesc,
         comment: enComment,
         sort_order: enSort,
+        banner_img: bannerImg.trim(),
         cultures: toCultureIn(),
         backgrounds: toBackgroundIn(),
       });
@@ -306,6 +313,7 @@
         enLabel,
         enComment,
         enSort,
+        bannerImg: bannerImg.trim(),
         cultureRows: cultureRows.map((r) => ({ ...r })),
         backgroundRows: backgroundRows.map((r) => ({ ...r })),
         ruLabel,
@@ -328,6 +336,7 @@
       description: markdown,
       comment: region.comment,
       sort_order: region.sort_order,
+      banner_img: bannerImg.trim() || region.banner_img || "",
       cultures: region.cultures.map((c) => ({ race_id: c.race_id, weight: c.weight })),
       backgrounds: region.backgrounds.map((b) => ({
         race_id: b.race_id,
@@ -375,7 +384,9 @@
       </p>
     </div>
     <div class="flex items-center gap-2">
-      <button type="button" class="forge-btn text-danger" onclick={() => void remove()}>Delete</button>
+      <button type="button" class="forge-btn text-danger" onclick={() => void remove()}
+        >Delete</button
+      >
       <button type="button" class="forge-btn" disabled={!dirty} onclick={cancel}>Cancel</button>
       <button
         type="button"
@@ -407,6 +418,19 @@
       <div class="forge-field">
         <label for="region-sort">Sort order</label>
         <input id="region-sort" class="forge-input max-w-32" type="number" bind:value={enSort} />
+      </div>
+      <div class="forge-field">
+        <label for="region-banner">Sheet banner image</label>
+        <input
+          id="region-banner"
+          class="forge-input"
+          bind:value={bannerImg}
+          placeholder="systems/kedom/assets/ui/….webp (empty = default)"
+        />
+        <p class="mt-1 text-xs text-muted">
+          Foundry path or URL used as the character sheet banner. Leave empty for the system
+          default.
+        </p>
       </div>
     </section>
 

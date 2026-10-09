@@ -125,6 +125,7 @@ export class OriginSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         selected: system.saves?.secondary?.save === value,
       })),
       isClass: subType === "class",
+      isRegion: subType === "region",
       grantsJson: formatGrantsJson(system.grants),
       classJson: formatClassJson(system),
       editable: this.isEditable,
@@ -137,9 +138,7 @@ export class OriginSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     formData: foundry.applications.ux.FormDataExtended,
   ) {
     const data = super._processFormData(event, form, formData);
-    const grantsRaw = form.querySelector<HTMLTextAreaElement>(
-      'textarea[name="grantsJson"]',
-    )?.value;
+    const grantsRaw = form.querySelector<HTMLTextAreaElement>('textarea[name="grantsJson"]')?.value;
     if (grantsRaw !== undefined) {
       const parsed = parseGrantsJson(grantsRaw);
       if (parsed) {
@@ -148,9 +147,7 @@ export class OriginSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         ui.notifications.warn(game.i18n.localize("KEDOM.Error.InvalidGrantsJson"));
       }
     }
-    const classRaw = form.querySelector<HTMLTextAreaElement>(
-      'textarea[name="classJson"]',
-    )?.value;
+    const classRaw = form.querySelector<HTMLTextAreaElement>('textarea[name="classJson"]')?.value;
     if (classRaw !== undefined) {
       const parsed = parseClassJson(classRaw);
       if (parsed) {

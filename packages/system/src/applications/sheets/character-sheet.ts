@@ -23,10 +23,7 @@ import {
   specializationSlug,
 } from "../../config/specializations.ts";
 import { localizePersistedSpecLabel } from "../../config/creation-spec-labels.ts";
-import {
-  localizeContentDescription,
-  localizeContentLabel,
-} from "../../i18n/content-labels.ts";
+import { localizeContentDescription, localizeContentLabel } from "../../i18n/content-labels.ts";
 import type {
   CharacterData,
   SaveFields,
@@ -42,10 +39,7 @@ import { prepareSkillCheck, rollSkillCheck } from "../../rolls/skill-check.ts";
 import { rollStrainSave } from "../../rolls/strain-save.ts";
 import { takeWound } from "../../rolls/wound-roll.ts";
 import type { ArmorDataFields } from "../../data/item/armor.ts";
-import {
-  normalizeWeaponSkill,
-  type WeaponDataFields,
-} from "../../data/item/weapon.ts";
+import { normalizeWeaponSkill, type WeaponDataFields } from "../../data/item/weapon.ts";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -150,6 +144,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       deleteEffect: CharacterSheet.#onDeleteEffect,
       toggleEffect: CharacterSheet.#onToggleEffect,
       openEffectSource: CharacterSheet.#onOpenEffectSource,
+      openIdentityItem: CharacterSheet.#onOpenIdentityItem,
       editResource: CharacterSheet.#onEditResource,
       rollSpecialization: CharacterSheet.#onRollSpecialization,
       toggleSpecialization: CharacterSheet.#onToggleSpecialization,
@@ -189,17 +184,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   ): foundry.applications.api.ApplicationV2.Position {
     const pos = super._updatePosition(position);
     const rightOverhang =
-      this.element?.querySelector<HTMLElement>(".kedom-sheet-tabs-part.tabs-right")
-        ?.offsetWidth ?? 0;
+      this.element?.querySelector<HTMLElement>(".kedom-sheet-tabs-part.tabs-right")?.offsetWidth ??
+      0;
     if (!rightOverhang) return pos;
     const { clientWidth } = this.element.ownerDocument.documentElement;
-    const sheetWidth =
-      typeof pos.width === "number" ? pos.width : (this.element?.offsetWidth ?? 0);
-    pos.left = Math.clamp(
-      pos.left ?? 0,
-      0,
-      Math.max(clientWidth - sheetWidth - rightOverhang, 0),
-    );
+    const sheetWidth = typeof pos.width === "number" ? pos.width : (this.element?.offsetWidth ?? 0);
+    pos.left = Math.clamp(pos.left ?? 0, 0, Math.max(clientWidth - sheetWidth - rightOverhang, 0));
     if (typeof pos.width === "number") {
       pos.width = Math.min(pos.width, Math.max(clientWidth - (pos.left ?? 0) - rightOverhang, 0));
     }
@@ -245,8 +235,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const bonusSigned = skillCheck !== null ? formatSignedBonus(skillCheck.bonus) : "+0";
       const baseDice = Math.max(1, Math.floor(skill.baseDice ?? 2));
       const defaultAdvantage = Math.floor(skill.defaultAdvantage ?? 0);
-      const hasNonDefaultRoll =
-        baseDice !== 2 || defaultAdvantage !== 0;
+      const hasNonDefaultRoll = baseDice !== 2 || defaultAdvantage !== 0;
       const rollHintParts: string[] = [];
       if (baseDice !== 2) {
         rollHintParts.push(
@@ -442,7 +431,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       .sort((a, b) => a.name.localeCompare(b.name, game.i18n.lang));
 
     const savesData = system.saves as Record<SaveKey | "luck", SaveFields>;
-    const saveView = (key: SaveKey | "luck", abilityKey: typeof SAVE_ABILITY[SaveKey] | "lck") => {
+    const saveView = (
+      key: SaveKey | "luck",
+      abilityKey: (typeof SAVE_ABILITY)[SaveKey] | "lck",
+    ) => {
       const save = savesData[key]!;
       const proficiency = save.proficiency as ProficiencyTier;
       const mod = save.mod ?? 0;
@@ -477,15 +469,18 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       relativeTo: this.actor,
     });
 
-    const detailsRaw = (system as CharacterData & {
-      details?: {
-        level?: number;
-        culture?: string;
-        background?: string;
-        class?: string;
-        notes?: string;
-      };
-    }).details ?? {};
+    const detailsRaw =
+      (
+        system as CharacterData & {
+          details?: {
+            level?: number;
+            culture?: string;
+            background?: string;
+            class?: string;
+            notes?: string;
+          };
+        }
+      ).details ?? {};
 
     const enrichedNotes = await TextEditor.enrichHTML(detailsRaw.notes ?? "", {
       secrets: this.actor.isOwner,
@@ -553,7 +548,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       displayLabel: string,
       item: Item.Implementation | undefined,
       slugHint = "",
-    ): Promise<{ label: string; tooltipHtml: string } | null> => {
+    ): Promise<{ label: string; tooltipHtml: string; itemId: string | null } | null> => {
       if (!displayLabel && !slugHint) return null;
       const sys = item?.system as unknown as { slug?: string; description?: string } | undefined;
       const slug = (slugHint || sys?.slug || "").trim();
@@ -561,26 +556,31 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         ? localizeContentLabel(kind, slug, displayLabel || item?.name || slug)
         : displayLabel;
       if (!label) return null;
+      const itemId = item?.id ?? null;
       const packDesc = sys?.description ?? "";
       const raw = slug ? localizeContentDescription(kind, slug, packDesc) : packDesc;
       const plain = raw.replace(/<[^>]*>/g, "").trim();
-      if (!plain) return { label, tooltipHtml: "" };
+      if (!plain) return { label, tooltipHtml: "", itemId };
       const tooltipHtml = await TextEditor.enrichHTML(raw, {
         secrets: this.actor.isOwner,
         relativeTo: item,
       });
-      return { label, tooltipHtml };
+      return { label, tooltipHtml, itemId };
     };
 
     const regionItem = findOrigin("region", "", regionSlug);
     const raceItem = findOrigin("race", culture);
     const backgroundItem = findOrigin("background", background);
     const classItem = findOrigin("class", className);
-    const raceSlug = ((raceItem?.system as unknown as { slug?: string } | undefined)?.slug ?? "").trim();
+    const raceSlug = (
+      (raceItem?.system as unknown as { slug?: string } | undefined)?.slug ?? ""
+    ).trim();
     const backgroundSlug = (
       (backgroundItem?.system as unknown as { slug?: string } | undefined)?.slug ?? ""
     ).trim();
-    const classSlug = ((classItem?.system as unknown as { slug?: string } | undefined)?.slug ?? "").trim();
+    const classSlug = (
+      (classItem?.system as unknown as { slug?: string } | undefined)?.slug ?? ""
+    ).trim();
     const identityParts = (
       await Promise.all([
         identityTip("Region", regionItem?.name ?? regionSlug, regionItem, regionSlug),
@@ -588,7 +588,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         identityTip("Background", background, backgroundItem, backgroundSlug),
         identityTip("Class", className, classItem, classSlug),
       ])
-    ).filter((p): p is { label: string; tooltipHtml: string } => p !== null);
+    ).filter((p): p is { label: string; tooltipHtml: string; itemId: string | null } => p !== null);
+
+    const regionSys = regionItem?.system as unknown as { bannerImg?: string } | undefined;
+    const sheetBannerImg = (regionSys?.bannerImg ?? "").trim();
 
     const talentItems = this.actor.items
       .filter((item) => (item.type as string) === "talent")
@@ -664,6 +667,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       itemEffects,
       level,
       identityParts,
+      sheetBannerImg,
       tabs,
       primaryTab: this.#primaryTab,
       isSkillsTab: this.#primaryTab === SHEET_TABS.SKILLS,
@@ -691,9 +695,25 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.element.classList.toggle("tab-talents", this.#primaryTab === SHEET_TABS.TALENTS);
     this.element.classList.toggle("tab-notes", this.#primaryTab === SHEET_TABS.NOTES);
     this.element.classList.toggle("tab-effects", this.#primaryTab === SHEET_TABS.EFFECTS);
+    this.#applySheetBanner(
+      typeof (context as { sheetBannerImg?: unknown }).sheetBannerImg === "string"
+        ? (context as { sheetBannerImg: string }).sheetBannerImg
+        : "",
+    );
     this.#placeExternalTabs();
     this.#renderModeToggle();
     this.#bindMeterEditors();
+  }
+
+  /** Region `bannerImg` overrides the default CSS banner; empty keeps the fallback art. */
+  #applySheetBanner(bannerImg: string): void {
+    const trimmed = bannerImg.trim();
+    if (trimmed) {
+      const escaped = trimmed.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+      this.element.style.setProperty("--kedom-sheet-banner-image", `url("${escaped}")`);
+    } else {
+      this.element.style.removeProperty("--kedom-sheet-banner-image");
+    }
   }
 
   /** Move tab strip outside `.window-content` (dnd5e-style external nav). */
@@ -711,7 +731,9 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.#meterAbort?.abort();
     this.#meterAbort = new AbortController();
     const { signal } = this.#meterAbort;
-    for (const input of this.element.querySelectorAll<HTMLInputElement>(".kedom-meter__edit-value")) {
+    for (const input of this.element.querySelectorAll<HTMLInputElement>(
+      ".kedom-meter__edit-value",
+    )) {
       input.addEventListener(
         "blur",
         () => {
@@ -968,6 +990,18 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     await item.sheet?.render(true);
   }
 
+  static async #onOpenIdentityItem(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    const itemId = target.dataset.itemId;
+    if (!itemId || !this.actor) return;
+    const item = this.actor.items.get(itemId);
+    if (!item || (item.type as string) !== "origin") return;
+    await item.sheet?.render(true);
+  }
+
   static async #onTakeWound(this: CharacterSheet): Promise<void> {
     if (this.isEditMode || !this.actor) return;
     await takeWound(this.actor);
@@ -1093,10 +1127,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     });
   }
 
-  static async #onRollLuckSave(
-    this: CharacterSheet,
-    event: PointerEvent,
-  ): Promise<void> {
+  static async #onRollLuckSave(this: CharacterSheet, event: PointerEvent): Promise<void> {
     if (this.isEditMode || !this.actor) return;
     await rollLuckSave(this.actor, {
       configure: event.ctrlKey || event.metaKey,
@@ -1108,11 +1139,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     await rollStrainSave(this.actor);
   }
 
-  static #onEditResource(
-    this: CharacterSheet,
-    event: PointerEvent,
-    target: HTMLElement,
-  ): void {
+  static #onEditResource(this: CharacterSheet, event: PointerEvent, target: HTMLElement): void {
     if (!this.isEditable) return;
     if (event.target instanceof HTMLInputElement) return;
     const meter = target.closest(".kedom-meter") ?? target;

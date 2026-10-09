@@ -166,6 +166,7 @@
       "Level": "Level",
       "LevelShort": "Lvl",
       "NewEffect": "New Effect",
+      "OpenOriginItem": "Open origin item",
       "Origin": "Kedom Origin Sheet",
       "Proficiency": "Proficiency",
       "Region": "Region",
@@ -637,6 +638,8 @@
         "race": "Race",
         "region": "Region"
       },
+      "bannerImg": "Sheet banner image",
+      "bannerImgHint": "Foundry path or URL for the character sheet banner. Leave blank to use the system default.",
       "classJson": "Class talents, picks, arts (JSON)",
       "classJsonHint": "classTalentKeys, talentPicks { warrior, expert, any }, arts { skillKey, abilityKeys, receiveTableKey, artKeys }",
       "description": "Description",

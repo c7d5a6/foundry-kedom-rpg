@@ -40,6 +40,24 @@
       {{/if}}
     </div>
 
+    {{#if isRegion}}
+      <div class="kedom-item-sheet__field">
+        <label for="origin-banner">{{localize "KEDOM.Origin.bannerImg"}}</label>
+        <p class="kedom-item-sheet__hint">{{localize "KEDOM.Origin.bannerImgHint"}}</p>
+        {{#if editable}}
+          <input
+            id="origin-banner"
+            type="text"
+            name="system.bannerImg"
+            value="{{system.bannerImg}}"
+            placeholder="systems/kedom/assets/ui/…"
+          />
+        {{else}}
+          <span>{{#if system.bannerImg}}{{system.bannerImg}}{{else}}—{{/if}}</span>
+        {{/if}}
+      </div>
+    {{/if}}
+
     {{#if isClass}}
       <div class="kedom-item-sheet__field">
         <label for="origin-isfull">

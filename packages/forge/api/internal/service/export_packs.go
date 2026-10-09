@@ -86,7 +86,7 @@ func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 		}
 		out.Regions = append(out.Regions, export.PackRegion{
 			Slug: r.Slug, Label: r.Label, Description: r.Description,
-			FoundryID: r.FoundryID, Cultures: cultures,
+			FoundryID: r.FoundryID, BannerImg: r.BannerImg, Cultures: cultures,
 		})
 	}
 

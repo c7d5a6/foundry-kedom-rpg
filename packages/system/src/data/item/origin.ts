@@ -8,11 +8,7 @@ import {
 import { ABILITY_KEYS } from "../../config/kedom.ts";
 
 export { CLASS_SAVE_TRACKS, type OriginDataFields } from "./origin-fields.ts";
-export type {
-  ClassArtsFields,
-  ClassSaveTrack,
-  PrioritizedSaveFields,
-} from "./origin-fields.ts";
+export type { ClassArtsFields, ClassSaveTrack, PrioritizedSaveFields } from "./origin-fields.ts";
 export { ORIGIN_SUBTYPES, normalizeOriginSubtype, type OriginSubtype };
 
 const { ArrayField, BooleanField, HTMLField, NumberField, SchemaField, StringField } =
@@ -85,6 +81,16 @@ function originSchema() {
       initial: "",
     }),
     description: new HTMLField({ required: true, nullable: false, blank: true, initial: "" }),
+    /**
+     * Region: character sheet banner image path. Blank keeps the system default art.
+     * Other subtypes ignore this field.
+     */
+    bannerImg: new StringField({
+      required: true,
+      nullable: false,
+      blank: true,
+      initial: "",
+    }),
     grants: grantsSchema(),
     /** Class only: true = full class; false = Adventurer partial. */
     isFull: new BooleanField({ required: true, nullable: false, initial: true }),
@@ -178,10 +184,7 @@ function originSchema() {
 
 export type OriginSchema = ReturnType<typeof originSchema>;
 
-export class OriginData extends foundry.abstract.TypeDataModel<
-  OriginSchema,
-  Item.Implementation
-> {
+export class OriginData extends foundry.abstract.TypeDataModel<OriginSchema, Item.Implementation> {
   static override defineSchema(): OriginSchema {
     return originSchema();
   }

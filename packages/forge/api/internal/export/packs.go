@@ -41,6 +41,7 @@ type PackRegion struct {
 	Label       string
 	Description string
 	FoundryID   string
+	BannerImg   string
 	Cultures    []PackRegionCulture
 }
 
@@ -163,6 +164,7 @@ func WritePacks(outDir string, in PackInput) error {
 				"subType":         "region",
 				"slug":            r.Slug,
 				"description":     renderMD(md, r.Description),
+				"bannerImg":       r.BannerImg,
 				"grants":          emptyGrants(),
 				"cultures":        cultures,
 				"isFull":          true,

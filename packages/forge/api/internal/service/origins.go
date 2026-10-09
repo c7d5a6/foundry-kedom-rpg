@@ -482,6 +482,7 @@ type RegionDTO struct {
 	Comment      string                 `json:"comment"`
 	SortOrder    int64                  `json:"sort_order"`
 	FoundryID    string                 `json:"foundry_id"`
+	BannerImg    string                 `json:"banner_img"`
 	Cultures     []RegionCultureLink    `json:"cultures"`
 	Backgrounds  []RegionBackgroundLink `json:"backgrounds"`
 	Translations TranslationMap         `json:"translations"`
@@ -541,7 +542,8 @@ func (c *Content) getRegionDTO(ctx context.Context, id int64, locale model.Local
 	return RegionDTO{
 		ID: row.ID, Slug: row.Slug, Label: row.Label, Description: row.Description,
 		Comment: row.Comment, SortOrder: row.SortOrder, FoundryID: row.FoundryID,
-		Cultures: cl, Backgrounds: bl, Translations: tr,
+		BannerImg: row.BannerImg,
+		Cultures:  cl, Backgrounds: bl, Translations: tr,
 	}, nil
 }
 
@@ -561,6 +563,7 @@ type CreateRegionInput struct {
 	Description string               `json:"description"`
 	Comment     string               `json:"comment"`
 	SortOrder   int64                `json:"sort_order"`
+	BannerImg   string               `json:"banner_img"`
 	Cultures    []RegionCultureIn    `json:"cultures"`
 	Backgrounds []RegionBackgroundIn `json:"backgrounds"`
 }
@@ -588,7 +591,7 @@ func (c *Content) CreateRegion(ctx context.Context, in CreateRegionInput, locale
 
 	row, err := q.InsertRegion(ctx, generated.InsertRegionParams{
 		Slug: slug, Label: label, Description: in.Description, Comment: in.Comment,
-		SortOrder: in.SortOrder, FoundryID: fid,
+		SortOrder: in.SortOrder, FoundryID: fid, BannerImg: strings.TrimSpace(in.BannerImg),
 	})
 	if err != nil {
 		return RegionDTO{}, fmt.Errorf("insert region: %w", err)
@@ -607,6 +610,7 @@ type UpdateRegionInput struct {
 	Description string               `json:"description"`
 	Comment     string               `json:"comment"`
 	SortOrder   int64                `json:"sort_order"`
+	BannerImg   string               `json:"banner_img"`
 	Cultures    []RegionCultureIn    `json:"cultures"`
 	Backgrounds []RegionBackgroundIn `json:"backgrounds"`
 }
@@ -623,7 +627,7 @@ func (c *Content) UpdateRegion(ctx context.Context, id int64, in UpdateRegionInp
 
 	_, err = q.UpdateRegion(ctx, generated.UpdateRegionParams{
 		Label: in.Label, Description: in.Description, Comment: in.Comment,
-		SortOrder: in.SortOrder, ID: id,
+		SortOrder: in.SortOrder, BannerImg: strings.TrimSpace(in.BannerImg), ID: id,
 	})
 	if err != nil {
 		return RegionDTO{}, mapNotFound(err)

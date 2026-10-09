@@ -105,6 +105,7 @@ per-pair backgrounds:
 system:
   subType: region
   slug: nerland
+  bannerImg: systems/kedom/assets/ui/nerland.webp  # optional; empty → default sheet banner
   cultures:
     - slug: human_nerlander
       weight: 12

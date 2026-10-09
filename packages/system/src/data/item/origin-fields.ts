@@ -54,6 +54,11 @@ export type OriginDataFields = {
     primary: PrioritizedSaveFields;
     secondary: PrioritizedSaveFields;
   };
+  /**
+   * Region only: Foundry image path for the character sheet banner.
+   * Empty → sheet uses the system default banner art.
+   */
+  bannerImg: string;
 };
 
 export type { OriginSubtype, GrantsFields };

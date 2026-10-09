@@ -166,6 +166,7 @@
       "Level": "Уровень",
       "LevelShort": "Ур.",
       "NewEffect": "Новый эффект",
+      "OpenOriginItem": "Открыть предмет происхождения",
       "Origin": "Лист происхождения Kedom",
       "Proficiency": "Владение",
       "Region": "Регион",
@@ -637,6 +638,8 @@
         "race": "Раса",
         "region": "Регион"
       },
+      "bannerImg": "Баннер листа персонажа",
+      "bannerImgHint": "Путь Foundry или URL для баннера листа персонажа. Пустое значение — системный баннер по умолчанию.",
       "classJson": "Таланты класса, выборы, искусства (JSON)",
       "classJsonHint": "classTalentKeys, talentPicks { warrior, expert, any }, arts { skillKey, abilityKeys, receiveTableKey, artKeys }",
       "description": "Описание",

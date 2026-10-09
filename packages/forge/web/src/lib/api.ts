@@ -196,6 +196,7 @@ export type Region = {
   comment: string;
   sort_order: number;
   foundry_id: string;
+  banner_img: string;
   cultures: RegionCultureLink[];
   backgrounds: RegionBackgroundLink[];
   translations: TranslationMap;
@@ -316,6 +317,7 @@ export type CreateRegionBody = {
   description?: string;
   comment?: string;
   sort_order?: number;
+  banner_img?: string;
   cultures?: RegionCultureIn[];
   backgrounds?: RegionBackgroundIn[];
 };
@@ -325,6 +327,7 @@ export type UpdateRegionBody = {
   description: string;
   comment: string;
   sort_order: number;
+  banner_img: string;
   cultures: RegionCultureIn[];
   backgrounds: RegionBackgroundIn[];
 };
@@ -416,7 +419,12 @@ export const api = {
 
   classes: () => request<ClassRow[]>(`/api/classes?${localeQ}`),
   class: (id: number) => request<ClassRow>(`/api/classes/${id}?${localeQ}`),
-  createClass: (body: { label: string; is_full?: boolean; is_partial?: boolean; hit_die?: string }) =>
+  createClass: (body: {
+    label: string;
+    is_full?: boolean;
+    is_partial?: boolean;
+    hit_die?: string;
+  }) =>
     request<ClassRow>(`/api/classes?${localeQ}`, {
       method: "POST",
       body: JSON.stringify(body),
@@ -456,8 +464,7 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
-  deleteRace: (id: number) =>
-    request<{ status: string }>(`/api/races/${id}`, { method: "DELETE" }),
+  deleteRace: (id: number) => request<{ status: string }>(`/api/races/${id}`, { method: "DELETE" }),
 
   regions: () => request<Region[]>(`/api/regions?${localeQ}`),
   region: (id: number) => request<Region>(`/api/regions/${id}?${localeQ}`),

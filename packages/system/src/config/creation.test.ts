@@ -50,6 +50,7 @@ function classOrigin(
       primary: { save: "reflex", priority: 0 },
       secondary: { save: "fortitude", priority: 0 },
     },
+    bannerImg: "",
     ...overrides,
   };
 }

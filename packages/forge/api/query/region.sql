@@ -1,28 +1,28 @@
 -- name: ListRegions :many
-SELECT id, slug, label, description, comment, sort_order, foundry_id
+SELECT id, slug, label, description, comment, sort_order, foundry_id, banner_img
 FROM region
 ORDER BY sort_order, id;
 
 -- name: GetRegion :one
-SELECT id, slug, label, description, comment, sort_order, foundry_id
+SELECT id, slug, label, description, comment, sort_order, foundry_id, banner_img
 FROM region
 WHERE id = ?;
 
 -- name: GetRegionBySlug :one
-SELECT id, slug, label, description, comment, sort_order, foundry_id
+SELECT id, slug, label, description, comment, sort_order, foundry_id, banner_img
 FROM region
 WHERE slug = ?;
 
 -- name: InsertRegion :one
-INSERT INTO region (slug, label, description, comment, sort_order, foundry_id)
-VALUES (?, ?, ?, ?, ?, ?)
-RETURNING id, slug, label, description, comment, sort_order, foundry_id;
+INSERT INTO region (slug, label, description, comment, sort_order, foundry_id, banner_img)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+RETURNING id, slug, label, description, comment, sort_order, foundry_id, banner_img;
 
 -- name: UpdateRegion :one
 UPDATE region
-SET label = ?, description = ?, comment = ?, sort_order = ?
+SET label = ?, description = ?, comment = ?, sort_order = ?, banner_img = ?
 WHERE id = ?
-RETURNING id, slug, label, description, comment, sort_order, foundry_id;
+RETURNING id, slug, label, description, comment, sort_order, foundry_id, banner_img;
 
 -- name: RegionSlugExists :one
 SELECT EXISTS(SELECT 1 FROM region WHERE slug = ?) AS present;

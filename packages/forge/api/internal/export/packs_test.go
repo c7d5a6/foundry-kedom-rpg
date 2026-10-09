@@ -55,6 +55,31 @@ func TestWritePacksTalentEffects(t *testing.T) {
 	}
 }
 
+func TestWritePacksRegionBannerImg(t *testing.T) {
+	dir := t.TempDir()
+	err := WritePacks(dir, PackInput{
+		Regions: []PackRegion{{
+			Slug:        "nerland",
+			Label:       "Nerland",
+			Description: "",
+			FoundryID:   "eeeeeeeeeeeeee01",
+			BannerImg:   "systems/kedom/assets/ui/nerland.webp",
+			Cultures:    []PackRegionCulture{},
+		}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, err := os.ReadFile(filepath.Join(dir, "origins", "region.nerland.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(body)
+	if !strings.Contains(text, "bannerImg: systems/kedom/assets/ui/nerland.webp") {
+		t.Fatalf("yaml missing bannerImg:\n%s", text)
+	}
+}
+
 func TestWritePacksOmitsEmptyEffects(t *testing.T) {
 	dir := t.TempDir()
 	err := WritePacks(dir, PackInput{

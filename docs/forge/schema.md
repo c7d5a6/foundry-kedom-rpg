@@ -240,11 +240,15 @@ are not — see `region_culture_background`.
 ### `region`, `region_culture`, `region_culture_background`
 
 ```
-region:                     id, slug, label, description, comment, sort_order, foundry_id
+region:                     id, slug, label, description, comment, sort_order, foundry_id,
+                            banner_img (Foundry path/URL; empty = system default sheet banner)
 region_culture:             region_id, race_id, weight INTEGER CHECK (weight > 0)
 region_culture_background:  region_id, race_id, background_id, sort_order
                             FK (region_id, race_id) → region_culture
 ```
+
+`banner_img` exports as origin `system.bannerImg` on the region pack document. The character
+sheet uses it when present and falls back to the built-in banner art when blank.
 
 Integer **weight** (not prevalence enum). The create wizard displays percentages
 (`round(100 * weight / sum)`; last culture absorbs rounding so the UI totals 100).
