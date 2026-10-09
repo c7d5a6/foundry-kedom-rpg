@@ -584,22 +584,58 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const regionItem = findOrigin("region", "", regionSlug, "Region");
     const raceItem = findOrigin("race", culture, "", "Culture");
     const backgroundItem = findOrigin("background", background, "", "Background");
-    const classItem = findOrigin("class", className, "", "Class");
     const raceSlug = (
       (raceItem?.system as unknown as { slug?: string } | undefined)?.slug ?? ""
     ).trim();
     const backgroundSlug = (
       (backgroundItem?.system as unknown as { slug?: string } | undefined)?.slug ?? ""
     ).trim();
-    const classSlug = (
-      (classItem?.system as unknown as { slug?: string } | undefined)?.slug ?? ""
-    ).trim();
+
+    // Full class: one origin. Adventurer: two partial origins (details.class is "A / B").
+    const classOriginItems = originItems.filter((item) => {
+      const sys = item.system as unknown as { subType?: string };
+      return sys.subType === "class";
+    });
+    const classLabelParts = className
+      .split(/\s*\/\s*/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const orderedClassItems = (() => {
+      if (classOriginItems.length <= 1) return classOriginItems;
+      if (!classLabelParts.length) return classOriginItems;
+      const remaining = [...classOriginItems];
+      const ordered: Item.Implementation[] = [];
+      for (const part of classLabelParts) {
+        const idx = remaining.findIndex((item) => {
+          const sys = item.system as unknown as { slug?: string };
+          if (item.name === part) return true;
+          const slug = (sys.slug ?? "").trim();
+          return Boolean(
+            slug && localizeContentLabel("Class", slug, item.name ?? slug) === part,
+          );
+        });
+        if (idx >= 0) ordered.push(remaining.splice(idx, 1)[0]!);
+      }
+      return [...ordered, ...remaining];
+    })();
+
+    const classTips =
+      orderedClassItems.length > 0
+        ? await Promise.all(
+            orderedClassItems.map((item) => {
+              const sys = item.system as unknown as { slug?: string };
+              const slug = (sys.slug ?? "").trim();
+              return identityTip("Class", item.name ?? "", item, slug);
+            }),
+          )
+        : [await identityTip("Class", className, undefined, "")];
+
     const identityParts = (
       await Promise.all([
         identityTip("Region", regionItem?.name ?? regionSlug, regionItem, regionSlug),
         identityTip("Culture", culture, raceItem, raceSlug),
         identityTip("Background", background, backgroundItem, backgroundSlug),
-        identityTip("Class", className, classItem, classSlug),
+        ...classTips,
       ])
     ).filter((p): p is { label: string; tooltipHtml: string; itemId: string | null } => p !== null);
 

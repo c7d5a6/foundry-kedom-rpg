@@ -555,11 +555,11 @@
         },
         "item-3": {
           "label": "Непревзойденное мастерство",
-          "description": "\u003cp\u003eПри повышении уровня персонажа вы получаете дополнительное очко навыка.\u003c/p\u003e"
+          "description": "\u003cp\u003eРаз за сцену Эксперт может перебросить любую небоевую проверку навыка как мгновенное действие. Можно сначала бросить, а затем сразу применить талант, если итог недостаточен для успеха. Когда это важно, берётся лучший из двух бросков.\u003c/p\u003e"
         },
         "item-4": {
           "label": "Способный ученик",
-          "description": "\u003cp\u003eWhen you advance a character level, you gain an extra skill point which may only be spent on gaining or improving non-combat skills or raising attributes. You may save this point to spend later if you wish.\u003c/p\u003e"
+          "description": "\u003cp\u003eПри повышении уровня персонажа вы получаете дополнительное очко навыка.\u003c/p\u003e"
         }
       }
     },
