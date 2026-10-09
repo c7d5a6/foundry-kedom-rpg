@@ -43,7 +43,6 @@ function classOrigin(
     isFull: true,
     hitDie: "1d6",
     hitDiePriority: 0,
-    classTalentKeys: [],
     talentPicks: { warrior: 0, expert: 0, any: 0 },
     arts: { skillKey: "", abilityKeys: [], receiveTableKey: "", artKeys: [] },
     saves: {

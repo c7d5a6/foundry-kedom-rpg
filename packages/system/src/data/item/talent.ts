@@ -29,12 +29,6 @@ function talentSchema() {
         ),
       initial: "general",
     }),
-    featureKey: new StringField({
-      required: true,
-      nullable: false,
-      blank: true,
-      initial: "",
-    }),
     grants: grantsSchema(),
   };
 }
@@ -45,7 +39,6 @@ export type TalentDataFields = {
   slug: string;
   description: string;
   category: TalentCategory;
-  featureKey: string;
   grants: GrantsFields;
 };
 

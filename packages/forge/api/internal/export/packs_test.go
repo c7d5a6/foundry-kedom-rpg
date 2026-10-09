@@ -25,7 +25,6 @@ func TestWritePacksTalentEffects(t *testing.T) {
 			Description: "",
 			FoundryID:   "cccccccccccccc01",
 			Category:    "class",
-			FeatureKey:  "",
 			GrantsJSON:  `{"skills":[],"specializations":[],"abilities":[]}`,
 			EffectsJSON: effects,
 		}},

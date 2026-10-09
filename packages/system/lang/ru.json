@@ -533,7 +533,8 @@
           "description": "\u003cp\u003eGain Exert as a bonus skill. You have a natural resistance to magic, gaining a +2 bonus on all saves against hostile magical effects. You need only half the usual amount of food, water, and air and gain a +1 CON modifier.\u003c/p\u003e"
         },
         "human": {
-          "label": "Human"
+          "label": "Human",
+          "description": "\u003cp\u003eЛюди получают дополнительный Expert Talent.\u003c/p\u003e"
         },
         "item": {
           "label": "Смертельный удар",
@@ -703,7 +704,7 @@
       "bannerImg": "Баннер листа персонажа",
       "bannerImgHint": "Путь Foundry или URL для баннера листа персонажа. Пустое значение — системный баннер по умолчанию.",
       "classJson": "Таланты класса, выборы, искусства (JSON)",
-      "classJsonHint": "classTalentKeys, talentPicks { warrior, expert, any }, arts { skillKey, abilityKeys, receiveTableKey, artKeys }",
+      "classJsonHint": "talentPicks { warrior, expert, any }, arts { skillKey, abilityKeys, receiveTableKey, artKeys }",
       "description": "Описание",
       "hitDie": "Кость хитов",
       "hitDiePriority": "Приоритет кости хитов",

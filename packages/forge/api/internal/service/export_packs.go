@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 
@@ -64,7 +63,7 @@ func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 	for _, t := range talents {
 		out.Talents = append(out.Talents, export.PackTalent{
 			Slug: t.Slug, Label: t.Label, Description: t.Description,
-			FoundryID: t.FoundryID, Category: t.Category, FeatureKey: t.FeatureKey,
+			FoundryID: t.FoundryID, Category: t.Category,
 			GrantsJSON: t.GrantsJSON, EffectsJSON: t.EffectsJSON,
 		})
 	}
@@ -123,11 +122,6 @@ func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 	}
 
 	for _, cl := range classes {
-		keys := []string{}
-		_ = json.Unmarshal([]byte(cl.ClassTalentKeys), &keys)
-		if keys == nil {
-			keys = []string{}
-		}
 		hitDie := cl.HitDie
 		if hitDie == "" {
 			hitDie = "1d6"
@@ -140,7 +134,7 @@ func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 			TalentPicksAny: cl.TalentPicksAny,
 			SavePrimary:    cl.SavePrimary, SavePrimaryPriority: cl.SavePrimaryPriority,
 			SaveSecondary: cl.SaveSecondary, SaveSecondaryPriority: cl.SaveSecondaryPriority,
-			ArtsSkillKey: cl.ArtsSkillKey, ClassTalentKeys: keys,
+			ArtsSkillKey: cl.ArtsSkillKey,
 		})
 	}
 

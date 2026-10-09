@@ -1,6 +1,11 @@
 <script lang="ts">
   import { onDestroy, untrack } from "svelte";
-  import { api, TALENT_CATEGORIES, type Talent, type TranslationField } from "$lib/api";
+  import {
+    TALENT_CATEGORIES,
+    api,
+    type Talent,
+    type TranslationField,
+  } from "$lib/api";
   import RichTextField from "$lib/RichTextField.svelte";
   import LinkPanel from "$lib/LinkPanel.svelte";
 
@@ -97,7 +102,6 @@
   let enComment = $state("");
   let enSort = $state(0);
   let category = $state("general");
-  let featureKey = $state("");
   let grantsJson = $state("");
   let effects = $state<EffectDraft[]>([]);
   let ruLabel = $state("");
@@ -110,7 +114,6 @@
     enComment: string;
     enSort: number;
     category: string;
-    featureKey: string;
     grantsJson: string;
     effectsJson: string;
     ruLabel: string;
@@ -121,7 +124,6 @@
     enComment: "",
     enSort: 0,
     category: "general",
-    featureKey: "",
     grantsJson: "",
     effectsJson: "[]",
     ruLabel: "",
@@ -140,7 +142,6 @@
       enComment: talent.comment ?? "",
       enSort: talent.sort_order,
       category: talent.category || "general",
-      featureKey: talent.feature_key ?? "",
       grantsJson: talent.grants_json ?? "",
       effectsJson: effectsPayload(parseEffects(talent.effects_json)),
       ruLabel: talent.translations?.label ?? "",
@@ -152,7 +153,6 @@
     enComment = b.enComment;
     enSort = b.enSort;
     category = b.category;
-    featureKey = b.featureKey;
     grantsJson = b.grantsJson;
     effects = parseEffects(b.effectsJson);
     ruLabel = b.ruLabel;
@@ -178,7 +178,6 @@
       enComment !== baseline.enComment ||
       enSort !== baseline.enSort ||
       category !== baseline.category ||
-      featureKey !== baseline.featureKey ||
       grantsJson !== baseline.grantsJson ||
       effectsPayload(effects) !== baseline.effectsJson ||
       ruLabel !== baseline.ruLabel,
@@ -232,7 +231,6 @@
         description: enDesc,
         comment: enComment,
         category,
-        feature_key: featureKey,
         grants_json: grantsJson,
         effects_json: effectsPayload(effects),
         sort_order: enSort,
@@ -246,7 +244,6 @@
         enComment,
         enSort,
         category,
-        featureKey,
         grantsJson,
         effectsJson: effectsPayload(effects),
         ruLabel,
@@ -269,7 +266,6 @@
       description: markdown,
       comment: talent.comment,
       category: talent.category,
-      feature_key: talent.feature_key,
       grants_json: talent.grants_json,
       effects_json: effectsPayload(effects),
       sort_order: talent.sort_order,
@@ -384,10 +380,6 @@
             <option value={cat}>{cat}</option>
           {/each}
         </select>
-      </div>
-      <div class="forge-field">
-        <label for="talent-feature">Feature key</label>
-        <input id="talent-feature" class="forge-input font-mono" bind:value={featureKey} />
       </div>
       <div class="forge-field">
         <label for="talent-grants">Grants JSON</label>

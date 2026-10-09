@@ -533,7 +533,8 @@
           "description": "\u003cp\u003eGain Exert as a bonus skill. You have a natural resistance to magic, gaining a +2 bonus on all saves against hostile magical effects. You need only half the usual amount of food, water, and air and gain a +1 CON modifier.\u003c/p\u003e"
         },
         "human": {
-          "label": "Human"
+          "label": "Human",
+          "description": "\u003cp\u003eЛюди получают дополнительный Expert Talent.\u003c/p\u003e"
         },
         "item": {
           "label": "Смертельный удар",
@@ -703,7 +704,7 @@
       "bannerImg": "Sheet banner image",
       "bannerImgHint": "Foundry path or URL for the character sheet banner. Leave blank to use the system default.",
       "classJson": "Class talents, picks, arts (JSON)",
-      "classJsonHint": "classTalentKeys, talentPicks { warrior, expert, any }, arts { skillKey, abilityKeys, receiveTableKey, artKeys }",
+      "classJsonHint": "talentPicks { warrior, expert, any }, arts { skillKey, abilityKeys, receiveTableKey, artKeys }",
       "description": "Description",
       "hitDie": "Hit die",
       "hitDiePriority": "Hit die priority",

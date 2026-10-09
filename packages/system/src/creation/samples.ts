@@ -46,7 +46,7 @@ function talent(
     name,
     type: "talent",
     img: extras?.img ?? "icons/svg/aura.svg",
-    system: { category, featureKey: "", grants: grants({}), ...system },
+    system: { category, grants: grants({}), ...system },
     effects: extras?.effects,
   };
 }
@@ -85,7 +85,6 @@ export const CREATION_SAMPLES: SampleItemData[] = [
       description:
         "<p>Expert-pool talent — advantage on Heal checks via Active Effect (no proficiency grant).</p>",
       category: "skills",
-      featureKey: "",
       grants: grants({}),
     },
     effects: [

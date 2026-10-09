@@ -210,7 +210,7 @@ Character talents (not “feats”). Linked from cultures and classes by **slug*
 ```
 talent: id, slug, label, description, comment,
         category ('class'|'culture'|'skills'|'combat'|'general'|'other'),
-        feature_key, grants_json, sort_order, foundry_id, effects_json
+        grants_json, sort_order, foundry_id, effects_json
 ```
 
 Cultures and classes that link a talent are shown on the talent’s Forge page (and reverse links
@@ -287,8 +287,8 @@ id|label)` across free + growth (wildcards may repeat).
 ### `class` (origins fields)
 
 In addition to roster flags, class rows carry Foundry progression fields used by pack export:
-`talent_id`, `hit_die` / `hit_die_priority`, talent picks, prioritized saves, `arts_skill_key`,
-`class_talent_keys` (JSON array). **Effort** authoring is deferred.
+`talent_id`, `hit_die` / `hit_die_priority`, talent picks, prioritized saves, `arts_skill_key`.
+**Effort** authoring is deferred.
 
 ### `translation`
 

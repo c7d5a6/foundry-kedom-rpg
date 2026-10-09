@@ -23,7 +23,6 @@ type PackTalent struct {
 	Description string
 	FoundryID   string
 	Category    string
-	FeatureKey  string
 	GrantsJSON  string
 	EffectsJSON string
 }
@@ -90,7 +89,6 @@ type PackClass struct {
 	SaveSecondary         string
 	SaveSecondaryPriority int64
 	ArtsSkillKey          string
-	ClassTalentKeys       []string
 }
 
 // PackInput is everything needed to write origins + talents packs.
@@ -129,7 +127,6 @@ func WritePacks(outDir string, in PackInput) error {
 				"slug":        t.Slug,
 				"description": renderMD(md, t.Description),
 				"category":    t.Category,
-				"featureKey":  t.FeatureKey,
 				"grants":      parseGrants(t.GrantsJSON),
 			},
 			"_key": "!items!" + t.FoundryID,
@@ -168,10 +165,9 @@ func WritePacks(outDir string, in PackInput) error {
 				"grants":          emptyGrants(),
 				"cultures":        cultures,
 				"isFull":          true,
-				"hitDie":          "1d6",
-				"hitDiePriority":  0,
-				"classTalentKeys": []string{},
-				"talentPicks":     map[string]int{"warrior": 0, "expert": 0, "any": 0},
+				"hitDie":         "1d6",
+				"hitDiePriority": 0,
+				"talentPicks":    map[string]int{"warrior": 0, "expert": 0, "any": 0},
 				"arts": map[string]any{
 					"skillKey": "", "abilityKeys": []string{}, "receiveTableKey": "", "artKeys": []string{},
 				},
@@ -204,10 +200,9 @@ func WritePacks(outDir string, in PackInput) error {
 				"classSlugs":      r.ClassSlugs,
 				"cultures":        []any{},
 				"isFull":          true,
-				"hitDie":          "1d6",
-				"hitDiePriority":  0,
-				"classTalentKeys": []string{},
-				"talentPicks":     map[string]int{"warrior": 0, "expert": 0, "any": 0},
+				"hitDie":         "1d6",
+				"hitDiePriority": 0,
+				"talentPicks":    map[string]int{"warrior": 0, "expert": 0, "any": 0},
 				"arts": map[string]any{
 					"skillKey": "", "abilityKeys": []string{}, "receiveTableKey": "", "artKeys": []string{},
 				},
@@ -245,13 +240,12 @@ func WritePacks(outDir string, in PackInput) error {
 					"skillKey": b.FreeSkillKey,
 					"specSlug": b.FreeSpecSlug,
 				},
-				"growth":          growth,
-				"cultures":        []any{},
-				"isFull":          true,
-				"hitDie":          "1d6",
-				"hitDiePriority":  0,
-				"classTalentKeys": []string{},
-				"talentPicks":     map[string]int{"warrior": 0, "expert": 0, "any": 0},
+				"growth":         growth,
+				"cultures":       []any{},
+				"isFull":         true,
+				"hitDie":         "1d6",
+				"hitDiePriority": 0,
+				"talentPicks":    map[string]int{"warrior": 0, "expert": 0, "any": 0},
 				"arts": map[string]any{
 					"skillKey": "", "abilityKeys": []string{}, "receiveTableKey": "", "artKeys": []string{},
 				},
@@ -278,10 +272,9 @@ func WritePacks(outDir string, in PackInput) error {
 				"slug":            cl.Slug,
 				"description":     renderMD(md, cl.Description),
 				"grants":          emptyGrants(),
-				"isFull":          cl.IsFull,
-				"hitDie":          cl.HitDie,
-				"hitDiePriority":  cl.HitDiePriority,
-				"classTalentKeys": cl.ClassTalentKeys,
+				"isFull":         cl.IsFull,
+				"hitDie":         cl.HitDie,
+				"hitDiePriority": cl.HitDiePriority,
 				"talentPicks": map[string]int64{
 					"warrior": cl.TalentPicksWarrior,
 					"expert":  cl.TalentPicksExpert,

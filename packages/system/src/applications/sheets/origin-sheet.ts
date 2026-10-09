@@ -10,7 +10,6 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
 
 type ClassJsonBlock = {
-  classTalentKeys: string[];
   talentPicks: OriginDataFields["talentPicks"];
   arts: OriginDataFields["arts"];
 };
@@ -36,7 +35,6 @@ function parseGrantsJson(raw: string): GrantsFields | null {
 
 function formatClassJson(system: OriginDataFields): string {
   const block: ClassJsonBlock = {
-    classTalentKeys: system.classTalentKeys ?? [],
     talentPicks: system.talentPicks ?? { warrior: 0, expert: 0, any: 0 },
     arts: system.arts ?? {
       skillKey: "",
@@ -53,7 +51,6 @@ function parseClassJson(raw: string): ClassJsonBlock | null {
     const parsed = JSON.parse(raw) as ClassJsonBlock;
     if (!parsed || typeof parsed !== "object") return null;
     return {
-      classTalentKeys: Array.isArray(parsed.classTalentKeys) ? parsed.classTalentKeys : [],
       talentPicks: {
         warrior: Number(parsed.talentPicks?.warrior) || 0,
         expert: Number(parsed.talentPicks?.expert) || 0,
@@ -151,7 +148,6 @@ export class OriginSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     if (classRaw !== undefined) {
       const parsed = parseClassJson(classRaw);
       if (parsed) {
-        foundry.utils.setProperty(data, "system.classTalentKeys", parsed.classTalentKeys);
         foundry.utils.setProperty(data, "system.talentPicks", parsed.talentPicks);
         foundry.utils.setProperty(data, "system.arts", parsed.arts);
       } else {

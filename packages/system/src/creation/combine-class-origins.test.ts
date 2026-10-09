@@ -17,7 +17,6 @@ function partial(
     isFull: false,
     hitDie: "1d6",
     hitDiePriority: 0,
-    classTalentKeys: [],
     talentPicks: { warrior: 0, expert: 0, any: 0 },
     arts: { skillKey: "", abilityKeys: [], receiveTableKey: "", artKeys: [] },
     saves: {
@@ -63,10 +62,9 @@ describe("combineClassOrigins", () => {
     expect(combined?.saves.secondary.save).toBe("luck");
   });
 
-  it("merges talent picks and concatenates class talents", () => {
+  it("merges talent picks", () => {
     const combined = combineClassOrigins(warrior, "Warrior", expert, "Expert");
     expect(combined?.talentPicks).toEqual({ warrior: 1, expert: 1, any: 1 });
-    expect(combined?.classTalentKeys).toEqual([]);
   });
 
   it("rejects full-class rows", () => {

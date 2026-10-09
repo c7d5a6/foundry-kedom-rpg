@@ -5,7 +5,7 @@ SELECT
 	c.talent_id, c.hit_die_priority,
 	c.talent_picks_warrior, c.talent_picks_expert, c.talent_picks_any,
 	c.save_primary, c.save_primary_priority, c.save_secondary, c.save_secondary_priority,
-	c.arts_skill_key, c.class_talent_keys,
+	c.arts_skill_key,
 	c.sort_order, c.foundry_id,
 	t.slug AS talent_slug
 FROM class c
@@ -19,7 +19,7 @@ SELECT
 	c.talent_id, c.hit_die_priority,
 	c.talent_picks_warrior, c.talent_picks_expert, c.talent_picks_any,
 	c.save_primary, c.save_primary_priority, c.save_secondary, c.save_secondary_priority,
-	c.arts_skill_key, c.class_talent_keys,
+	c.arts_skill_key,
 	c.sort_order, c.foundry_id,
 	t.slug AS talent_slug
 FROM class c
@@ -33,7 +33,7 @@ SELECT
 	c.talent_id, c.hit_die_priority,
 	c.talent_picks_warrior, c.talent_picks_expert, c.talent_picks_any,
 	c.save_primary, c.save_primary_priority, c.save_secondary, c.save_secondary_priority,
-	c.arts_skill_key, c.class_talent_keys,
+	c.arts_skill_key,
 	c.sort_order, c.foundry_id,
 	t.slug AS talent_slug
 FROM class c
@@ -47,7 +47,7 @@ SET label = ?, description = ?, comment = ?, sort_order = ?,
 	talent_picks_warrior = ?, talent_picks_expert = ?, talent_picks_any = ?,
 	save_primary = ?, save_primary_priority = ?,
 	save_secondary = ?, save_secondary_priority = ?,
-	arts_skill_key = ?, class_talent_keys = ?
+	arts_skill_key = ?
 WHERE id = ?
 RETURNING
 	id, slug, label, description, comment, is_full, is_partial,
@@ -55,7 +55,7 @@ RETURNING
 	talent_id, hit_die_priority,
 	talent_picks_warrior, talent_picks_expert, talent_picks_any,
 	save_primary, save_primary_priority, save_secondary, save_secondary_priority,
-	arts_skill_key, class_talent_keys,
+	arts_skill_key,
 	sort_order, foundry_id;
 
 -- name: ClassSlugExists :one
@@ -67,13 +67,13 @@ INSERT INTO class (
 	hit_die, talent_id, hit_die_priority,
 	talent_picks_warrior, talent_picks_expert, talent_picks_any,
 	save_primary, save_primary_priority, save_secondary, save_secondary_priority,
-	arts_skill_key, class_talent_keys, sort_order, foundry_id
+	arts_skill_key, sort_order, foundry_id
 ) VALUES (
 	?, ?, ?, ?, ?, ?,
 	?, ?, ?,
 	?, ?, ?,
 	?, ?, ?, ?,
-	?, ?, ?, ?
+	?, ?, ?
 )
 RETURNING
 	id, slug, label, description, comment, is_full, is_partial,
@@ -81,7 +81,7 @@ RETURNING
 	talent_id, hit_die_priority,
 	talent_picks_warrior, talent_picks_expert, talent_picks_any,
 	save_primary, save_primary_priority, save_secondary, save_secondary_priority,
-	arts_skill_key, class_talent_keys,
+	arts_skill_key,
 	sort_order, foundry_id;
 
 -- name: DeleteClass :exec

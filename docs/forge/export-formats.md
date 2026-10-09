@@ -91,7 +91,7 @@ slugs are unique.
 |---|---|
 | `skills` | `skill` with its `specialization` rows (planned) |
 | `origins` | `region`, `race` (culture), `background`, `class` as `origin` items with a `subType` |
-| `talents` | `talent` items (`slug`, category, featureKey, grants, and `effects` when the talent has any) |
+| `talents` | `talent` items (`slug`, category, grants, and `effects` when the talent has any) |
 | `conditions` | hand-authored, not from Forge |
 | `injuries` | hand-authored, not from Forge |
 | `journals` | setting text (planned) |

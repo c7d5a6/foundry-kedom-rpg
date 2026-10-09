@@ -57,7 +57,7 @@ func (c *Content) CreateClass(ctx context.Context, in CreateClassInput, locale m
 		TalentPicksWarrior: 0, TalentPicksExpert: 0, TalentPicksAny: 0,
 		SavePrimary: "reflex", SavePrimaryPriority: 0,
 		SaveSecondary: "fortitude", SaveSecondaryPriority: 0,
-		ArtsSkillKey: "", ClassTalentKeys: "[]",
+		ArtsSkillKey: "",
 		SortOrder: in.SortOrder, FoundryID: fid,
 	})
 	if err != nil {

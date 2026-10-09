@@ -73,6 +73,7 @@
   let vocabKind = $state<VocabKind>("proficiency");
   let vocabRows = $state<Vocab[]>([]);
   let selectedVocab = $state<Vocab | null>(null);
+  let saveOptions = $state<{ slug: string; label: string }[]>([]);
 
   let completeness = $state<CompletenessItem[]>([]);
   let editorDirty = $state(false);
@@ -117,6 +118,11 @@
     } else {
       selectedClass = classes[0] ?? null;
     }
+  }
+
+  async function loadSaveOptions() {
+    const rows = await api.vocab("save");
+    saveOptions = rows.map((r) => ({ slug: r.slug, label: r.label }));
   }
 
   async function loadTalents() {
@@ -244,7 +250,7 @@
       } else if (next === "cultures") {
         await Promise.all([loadCultures(), loadTalents(), loadClasses()]);
       } else if (next === "classes") {
-        await Promise.all([loadClasses(), loadTalents()]);
+        await Promise.all([loadClasses(), loadTalents(), loadSkills(), loadSaveOptions()]);
       } else if (next === "talents") await loadTalents();
       else if (next === "backgrounds") {
         await Promise.all([loadBackgrounds(), loadSkills()]);
@@ -772,8 +778,9 @@
               save_secondary: selectedClass.save_secondary ?? "",
               save_secondary_priority: selectedClass.save_secondary_priority,
               arts_skill_key: selectedClass.arts_skill_key ?? "",
-              class_talent_keys: selectedClass.class_talent_keys ?? "[]",
               talents: talents.map((t) => ({ id: t.id, slug: t.slug, label: t.label })),
+              saves: saveOptions,
+              skills: skills.map((s) => ({ slug: s.slug, label: s.label })),
             }}
             linkedCultures={selectedClass.linked_cultures ?? []}
             onSaved={loadClasses}

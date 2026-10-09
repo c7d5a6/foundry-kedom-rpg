@@ -89,7 +89,6 @@ type ClassDTO struct {
 	SaveSecondary         string         `json:"save_secondary"`
 	SaveSecondaryPriority int64          `json:"save_secondary_priority"`
 	ArtsSkillKey          string         `json:"arts_skill_key"`
-	ClassTalentKeys       string         `json:"class_talent_keys"`
 	SortOrder             int64          `json:"sort_order"`
 	FoundryID             string         `json:"foundry_id"`
 	LinkedCultures        []EntityRef    `json:"linked_cultures"`
@@ -327,7 +326,7 @@ func classDTOFromList(row generated.ListClassesRow, tr TranslationMap, cultures 
 		TalentPicksAny: row.TalentPicksAny,
 		SavePrimary: row.SavePrimary, SavePrimaryPriority: row.SavePrimaryPriority,
 		SaveSecondary: row.SaveSecondary, SaveSecondaryPriority: row.SaveSecondaryPriority,
-		ArtsSkillKey: row.ArtsSkillKey, ClassTalentKeys: row.ClassTalentKeys,
+		ArtsSkillKey: row.ArtsSkillKey,
 		SortOrder: row.SortOrder, FoundryID: row.FoundryID,
 		LinkedCultures: cultures, Translations: tr,
 	}
@@ -343,7 +342,7 @@ func classDTOFromGet(row generated.GetClassRow, tr TranslationMap, cultures []En
 		TalentPicksAny: row.TalentPicksAny,
 		SavePrimary: row.SavePrimary, SavePrimaryPriority: row.SavePrimaryPriority,
 		SaveSecondary: row.SaveSecondary, SaveSecondaryPriority: row.SaveSecondaryPriority,
-		ArtsSkillKey: row.ArtsSkillKey, ClassTalentKeys: row.ClassTalentKeys,
+		ArtsSkillKey: row.ArtsSkillKey,
 		SortOrder: row.SortOrder, FoundryID: row.FoundryID,
 		LinkedCultures: cultures, Translations: tr,
 	}
@@ -413,7 +412,6 @@ type UpdateClassInput struct {
 	SaveSecondary         string `json:"save_secondary"`
 	SaveSecondaryPriority int64  `json:"save_secondary_priority"`
 	ArtsSkillKey          string `json:"arts_skill_key"`
-	ClassTalentKeys       string `json:"class_talent_keys"`
 }
 
 func (c *Content) UpdateClass(ctx context.Context, id int64, in UpdateClassInput, locale model.Locale) (ClassDTO, error) {
@@ -421,10 +419,6 @@ func (c *Content) UpdateClass(ctx context.Context, id int64, in UpdateClassInput
 		return ClassDTO{}, fmt.Errorf("%w: label required", ErrInvalid)
 	}
 	hitDie := in.HitDie
-	keys := in.ClassTalentKeys
-	if keys == "" {
-		keys = "[]"
-	}
 	_, err := c.q.UpdateClass(ctx, generated.UpdateClassParams{
 		Label: in.Label, Description: in.Description, Comment: in.Comment, SortOrder: in.SortOrder,
 		HitDie: &hitDie, TalentID: in.TalentID, HitDiePriority: in.HitDiePriority,
@@ -432,7 +426,7 @@ func (c *Content) UpdateClass(ctx context.Context, id int64, in UpdateClassInput
 		TalentPicksAny: in.TalentPicksAny,
 		SavePrimary: in.SavePrimary, SavePrimaryPriority: in.SavePrimaryPriority,
 		SaveSecondary: in.SaveSecondary, SaveSecondaryPriority: in.SaveSecondaryPriority,
-		ArtsSkillKey: in.ArtsSkillKey, ClassTalentKeys: keys, ID: id,
+		ArtsSkillKey: in.ArtsSkillKey, ID: id,
 	})
 	if err != nil {
 		return ClassDTO{}, mapNotFound(err)

@@ -62,7 +62,6 @@ export type CatalogTalent = {
   slug: string;
   name: string;
   description: string;
-  featureKey: string;
 };
 
 /** Plain item payload for Actor.create embeds (no item `_id`). Effects are copied through. */
@@ -199,13 +198,9 @@ function indexTalents(talentDocs: Item.Implementation[]): {
       slug,
       name: localizeContentLabel("Talent", slug, doc.name ?? slug),
       description: localizeContentDescription("Talent", slug, packDesc),
-      featureKey: sys.featureKey ?? "",
     };
     talents.set(slug, entry);
     talentBySlug.set(slug, toPayload(doc));
-    if (sys.featureKey && !talents.has(sys.featureKey)) {
-      talents.set(sys.featureKey, entry);
-    }
   }
 
   return { talents, talentBySlug };

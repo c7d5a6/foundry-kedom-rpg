@@ -86,6 +86,17 @@ export const TALENT_CATEGORIES = [
 ] as const;
 export type TalentCategory = (typeof TALENT_CATEGORIES)[number];
 
+/** Hit die formulas used by class origins (OSR-style). */
+export const HIT_DIE_OPTIONS = [
+  "1d4",
+  "1d6",
+  "1d6+1",
+  "1d6+2",
+  "1d8",
+  "1d10",
+  "1d12",
+] as const;
+
 export type ClassRow = {
   id: number;
   slug: string;
@@ -106,7 +117,6 @@ export type ClassRow = {
   save_secondary: string;
   save_secondary_priority: number;
   arts_skill_key: string;
-  class_talent_keys: string;
   sort_order: number;
   foundry_id: string;
   linked_cultures: EntityRef[];
@@ -120,7 +130,6 @@ export type Talent = {
   description: string;
   comment: string;
   category: string;
-  feature_key: string;
   grants_json: string;
   effects_json: string;
   sort_order: number;
@@ -269,7 +278,6 @@ export type CreateTalentBody = {
   description?: string;
   comment?: string;
   category?: string;
-  feature_key?: string;
   grants_json?: string;
   sort_order?: number;
 };
@@ -279,7 +287,6 @@ export type UpdateTalentBody = {
   description: string;
   comment: string;
   category: string;
-  feature_key: string;
   grants_json: string;
   effects_json: string;
   sort_order: number;

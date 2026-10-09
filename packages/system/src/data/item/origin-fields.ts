@@ -47,7 +47,6 @@ export type OriginDataFields = {
   isFull: boolean;
   hitDie: string;
   hitDiePriority: number;
-  classTalentKeys: string[];
   talentPicks: { warrior: number; expert: number; any: number };
   arts: ClassArtsFields;
   saves: {

@@ -1,7 +1,12 @@
 <script lang="ts">
   import { onDestroy, untrack } from "svelte";
-  import type { EntityKind, TranslationField, TranslationMap } from "$lib/api";
-  import { api } from "$lib/api";
+  import {
+    HIT_DIE_OPTIONS,
+    api,
+    type EntityKind,
+    type TranslationField,
+    type TranslationMap,
+  } from "$lib/api";
   import RichTextField from "$lib/RichTextField.svelte";
   import LinkPanel from "$lib/LinkPanel.svelte";
 
@@ -38,8 +43,9 @@
       save_secondary: string;
       save_secondary_priority: number;
       arts_skill_key: string;
-      class_talent_keys: string;
       talents: { id: number; slug: string; label: string }[];
+      saves: { slug: string; label: string }[];
+      skills: { slug: string; label: string }[];
     };
     /** Cultures that allow this class (class editor only). */
     linkedCultures?: { slug: string; label: string }[];
@@ -91,7 +97,6 @@
   let classSaveSecondary = $state("");
   let classSaveSecondaryPriority = $state(0);
   let classArtsSkillKey = $state("");
-  let classTalentKeys = $state("");
   let ruLabel = $state("");
   let ruAbbr = $state("");
   let ruDesc = $state("");
@@ -116,7 +121,6 @@
     classSaveSecondary: string;
     classSaveSecondaryPriority: number;
     classArtsSkillKey: string;
-    classTalentKeys: string;
     ruLabel: string;
     ruAbbr: string;
   };
@@ -139,7 +143,6 @@
     classSaveSecondary: "",
     classSaveSecondaryPriority: 0,
     classArtsSkillKey: "",
-    classTalentKeys: "",
     ruLabel: "",
     ruAbbr: "",
   });
@@ -163,7 +166,6 @@
       classSaveSecondary: classControls?.save_secondary ?? "",
       classSaveSecondaryPriority: classControls?.save_secondary_priority ?? 0,
       classArtsSkillKey: classControls?.arts_skill_key ?? "",
-      classTalentKeys: classControls?.class_talent_keys ?? "",
       ruLabel: translations.label ?? "",
       ruAbbr: translations.abbreviation ?? "",
     };
@@ -187,7 +189,6 @@
     classSaveSecondary = b.classSaveSecondary;
     classSaveSecondaryPriority = b.classSaveSecondaryPriority;
     classArtsSkillKey = b.classArtsSkillKey;
-    classTalentKeys = b.classTalentKeys;
     ruLabel = b.ruLabel;
     ruAbbr = b.ruAbbr;
   }
@@ -195,6 +196,12 @@
   function classTalentPayload(): number | null {
     return classTalentId > 0 ? Number(classTalentId) : null;
   }
+
+  const hitDieOptions = $derived.by(() => {
+    const opts = [...HIT_DIE_OPTIONS] as string[];
+    if (classHitDie && !opts.includes(classHitDie)) opts.unshift(classHitDie);
+    return opts;
+  });
 
   function classPatchBody(label: string, description: string, comment: string, sortOrder: number) {
     return {
@@ -213,7 +220,6 @@
       save_secondary: classSaveSecondary,
       save_secondary_priority: Number(classSaveSecondaryPriority),
       arts_skill_key: classArtsSkillKey,
-      class_talent_keys: classTalentKeys || "[]",
     };
   }
 
@@ -235,7 +241,6 @@
       save_secondary: classControls.save_secondary,
       save_secondary_priority: classControls.save_secondary_priority,
       arts_skill_key: classControls.arts_skill_key,
-      class_talent_keys: classControls.class_talent_keys || "[]",
     };
   }
 
@@ -275,7 +280,6 @@
       classSaveSecondary !== baseline.classSaveSecondary ||
       classSaveSecondaryPriority !== baseline.classSaveSecondaryPriority ||
       classArtsSkillKey !== baseline.classArtsSkillKey ||
-      classTalentKeys !== baseline.classTalentKeys ||
       ruLabel !== baseline.ruLabel ||
       ruAbbr !== baseline.ruAbbr,
   );
@@ -379,7 +383,6 @@
         classSaveSecondary,
         classSaveSecondaryPriority,
         classArtsSkillKey,
-        classTalentKeys,
         ruLabel,
         ruAbbr,
       };
@@ -534,7 +537,12 @@
         </div>
         <div class="forge-field">
           <label for="class-hit-die">Hit die</label>
-          <input id="class-hit-die" class="forge-input font-mono" bind:value={classHitDie} />
+          <select id="class-hit-die" class="forge-input font-mono" bind:value={classHitDie}>
+            <option value="">(none)</option>
+            {#each hitDieOptions as die}
+              <option value={die}>{die}</option>
+            {/each}
+          </select>
         </div>
         <div class="forge-field">
           <label for="class-hit-die-pri">Hit die priority</label>
@@ -577,11 +585,15 @@
         <div class="grid grid-cols-2 gap-2">
           <div class="forge-field">
             <label for="class-save-pri">Save primary</label>
-            <input
-              id="class-save-pri"
-              class="forge-input font-mono"
-              bind:value={classSavePrimary}
-            />
+            <select id="class-save-pri" class="forge-input" bind:value={classSavePrimary}>
+              <option value="">(none)</option>
+              {#each classControls.saves as s (s.slug)}
+                <option value={s.slug}>{s.label} ({s.slug})</option>
+              {/each}
+              {#if classSavePrimary && !classControls.saves.some((s) => s.slug === classSavePrimary)}
+                <option value={classSavePrimary}>{classSavePrimary} (unknown)</option>
+              {/if}
+            </select>
           </div>
           <div class="forge-field">
             <label for="class-save-pri-n">Priority</label>
@@ -596,11 +608,16 @@
         <div class="grid grid-cols-2 gap-2">
           <div class="forge-field">
             <label for="class-save-sec">Save secondary</label>
-            <input
-              id="class-save-sec"
-              class="forge-input font-mono"
-              bind:value={classSaveSecondary}
-            />
+            <select id="class-save-sec" class="forge-input" bind:value={classSaveSecondary}>
+              <option value="">(none)</option>
+              {#each classControls.saves as s (s.slug)}
+                <option value={s.slug}>{s.label} ({s.slug})</option>
+              {/each}
+              {#if classSaveSecondary &&
+                !classControls.saves.some((s) => s.slug === classSaveSecondary)}
+                <option value={classSaveSecondary}>{classSaveSecondary} (unknown)</option>
+              {/if}
+            </select>
           </div>
           <div class="forge-field">
             <label for="class-save-sec-n">Priority</label>
@@ -613,15 +630,17 @@
           </div>
         </div>
         <div class="forge-field">
-          <label for="class-arts">Arts skill key</label>
-          <input id="class-arts" class="forge-input font-mono" bind:value={classArtsSkillKey} />
-        </div>
-        <div class="forge-field">
-          <label for="class-talent-keys">Class talent keys (JSON)</label>
-          <textarea
-            id="class-talent-keys"
-            class="forge-input min-h-16 resize-y font-mono text-xs"
-            bind:value={classTalentKeys}></textarea>
+          <label for="class-arts">Arts skill</label>
+          <select id="class-arts" class="forge-input" bind:value={classArtsSkillKey}>
+            <option value="">(none)</option>
+            {#each classControls.skills as s (s.slug)}
+              <option value={s.slug}>{s.label} ({s.slug})</option>
+            {/each}
+            {#if classArtsSkillKey &&
+              !classControls.skills.some((s) => s.slug === classArtsSkillKey)}
+              <option value={classArtsSkillKey}>{classArtsSkillKey} (unknown)</option>
+            {/if}
+          </select>
         </div>
       {/if}
     </section>

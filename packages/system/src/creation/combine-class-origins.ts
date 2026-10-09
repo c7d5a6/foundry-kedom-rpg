@@ -15,7 +15,6 @@ export type CombinedClassOrigin = {
   names: readonly [string, string];
   hitDie: string;
   hitDiePriority: number;
-  classTalentKeys: readonly string[];
   talentPicks: OriginDataFields["talentPicks"];
   arts: {
     skillKey: string;
@@ -87,7 +86,6 @@ export function combineClassOrigins(
     names: [aName, bName],
     hitDie: hd.hitDie,
     hitDiePriority: hd.hitDiePriority,
-    classTalentKeys: [...a.classTalentKeys, ...b.classTalentKeys],
     talentPicks: mergeTalentPicks(a.talentPicks, b.talentPicks),
     arts: {
       skillKey: a.arts.skillKey || b.arts.skillKey,

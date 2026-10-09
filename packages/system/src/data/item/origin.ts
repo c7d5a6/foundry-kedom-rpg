@@ -106,10 +106,6 @@ function originSchema() {
       integer: true,
       initial: 0,
     }),
-    classTalentKeys: new ArrayField(
-      new StringField({ required: true, nullable: false, blank: false, initial: "" }),
-      { initial: [] },
-    ),
     talentPicks: new SchemaField({
       warrior: new NumberField({
         required: true,

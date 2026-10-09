@@ -77,7 +77,6 @@ type TalentDTO struct {
 	Description    string         `json:"description"`
 	Comment        string         `json:"comment"`
 	Category       string         `json:"category"`
-	FeatureKey     string         `json:"feature_key"`
 	GrantsJSON     string         `json:"grants_json"`
 	EffectsJSON    string         `json:"effects_json"`
 	SortOrder      int64          `json:"sort_order"`
@@ -106,7 +105,7 @@ func (c *Content) talentDTO(ctx context.Context, row generated.Talent, tr Transl
 	}
 	return TalentDTO{
 		ID: row.ID, Slug: row.Slug, Label: row.Label, Description: row.Description,
-		Comment: row.Comment, Category: row.Category, FeatureKey: row.FeatureKey,
+		Comment: row.Comment, Category: row.Category,
 		GrantsJSON: row.GrantsJson, EffectsJSON: row.EffectsJson,
 		SortOrder: row.SortOrder, FoundryID: row.FoundryID,
 		LinkedCultures: lc, LinkedClasses: lcl, Translations: tr,
@@ -150,7 +149,6 @@ type CreateTalentInput struct {
 	Description string `json:"description"`
 	Comment     string `json:"comment"`
 	Category    string `json:"category"`
-	FeatureKey  string `json:"feature_key"`
 	GrantsJSON  string `json:"grants_json"`
 	EffectsJSON string `json:"effects_json"`
 	SortOrder   int64  `json:"sort_order"`
@@ -191,7 +189,7 @@ func (c *Content) CreateTalent(ctx context.Context, in CreateTalentInput, locale
 	}
 	row, err := c.q.InsertTalent(ctx, generated.InsertTalentParams{
 		Slug: slug, Label: label, Description: in.Description, Comment: in.Comment,
-		Category: cat, FeatureKey: in.FeatureKey, GrantsJson: grants, EffectsJson: effects,
+		Category: cat, GrantsJson: grants, EffectsJson: effects,
 		SortOrder: in.SortOrder, FoundryID: fid,
 	})
 	if err != nil {
@@ -205,7 +203,6 @@ type UpdateTalentInput struct {
 	Description string `json:"description"`
 	Comment     string `json:"comment"`
 	Category    string `json:"category"`
-	FeatureKey  string `json:"feature_key"`
 	GrantsJSON  string `json:"grants_json"`
 	EffectsJSON string `json:"effects_json"`
 	SortOrder   int64  `json:"sort_order"`
@@ -235,7 +232,7 @@ func (c *Content) UpdateTalent(ctx context.Context, id int64, in UpdateTalentInp
 	}
 	_, err = c.q.UpdateTalent(ctx, generated.UpdateTalentParams{
 		Label: in.Label, Description: in.Description, Comment: in.Comment,
-		Category: cat, FeatureKey: in.FeatureKey, GrantsJson: grants, EffectsJson: effects,
+		Category: cat, GrantsJson: grants, EffectsJson: effects,
 		SortOrder: in.SortOrder, ID: id,
 	})
 	if err != nil {
