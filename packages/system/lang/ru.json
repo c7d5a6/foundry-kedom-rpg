@@ -72,7 +72,7 @@
       "survive": "Выживание",
       "travel": "Путешествия",
       "work": "Труд",
-      "worship": "Вероучение"
+      "worship": "Верование"
     },
     "Proficiency": {
       "apprentice": "Ученик",
@@ -235,6 +235,7 @@
     },
     "Save": {
       "fortitude": "Стойкость",
+      "luck": "Удача",
       "reflex": "Реакция",
       "will": "Воля"
     },
@@ -245,10 +246,10 @@
       "veryHard": "Очень трудно"
     },
     "Attributes": {
-      "ac": "Класс брони",
-      "acMelee": "КБ в ближнем бою",
-      "acRanged": "КБ против стрельбы",
-      "acShort": "КБ",
+      "ac": "Защита",
+      "acMelee": "ЗАЩ в ближнем бою",
+      "acRanged": "ЗАЩ против стрельбы",
+      "acShort": "ЗАЩ",
       "attackBonus": "Бонус атаки",
       "encumbrance": "Нагрузка",
       "experience": "Опыт",

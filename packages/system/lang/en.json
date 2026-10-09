@@ -235,6 +235,7 @@
     },
     "Save": {
       "fortitude": "Fortitude",
+      "luck": "Luck",
       "reflex": "Reflex",
       "will": "Will"
     },

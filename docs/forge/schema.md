@@ -71,10 +71,9 @@ fixed, but a table rather than an enum because skills reference it and the set h
 changed once: strength and constitution merged into Might, dropping the count from seven
 ([Q2](../rules/99-open-questions.md#q2--is-strength-separate-from-constitution--no)).
 
-Closed `vocab` of `kind = 'save'` currently seeds **reflex**, **fortitude**, and **will**
-(class saves on `2d10`). **Luck save** is a separate `d20` roll with Luck save proficiency —
-add a `luck` save vocab row (and Foundry save field) when that proficiency is implemented;
-**Strain roll** is not a save vocab entry (plain `d20` vs Resolve/Strain). See
+Closed `vocab` of `kind = 'save'` seeds **reflex**, **fortitude**, **will** (class saves on
+`2d10`) and **luck** (`d20` + Luck mod + Luck save proficiency). **Strain roll** is not a
+save vocab entry (plain `d20` vs Resolve/Strain). See
 [../rules/10-attributes.md](../rules/10-attributes.md).
 
 ```
