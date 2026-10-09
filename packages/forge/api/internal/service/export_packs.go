@@ -65,7 +65,7 @@ func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 		out.Talents = append(out.Talents, export.PackTalent{
 			Slug: t.Slug, Label: t.Label, Description: t.Description,
 			FoundryID: t.FoundryID, Category: t.Category, FeatureKey: t.FeatureKey,
-			GrantsJSON: t.GrantsJSON,
+			GrantsJSON: t.GrantsJSON, EffectsJSON: t.EffectsJSON,
 		})
 	}
 
@@ -115,7 +115,7 @@ func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 		}
 		out.Backgrounds = append(out.Backgrounds, export.PackBackground{
 			Slug: b.Slug, Label: b.Label, Description: b.Description,
-			FoundryID: b.FoundryID,
+			FoundryID:    b.FoundryID,
 			FreeSkillKey: PackSkillKey(b.FreeGrantKind, b.FreeSkillSlug),
 			FreeSpecSlug: EffectiveSpecSlug(b.FreeSpecializationSlug, b.FreeSpecializationLabel),
 			Growth:       growth,
@@ -138,7 +138,7 @@ func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 			HitDiePriority: cl.HitDiePriority, TalentSlug: cl.TalentSlug,
 			TalentPicksWarrior: cl.TalentPicksWarrior, TalentPicksExpert: cl.TalentPicksExpert,
 			TalentPicksAny: cl.TalentPicksAny,
-			SavePrimary: cl.SavePrimary, SavePrimaryPriority: cl.SavePrimaryPriority,
+			SavePrimary:    cl.SavePrimary, SavePrimaryPriority: cl.SavePrimaryPriority,
 			SaveSecondary: cl.SaveSecondary, SaveSecondaryPriority: cl.SaveSecondaryPriority,
 			ArtsSkillKey: cl.ArtsSkillKey, ClassTalentKeys: keys,
 		})

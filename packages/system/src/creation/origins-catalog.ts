@@ -68,12 +68,13 @@ export type CatalogTalent = {
   featureKey: string;
 };
 
-/** Plain item payload for Actor.create embeds (no `_id`). */
+/** Plain item payload for Actor.create embeds (no item `_id`). Effects are copied through. */
 export type CatalogItemPayload = {
   name: string;
   type: string;
   img: string;
   system: Record<string, unknown>;
+  effects?: Record<string, unknown>[];
 };
 
 export type OriginsCatalog = {
@@ -159,13 +160,16 @@ function toPayload(doc: Item.Implementation): CatalogItemPayload {
     type?: string;
     img?: string;
     system?: Record<string, unknown>;
+    effects?: Record<string, unknown>[];
   };
-  return {
+  const payload: CatalogItemPayload = {
     name: raw.name ?? doc.name ?? "",
     type: raw.type ?? itemType(doc),
     img: raw.img ?? doc.img ?? "icons/svg/item-bag.svg",
     system: { ...(raw.system ?? {}) },
   };
+  if (raw.effects && raw.effects.length > 0) payload.effects = raw.effects;
+  return payload;
 }
 
 function pickToGrowth(pick: { skillKey?: string; specSlug?: string }): GrowthEntry {

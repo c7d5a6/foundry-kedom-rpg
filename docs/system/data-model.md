@@ -61,9 +61,10 @@ attributes:
   # wounded is DERIVED (wounds >= 1), never stored -- see rules/50-wounds-strain.md
   # the two corruption tracks are unshaped -- see rules/99-open-questions.md Q18
 
-combat:            stubs for now, zero-initialised (formulas deferred)
-  ac, attackBonus, meleeDamageBonus
+combat:            zero-initialised in prepareBaseData
+  ac, meleeDamageBonus
   # ac: 10 + reflex save mod (dex mod + reflex proficiency); armor does not change it
+  # meleeDamageBonus: persisted base, floored so an Active Effect ADD stacks on it
 
 saves:
   reflex, fortitude, will:
@@ -104,12 +105,17 @@ skillPoints:
 `CharacterCreateWizard` (ApplicationV2). Draft stays in memory through attributes → region →
 culture → background growth → class/name; one `Actor.create` at confirm writes abilities,
 Apprentice skill grants (+ specs), `details.*`, and embedded race/background/class `origin`
-items. Pure growth resolve lives in `src/creation/resolve-background.ts`.
+items, including each item's `effects` array. Pure growth resolve lives in
+`src/creation/resolve-background.ts`.
 
 Note what is absent from the **target** model: no `skills` object — skills are **embedded
 items**, following WWN (reasoning below). **POC today** stores skills as actor fields
-(`proficiency`, `specializations`, `baseDice` default 2, `defaultAdvantage` default 0) until
-Item-based skills land.
+(`proficiency`, `specializations`, `baseDice` default 2, `defaultAdvantage` default 0).
+`prepareBaseData` also sets three numbers that are not saved: `proficiencyBonus` (the applied
+tier bonus; punch, shoot, and stab take the full bonus because their specialisation kind is
+`none`), and `attackMod` / `damageMod` (both start at 0). Attack and damage rolls read
+`attackMod` and `damageMod` on punch, shoot, and stab. The fields exist on every skill so an
+effect can target any of them. Item-based skills are still deferred.
 
 ### `npc`
 
@@ -293,9 +299,14 @@ tokens, modify token data, and expire on duration events.
 - `CONFIG.ActiveEffect.legacyTransferral = false` — transfer effects stay on Items and apply
   via `actor.allApplicableEffects()`.
 - Character sheet **Effects** tab: on-actor vs from-items lists.
-- Talent items embed transferable AEs; helper creates
-  `system.skills.<key>.defaultAdvantage` ADD +1 (e.g. Gifted Chirurgeon → Heal advantage).
-- Skill `defaultAdvantage` / combat stub paths are AE-ready in `prepareBaseData`.
+- Talent items embed transferable AEs. Forge stores any number of them on `talent.effects_json`
+  and pack export writes them onto the talent. Character creation copies that `effects` array
+  onto the new actor. A sheet helper can still create
+  `system.skills.<key>.defaultAdvantage` ADD +1 (Gifted Chirurgeon → Heal advantage).
+- Skill `defaultAdvantage`, `proficiencyBonus`, `attackMod`, `damageMod`, and
+  `combat.meleeDamageBonus` are AE-ready in `prepareBaseData`. `proficiencyBonus` is set there,
+  before effects apply, so a change value such as `max(@skills.stab.proficiencyBonus, 0)` sees a
+  number. `@` paths are relative to actor roll data (`system`).
 
 Planned subtypes (not yet registered as `CONFIG.ActiveEffect.dataModels`):
 
@@ -306,9 +317,11 @@ Both will ship as compendium content, not code. A group IV head injury is an eff
 with a duration and a change list. There is no critical-injury engine
 ([ADR-009](../research/05-decisions.md#adr-009--declarative-effects-and-a-handler-registry-no-user-authored-javascript)).
 
-Effects target the zero-initialised derived paths listed above. That list is therefore a
-**public API**: renaming `system.combat.attackBonus` breaks every effect in every user's world,
-so it needs a migration.
+Effects target the zero-initialised paths listed above. That list is therefore a
+**public API**: renaming `system.skills.stab.attackMod` (or `damageMod`, `proficiencyBonus`,
+`defaultAdvantage`, `system.combat.meleeDamageBonus`) breaks every effect in every user's world,
+so it needs a migration. Weapon rolls add `attackMod` and `damageMod` only for punch, shoot,
+and stab; other keys are still valid effect targets.
 
 ## Derivations
 

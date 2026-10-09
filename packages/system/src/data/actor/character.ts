@@ -12,7 +12,9 @@ import {
   type SaveKey,
   type SkillKey,
 } from "../../config/kedom.ts";
+import { SKILL_SPECIALIZATION_KIND } from "../../config/specializations.ts";
 import { abilityModifier } from "../../derivations/ability-mod.ts";
+import { appliedProficiencyBonus } from "../../derivations/skill-proficiency.ts";
 import { resolveFromFocus, strainLimitFromFocus } from "../../derivations/strain.ts";
 
 const { ArrayField, BooleanField, HTMLField, NumberField, SchemaField, StringField } =
@@ -70,6 +72,33 @@ function skillSchema() {
       nullable: false,
       integer: true,
       initial: 0,
+    }),
+    /**
+     * Applied proficiency bonus (half when the skill has specialisations and none is selected).
+     * Set in prepareBaseData so Active Effect formulas can reference it.
+     */
+    proficiencyBonus: new NumberField({
+      required: true,
+      nullable: false,
+      integer: true,
+      initial: 0,
+      persisted: false,
+    }),
+    /** Flat bonus added to attack rolls that use this skill. Active Effects ADD here. */
+    attackMod: new NumberField({
+      required: true,
+      nullable: false,
+      integer: true,
+      initial: 0,
+      persisted: false,
+    }),
+    /** Flat bonus added to damage rolls that use this skill. Active Effects ADD here. */
+    damageMod: new NumberField({
+      required: true,
+      nullable: false,
+      integer: true,
+      initial: 0,
+      persisted: false,
     }),
   });
 }
@@ -204,6 +233,9 @@ export type SkillFields = {
   specializations: SkillSpecialization[];
   baseDice: number;
   defaultAdvantage: number;
+  proficiencyBonus?: number;
+  attackMod?: number;
+  damageMod?: number;
 };
 
 export type SaveFields = {
@@ -240,11 +272,21 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
     };
     combat.ac = 0;
     combat.meleeDamageBonus = Math.floor(combat.meleeDamageBonus ?? 0);
+    const skills = this.skills as Record<SkillKey, SkillFields>;
     for (const key of SKILL_KEYS) {
-      const skill = this.skills[key] as SkillFields;
+      const skill = skills[key];
       // Ensure AE change paths exist; keep persisted base (ADD stacks on top).
       skill.baseDice = Math.max(1, Math.floor(skill.baseDice ?? 2));
       skill.defaultAdvantage = Math.floor(skill.defaultAdvantage ?? 0);
+      const tier = skill.proficiency as ProficiencyTier;
+      const tierBonus = PROFICIENCY_BONUS[tier] ?? 0;
+      const kind = SKILL_SPECIALIZATION_KIND[key];
+      skill.proficiencyBonus = appliedProficiencyBonus({
+        tierBonus,
+        specialized: (kind ?? "none") === "none",
+      });
+      skill.attackMod = Math.floor(skill.attackMod ?? 0);
+      skill.damageMod = Math.floor(skill.damageMod ?? 0);
     }
     for (const key of SAVE_KEYS) {
       const s = this.saves[key] as SaveFields;

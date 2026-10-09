@@ -4,8 +4,6 @@ import {
   attackHits,
   buildAttackModifiers,
   buildDamageModifiers,
-  killingBlowAttackProficiency,
-  killingBlowDamageBonus,
   luckCostToHit,
   maxDiceContribution,
   meleeDamageFlatBonus,
@@ -21,6 +19,8 @@ describe("buildAttackModifiers", () => {
       skillLabel: "Stab",
       proficiencyBonus: 2,
       proficiencyLabel: "Trained",
+      attackMod: 0,
+      attackModLabel: "Stab attack",
       weaponBonus: 0,
       weaponBonusLabel: "Weapon",
     });
@@ -37,28 +37,12 @@ describe("buildAttackModifiers", () => {
       skillLabel: "Shoot",
       proficiencyBonus: 0,
       proficiencyLabel: "Apprentice",
+      attackMod: 0,
+      attackModLabel: "Shoot attack",
       weaponBonus: -1,
       weaponBonusLabel: "Weapon",
     });
     expect(attackBonusTotal(mods)).toBe(0);
-  });
-});
-
-describe("killingBlowAttackProficiency / killingBlowDamageBonus", () => {
-  it("doubles positive proficiency on attack", () => {
-    expect(killingBlowAttackProficiency(2)).toBe(4);
-    expect(killingBlowAttackProficiency(4)).toBe(8);
-  });
-
-  it("leaves zero and negative attack proficiency unchanged", () => {
-    expect(killingBlowAttackProficiency(0)).toBe(0);
-    expect(killingBlowAttackProficiency(-2)).toBe(-2);
-  });
-
-  it("adds only positive proficiency to damage", () => {
-    expect(killingBlowDamageBonus(2)).toBe(2);
-    expect(killingBlowDamageBonus(0)).toBe(0);
-    expect(killingBlowDamageBonus(-2)).toBe(0);
   });
 });
 
@@ -85,30 +69,53 @@ describe("meleeDamageFlatBonus / buildDamageModifiers", () => {
     expect(meleeDamageFlatBonus("dex", 2, 1)).toBe(0);
   });
 
-  it("builds no melee mods for ranged ability without Killing Blow", () => {
+  it("builds no melee mods for ranged ability when damage mod is zero", () => {
     expect(
       buildDamageModifiers({
         abilityKey: "dex",
+        skillKey: "shoot",
         mightMod: 2,
         mightLabel: "Might",
         meleeDamageBonus: 1,
         meleeDamageLabel: "MDB",
+        damageMod: 0,
+        damageModLabel: "Shoot damage",
       }),
     ).toEqual([]);
   });
 
-  it("adds Killing Blow damage on ranged when bonus is positive", () => {
+  it("adds skill damage mod on ranged when it is non-zero", () => {
     const mods = buildDamageModifiers({
       abilityKey: "dex",
+      skillKey: "shoot",
       mightMod: 2,
       mightLabel: "Might",
       meleeDamageBonus: 1,
       meleeDamageLabel: "MDB",
-      killingBlowBonus: 2,
-      killingBlowLabel: "Killing Blow",
+      damageMod: 2,
+      damageModLabel: "Shoot damage",
     });
     expect(mods).toHaveLength(1);
     expect(mods[0]?.value).toBe(2);
+    expect(mods[0]?.source.id).toBe("skill.shoot.damageMod");
+  });
+
+  it("includes a non-zero skill attack mod", () => {
+    const mods = buildAttackModifiers({
+      abilityKey: "mgh",
+      abilityLabel: "Might",
+      abilityMod: 1,
+      skillKey: "stab",
+      skillLabel: "Stab",
+      proficiencyBonus: 2,
+      proficiencyLabel: "Trained",
+      attackMod: 2,
+      attackModLabel: "Stab attack",
+      weaponBonus: 0,
+      weaponBonusLabel: "Weapon",
+    });
+    expect(attackBonusTotal(mods)).toBe(5);
+    expect(mods[2]?.source.id).toBe("skill.stab.attackMod");
   });
 });
 

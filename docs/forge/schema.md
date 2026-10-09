@@ -211,14 +211,20 @@ Character talents (not “feats”). Linked from cultures and classes by **slug*
 ```
 talent: id, slug, label, description, comment,
         category ('class'|'culture'|'skills'|'combat'|'general'|'other'),
-        feature_key, grants_json, sort_order, foundry_id
+        feature_key, grants_json, sort_order, foundry_id, effects_json
 ```
 
 Cultures and classes that link a talent are shown on the talent’s Forge page (and reverse links
 appear on culture/class/background/region pages for pack-exported entities).
 
-`grants_json` matches the Foundry talent `grants` shape. Active Effect authoring in Forge is
-deferred.
+`grants_json` matches the Foundry talent `grants` shape. `effects_json` is an array of Active
+Effects (default `[]`). Each effect has its own `foundryId` (assigned once), `name`, `img`,
+`disabled`, and any number of changes: `key` (a non-empty dot path), `mode` (`add`, `subtract`,
+`multiply`, `override`, `upgrade`, `downgrade`), `value` (a non-empty string: an integer or a
+Foundry `@` formula), and `priority` (an integer; omitted means 20). There is no script field.
+Pack export writes one transferable effect per array entry and omits `effects` when the array
+is empty. Change `mode` is the Foundry v14 string. A class still links one talent; creation
+copies that item’s effects onto the actor.
 
 ### `race` (culture)
 
@@ -346,7 +352,7 @@ pack YAML stays empty until Forge is filled. Draft wizard config remains the fal
 WWN generator. Authored Forge growth rows are concrete skill(+spec) pairs; wildcards are not a
 first-class column.
 
-**Effort / Active Effects** are not authored in Forge yet.
+**Effort** is not authored in Forge yet. Talent Active Effects are: `talent.effects_json`.
 
 Class skill/save die is settled (`2d10`); Luck save and Strain roll use `d20`. Remaining open
 questions (class numbers beyond hit die, magic) still argue for keeping progressions as data

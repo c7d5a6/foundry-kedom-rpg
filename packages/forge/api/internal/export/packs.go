@@ -25,6 +25,7 @@ type PackTalent struct {
 	Category    string
 	FeatureKey  string
 	GrantsJSON  string
+	EffectsJSON string
 }
 
 // PackRegionCulture is a culture entry under a region.
@@ -61,13 +62,13 @@ type PackGrowth struct {
 
 // PackBackground is a background origin document.
 type PackBackground struct {
-	Slug           string
-	Label          string
-	Description    string
-	FoundryID      string
-	FreeSkillKey   string
-	FreeSpecSlug   string
-	Growth         [8]PackGrowth
+	Slug         string
+	Label        string
+	Description  string
+	FoundryID    string
+	FreeSkillKey string
+	FreeSpecSlug string
+	Growth       [8]PackGrowth
 }
 
 // PackClass is a class origin document.
@@ -132,6 +133,13 @@ func WritePacks(outDir string, in PackInput) error {
 			},
 			"_key": "!items!" + t.FoundryID,
 		}
+		effects, err := talentActiveEffects(t.FoundryID, t.EffectsJSON)
+		if err != nil {
+			return fmt.Errorf("talent %s effects: %w", t.Slug, err)
+		}
+		if len(effects) > 0 {
+			doc["effects"] = effects
+		}
 		if err := writeYAML(filepath.Join(talentsDir, t.Slug+".yml"), doc); err != nil {
 			return err
 		}
@@ -152,25 +160,25 @@ func WritePacks(outDir string, in PackInput) error {
 			"type": "origin",
 			"img":  "icons/svg/village.svg",
 			"system": map[string]any{
-				"subType":     "region",
-				"slug":        r.Slug,
-				"description": renderMD(md, r.Description),
-				"grants":      emptyGrants(),
-				"cultures":    cultures,
-				"isFull":      true,
-				"hitDie":      "1d6",
-				"hitDiePriority": 0,
+				"subType":         "region",
+				"slug":            r.Slug,
+				"description":     renderMD(md, r.Description),
+				"grants":          emptyGrants(),
+				"cultures":        cultures,
+				"isFull":          true,
+				"hitDie":          "1d6",
+				"hitDiePriority":  0,
 				"classTalentKeys": []string{},
-				"talentPicks": map[string]int{"warrior": 0, "expert": 0, "any": 0},
+				"talentPicks":     map[string]int{"warrior": 0, "expert": 0, "any": 0},
 				"arts": map[string]any{
 					"skillKey": "", "abilityKeys": []string{}, "receiveTableKey": "", "artKeys": []string{},
 				},
-				"saves": defaultSaves(),
-				"talentSlug": "",
-				"classSlugs": []string{},
+				"saves":           defaultSaves(),
+				"talentSlug":      "",
+				"classSlugs":      []string{},
 				"backgroundSlugs": []string{},
-				"free": map[string]any{"skillKey": "", "specSlug": ""},
-				"growth": emptyGrowth(),
+				"free":            map[string]any{"skillKey": "", "specSlug": ""},
+				"growth":          emptyGrowth(),
 			},
 			"_key": "!items!" + r.FoundryID,
 		}
@@ -186,25 +194,25 @@ func WritePacks(outDir string, in PackInput) error {
 			"type": "origin",
 			"img":  "icons/svg/mystery-man.svg",
 			"system": map[string]any{
-				"subType":     "race",
-				"slug":        r.Slug,
-				"description": renderMD(md, r.Description),
-				"grants":      emptyGrants(),
-				"talentSlug":  r.TalentSlug,
-				"classSlugs":  r.ClassSlugs,
-				"cultures":    []any{},
-				"isFull":      true,
-				"hitDie":      "1d6",
-				"hitDiePriority": 0,
+				"subType":         "race",
+				"slug":            r.Slug,
+				"description":     renderMD(md, r.Description),
+				"grants":          emptyGrants(),
+				"talentSlug":      r.TalentSlug,
+				"classSlugs":      r.ClassSlugs,
+				"cultures":        []any{},
+				"isFull":          true,
+				"hitDie":          "1d6",
+				"hitDiePriority":  0,
 				"classTalentKeys": []string{},
-				"talentPicks": map[string]int{"warrior": 0, "expert": 0, "any": 0},
+				"talentPicks":     map[string]int{"warrior": 0, "expert": 0, "any": 0},
 				"arts": map[string]any{
 					"skillKey": "", "abilityKeys": []string{}, "receiveTableKey": "", "artKeys": []string{},
 				},
-				"saves": defaultSaves(),
+				"saves":           defaultSaves(),
 				"backgroundSlugs": []string{},
-				"free": map[string]any{"skillKey": "", "specSlug": ""},
-				"growth": emptyGrowth(),
+				"free":            map[string]any{"skillKey": "", "specSlug": ""},
+				"growth":          emptyGrowth(),
 			},
 			"_key": "!items!" + r.FoundryID,
 		}
@@ -235,19 +243,19 @@ func WritePacks(outDir string, in PackInput) error {
 					"skillKey": b.FreeSkillKey,
 					"specSlug": b.FreeSpecSlug,
 				},
-				"growth": growth,
-				"cultures": []any{},
-				"isFull": true,
-				"hitDie": "1d6",
-				"hitDiePriority": 0,
+				"growth":          growth,
+				"cultures":        []any{},
+				"isFull":          true,
+				"hitDie":          "1d6",
+				"hitDiePriority":  0,
 				"classTalentKeys": []string{},
-				"talentPicks": map[string]int{"warrior": 0, "expert": 0, "any": 0},
+				"talentPicks":     map[string]int{"warrior": 0, "expert": 0, "any": 0},
 				"arts": map[string]any{
 					"skillKey": "", "abilityKeys": []string{}, "receiveTableKey": "", "artKeys": []string{},
 				},
-				"saves": defaultSaves(),
-				"talentSlug": "",
-				"classSlugs": []string{},
+				"saves":           defaultSaves(),
+				"talentSlug":      "",
+				"classSlugs":      []string{},
 				"backgroundSlugs": []string{},
 			},
 			"_key": "!items!" + b.FoundryID,
@@ -264,13 +272,13 @@ func WritePacks(outDir string, in PackInput) error {
 			"type": "origin",
 			"img":  "icons/svg/wing.svg",
 			"system": map[string]any{
-				"subType":     "class",
-				"slug":        cl.Slug,
-				"description": renderMD(md, cl.Description),
-				"grants":      emptyGrants(),
-				"isFull":      cl.IsFull,
-				"hitDie":      cl.HitDie,
-				"hitDiePriority": cl.HitDiePriority,
+				"subType":         "class",
+				"slug":            cl.Slug,
+				"description":     renderMD(md, cl.Description),
+				"grants":          emptyGrants(),
+				"isFull":          cl.IsFull,
+				"hitDie":          cl.HitDie,
+				"hitDiePriority":  cl.HitDiePriority,
 				"classTalentKeys": cl.ClassTalentKeys,
 				"talentPicks": map[string]int64{
 					"warrior": cl.TalentPicksWarrior,
@@ -289,12 +297,12 @@ func WritePacks(outDir string, in PackInput) error {
 						"save": cl.SaveSecondary, "priority": cl.SaveSecondaryPriority,
 					},
 				},
-				"talentSlug": cl.TalentSlug,
-				"cultures": []any{},
-				"classSlugs": []string{},
+				"talentSlug":      cl.TalentSlug,
+				"cultures":        []any{},
+				"classSlugs":      []string{},
 				"backgroundSlugs": []string{},
-				"free": map[string]any{"skillKey": "", "specSlug": ""},
-				"growth": emptyGrowth(),
+				"free":            map[string]any{"skillKey": "", "specSlug": ""},
+				"growth":          emptyGrowth(),
 			},
 			"_key": "!items!" + cl.FoundryID,
 		}
@@ -328,6 +336,72 @@ func parseGrants(raw string) map[string]any {
 		return emptyGrants()
 	}
 	return m
+}
+
+// talentActiveEffects turns stored effect JSON into Foundry Active Effect documents.
+// Change mode is the v14 string type (add, subtract, multiply, override, upgrade, downgrade).
+// Each effect needs its own LevelDB _key; the packer stores embedded effects separately.
+func talentActiveEffects(itemID, raw string) ([]any, error) {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" || trimmed == "[]" {
+		return nil, nil
+	}
+	var effects []struct {
+		FoundryID string `json:"foundryId"`
+		Name      string `json:"name"`
+		Img       string `json:"img"`
+		Disabled  bool   `json:"disabled"`
+		Changes   []struct {
+			Key      string `json:"key"`
+			Mode     string `json:"mode"`
+			Value    string `json:"value"`
+			Priority int    `json:"priority"`
+		} `json:"changes"`
+	}
+	if err := json.Unmarshal([]byte(trimmed), &effects); err != nil {
+		return nil, err
+	}
+	out := make([]any, 0, len(effects))
+	for _, e := range effects {
+		changes := make([]any, 0, len(e.Changes))
+		for _, ch := range e.Changes {
+			changes = append(changes, map[string]any{
+				"key":      ch.Key,
+				"mode":     ch.Mode,
+				"value":    ch.Value,
+				"priority": ch.Priority,
+			})
+		}
+		img := e.Img
+		if img == "" {
+			img = "icons/svg/aura.svg"
+		}
+		out = append(out, map[string]any{
+			"_id":         e.FoundryID,
+			"_key":        "!items.effects!" + itemID + "." + e.FoundryID,
+			"name":        e.Name,
+			"img":         img,
+			"type":        "base",
+			"disabled":    e.Disabled,
+			"transfer":    true,
+			"origin":      nil,
+			"tint":        "#ffffff",
+			"description": "",
+			"statuses":    []any{},
+			"flags":       map[string]any{},
+			"duration": map[string]any{
+				"startTime":  nil,
+				"seconds":    nil,
+				"combat":     nil,
+				"rounds":     nil,
+				"turns":      nil,
+				"startRound": nil,
+				"startTurn":  nil,
+			},
+			"changes": changes,
+		})
+	}
+	return out, nil
 }
 
 func emptyGrants() map[string]any {

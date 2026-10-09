@@ -9,31 +9,13 @@ export type AttackModInput = {
   skillLabel: string;
   proficiencyBonus: number;
   proficiencyLabel: string;
+  attackMod: number;
+  attackModLabel: string;
   weaponBonus: number;
   weaponBonusLabel: string;
 };
 
-/** Double positive proficiency for Killing Blow attack rolls; leave ≤0 unchanged. */
-export function killingBlowAttackProficiency(base: number): number {
-  return base > 0 ? base * 2 : base;
-}
-
-/** Positive proficiency only adds to Killing Blow damage. */
-export function killingBlowDamageBonus(base: number): number {
-  return base > 0 ? base : 0;
-}
-
-/** True when the actor owns a talent with featureKey killingBlow. */
-export function actorHasKillingBlow(actor: Actor.Implementation): boolean {
-  for (const item of actor.items) {
-    if ((item.type as string) !== "talent") continue;
-    const featureKey = (item.system as { featureKey?: string } | undefined)?.featureKey;
-    if (featureKey === "killingBlow") return true;
-  }
-  return false;
-}
-
-/** Build attack flat modifiers (ability + skill proficiency + weapon AB). */
+/** Build attack flat modifiers (ability + skill proficiency + skill attack mod + weapon AB). */
 export function buildAttackModifiers(input: AttackModInput): Modifier[] {
   const mods: Modifier[] = [
     {
@@ -49,6 +31,14 @@ export function buildAttackModifiers(input: AttackModInput): Modifier[] {
       kind: "skill",
     },
   ];
+  if (input.attackMod !== 0) {
+    mods.push({
+      label: input.attackModLabel,
+      value: input.attackMod,
+      source: { id: `skill.${input.skillKey}.attackMod`, label: input.attackModLabel },
+      kind: "effect",
+    });
+  }
   if (input.weaponBonus !== 0) {
     mods.push({
       label: input.weaponBonusLabel,
@@ -92,12 +82,13 @@ export function meleeDamageFlatBonus(
 
 export function buildDamageModifiers(input: {
   abilityKey: string;
+  skillKey: string;
   mightMod: number;
   mightLabel: string;
   meleeDamageBonus: number;
   meleeDamageLabel: string;
-  killingBlowBonus?: number;
-  killingBlowLabel?: string;
+  damageMod: number;
+  damageModLabel: string;
 }): Modifier[] {
   const mods: Modifier[] = [];
   if (input.abilityKey === "mgh") {
@@ -118,12 +109,11 @@ export function buildDamageModifiers(input: {
       });
     }
   }
-  const kb = input.killingBlowBonus ?? 0;
-  if (kb > 0) {
+  if (input.damageMod !== 0) {
     mods.push({
-      label: input.killingBlowLabel ?? "Killing Blow",
-      value: kb,
-      source: { id: "talent.killingBlow", label: input.killingBlowLabel ?? "Killing Blow" },
+      label: input.damageModLabel,
+      value: input.damageMod,
+      source: { id: `skill.${input.skillKey}.damageMod`, label: input.damageModLabel },
       kind: "effect",
     });
   }

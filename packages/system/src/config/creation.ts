@@ -15,15 +15,6 @@ export const CREATION_REPLACEABLE_ABILITY_KEYS = ["mgh", "dex", "kno", "foc", "p
 
 export type RegionKey = "nerland";
 
-export type FeatureKey =
-  | "killingBlow"
-  | "veteransLuck"
-  | "masterfulExpertise"
-  | "humanExpertTalent"
-  | "warriorTalentPicks"
-  | "expertTalentPicks"
-  | "adventurerTalentPicks";
-
 export type TalentPickBudget = {
   warrior?: number;
   expert?: number;
@@ -41,7 +32,6 @@ export type CultureDef = {
   /** When false, shown disabled in the wizard (POC lock). */
   available?: boolean;
   talentPicks?: TalentPickBudget;
-  raceFeatures?: readonly FeatureKey[];
 };
 
 export type ClassDef = {
@@ -49,7 +39,6 @@ export type ClassDef = {
   labelKey: string;
   hitDie: string;
   talentPicks: TalentPickBudget;
-  classFeatures: readonly FeatureKey[];
   saveProficiencies: ClassSaveProficiencies;
 };
 
@@ -95,10 +84,6 @@ function classDefFromOrigin(key: string): ClassDef | undefined {
       labelKey: "KEDOM.Creation.Class.adventurer",
       hitDie: combined.hitDie,
       talentPicks: combined.talentPicks,
-      classFeatures: [
-        ...(combined.classTalentKeys as FeatureKey[]),
-        "adventurerTalentPicks",
-      ],
       saveProficiencies: combinedOriginSaveProficiencies(combined),
     };
   }
@@ -106,23 +91,16 @@ function classDefFromOrigin(key: string): ClassDef | undefined {
   const origin = getClassOrigin(key);
   if (!origin || !origin.system.isFull) return undefined;
   const picks = origin.system.talentPicks;
-  const featureExtras: FeatureKey[] =
-    key === "warrior"
-      ? ["warriorTalentPicks"]
-      : key === "expert"
-        ? ["expertTalentPicks"]
-        : [];
+  const talentPicks: TalentPickBudget = {};
+  if (picks.warrior) talentPicks.warrior = picks.warrior;
+  if (picks.expert) talentPicks.expert = picks.expert;
+  if (picks.any) talentPicks.any = picks.any;
   return {
     key,
     labelKey:
       key === "expert" ? "KEDOM.Creation.Class.expert" : "KEDOM.Creation.Class.warrior",
     hitDie: origin.system.hitDie,
-    talentPicks: {
-      warrior: picks.warrior || undefined,
-      expert: picks.expert || undefined,
-      any: picks.any || undefined,
-    },
-    classFeatures: [...(origin.system.classTalentKeys as FeatureKey[]), ...featureExtras],
+    talentPicks,
     saveProficiencies: originSaveProficiencies(origin.system),
   };
 }
@@ -142,7 +120,6 @@ export const CULTURES_BY_REGION: Record<RegionKey, readonly CultureDef[]> = {
       allowedClassKeys: ["warrior", "expert", "adventurer"],
       available: true,
       talentPicks: { expert: 1 },
-      raceFeatures: ["humanExpertTalent"],
     },
     {
       key: "dwarf",

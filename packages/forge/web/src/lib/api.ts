@@ -122,6 +122,7 @@ export type Talent = {
   category: string;
   feature_key: string;
   grants_json: string;
+  effects_json: string;
   sort_order: number;
   foundry_id: string;
   linked_cultures: EntityRef[];
@@ -279,6 +280,7 @@ export type UpdateTalentBody = {
   category: string;
   feature_key: string;
   grants_json: string;
+  effects_json: string;
   sort_order: number;
 };
 

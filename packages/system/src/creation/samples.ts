@@ -1,7 +1,6 @@
 import type { GrantsFields } from "../data/item/grants.ts";
 import type { OriginSubtype } from "../config/origin.ts";
 import type { TalentCategory } from "../config/talent.ts";
-import { featureTalentCreateData } from "./class-features.ts";
 import { CLASS_ORIGIN_SEEDS } from "./class-origins.ts";
 
 export type SampleItemData = {
@@ -84,34 +83,6 @@ export const CREATION_SAMPLES: SampleItemData[] = [
           : c.system.grants,
     },
   })),
-  {
-    sampleId: "sample-feature-killing-blow",
-    ...featureTalentCreateData("killingBlow"),
-  },
-  {
-    sampleId: "sample-feature-veterans-luck",
-    ...featureTalentCreateData("veteransLuck"),
-  },
-  {
-    sampleId: "sample-feature-masterful-expertise",
-    ...featureTalentCreateData("masterfulExpertise"),
-  },
-  {
-    sampleId: "sample-feature-human-expert",
-    ...featureTalentCreateData("humanExpertTalent"),
-  },
-  {
-    sampleId: "sample-feature-warrior-talents",
-    ...featureTalentCreateData("warriorTalentPicks"),
-  },
-  {
-    sampleId: "sample-feature-expert-talents",
-    ...featureTalentCreateData("expertTalentPicks"),
-  },
-  {
-    sampleId: "sample-feature-adventurer-talents",
-    ...featureTalentCreateData("adventurerTalentPicks"),
-  },
   talent(
     "sample-talent-alert",
     "Alert",

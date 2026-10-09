@@ -46,7 +46,7 @@ describe("combineClassOriginsBySlug", () => {
   it("merges talent picks and concatenates class talents", () => {
     const combined = combineClassOriginsBySlug("warrior-partial", "expert-partial");
     expect(combined?.talentPicks).toEqual({ warrior: 1, expert: 1, any: 1 });
-    expect(combined?.classTalentKeys).toEqual(["killingBlow", "masterfulExpertise"]);
+    expect(combined?.classTalentKeys).toEqual([]);
   });
 
   it("rejects full-class rows", () => {

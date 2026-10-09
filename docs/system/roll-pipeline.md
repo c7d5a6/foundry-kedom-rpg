@@ -215,10 +215,14 @@ mix flat mods with advantage still resolve through the same net + modifiers spli
 
 - **Weapon** Item (`skill` punch|shoot|stab, `damageFormula` default `1d6`, `attackBonus`): sheet +
   Combat tab list with Attack / Damage / edit / remove.
-- **Attack:** `1d20 + skill ability mod + skill proficiency + combat.attackBonus + weapon.attackBonus`.
-  If exactly one targeted token has `combat.ac`, card shows hit/miss. Always rolls damage on the
-  same card; **nat 20** maximizes damage dice. Flags: `flags.kedom.attack`. Inspectable Foundry
-  dice HTML (same expand pattern as Luck save / skill checks).
+- **Attack:** `1d20 + skill ability mod + skill proficiency + skill attackMod + weapon.attackBonus`.
+  `attackMod` is `system.skills.<punch|shoot|stab>.attackMod` after effects (0 when none apply).
+  Chat source id `skill.<key>.attackMod`. If exactly one targeted token has `combat.ac`, the card
+  shows hit/miss. Always rolls damage on the same card; **nat 20** maximizes damage dice. Flags:
+  `flags.kedom.attack`. Inspectable Foundry dice HTML (same expand pattern as Luck save / skill checks).
+- **Damage modifiers:** for a Might skill, Might mod + `combat.meleeDamageBonus`; then
+  `system.skills.<skill>.damageMod` for punch, shoot, and stab (Shoot included). Chat source id
+  `skill.<key>.damageMod`. Both mods are effect targets, not stored on the actor.
 - **Luck on attack:** spend `ac - total` to hit when missing vs known AC; otherwise spend 1 for +1.
 - **Damage (standalone):** Combat tab Damage button / chat Roll Damage — normal dice (no apply-HP).
 - **Nat 20:** Critical wound button calls `takeWound` on the **roll-time** target uuid (if any).

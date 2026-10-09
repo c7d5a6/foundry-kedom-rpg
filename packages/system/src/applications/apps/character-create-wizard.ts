@@ -10,7 +10,6 @@ import {
   type GrowthEntry,
   type RegionKey,
 } from "../../config/creation.ts";
-import { featureKeysForCreate, featureTalentCreateData } from "../../creation/class-features.ts";
 import { getClassOrigin } from "../../creation/class-origins.ts";
 import { combineClassOriginsBySlug } from "../../creation/combine-class-origins.ts";
 import { abilityModifier } from "../../derivations/ability-mod.ts";
@@ -1062,10 +1061,6 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const classLabel = catalogClass.name;
 
     const draftCulture = getCulture(d.regionKey as RegionKey, d.cultureKey) ?? undefined;
-    const featureKeys = classDef
-      ? featureKeysForCreate(draftCulture?.raceFeatures, classDef.classFeatures)
-      : featureKeysForCreate(draftCulture?.raceFeatures, []);
-    const featureItems = featureKeys.map((key) => featureTalentCreateData(key));
     const talentPicks = resolveTalentPickBudget(draftCulture, classDef ?? undefined);
 
     const hpMax = this.#startingHp();
@@ -1166,15 +1161,6 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
           system: this.#classOriginSystem(d.classKey, catalogClass.hitDie),
         },
       );
-    }
-
-    for (const feat of featureItems) {
-      items.push({
-        name: feat.name,
-        type: feat.type,
-        img: feat.img ?? "icons/svg/upgrade.svg",
-        system: feat.system as Record<string, unknown>,
-      });
     }
 
     const actorData = {

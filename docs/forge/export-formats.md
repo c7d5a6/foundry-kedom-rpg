@@ -91,7 +91,7 @@ slugs are unique.
 |---|---|
 | `skills` | `skill` with its `specialization` rows (planned) |
 | `origins` | `region`, `race` (culture), `background`, `class` as `origin` items with a `subType` |
-| `talents` | `talent` items (`slug`, category, featureKey, grants) |
+| `talents` | `talent` items (`slug`, category, featureKey, grants, and `effects` when the talent has any) |
 | `conditions` | hand-authored, not from Forge |
 | `injuries` | hand-authored, not from Forge |
 | `journals` | setting text (planned) |
@@ -113,6 +113,11 @@ system:
 
 Culture origins carry `talentSlug` and `classSlugs[]`. Background lists for the wizard come
 from the **selected region’s** culture entry, not only from the culture item.
+
+A talent with effects exports one transferable Active Effect per `effects_json` entry (`_id`
+from `foundryId`, `_key` `!items.effects!<talent id>.<effect id>`, `transfer: true`). Change
+`mode` is the Foundry v14 string (`add`, `subtract`, `multiply`, `override`, `upgrade`,
+`downgrade`). An empty array omits `effects`.
 
 **YAML is English.** Russian does not belong here. A bilingual pack would make every content
 diff noise, and Foundry would still only display `name`. Russian content is the Babele

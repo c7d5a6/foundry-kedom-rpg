@@ -34,9 +34,9 @@ func ptrInt64(p *int64) int64 {
 }
 
 const (
-	grantKindSkill      = "skill"
-	grantKindAnyCombat  = "anyCombat"
-	grantKindAnySkill   = "anySkill"
+	grantKindSkill     = "skill"
+	grantKindAnyCombat = "anyCombat"
+	grantKindAnySkill  = "anySkill"
 )
 
 func isWildcardGrantKind(kind string) bool {
@@ -79,6 +79,7 @@ type TalentDTO struct {
 	Category       string         `json:"category"`
 	FeatureKey     string         `json:"feature_key"`
 	GrantsJSON     string         `json:"grants_json"`
+	EffectsJSON    string         `json:"effects_json"`
 	SortOrder      int64          `json:"sort_order"`
 	FoundryID      string         `json:"foundry_id"`
 	LinkedCultures []EntityRef    `json:"linked_cultures"`
@@ -106,7 +107,8 @@ func (c *Content) talentDTO(ctx context.Context, row generated.Talent, tr Transl
 	return TalentDTO{
 		ID: row.ID, Slug: row.Slug, Label: row.Label, Description: row.Description,
 		Comment: row.Comment, Category: row.Category, FeatureKey: row.FeatureKey,
-		GrantsJSON: row.GrantsJson, SortOrder: row.SortOrder, FoundryID: row.FoundryID,
+		GrantsJSON: row.GrantsJson, EffectsJSON: row.EffectsJson,
+		SortOrder: row.SortOrder, FoundryID: row.FoundryID,
 		LinkedCultures: lc, LinkedClasses: lcl, Translations: tr,
 	}, nil
 }
@@ -150,6 +152,7 @@ type CreateTalentInput struct {
 	Category    string `json:"category"`
 	FeatureKey  string `json:"feature_key"`
 	GrantsJSON  string `json:"grants_json"`
+	EffectsJSON string `json:"effects_json"`
 	SortOrder   int64  `json:"sort_order"`
 }
 
@@ -172,6 +175,10 @@ func (c *Content) CreateTalent(ctx context.Context, in CreateTalentInput, locale
 	if !json.Valid([]byte(grants)) {
 		return TalentDTO{}, fmt.Errorf("%w: grants_json must be valid JSON", ErrInvalid)
 	}
+	effects, err := NormalizeTalentEffects(in.EffectsJSON, NewFoundryID)
+	if err != nil {
+		return TalentDTO{}, err
+	}
 	slug, err := UniqueSlug(SlugFromLabel(label), func(s string) (bool, error) {
 		return c.q.TalentSlugExists(ctx, s)
 	})
@@ -184,7 +191,7 @@ func (c *Content) CreateTalent(ctx context.Context, in CreateTalentInput, locale
 	}
 	row, err := c.q.InsertTalent(ctx, generated.InsertTalentParams{
 		Slug: slug, Label: label, Description: in.Description, Comment: in.Comment,
-		Category: cat, FeatureKey: in.FeatureKey, GrantsJson: grants,
+		Category: cat, FeatureKey: in.FeatureKey, GrantsJson: grants, EffectsJson: effects,
 		SortOrder: in.SortOrder, FoundryID: fid,
 	})
 	if err != nil {
@@ -200,6 +207,7 @@ type UpdateTalentInput struct {
 	Category    string `json:"category"`
 	FeatureKey  string `json:"feature_key"`
 	GrantsJSON  string `json:"grants_json"`
+	EffectsJSON string `json:"effects_json"`
 	SortOrder   int64  `json:"sort_order"`
 }
 
@@ -221,9 +229,13 @@ func (c *Content) UpdateTalent(ctx context.Context, id int64, in UpdateTalentInp
 	if _, ok := talentCategories[cat]; !ok {
 		return TalentDTO{}, fmt.Errorf("%w: invalid category %q", ErrInvalid, cat)
 	}
-	_, err := c.q.UpdateTalent(ctx, generated.UpdateTalentParams{
+	effects, err := NormalizeTalentEffects(in.EffectsJSON, NewFoundryID)
+	if err != nil {
+		return TalentDTO{}, err
+	}
+	_, err = c.q.UpdateTalent(ctx, generated.UpdateTalentParams{
 		Label: in.Label, Description: in.Description, Comment: in.Comment,
-		Category: cat, FeatureKey: in.FeatureKey, GrantsJson: grants,
+		Category: cat, FeatureKey: in.FeatureKey, GrantsJson: grants, EffectsJson: effects,
 		SortOrder: in.SortOrder, ID: id,
 	})
 	if err != nil {
@@ -259,20 +271,20 @@ type RaceBackgroundUse struct {
 }
 
 type RaceDTO struct {
-	ID           int64               `json:"id"`
-	Slug         string              `json:"slug"`
-	Label        string              `json:"label"`
-	Description  string              `json:"description"`
-	Comment      string              `json:"comment"`
-	ParentRaceID *int64              `json:"parent_race_id"`
-	TalentID     *int64              `json:"talent_id"`
-	TalentSlug   string              `json:"talent_slug"`
-	SortOrder    int64               `json:"sort_order"`
-	FoundryID    string              `json:"foundry_id"`
-	Classes      []RaceClassLink     `json:"classes"`
-	LinkedRegions []RaceRegionLink   `json:"linked_regions"`
+	ID                int64               `json:"id"`
+	Slug              string              `json:"slug"`
+	Label             string              `json:"label"`
+	Description       string              `json:"description"`
+	Comment           string              `json:"comment"`
+	ParentRaceID      *int64              `json:"parent_race_id"`
+	TalentID          *int64              `json:"talent_id"`
+	TalentSlug        string              `json:"talent_slug"`
+	SortOrder         int64               `json:"sort_order"`
+	FoundryID         string              `json:"foundry_id"`
+	Classes           []RaceClassLink     `json:"classes"`
+	LinkedRegions     []RaceRegionLink    `json:"linked_regions"`
 	LinkedBackgrounds []RaceBackgroundUse `json:"linked_backgrounds"`
-	Translations TranslationMap      `json:"translations"`
+	Translations      TranslationMap      `json:"translations"`
 }
 
 func (c *Content) ListRaces(ctx context.Context, locale model.Locale) ([]RaceDTO, error) {
@@ -463,16 +475,16 @@ type RegionBackgroundLink struct {
 }
 
 type RegionDTO struct {
-	ID            int64                   `json:"id"`
-	Slug          string                  `json:"slug"`
-	Label         string                  `json:"label"`
-	Description   string                  `json:"description"`
-	Comment       string                  `json:"comment"`
-	SortOrder     int64                   `json:"sort_order"`
-	FoundryID     string                  `json:"foundry_id"`
-	Cultures      []RegionCultureLink     `json:"cultures"`
-	Backgrounds   []RegionBackgroundLink  `json:"backgrounds"`
-	Translations  TranslationMap          `json:"translations"`
+	ID           int64                  `json:"id"`
+	Slug         string                 `json:"slug"`
+	Label        string                 `json:"label"`
+	Description  string                 `json:"description"`
+	Comment      string                 `json:"comment"`
+	SortOrder    int64                  `json:"sort_order"`
+	FoundryID    string                 `json:"foundry_id"`
+	Cultures     []RegionCultureLink    `json:"cultures"`
+	Backgrounds  []RegionBackgroundLink `json:"backgrounds"`
+	Translations TranslationMap         `json:"translations"`
 }
 
 func (c *Content) ListRegions(ctx context.Context, locale model.Locale) ([]RegionDTO, error) {
@@ -545,12 +557,12 @@ type RegionBackgroundIn struct {
 }
 
 type CreateRegionInput struct {
-	Label        string                `json:"label"`
-	Description  string                `json:"description"`
-	Comment      string                `json:"comment"`
-	SortOrder    int64                 `json:"sort_order"`
-	Cultures     []RegionCultureIn     `json:"cultures"`
-	Backgrounds  []RegionBackgroundIn  `json:"backgrounds"`
+	Label       string               `json:"label"`
+	Description string               `json:"description"`
+	Comment     string               `json:"comment"`
+	SortOrder   int64                `json:"sort_order"`
+	Cultures    []RegionCultureIn    `json:"cultures"`
+	Backgrounds []RegionBackgroundIn `json:"backgrounds"`
 }
 
 func (c *Content) CreateRegion(ctx context.Context, in CreateRegionInput, locale model.Locale) (RegionDTO, error) {
@@ -770,7 +782,7 @@ func (c *Content) buildBackgroundDTO(
 		FreeGrantKind: freeGrantKind, FreeSkillID: freeSkillID, FreeSkillSlug: freeSkillSlug,
 		FreeSpecializationID: freeSpecID, FreeSpecializationSlug: freeSpecSlug,
 		FreeSpecializationLabel: freeSpecLabel,
-		SortOrder: sortOrder, FoundryID: foundryID, Growth: g, UsedBy: usedBy, Translations: tr,
+		SortOrder:               sortOrder, FoundryID: foundryID, Growth: g, UsedBy: usedBy, Translations: tr,
 	}, nil
 }
 

@@ -32,25 +32,11 @@ describe("resolveTalentPickBudget", () => {
   });
 });
 
-describe("CLASSES hit dice and features", () => {
-  it("uses Kedom hit dice and features", () => {
+describe("CLASSES hit dice", () => {
+  it("uses Kedom hit dice", () => {
     expect(getClass("warrior")?.hitDie).toBe("1d6+2");
-    expect(getClass("warrior")?.classFeatures).toEqual([
-      "killingBlow",
-      "veteransLuck",
-      "warriorTalentPicks",
-    ]);
     expect(getClass("expert")?.hitDie).toBe("1d6");
-    expect(getClass("expert")?.classFeatures).toEqual([
-      "masterfulExpertise",
-      "expertTalentPicks",
-    ]);
     expect(getClass("adventurer")?.hitDie).toBe("1d6+2");
-    expect(getClass("adventurer")?.classFeatures).toEqual([
-      "killingBlow",
-      "masterfulExpertise",
-      "adventurerTalentPicks",
-    ]);
     expect(getClass("mage")).toBeUndefined();
   });
 
