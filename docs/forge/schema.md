@@ -222,8 +222,8 @@ Effects (default `[]`). Each effect has its own `foundryId` (assigned once), `na
 `multiply`, `override`, `upgrade`, `downgrade`), `value` (a non-empty string: an integer or a
 Foundry `@` formula), and `priority` (an integer; omitted means 20). There is no script field.
 Pack export writes one transferable effect per array entry and omits `effects` when the array
-is empty. Change `mode` is the Foundry v14 string. A class still links one talent; creation
-copies that item’s effects onto the actor.
+is empty. Forge stores `mode`; pack YAML maps it to Foundry v14 change `type` (same string
+values). A class still links one talent; creation copies that item’s effects onto the actor.
 
 ### `race` (culture)
 

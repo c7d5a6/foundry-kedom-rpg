@@ -97,7 +97,7 @@ export const CREATION_SAMPLES: SampleItemData[] = [
         changes: [
           {
             key: "system.skills.heal.defaultAdvantage",
-            mode: 2, // CONST.ACTIVE_EFFECT_MODES.ADD
+            type: "add",
             value: "1",
             priority: 20,
           },

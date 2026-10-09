@@ -261,10 +261,10 @@
       "movement": "Movement",
       "resolve": "Resolve",
       "resolveShort": "RSV",
-      "strain": "Exhaustion",
-      "strainLimit": "Exhaustion Limit",
+      "strain": "Strain",
+      "strainLimit": "Strain Limit",
       "strainLimitShort": "SL",
-      "strainShort": "E",
+      "strainShort": "S",
       "wounds": "Wounds"
     },
     "Condition": {
@@ -430,57 +430,118 @@
     "Content": {
       "Region": {
         "nerland": {
-          "label": "Nerland"
+          "label": "Náirland",
+          "description": "\u003cp\u003eСуровый северный край холодных зим, тайги и бедных земель, отрезанный Дварфскими горами и морями от Нитэля. Здесь живут высокие светловолосые нерланцы: прямые, преданные долгу, ценящие договор и привыкшие к тяжёлому труду. Рядом с ними торгуют дварфы, оседают полурослики, а с окраин лесов и гор грозят гоблины, альпас и более тёмные и древние ужасы. Чтут старых богов и западные культы Мортизара.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://www.gailerauktionen.de/_Resources/Persistent/b/5/b/e/b5be965b20fd3f492bee350f01b67e00a2cdc10b/309-4.jpg\" alt=\"link\"\u003e\u003c/p\u003e"
+        },
+        "nirland": {
+          "label": "Náirland",
+          "description": "\u003cp\u003eСуровый северный край холодных зим, тайги и бедных земель, отрезанный Дварфскими горами и морями от Нитэля. Здесь живут высокие светловолосые нерланцы: прямые, преданные долгу, ценящие договор и привыкшие к тяжёлому труду. Рядом с ними торгуют дварфы, оседают полурослики, а с окраин лесов и гор грозят гоблины, альпас и более тёмные и древние ужасы. Чтут старых богов и западные культы Мортизара.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://www.gailerauktionen.de/_Resources/Persistent/b/5/b/e/b5be965b20fd3f492bee350f01b67e00a2cdc10b/309-4.jpg\" alt=\"link\"\u003e\u003c/p\u003e"
         }
       },
       "Culture": {
-        "nerlander": {
-          "label": "Nerlander"
+        "item": {
+          "label": "Нитольцы",
+          "description": "\u003cp\u003eНитольцев можно встретить по всему миру. Часто они бегут в другие земли, спасаясь от проблем, долгов или просто от скуки, и быстро приживаются в новых местах.\u003c/p\u003e\n\u003cp\u003eТемноволосые и экспрессивные, эти индивидуалисты слывут резкими и самодостаточными, порой даже эгоистичными, в глазах других культур.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/ancestry/nithel.webp\" alt=\"\"\u003e\u003c/p\u003e"
+        },
+        "item-2": {
+          "label": "Фероры",
+          "description": "\u003cp\u003eФероры — загадочные южане с длинными именами и яркой одеждой, родом из земель по ту сторону внутренних морей. Немногие из них осмеливаются пересекать пустыни и попадать в чужие края.\u003c/p\u003e\n\u003cp\u003eЭти люди практикуют таинственные магические ритуалы и верования, оставаясь закрытой группой. Информация о них редко покидает пределы их общин. В глазах других культур они формальны, вежливы, скрытны и склонны к манипуляциям.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/ancestry/saroja.webp\" alt=\"link\"\u003e\u003c/p\u003e"
+        },
+        "item-3": {
+          "label": "Нерланцы",
+          "description": "\u003cp\u003eНерланцы — могучие дикари с севера, отгороженные от южных земель горами и редко появляющиеся там.\u003c/p\u003e\n\u003cp\u003eФизически сильные и грубые, они весьма востребованы для разнообразных тяжёлых работ. Многие из них отличаются в искусствах ремесел, часто работая кузнецами или плотниками, но также часто можно увидеть их с оружием в руках.\u003c/p\u003e\n\u003cp\u003eНерланцев легко узнать по высокому росту, светлым волосам и коже, простой одежде и грубому акценту. Другие культуры оценивают их как прямых, преданных долгу и простых людей. Как и дварфы, они ценят договоры, что делает их взаимоотношения взаимно уважительными.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/ancestry/nerland.webp\" alt=\"link\"\u003e\u003c/p\u003e"
+        },
+        "item-4": {
+          "label": "Дварфские горы"
         }
       },
       "Background": {
-        "smith": {
-          "label": "Smith"
+        "acolyte": {
+          "label": "Acolyte"
+        },
+        "apprentice": {
+          "label": "Apprentice"
+        },
+        "bandit": {
+          "label": "Bandit"
+        },
+        "bard": {
+          "label": "Bard"
+        },
+        "blacksmith": {
+          "label": "Blacksmith"
+        },
+        "carter": {
+          "label": "Carter"
+        },
+        "cooper": {
+          "label": "Cooper"
+        },
+        "criminal": {
+          "label": "Criminal"
+        },
+        "elder": {
+          "label": "Elder"
+        },
+        "farmer": {
+          "label": "Farmer"
+        },
+        "healer": {
+          "label": "Healer"
+        },
+        "hunter": {
+          "label": "Hunter"
+        },
+        "mercenary": {
+          "label": "Mercenary"
+        },
+        "merchant": {
+          "label": "Merchant"
+        },
+        "nomad": {
+          "label": "Nomad"
+        },
+        "pilgrim": {
+          "label": "Pilgrim"
+        },
+        "shepherd": {
+          "label": "Shepherd"
+        },
+        "slave": {
+          "label": "Slave"
+        },
+        "traveler": {
+          "label": "Traveler"
+        },
+        "wildling": {
+          "label": "Wildling"
         }
       },
       "Class": {
-        "accursed": {
-          "label": "Accursed"
-        },
-        "beast": {
-          "label": "Beast"
-        },
-        "duelist": {
-          "label": "Duelist"
-        },
-        "elementalist": {
-          "label": "Elementalist"
-        },
-        "empath": {
-          "label": "Empath"
-        },
         "expert": {
-          "label": "Expert"
-        },
-        "necromancer": {
-          "label": "Necromancer"
-        },
-        "priest": {
-          "label": "Priest"
-        },
-        "queran-arcanist": {
-          "label": "Queran Arcanist"
+          "label": "Expert",
+          "description": "\u003cp\u003eЭксперты — мастера искусств, блистающие в ролях воров, дипломатов, целителей, ученых, исследователей или ремесленников. Эти герои посвящают себя совершенствованию своих умений, доводя их до уровня легенд, способные на поистине волшебные подвиги. Обладая невероятным талантом к успеху, многие Эксперты способны в последний момент вырывая победу из пасти поражения. Их неутомимая жажда знаний и самосовершенствования простирается даже на умения, выходящие за рамки их основной специализации.\u003c/p\u003e\n\u003cp\u003eХотя их основное внимание сосредоточено на мирных умениях, Эксперты далеки от беззащитности. Многие из них способны постоять за себя в бою, а некоторые, как смертельные ассасины, используют свою скрытность и обман для быстрого летального эффекта. Эксперты — это воплощение стремления к знанию и мастерству, а их путь — это путь искусства и тайны.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/class/expert.webp\" alt=\"link\"\u003e\u003c/p\u003e"
         },
         "warrior": {
-          "label": "Warrior"
-        },
-        "wise": {
-          "label": "Wise"
+          "label": "Warrior",
+          "description": "\u003cp\u003eВоин — герой, рожденный для битвы, несущий в себе врожденный дар к физическому насилию. От свирепых варваров и закаленных наемников до смелых деревенских парней и простых работников с талантом к кровопролитию — воины происходят из самых разных слоев общества. Формально они не всегда являются солдатами или ветеранами, но любой искатель приключений, встречающий вызовы грубой силой, может быть воином.\u003c/p\u003e\n\u003cp\u003eВоины обладают большим запасом здоровья, чем любой другой класс, выдерживая раны и трудности, которые бы сломили обычных людей. Они обладают превосходным боевым мастерством и наносят сокрушительный урон, делая их грозными противниками в бою.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/class/warrior.webp\" alt=\"link\"\u003e\u003c/p\u003e"
         }
       },
       "Talent": {
-        "class-talent": {
-          "label": "Class talent"
+        "dwarven-focus": {
+          "label": "Dwarven focus",
+          "description": "\u003cp\u003eGain Exert as a bonus skill. You have a natural resistance to magic, gaining a +2 bonus on all saves against hostile magical effects. You need only half the usual amount of food, water, and air and gain a +1 CON modifier.\u003c/p\u003e"
+        },
+        "human": {
+          "label": "Human"
+        },
+        "item": {
+          "label": "Смертельный удар",
+          "description": "\u003cp\u003eWhenever a Warrior inflicts damage with any attack, spell, or special ability they may add half their character level, rounded up, to the damage done. This damage is also added to any Shock they may inflict.\u003c/p\u003e"
+        },
+        "item-2": {
+          "label": "Везение ветерана",
+          "description": "\u003cp\u003eOnce per scene, as an Instant action, the Warrior may turn a missed attack they have made into a hit. Alternately, they may turn a successful attack against them into a miss, also as an Instant action. This ability is particularly lethal when used with the Make a Snap Attack action and leveled against weaker monsters or ordinary human warriors.\u003c/p\u003e"
         }
       }
     },
@@ -556,7 +617,7 @@
         "trade": "Trade"
       },
       "Region": {
-        "nerland": "Nerland",
+        "nerland": "Náirland",
         "nirland": "Náirland"
       },
       "Step": {

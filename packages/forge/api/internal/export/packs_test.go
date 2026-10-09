@@ -48,10 +48,14 @@ func TestWritePacksTalentEffects(t *testing.T) {
 		"!items.effects!cccccccccccccc01.bbbbbbbbbbbbbbbb",
 		"max(@skills.stab.proficiencyBonus, 0)",
 		"transfer: true",
+		"type: add",
 	} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("yaml missing %q:\n%s", want, text)
 		}
+	}
+	if strings.Contains(text, "mode: add") {
+		t.Fatalf("yaml still uses deprecated mode field:\n%s", text)
 	}
 }
 

@@ -341,7 +341,8 @@ func parseGrants(raw string) map[string]any {
 }
 
 // talentActiveEffects turns stored effect JSON into Foundry Active Effect documents.
-// Change mode is the v14 string type (add, subtract, multiply, override, upgrade, downgrade).
+// Forge stores change mode as a string; Foundry v14 expects the same string on `type`
+// (CONST.ACTIVE_EFFECT_CHANGE_TYPES). Writing `mode` is ignored and defaults to custom.
 // Each effect needs its own LevelDB _key; the packer stores embedded effects separately.
 func talentActiveEffects(itemID, raw string) ([]any, error) {
 	trimmed := strings.TrimSpace(raw)
@@ -369,7 +370,7 @@ func talentActiveEffects(itemID, raw string) ([]any, error) {
 		for _, ch := range e.Changes {
 			changes = append(changes, map[string]any{
 				"key":      ch.Key,
-				"mode":     ch.Mode,
+				"type":     ch.Mode,
 				"value":    ch.Value,
 				"priority": ch.Priority,
 			})

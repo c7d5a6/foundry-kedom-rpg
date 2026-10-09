@@ -117,8 +117,8 @@ from the **selected region’s** culture entry, not only from the culture item.
 
 A talent with effects exports one transferable Active Effect per `effects_json` entry (`_id`
 from `foundryId`, `_key` `!items.effects!<talent id>.<effect id>`, `transfer: true`). Change
-`mode` is the Foundry v14 string (`add`, `subtract`, `multiply`, `override`, `upgrade`,
-`downgrade`). An empty array omits `effects`.
+Forge authors `mode` in `effects_json`; pack YAML writes Foundry v14 `type` (`add`,
+`subtract`, `multiply`, `override`, `upgrade`, `downgrade`). An empty array omits `effects`.
 
 **YAML is English.** Russian does not belong here. A bilingual pack would make every content
 diff noise, and Foundry would still only display `name`. Russian content is the Babele

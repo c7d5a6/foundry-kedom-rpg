@@ -43,7 +43,7 @@ export async function createSkillAdvantageEffect(
       changes: [
         {
           key: skillAdvantageChangeKey(skillKey),
-          mode: CONST.ACTIVE_EFFECT_MODES.ADD,
+          type: "add",
           value: "1",
           priority: 20,
         },
