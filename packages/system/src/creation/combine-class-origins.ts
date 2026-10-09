@@ -35,9 +35,9 @@ function mergeTalentPicks(
   b: OriginDataFields["talentPicks"],
 ): OriginDataFields["talentPicks"] {
   return {
-    warrior: a.warrior + b.warrior,
-    expert: a.expert + b.expert,
-    any: a.any + b.any,
+    warrior: Math.max(a.warrior, b.warrior),
+    expert: Math.max(a.expert, b.expert),
+    any: Math.max(a.any, b.any),
   };
 }
 

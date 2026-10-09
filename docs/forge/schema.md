@@ -187,20 +187,25 @@ class:       id, slug, label, description, comment,
 race_class:  race_id, class_id
 ```
 
-`is_full` and `is_partial` are independent booleans because the five full classes are **also**
-selectable as Adventurer partials. At least one must be true. Adventurer itself is **not** a
-row — it is two partials combined at character creation.
+`is_full` and `is_partial` are **mutually exclusive** (`is_full + is_partial = 1`, enforced by
+insert/update triggers). A class is either a full pick or an Adventurer half, never both.
+When a full class also needs an Adventurer half, author a separate partial row (convention:
+`{slug}-partial`). Adventurer itself is **not** a row — it is two partials combined at
+character creation.
+
+Pack export emits a single `isFull` boolean on class origins (`false` = partial).
 
 The class list is a many-to-many with races because that is the main mechanical weight of
 choosing a race. Forced Adventurer slots (when a culture must fill one partial) will be
 modelled when Adventurer creation is wired — not as a dormant `race_class` flag.
 
-The class roster is now fixed — five with `is_full` and `is_partial`, plus seven partial-only,
-listed in [../rules/30-character-creation.md](../rules/30-character-creation.md#classes) —
-but per-class progression numbers are still unspecified
+The class roster is listed in
+[../rules/30-character-creation.md](../rules/30-character-creation.md#classes) — five fulls
+plus partials (including `{slug}-partial` siblings for the five full archetypes) — but
+per-class progression numbers are still unspecified
 ([Q12](../rules/99-open-questions.md#q12--per-class-mechanics-are-unspecified)). `hit_die` is
-authored; attack progression and skill points per level are not columns until those numbers
-exist.
+authored freeform; attack progression and skill points per level are not columns until those
+numbers exist.
 
 ### `talent`
 

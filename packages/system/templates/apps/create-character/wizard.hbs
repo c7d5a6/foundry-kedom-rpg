@@ -330,19 +330,41 @@
 
     {{#if (eq stepId "className")}}
       <p class="hint">{{localize "KEDOM.Creation.Wizard.ClassHint"}}</p>
-      <div class="kedom-create-wizard__choices">
-        {{#each classOptions}}
-          <button
-            type="button"
-            class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}"
-            data-action="pickClass"
-            data-class-key="{{key}}"
-          >
-            {{label}}
-            <span class="kedom-create-wizard__choice-meta">{{hitDie}}</span>
-          </button>
-        {{/each}}
-      </div>
+      {{#if fullClassOptions.length}}
+        <div class="kedom-create-wizard__choices">
+          {{#each fullClassOptions}}
+            <button
+              type="button"
+              class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}"
+              data-action="pickClass"
+              data-class-key="{{key}}"
+            >
+              {{label}}
+              <span class="kedom-create-wizard__choice-meta">{{hitDie}}</span>
+            </button>
+          {{/each}}
+        </div>
+      {{/if}}
+
+      {{#if partialClassOptions.length}}
+        <p class="hint">{{localize "KEDOM.Creation.Wizard.PartialsHeading"}}</p>
+        {{#if needSecondPartial}}
+          <p class="hint">{{localize "KEDOM.Creation.Wizard.SelectSecondPartial"}}</p>
+        {{/if}}
+        <div class="kedom-create-wizard__choices">
+          {{#each partialClassOptions}}
+            <button
+              type="button"
+              class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}"
+              data-action="pickClass"
+              data-class-key="{{key}}"
+            >
+              {{label}}
+              <span class="kedom-create-wizard__choice-meta">{{hitDie}}</span>
+            </button>
+          {{/each}}
+        </div>
+      {{/if}}
 
       {{#if showClassDetail}}
         <section class="kedom-create-wizard__selection-detail">

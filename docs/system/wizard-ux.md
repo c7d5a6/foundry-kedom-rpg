@@ -51,10 +51,20 @@ Scoped to `.kedom-create-wizard__desc img`:
 
 Do not change sheet or world description CSS for this.
 
+## Class step (full vs Adventurer)
+
+- Classes are **full or partial** (never both). Allowed fulls list first; then a **Partials**
+  heading and the partial list.
+- One full **or** two distinct partials. Click again deselects. After one partial, show a hint
+  to pick a second. Next is blocked until the selection is complete (+ name + HP roll).
+- Adventurer combines hit die (higher priority), talent picks (**max** per pool), talent
+  slugs (union), and embeds **both** class origins.
+
 ## Confirm summary
 
 - Class line includes granted class talent name(s) in brackets when known, e.g.
-  `Fighter (Talent Name)` or `Fighter (Talent A, Talent B)`.
+  `Fighter (Talent Name)`, `Fighter (Talent A, Talent B)`, or
+  `Warrior / Expert (Talent A, Talent B)`.
 
 ## Related
 

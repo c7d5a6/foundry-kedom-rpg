@@ -523,7 +523,15 @@
           "label": "Expert",
           "description": "\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/class/expert.webp\" alt=\"link\"\u003e\u003c/p\u003e\n\u003cp\u003eЭксперты — мастера искусств, блистающие в ролях воров, дипломатов, целителей, ученых, исследователей или ремесленников. Эти герои посвящают себя совершенствованию своих умений, доводя их до уровня легенд, способные на поистине волшебные подвиги. Обладая невероятным талантом к успеху, многие Эксперты способны в последний момент вырывая победу из пасти поражения. Их неутомимая жажда знаний и самосовершенствования простирается даже на умения, выходящие за рамки их основной специализации.\u003c/p\u003e\n\u003cp\u003eХотя их основное внимание сосредоточено на мирных умениях, Эксперты далеки от беззащитности. Многие из них способны постоять за себя в бою, а некоторые, как смертельные ассасины, используют свою скрытность и обман для быстрого летального эффекта. Эксперты — это воплощение стремления к знанию и мастерству, а их путь — это путь искусства и тайны.\u003c/p\u003e"
         },
+        "expert-partial": {
+          "label": "Expert",
+          "description": "\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/class/expert.webp\" alt=\"link\"\u003e\u003c/p\u003e\n\u003cp\u003eЭксперты — мастера искусств, блистающие в ролях воров, дипломатов, целителей, ученых, исследователей или ремесленников. Эти герои посвящают себя совершенствованию своих умений, доводя их до уровня легенд, способные на поистине волшебные подвиги. Обладая невероятным талантом к успеху, многие Эксперты способны в последний момент вырывая победу из пасти поражения. Их неутомимая жажда знаний и самосовершенствования простирается даже на умения, выходящие за рамки их основной специализации.\u003c/p\u003e\n\u003cp\u003eХотя их основное внимание сосредоточено на мирных умениях, Эксперты далеки от беззащитности. Многие из них способны постоять за себя в бою, а некоторые, как смертельные ассасины, используют свою скрытность и обман для быстрого летального эффекта. Эксперты — это воплощение стремления к знанию и мастерству, а их путь — это путь искусства и тайны.\u003c/p\u003e"
+        },
         "warrior": {
+          "label": "Warrior",
+          "description": "\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/class/warrior.webp\" alt=\"link\"\u003e\u003c/p\u003e\n\u003cp\u003eВоин — герой, рожденный для битвы, несущий в себе врожденный дар к физическому насилию. От свирепых варваров и закаленных наемников до смелых деревенских парней и простых работников с талантом к кровопролитию — воины происходят из самых разных слоев общества. Формально они не всегда являются солдатами или ветеранами, но любой искатель приключений, встречающий вызовы грубой силой, может быть воином.\u003c/p\u003e\n\u003cp\u003eВоины обладают большим запасом здоровья, чем любой другой класс, выдерживая раны и трудности, которые бы сломили обычных людей. Они обладают превосходным боевым мастерством и наносят сокрушительный урон, делая их грозными противниками в бою.\u003c/p\u003e"
+        },
+        "warrior-partial": {
           "label": "Warrior",
           "description": "\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/class/warrior.webp\" alt=\"link\"\u003e\u003c/p\u003e\n\u003cp\u003eВоин — герой, рожденный для битвы, несущий в себе врожденный дар к физическому насилию. От свирепых варваров и закаленных наемников до смелых деревенских парней и простых работников с талантом к кровопролитию — воины происходят из самых разных слоев общества. Формально они не всегда являются солдатами или ветеранами, но любой искатель приключений, встречающий вызовы грубой силой, может быть воином.\u003c/p\u003e\n\u003cp\u003eВоины обладают большим запасом здоровья, чем любой другой класс, выдерживая раны и трудности, которые бы сломили обычных людей. Они обладают превосходным боевым мастерством и наносят сокрушительный урон, делая их грозными противниками в бою.\u003c/p\u003e"
         }
@@ -539,15 +547,15 @@
         },
         "item": {
           "label": "Смертельный удар",
-          "description": "\u003cp\u003eWhenever a Warrior inflicts damage with any attack, spell, or special ability they may add half their character level, rounded up, to the damage done. This damage is also added to any Shock they may inflict.\u003c/p\u003e"
+          "description": "\u003cp\u003eВоин добавляет положительный бонус владения используемого боевого навыка (Удар, Стрельба или Холодное оружие) к броску атаки и к урону этой атаки.\u003c/p\u003e"
         },
         "item-2": {
           "label": "Везение ветерана",
-          "description": "\u003cp\u003eOnce per scene, as an Instant action, the Warrior may turn a missed attack they have made into a hit. Alternately, they may turn a successful attack against them into a miss, also as an Instant action. This ability is particularly lethal when used with the Make a Snap Attack action and leveled against weaker monsters or ordinary human warriors.\u003c/p\u003e"
+          "description": "\u003cp\u003eРаз за сцену, как мгновенное действие, Воин может превратить свой промах в попадание, а попадание в критическое попадание. Либо, также как мгновенное действие, превратить успешную атаку по себе в промах.\u003c/p\u003e"
         },
         "item-3": {
           "label": "Непревзойденное мастерство",
-          "description": "\u003cp\u003eOnce per scene, the Expert may reroll any non-combat skill check as an Instant action. This allows the Expert to make a roll and then immediately use this ability if the resulting total isn’t good enough to succeed. In cases where it matters, the better of the two rolls may be used.\u003c/p\u003e"
+          "description": "\u003cp\u003eПри повышении уровня персонажа вы получаете дополнительное очко навыка.\u003c/p\u003e"
         },
         "item-4": {
           "label": "Способный ученик",
@@ -589,10 +597,12 @@
         "elementalist": "Elementalist",
         "empath": "Empath",
         "expert": "Expert",
+        "expert-partial": "Expert",
         "necromancer": "Necromancer",
         "priest": "Priest",
         "queran-arcanist": "Queran Arcanist",
         "warrior": "Warrior",
+        "warrior-partial": "Warrior",
         "wise": "Wise"
       },
       "Culture": {
@@ -646,7 +656,7 @@
         "BackgroundRollFlavor": "Character creation — background",
         "BackgroundSkillRollFlavor": "Character creation — background skill",
         "BonusSkill": "Additional skill",
-        "ClassHint": "Choose a class allowed for this culture, roll starting hit points, then enter a name.",
+        "ClassHint": "Choose one full class, or two partials (Adventurer). Roll starting hit points, then enter a name.",
         "ConfirmHint": "Create this character?",
         "Create": "Create character",
         "Created": "Created {name}.",
@@ -663,6 +673,7 @@
         "NameLabel": "Character name",
         "Next": "Next",
         "NoFourteenWarning": "No attribute set to 14 — continuing with rolled scores.",
+        "PartialsHeading": "Partials",
         "PickBonusSkill": "Choose any skill (not a specialization you already have, and not a skill already granted twice):",
         "PickCombat": "Choose a combat skill:",
         "PickFreeWild": "Choose the free skill:",
@@ -676,6 +687,7 @@
         "RollSkill1": "Roll skill (1)",
         "RollSkill2": "Roll skill (2)",
         "RollSkills": "Roll skills (two independent 1d8)",
+        "SelectSecondPartial": "Select a second partial class to continue.",
         "SetFourteen": "Set to 14",
         "SpecLabel": "Specialization",
         "StartingHp": "Starting HP {hp} (rolled {roll} on {hitDie} + Might)",

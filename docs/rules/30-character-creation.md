@@ -121,26 +121,27 @@ wizard falls back to draft config until packs are exported.
 
 ## Classes
 
-**The roster is now fixed.** Five full classes, plus Adventurer as a hybrid chassis:
+**The roster is now fixed.** Five full classes, plus Adventurer as a hybrid chassis. Each
+class row is **full or partial** (never both). Adventurer halves for the five full archetypes
+are separate partial rows (`warrior-partial`, …).
 
-| Class | Source name | Full | Partial |
-|---|---|---|---|
-| Warrior | Воин | yes | yes |
-| Expert | Эксперт | yes | yes |
-| Queran Arcanist | Кверанский арканист | yes | yes |
-| Elementalist | Элементалист | yes | yes |
-| Necromancer | Некромант | yes | yes |
-| Priest | Жрец | — | yes |
-| Wise | Ведун | — | yes |
-| Accursed | Проклятый | — | yes |
-| Duelist | Дуэлянт | — | yes |
-| Empath | Эмпат | — | yes |
-| Rune Guardian | Рунный защитник | — | yes |
-| Beast | Зверь | — | yes |
+| Class | Source name | Kind |
+|---|---|---|
+| Warrior | Воин | full (+ `warrior-partial`) |
+| Expert | Эксперт | full (+ `expert-partial`) |
+| Queran Arcanist | Кверанский арканист | full (+ `queran-arcanist-partial`) |
+| Elementalist | Элементалист | full (+ `elementalist-partial`) |
+| Necromancer | Некромант | full (+ `necromancer-partial`) |
+| Priest | Жрец | partial |
+| Wise | Ведун | partial |
+| Accursed | Проклятый | partial |
+| Duelist | Дуэлянт | partial |
+| Empath | Эмпат | partial |
+| Rune Guardian | Рунный защитник | partial |
+| Beast | Зверь | partial |
 
-**Adventurer** (Приключенец) is not a class of its own; it is *two partials combined*, drawn
-from the twelve in the Partial column. Most non-human races can only be Adventurers, with one
-slot pre-filled by the race.
+**Adventurer** (Приключенец) is not a class of its own; it is *two partials combined*. Most
+non-human races can only be Adventurers, with one slot pre-filled by the race.
 
 Three things changed from the earlier notes, and all three are deletions worth noticing:
 

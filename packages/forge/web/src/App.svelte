@@ -755,7 +755,7 @@
               <span class="block font-medium">{c.label}</span>
               <span class="mt-0.5 block font-mono text-xs text-muted"
                 >{c.slug}{#if c.is_full}
-                  · full{/if}{#if c.is_partial}
+                  · full{:else}
                   · partial{/if}</span
               >
             </button>
@@ -774,6 +774,7 @@
             }}
             translations={selectedClass.translations ?? {}}
             classControls={{
+              is_full: selectedClass.is_full,
               hit_die: selectedClass.hit_die ?? "",
               talent_ids: selectedClass.talent_ids ?? [],
               hit_die_priority: selectedClass.hit_die_priority,

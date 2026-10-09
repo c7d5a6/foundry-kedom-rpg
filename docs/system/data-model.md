@@ -145,10 +145,10 @@ Seven. Each has a reason to exist that no other type covers.
 | `talent` | Character talent (WWN-style feat; not the Focus ability). Grants + transferable Active Effects. **POC:** description, grant arrays, skill-advantage AE helper; auto-apply on embed with level-gate overflow. |
 | `power` | Arts, spells, and abilities, behind a `subType` discriminator. |
 | `origin` | Region, race, background, or class, behind a `subType` discriminator. Class origins
-  carry `slug`, `isFull`, hit die + priority, `talentSlugs[]`, talent picks, arts, and
-  primary / secondary saves. Race (culture) origins carry a single `talentSlug`. Region
-  origins may set `bannerImg` for the character sheet banner (blank keeps the system
-  default). |
+  carry `slug`, `isFull` (`true` = full, `false` = Adventurer partial — never both), hit
+  die + priority, `talentSlugs[]`, talent picks, arts, and primary / secondary saves. Race
+  (culture) origins carry a single `talentSlug`. Region origins may set `bannerImg` for the
+  character sheet banner (blank keeps the system default). |
 
 ### Why `power` and `origin` are discriminated unions
 

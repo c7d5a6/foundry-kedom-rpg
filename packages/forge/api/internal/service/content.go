@@ -465,6 +465,8 @@ type UpdateClassInput struct {
 	Description           string  `json:"description"`
 	Comment               string  `json:"comment"`
 	SortOrder             int64   `json:"sort_order"`
+	IsFull                bool    `json:"is_full"`
+	IsPartial             bool    `json:"is_partial"`
 	HitDie                string  `json:"hit_die"`
 	TalentIDs             []int64 `json:"talent_ids"`
 	HitDiePriority        int64   `json:"hit_die_priority"`
@@ -482,6 +484,13 @@ func (c *Content) UpdateClass(ctx context.Context, id int64, in UpdateClassInput
 	if strings.TrimSpace(in.Label) == "" {
 		return ClassDTO{}, fmt.Errorf("%w: label required", ErrInvalid)
 	}
+	isFull, isPartial := in.IsFull, in.IsPartial
+	if isFull == isPartial {
+		if !isFull {
+			return ClassDTO{}, fmt.Errorf("%w: class must be full or partial", ErrInvalid)
+		}
+		isPartial = false
+	}
 	tx, q, err := c.begin(ctx)
 	if err != nil {
 		return ClassDTO{}, err
@@ -491,6 +500,7 @@ func (c *Content) UpdateClass(ctx context.Context, id int64, in UpdateClassInput
 	hitDie := in.HitDie
 	_, err = q.UpdateClass(ctx, generated.UpdateClassParams{
 		Label: in.Label, Description: in.Description, Comment: in.Comment, SortOrder: in.SortOrder,
+		IsFull: isFull, IsPartial: isPartial,
 		HitDie: &hitDie, HitDiePriority: in.HitDiePriority,
 		TalentPicksWarrior: in.TalentPicksWarrior, TalentPicksExpert: in.TalentPicksExpert,
 		TalentPicksAny: in.TalentPicksAny,

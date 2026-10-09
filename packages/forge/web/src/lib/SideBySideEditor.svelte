@@ -1,12 +1,6 @@
 <script lang="ts">
   import { onDestroy, untrack } from "svelte";
-  import {
-    HIT_DIE_OPTIONS,
-    api,
-    type EntityKind,
-    type TranslationField,
-    type TranslationMap,
-  } from "$lib/api";
+  import { api, type EntityKind, type TranslationField, type TranslationMap } from "$lib/api";
   import RichTextField from "$lib/RichTextField.svelte";
   import LinkPanel from "$lib/LinkPanel.svelte";
 
@@ -32,6 +26,7 @@
     };
     /** When editing a class: talents + progression fields from ClassDTO. */
     classControls?: {
+      is_full: boolean;
       hit_die: string;
       talent_ids: number[];
       hit_die_priority: number;
@@ -87,6 +82,8 @@
   let enSort = $state(0);
   let skillAttributeId = $state(0);
   let skillMode = $state("fixed");
+  /** "full" | "partial" — mutually exclusive. */
+  let classKind = $state<"full" | "partial">("full");
   let classHitDie = $state("");
   let classTalentIds = $state<number[]>([]);
   let classHitDiePriority = $state(0);
@@ -111,6 +108,7 @@
     enSort: number;
     skillAttributeId: number;
     skillMode: string;
+    classKind: "full" | "partial";
     classHitDie: string;
     classTalentIds: number[];
     classHitDiePriority: number;
@@ -133,6 +131,7 @@
     enSort: 0,
     skillAttributeId: 0,
     skillMode: "fixed",
+    classKind: "full",
     classHitDie: "",
     classTalentIds: [],
     classHitDiePriority: 0,
@@ -156,6 +155,7 @@
       enSort: en.sort_order,
       skillAttributeId: skillControls?.attribute_id ?? 0,
       skillMode: skillControls?.specialization_mode ?? "fixed",
+      classKind: classControls?.is_full === false ? "partial" : "full",
       classHitDie: classControls?.hit_die ?? "",
       classTalentIds: [...(classControls?.talent_ids ?? [])],
       classHitDiePriority: classControls?.hit_die_priority ?? 0,
@@ -179,6 +179,7 @@
     enSort = b.enSort;
     skillAttributeId = b.skillAttributeId;
     skillMode = b.skillMode;
+    classKind = b.classKind;
     classHitDie = b.classHitDie;
     classTalentIds = [...b.classTalentIds];
     classHitDiePriority = b.classHitDiePriority;
@@ -207,18 +208,15 @@
     return a.every((id, i) => id === b[i]);
   }
 
-  const hitDieOptions = $derived.by(() => {
-    const opts = [...HIT_DIE_OPTIONS] as string[];
-    if (classHitDie && !opts.includes(classHitDie)) opts.unshift(classHitDie);
-    return opts;
-  });
-
   function classPatchBody(label: string, description: string, comment: string, sortOrder: number) {
+    const isFull = classKind === "full";
     return {
       label,
       description,
       comment,
       sort_order: sortOrder,
+      is_full: isFull,
+      is_partial: !isFull,
       hit_die: classHitDie,
       talent_ids: [...classTalentIds],
       hit_die_priority: Number(classHitDiePriority),
@@ -235,11 +233,14 @@
 
   function classPatchFromProps(description: string) {
     if (!classControls) throw new Error("classControls required");
+    const isFull = classControls.is_full !== false;
     return {
       label: en.label,
       description,
       comment: en.comment,
       sort_order: en.sort_order,
+      is_full: isFull,
+      is_partial: !isFull,
       hit_die: classControls.hit_die,
       talent_ids: [...(classControls.talent_ids ?? [])],
       hit_die_priority: classControls.hit_die_priority,
@@ -279,6 +280,7 @@
       enSort !== baseline.enSort ||
       skillAttributeId !== baseline.skillAttributeId ||
       skillMode !== baseline.skillMode ||
+      classKind !== baseline.classKind ||
       classHitDie !== baseline.classHitDie ||
       !talentIdsEqual(classTalentIds, baseline.classTalentIds) ||
       classHitDiePriority !== baseline.classHitDiePriority ||
@@ -382,6 +384,7 @@
         enSort,
         skillAttributeId,
         skillMode,
+        classKind,
         classHitDie,
         classTalentIds: [...classTalentIds],
         classHitDiePriority,
@@ -537,6 +540,19 @@
       {/if}
       {#if kind === "class" && classControls}
         <fieldset class="forge-field">
+          <legend class="text-xs font-medium tracking-wide text-muted uppercase">Kind</legend>
+          <div class="mt-1 flex gap-4 text-sm text-ink">
+            <label class="flex items-center gap-2">
+              <input type="radio" name="class-kind" value="full" bind:group={classKind} />
+              Full
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" name="class-kind" value="partial" bind:group={classKind} />
+              Partial
+            </label>
+          </div>
+        </fieldset>
+        <fieldset class="forge-field">
           <legend class="text-xs font-medium tracking-wide text-muted uppercase">Talents</legend>
           <div
             class="mt-1 flex max-h-48 flex-col gap-0.5 overflow-auto rounded-md border border-line p-2"
@@ -558,12 +574,13 @@
         </fieldset>
         <div class="forge-field">
           <label for="class-hit-die">Hit die</label>
-          <select id="class-hit-die" class="forge-input font-mono" bind:value={classHitDie}>
-            <option value="">(none)</option>
-            {#each hitDieOptions as die}
-              <option value={die}>{die}</option>
-            {/each}
-          </select>
+          <input
+            id="class-hit-die"
+            class="forge-input font-mono"
+            type="text"
+            bind:value={classHitDie}
+            placeholder="1d6+2"
+          />
         </div>
         <div class="forge-field">
           <label for="class-hit-die-pri">Hit die priority</label>

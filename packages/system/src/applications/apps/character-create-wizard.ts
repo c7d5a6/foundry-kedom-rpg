@@ -33,6 +33,13 @@ import {
   loadOriginsCatalog,
 } from "../../creation/origins-catalog.ts";
 import {
+  combineClassOrigins,
+  combinedOriginSaveProficiencies,
+  type CombinedClassOrigin,
+} from "../../creation/combine-class-origins.ts";
+import type { OriginDataFields } from "../../data/item/origin-fields.ts";
+import type { ClassDef } from "../../config/creation.ts";
+import {
   COMBAT_SKILLS,
   entryNeedsPlayerSpecialization,
   countSkill,
@@ -73,7 +80,10 @@ type Draft = {
   roll2OriginalLabel: string;
   /** Extra any-skill pick after free + growth (outside interests). */
   bonusWild: ResolvePick;
+  /** Full class slug (mutually exclusive with partialKeys). */
   classKey: string | null;
+  /** Up to two partial class slugs (Adventurer). */
+  partialKeys: string[];
   /** Raw hit-die roll total (before Might mod); set via Roll HP. */
   hitDieTotal: number | null;
 };
@@ -123,6 +133,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       roll2OriginalLabel: "",
       bonusWild: emptyPick(),
       classKey: null,
+      partialKeys: [],
       hitDieTotal: null,
     };
   }
@@ -258,6 +269,74 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const d = this.#draft;
     if (!d.classKey) return undefined;
     return getCatalogClass(catalog, d.classKey);
+  }
+
+  #selectedPartials(catalog: OriginsCatalog): CatalogClass[] {
+    return this.#draft.partialKeys
+      .map((slug) => getCatalogClass(catalog, slug))
+      .filter((c): c is CatalogClass => c !== undefined);
+  }
+
+  #hasValidClassSelection(catalog: OriginsCatalog): boolean {
+    const d = this.#draft;
+    if (d.classKey) {
+      const cls = getCatalogClass(catalog, d.classKey);
+      return Boolean(cls?.isFull);
+    }
+    if (d.partialKeys.length !== 2) return false;
+    const [a, b] = this.#selectedPartials(catalog);
+    return Boolean(a && b && !a.isFull && !b.isFull && a.slug !== b.slug);
+  }
+
+  #originFields(catalog: OriginsCatalog, slug: string): OriginDataFields | null {
+    const payload = catalog.originBySlug.get(slug);
+    if (!payload?.system) return null;
+    const sys = payload.system as unknown as OriginDataFields;
+    if (sys.subType !== "class") return null;
+    return sys;
+  }
+
+  #combinedPartials(catalog: OriginsCatalog): CombinedClassOrigin | null {
+    const partials = this.#selectedPartials(catalog);
+    if (partials.length !== 2) return null;
+    const [a, b] = partials;
+    const sysA = this.#originFields(catalog, a!.slug);
+    const sysB = this.#originFields(catalog, b!.slug);
+    if (!sysA || !sysB) return null;
+    return combineClassOrigins(sysA, a!.name, sysB, b!.name);
+  }
+
+  #effectiveHitDie(catalog: OriginsCatalog): string {
+    if (this.#draft.classKey) {
+      return this.#selectedClass(catalog)?.hitDie ?? "1d6";
+    }
+    return this.#combinedPartials(catalog)?.hitDie ?? "1d6";
+  }
+
+  #effectiveClassLabel(catalog: OriginsCatalog): string {
+    const full = this.#selectedClass(catalog);
+    if (full) return full.name;
+    const partials = this.#selectedPartials(catalog);
+    if (partials.length === 2) return `${partials[0]!.name} / ${partials[1]!.name}`;
+    return "";
+  }
+
+  #classDefForCreate(catalog: OriginsCatalog): ClassDef | null {
+    const full = this.#selectedClass(catalog);
+    if (full?.def) return full.def;
+    const combined = this.#combinedPartials(catalog);
+    if (!combined) return null;
+    return {
+      key: `${combined.partialSlugs[0]}+${combined.partialSlugs[1]}`,
+      labelKey: "",
+      hitDie: combined.hitDie,
+      talentPicks: {
+        ...(combined.talentPicks.warrior ? { warrior: combined.talentPicks.warrior } : {}),
+        ...(combined.talentPicks.expert ? { expert: combined.talentPicks.expert } : {}),
+        ...(combined.talentPicks.any ? { any: combined.talentPicks.any } : {}),
+      },
+      saveProficiencies: combinedOriginSaveProficiencies(combined),
+    };
   }
 
   #backgroundsForCulture(
@@ -403,14 +482,21 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       d.roll2OriginalLabel = formatGrantLabel(roll2State.rolledGrant);
     }
 
-    const classOptions = this.#classesForCulture(catalog, culture).map((c) => ({
+    const allowedClasses = this.#classesForCulture(catalog, culture);
+    const mapClassOption = (c: CatalogClass) => ({
       key: c.slug,
       label: c.name,
       hitDie: c.hitDie,
-      selected: d.classKey === c.slug,
-    }));
+      selected: d.classKey === c.slug || d.partialKeys.includes(c.slug),
+    });
+    const fullClassOptions = allowedClasses.filter((c) => c.isFull).map(mapClassOption);
+    const partialClassOptions = allowedClasses.filter((c) => !c.isFull).map(mapClassOption);
+    const needSecondPartial = d.partialKeys.length === 1;
+    const hasClassSelected = this.#hasValidClassSelection(catalog);
 
     const selectedClass = this.#selectedClass(catalog);
+    const selectedPartials = this.#selectedPartials(catalog);
+    const effectiveHitDie = this.#effectiveHitDie(catalog);
     const startingHp = this.#startingHp();
 
     const combatOptions = COMBAT_SKILLS.map((key) => ({
@@ -429,17 +515,23 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     }));
 
     const cultureTalent = culture ? getCatalogTalent(catalog, culture.talentSlug) : undefined;
-    const classTalents = selectedClass
-      ? selectedClass.talentSlugs
-          .map((slug) => getCatalogTalent(catalog, slug))
-          .filter((t): t is NonNullable<typeof t> => Boolean(t))
-      : [];
+    const detailClasses = selectedClass ? [selectedClass] : selectedPartials;
+    const classTalentSlugs = [
+      ...new Set(detailClasses.flatMap((c) => c.talentSlugs)),
+    ];
+    const classTalents = classTalentSlugs
+      .map((slug) => getCatalogTalent(catalog, slug))
+      .filter((t): t is NonNullable<typeof t> => Boolean(t));
 
     const regionDescriptionHtml = region ? await enrichHtml(region.description) : "";
     const cultureDescriptionHtml = culture ? await enrichHtml(culture.description) : "";
     const cultureTalentHtml = cultureTalent ? await enrichHtml(cultureTalent.description) : "";
     const backgroundDescriptionHtml = background ? await enrichHtml(background.description) : "";
-    const classDescriptionHtml = selectedClass ? await enrichHtml(selectedClass.description) : "";
+    const classDescriptionHtml = (
+      await Promise.all(detailClasses.map((c) => enrichHtml(c.description)))
+    )
+      .filter(Boolean)
+      .join("");
     const classTalentBlocks = await Promise.all(
       classTalents.map(async (t) => ({
         name: t.name,
@@ -500,15 +592,17 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       bonusSpecUI: this.#specUI("bonus", d.bonusWild, ownedBeforeBonus, isBonusSkillPickBlocked),
       bonusResolvedLabel: bonusResolved ? formatGrantLabel(bonusResolved) : "",
       freeResolvedLabel: freeResolved ? formatGrantLabel(freeResolved) : "",
-      classOptions,
-      selectedClassHitDie: selectedClass?.hitDie ?? "",
-      hasClassSelected: Boolean(d.classKey),
+      fullClassOptions,
+      partialClassOptions,
+      needSecondPartial,
+      selectedClassHitDie: effectiveHitDie,
+      hasClassSelected,
       startingHp,
       startingHpLabel:
-        startingHp !== null && selectedClass
+        startingHp !== null && hasClassSelected
           ? game.i18n.format("KEDOM.Creation.Wizard.StartingHp", {
               hp: String(startingHp),
-              hitDie: selectedClass.hitDie,
+              hitDie: effectiveHitDie,
               roll: String(d.hitDieTotal ?? 0),
             })
           : "",
@@ -522,7 +616,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       showBackgroundDetail: Boolean(background),
       classDescriptionHtml,
       classTalentBlocks,
-      showClassDetail: Boolean(selectedClass),
+      showClassDetail: detailClasses.length > 0,
       confirmLines: this.#confirmLines(catalog),
       canNext: this.#canAdvance(catalog),
       isFirst: d.stepIndex === 0,
@@ -533,7 +627,8 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   /** Hit die roll + Might mod, min 1. Null until Roll HP. */
   #startingHp(): number | null {
     const d = this.#draft;
-    if (d.hitDieTotal === null || !d.classKey) return null;
+    if (d.hitDieTotal === null) return null;
+    if (!this.#catalog || !this.#hasValidClassSelection(this.#catalog)) return null;
     const mgh = d.abilities.mgh ?? 10;
     return Math.max(1, Math.floor(d.hitDieTotal + abilityModifier(mgh)));
   }
@@ -660,19 +755,22 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     if (culture) lines.push(culture.name);
     const background = this.#selectedBackground(catalog);
     if (background) lines.push(background.name);
-    const cls = this.#selectedClass(catalog);
-    if (cls) {
-      const talentNames = cls.talentSlugs
+    const classLabel = this.#effectiveClassLabel(catalog);
+    if (classLabel && this.#hasValidClassSelection(catalog)) {
+      const talentSlugs = d.classKey
+        ? (this.#selectedClass(catalog)?.talentSlugs ?? [])
+        : (this.#combinedPartials(catalog)?.talentSlugs ?? []);
+      const talentNames = [...talentSlugs]
         .map((slug) => getCatalogTalent(catalog, slug)?.name)
         .filter((n): n is string => Boolean(n));
-      lines.push(talentNames.length ? `${cls.name} (${talentNames.join(", ")})` : cls.name);
+      lines.push(talentNames.length ? `${classLabel} (${talentNames.join(", ")})` : classLabel);
     }
     const hp = this.#startingHp();
-    if (hp !== null && cls) {
+    if (hp !== null && this.#hasValidClassSelection(catalog)) {
       lines.push(
         game.i18n.format("KEDOM.Creation.Wizard.StartingHp", {
           hp: String(hp),
-          hitDie: cls.hitDie,
+          hitDie: this.#effectiveHitDie(catalog),
           roll: String(d.hitDieTotal ?? 0),
         }),
       );
@@ -735,7 +833,9 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
         return resolveBonusSkillPick(beforeBonus, d.bonusWild) !== null;
       }
       case "className":
-        return Boolean(d.classKey && d.name.trim() && d.hitDieTotal !== null);
+        return Boolean(
+          this.#hasValidClassSelection(cat) && d.name.trim() && d.hitDieTotal !== null,
+        );
       case "confirm":
         return true;
       default:
@@ -828,6 +928,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     this.#draft.cultureKey = null;
     this.#draft.backgroundKey = null;
     this.#draft.classKey = null;
+    this.#draft.partialKeys = [];
     this.#draft.hitDieTotal = null;
     this.#resetBackgroundPicks();
     await this.render();
@@ -846,6 +947,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     this.#draft.cultureKey = key;
     this.#draft.backgroundKey = null;
     this.#draft.classKey = null;
+    this.#draft.partialKeys = [];
     this.#draft.hitDieTotal = null;
     this.#resetBackgroundPicks();
     await this.render();
@@ -875,6 +977,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     this.#draft.cultureKey = pick.slug;
     this.#draft.backgroundKey = null;
     this.#draft.classKey = null;
+    this.#draft.partialKeys = [];
     this.#draft.hitDieTotal = null;
     this.#resetBackgroundPicks();
     await this.render();
@@ -1057,21 +1160,39 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     if (!key) return;
     const culture = this.#selectedCulture(catalog);
     if (!culture?.classSlugs.includes(key)) return;
-    if (!getCatalogClass(catalog, key)) return;
-    this.#draft.classKey = key;
-    this.#draft.hitDieTotal = null;
+    const cls = getCatalogClass(catalog, key);
+    if (!cls) return;
+    const d = this.#draft;
+    if (cls.isFull) {
+      if (d.classKey === key) {
+        d.classKey = null;
+      } else {
+        d.classKey = key;
+        d.partialKeys = [];
+      }
+    } else {
+      d.classKey = null;
+      if (d.partialKeys.includes(key)) {
+        d.partialKeys = d.partialKeys.filter((k) => k !== key);
+      } else if (d.partialKeys.length < 2) {
+        d.partialKeys = [...d.partialKeys, key];
+      } else {
+        d.partialKeys = [d.partialKeys[0]!, key];
+      }
+    }
+    d.hitDieTotal = null;
     this.#readNameFromForm();
     await this.render();
   }
 
   static async #onRollHp(this: CharacterCreateWizard): Promise<void> {
     const catalog = await this.#ensureCatalog();
-    const cls = this.#selectedClass(catalog);
-    if (!cls) return;
+    if (!this.#hasValidClassSelection(catalog)) return;
     this.#readNameFromForm();
+    const hitDie = this.#effectiveHitDie(catalog);
     const { total } = await postCreationRoll(
-      cls.hitDie,
-      game.i18n.format("KEDOM.Creation.Wizard.HpRollFlavor", { hitDie: cls.hitDie }),
+      hitDie,
+      game.i18n.format("KEDOM.Creation.Wizard.HpRollFlavor", { hitDie }),
     );
     this.#draft.hitDieTotal = total;
     await this.render();
@@ -1099,19 +1220,47 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     items.push(payload);
   }
 
+  #pushClassOrigin(
+    items: CatalogItemPayload[],
+    catalog: OriginsCatalog,
+    cls: CatalogClass,
+  ): void {
+    const payload = catalog.originBySlug.get(cls.slug);
+    if (payload) {
+      items.push(payload);
+      return;
+    }
+    items.push({
+      name: cls.name,
+      type: "origin",
+      img: "icons/svg/combat.svg",
+      system: {
+        subType: "class",
+        slug: cls.slug,
+        description: cls.description,
+        isFull: cls.isFull,
+      },
+    });
+  }
+
   async #createActor(): Promise<void> {
     const catalog = await this.#ensureCatalog();
     const d = this.#draft;
-    if (!d.regionKey || !d.cultureKey || !d.backgroundKey || !d.classKey) return;
+    if (!d.regionKey || !d.cultureKey || !d.backgroundKey) return;
+    if (!this.#hasValidClassSelection(catalog)) return;
     if (!d.abilitiesRolled) return;
 
     const culture = this.#selectedCulture(catalog);
     const background = this.#selectedBackground(catalog);
-    const catalogClass = this.#selectedClass(catalog);
-    if (!culture || !background || !catalogClass) return;
+    if (!culture || !background) return;
 
-    const classDef = catalogClass.def;
+    const fullClass = this.#selectedClass(catalog);
+    const partials = this.#selectedPartials(catalog);
+    const combined = fullClass ? null : this.#combinedPartials(catalog);
+    const classDef = this.#classDefForCreate(catalog);
     if (!classDef) return;
+    if (!fullClass && (!combined || partials.length !== 2)) return;
+
     const grants = this.#ownedGrants(catalog);
     const merged = mergeSkillGrants(grants);
 
@@ -1134,7 +1283,10 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
 
     const cultureLabel = culture.name;
     const backgroundLabel = background.name;
-    const classLabel = catalogClass.name;
+    const classLabel = this.#effectiveClassLabel(catalog);
+    const talentSlugs = fullClass
+      ? fullClass.talentSlugs
+      : [...(combined?.talentSlugs ?? [])];
 
     const draftCulture = getCulture(d.regionKey as RegionKey, d.cultureKey) ?? undefined;
     const talentPicks = resolveTalentPickBudget(draftCulture, classDef);
@@ -1157,7 +1309,6 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       const regionPayload = catalog.originBySlug.get(d.regionKey!);
       const racePayload = catalog.originBySlug.get(d.cultureKey);
       const bgPayload = catalog.originBySlug.get(d.backgroundKey);
-      const classPayload = catalog.originBySlug.get(d.classKey);
       if (regionPayload) items.push(regionPayload);
       else if (region) {
         items.push({
@@ -1189,21 +1340,12 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
           },
         });
       }
-      if (classPayload) items.push(classPayload);
+      if (fullClass) this.#pushClassOrigin(items, catalog, fullClass);
       else {
-        items.push({
-          name: classLabel,
-          type: "origin",
-          img: "icons/svg/combat.svg",
-          system: {
-            subType: "class",
-            slug: d.classKey,
-            description: catalogClass.description,
-          },
-        });
+        for (const p of partials) this.#pushClassOrigin(items, catalog, p);
       }
       this.#pushTalentPayload(items, catalog, culture.talentSlug, seenTalents);
-      for (const slug of catalogClass.talentSlugs) {
+      for (const slug of talentSlugs) {
         this.#pushTalentPayload(items, catalog, slug, seenTalents);
       }
     } else {
@@ -1234,17 +1376,11 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
             description: background.description,
           },
         },
-        {
-          name: classLabel,
-          type: "origin",
-          img: "icons/svg/combat.svg",
-          system: {
-            subType: "class",
-            slug: d.classKey,
-            description: catalogClass.description,
-          },
-        },
       );
+      if (fullClass) this.#pushClassOrigin(items, catalog, fullClass);
+      else {
+        for (const p of partials) this.#pushClassOrigin(items, catalog, p);
+      }
     }
 
     const actorData = {

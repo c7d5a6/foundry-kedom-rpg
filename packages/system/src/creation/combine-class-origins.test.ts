@@ -63,9 +63,16 @@ describe("combineClassOrigins", () => {
     expect(combined?.saves.secondary.save).toBe("luck");
   });
 
-  it("merges talent picks", () => {
+  it("takes max talent picks per field", () => {
     const combined = combineClassOrigins(warrior, "Warrior", expert, "Expert");
     expect(combined?.talentPicks).toEqual({ warrior: 1, expert: 1, any: 1 });
+    const stacked = combineClassOrigins(
+      { ...warrior, talentPicks: { warrior: 2, expert: 0, any: 1 } },
+      "Warrior",
+      { ...expert, talentPicks: { warrior: 1, expert: 1, any: 0 } },
+      "Expert",
+    );
+    expect(stacked?.talentPicks).toEqual({ warrior: 2, expert: 1, any: 1 });
   });
 
   it("unions talentSlugs (first then second, unique)", () => {
