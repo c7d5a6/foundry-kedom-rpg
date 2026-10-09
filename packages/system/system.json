@@ -2,7 +2,7 @@
   "id": "kedom",
   "title": "Kedom RPG",
   "description": "A low-fantasy OSR system in the Worlds Without Number tradition, set in the world of Kedom.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "compatibility": {
     "minimum": "14.367",
     "verified": "14"
@@ -88,7 +88,11 @@
       "name": "Kedom Content",
       "sorting": "m",
       "color": "#4a5d4e",
-      "packs": ["origins", "talents", "arts"]
+      "packs": [
+        "origins",
+        "talents",
+        "arts"
+      ]
     }
   ],
   "grid": {
