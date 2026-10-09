@@ -5,12 +5,16 @@
     type Background,
     type GrantKind,
     type GrowthRowIn,
+    type Race,
+    type Region,
     type Skill,
     type Specialization,
     type TranslationField,
   } from "$lib/api";
   import RichTextField from "$lib/RichTextField.svelte";
   import LinkPanel from "$lib/LinkPanel.svelte";
+
+  type UseDraft = { region_id: number; race_id: number; sort_order: number };
 
   type SpecMode = "none" | "fixed" | "free" | "parameterized" | string;
 
@@ -29,6 +33,8 @@
     skills: Skill[];
     specsBySkill: Record<number, Specialization[]>;
     loadSpecs: (skillId: number) => Promise<void>;
+    regions: Region[];
+    cultures: Race[];
     onSaved: () => void | Promise<void>;
     onDeleted?: () => void | Promise<void>;
     onDirtyChange?: (dirty: boolean) => void;
@@ -39,18 +45,12 @@
     skills,
     specsBySkill,
     loadSpecs,
+    regions,
+    cultures,
     onSaved,
     onDeleted,
     onDirtyChange,
   }: Props = $props();
-
-  const usedByLinks = $derived(
-    (background.used_by ?? []).map((u) => ({
-      label: u.race_label,
-      slug: `${u.region_slug}/${u.race_slug}`,
-      detail: u.region_label,
-    })),
-  );
   const freeSkillLinks = $derived.by(() => {
     const kind = background.free_grant_kind || "skill";
     if (kind === "anyCombat") {
@@ -81,6 +81,9 @@
   let freeSpecId = $state(0);
   let freeSpecLabel = $state("");
   let growth = $state<GrowthDraft[]>([]);
+  let usedByRows = $state<UseDraft[]>([]);
+  let addUseRegionId = $state<number | "">("");
+  let addUseCultureId = $state<number | "">("");
   let ruLabel = $state("");
   let ruDesc = $state("");
   let status = $state("");
@@ -94,6 +97,7 @@
     freeSpecId: number;
     freeSpecLabel: string;
     growth: GrowthDraft[];
+    usedByRows: UseDraft[];
     ruLabel: string;
   };
 
@@ -105,6 +109,7 @@
     freeSpecId: 0,
     freeSpecLabel: "",
     growth: [],
+    usedByRows: [],
     ruLabel: "",
   });
 
@@ -177,6 +182,11 @@
       freeSpecId: background.free_specialization_id ?? 0,
       freeSpecLabel: background.free_specialization_label ?? "",
       growth: growthFromEntity(background),
+      usedByRows: (background.used_by ?? []).map((u) => ({
+        region_id: u.region_id,
+        race_id: u.race_id,
+        sort_order: u.sort_order,
+      })),
       ruLabel: background.translations?.label ?? "",
     };
   }
@@ -189,7 +199,89 @@
     freeSpecId = b.freeSpecId;
     freeSpecLabel = b.freeSpecLabel;
     growth = b.growth.map((r) => ({ ...r }));
+    usedByRows = b.usedByRows.map((r) => ({ ...r }));
     ruLabel = b.ruLabel;
+    addUseRegionId = "";
+    addUseCultureId = "";
+  }
+
+  function usedByEqual(a: UseDraft[], b: UseDraft[]): boolean {
+    if (a.length !== b.length) return false;
+    const key = (r: UseDraft) => `${r.region_id}:${r.race_id}:${r.sort_order}`;
+    const sa = [...a].map(key).sort();
+    const sb = [...b].map(key).sort();
+    return sa.every((v, i) => v === sb[i]);
+  }
+
+  function regionLabel(id: number): string {
+    return (
+      regions.find((r) => r.id === id)?.label ??
+      background.used_by.find((u) => u.region_id === id)?.region_label ??
+      `#${id}`
+    );
+  }
+
+  function cultureLabel(id: number): string {
+    return (
+      cultures.find((c) => c.id === id)?.label ??
+      background.used_by.find((u) => u.race_id === id)?.race_label ??
+      `#${id}`
+    );
+  }
+
+  function availableCulturesForRegion(regionId: number): Race[] {
+    const used = new Set(
+      usedByRows.filter((u) => u.region_id === regionId).map((u) => u.race_id),
+    );
+    return cultures.filter((c) => !used.has(c.id));
+  }
+
+  function nextSortForPair(regionId: number, raceId: number): number {
+    let max = -1;
+    for (const u of usedByRows) {
+      if (u.region_id === regionId && u.race_id === raceId && u.sort_order > max) {
+        max = u.sort_order;
+      }
+    }
+    // Also respect orders already on the entity for other backgrounds in the same pair:
+    // when we only edit this background's rows, append after existing used_by sort.
+    for (const u of background.used_by ?? []) {
+      if (u.region_id === regionId && u.race_id === raceId && u.sort_order > max) {
+        max = u.sort_order;
+      }
+    }
+    return max + 1;
+  }
+
+  function addUse() {
+    if (addUseRegionId === "" || addUseCultureId === "") return;
+    const regionId = Number(addUseRegionId);
+    const raceId = Number(addUseCultureId);
+    usedByRows = [
+      ...usedByRows,
+      { region_id: regionId, race_id: raceId, sort_order: nextSortForPair(regionId, raceId) },
+    ];
+    addUseCultureId = "";
+  }
+
+  function removeUse(regionId: number, raceId: number) {
+    usedByRows = usedByRows.filter((u) => !(u.region_id === regionId && u.race_id === raceId));
+  }
+
+  function toUsedByIn(): UseDraft[] {
+    return usedByRows.map((u) => ({
+      region_id: u.region_id,
+      race_id: u.race_id,
+      sort_order: u.sort_order,
+    }));
+  }
+
+  function propsUsedBy(): UseDraft[] {
+    return (background.used_by ?? []).map((u) => ({
+      region_id: u.region_id,
+      race_id: u.race_id,
+      sort_order: u.sort_order,
+    }));
   }
 
   async function ensureSpecsForForm(b: Baseline) {
@@ -229,6 +321,7 @@
       freeSpecId !== baseline.freeSpecId ||
       freeSpecLabel !== baseline.freeSpecLabel ||
       serializeGrowth(growth) !== serializeGrowth(baseline.growth) ||
+      !usedByEqual(usedByRows, baseline.usedByRows) ||
       ruLabel !== baseline.ruLabel,
   );
 
@@ -354,6 +447,7 @@
         free_specialization_label: free.specialization_label,
         sort_order: enSort,
         growth: toGrowthIn(),
+        used_by: toUsedByIn(),
       });
       await saveOverlay("label", ruLabel);
       status = "Saved";
@@ -366,6 +460,7 @@
         freeSpecId,
         freeSpecLabel,
         growth: growth.map((r) => ({ ...r })),
+        usedByRows: toUsedByIn(),
         ruLabel,
       };
     } catch (e) {
@@ -397,6 +492,7 @@
         specialization_id: g.specialization_id,
         specialization_label: g.specialization_label ?? "",
       })),
+      used_by: propsUsedBy(),
     });
     enDesc = markdown;
     await onSaved();
@@ -599,6 +695,74 @@
     </div>
   </div>
 
+  <div class="mt-3 border-t border-line pt-3">
+    <h3 class="mb-2 font-display text-lg text-ink">Region × culture</h3>
+    <p class="mb-2 text-sm text-muted">
+      Where this background is offered. Adds the culture to the region if missing (weight 1).
+    </p>
+    <div class="mb-2 flex flex-wrap items-end gap-2">
+      <div class="forge-field mb-0 min-w-40 flex-1">
+        <label for="bg-use-region">Region</label>
+        <select
+          id="bg-use-region"
+          class="forge-input"
+          bind:value={addUseRegionId}
+          onchange={() => {
+            addUseCultureId = "";
+          }}
+        >
+          <option value="">Select…</option>
+          {#each regions as r (r.id)}
+            <option value={r.id}>{r.label} ({r.slug})</option>
+          {/each}
+        </select>
+      </div>
+      <div class="forge-field mb-0 min-w-40 flex-1">
+        <label for="bg-use-culture">Culture</label>
+        <select
+          id="bg-use-culture"
+          class="forge-input"
+          bind:value={addUseCultureId}
+          disabled={addUseRegionId === ""}
+        >
+          <option value="">Select…</option>
+          {#if addUseRegionId !== ""}
+            {#each availableCulturesForRegion(Number(addUseRegionId)) as c (c.id)}
+              <option value={c.id}>{c.label} ({c.slug})</option>
+            {/each}
+          {/if}
+        </select>
+      </div>
+      <button
+        type="button"
+        class="forge-btn"
+        disabled={addUseRegionId === "" || addUseCultureId === ""}
+        onclick={addUse}>Add</button
+      >
+    </div>
+    {#if usedByRows.length === 0}
+      <p class="text-sm text-muted">Not assigned to any region×culture.</p>
+    {:else}
+      <div class="flex flex-col gap-1">
+        {#each usedByRows as row (row.region_id + ":" + row.race_id)}
+          <div
+            class="flex flex-wrap items-center gap-2 rounded-md border border-line px-2.5 py-1.5"
+          >
+            <span class="min-w-32 flex-1 text-sm">
+              {cultureLabel(row.race_id)}
+              <span class="text-xs text-muted">· {regionLabel(row.region_id)}</span>
+            </span>
+            <button
+              type="button"
+              class="forge-btn py-1"
+              onclick={() => removeUse(row.region_id, row.race_id)}>Remove</button
+            >
+          </div>
+        {/each}
+      </div>
+    {/if}
+  </div>
+
   <div class="mt-2 border-t border-line pt-3">
     <div class="forge-field mb-0">
       <label for="bg-comment"
@@ -613,9 +777,4 @@
   </div>
 
   <LinkPanel title="Free skill" links={freeSkillLinks} empty="No free skill." />
-  <LinkPanel
-    title="Used by region×culture"
-    links={usedByLinks}
-    empty="Not assigned to any region×culture."
-  />
 </div>

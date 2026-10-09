@@ -162,6 +162,11 @@
     }
   }
 
+  /** Region ↔ culture ↔ background links are authored from all three editors. */
+  async function loadOriginLinks() {
+    await Promise.all([loadRegions(), loadCultures(), loadBackgrounds()]);
+  }
+
   async function loadSpecsForSkill(skillId: number) {
     if (skillId <= 0 || specsBySkill[skillId]) return;
     const specs = await api.skillSpecs(skillId);
@@ -651,11 +656,11 @@
             region={selectedRegion}
             {cultures}
             {backgrounds}
-            onSaved={loadRegions}
+            onSaved={loadOriginLinks}
             onDeleted={() =>
               afterDeleted(() => {
                 selectedRegion = null;
-              }, loadRegions)}
+              }, loadOriginLinks)}
             onDirtyChange={(d) => (editorDirty = d)}
           />
         {/if}
@@ -703,11 +708,13 @@
             culture={selectedCulture}
             {talents}
             {classes}
-            onSaved={loadCultures}
+            {regions}
+            {backgrounds}
+            onSaved={loadOriginLinks}
             onDeleted={() =>
               afterDeleted(() => {
                 selectedCulture = null;
-              }, loadCultures)}
+              }, loadOriginLinks)}
             onDirtyChange={(d) => (editorDirty = d)}
           />
         {/if}
@@ -891,11 +898,13 @@
             {skills}
             {specsBySkill}
             loadSpecs={loadSpecsForSkill}
-            onSaved={loadBackgrounds}
+            {regions}
+            cultures={cultures}
+            onSaved={loadOriginLinks}
             onDeleted={() =>
               afterDeleted(() => {
                 selectedBackground = null;
-              }, loadBackgrounds)}
+              }, loadOriginLinks)}
             onDirtyChange={(d) => (editorDirty = d)}
           />
         {/if}

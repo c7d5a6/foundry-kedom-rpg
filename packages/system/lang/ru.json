@@ -531,7 +531,7 @@
           "description": "\u003cp\u003eGain Exert as a bonus skill. You have a natural resistance to magic, gaining a +2 bonus on all saves against hostile magical effects. You need only half the usual amount of food, water, and air and gain a +1 CON modifier.\u003c/p\u003e"
         },
         "human": {
-          "label": "Human",
+          "label": "Человек",
           "description": "\u003cp\u003eЛюди получают дополнительный Expert Talent.\u003c/p\u003e"
         },
         "item": {

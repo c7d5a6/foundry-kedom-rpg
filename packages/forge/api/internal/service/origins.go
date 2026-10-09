@@ -406,18 +406,34 @@ func (c *Content) CreateRace(ctx context.Context, in CreateRaceInput, locale mod
 	return c.GetRace(ctx, row.ID, locale)
 }
 
+type RaceRegionIn struct {
+	RegionID int64 `json:"region_id"`
+	Weight   int64 `json:"weight"`
+}
+
+type RaceBackgroundPlacementIn struct {
+	RegionID     int64 `json:"region_id"`
+	BackgroundID int64 `json:"background_id"`
+	SortOrder    int64 `json:"sort_order"`
+}
+
 type UpdateRaceInput struct {
-	Label       string  `json:"label"`
-	Description string  `json:"description"`
-	Comment     string  `json:"comment"`
-	TalentID    *int64  `json:"talent_id"`
-	SortOrder   int64   `json:"sort_order"`
-	ClassIDs    []int64 `json:"class_ids"`
+	Label                 string                       `json:"label"`
+	Description           string                       `json:"description"`
+	Comment               string                       `json:"comment"`
+	TalentID              *int64                       `json:"talent_id"`
+	SortOrder             int64                        `json:"sort_order"`
+	ClassIDs              []int64                      `json:"class_ids"`
+	Regions               []RaceRegionIn               `json:"regions"`
+	BackgroundPlacements  []RaceBackgroundPlacementIn  `json:"background_placements"`
 }
 
 func (c *Content) UpdateRace(ctx context.Context, id int64, in UpdateRaceInput, locale model.Locale) (RaceDTO, error) {
 	if strings.TrimSpace(in.Label) == "" {
 		return RaceDTO{}, fmt.Errorf("%w: label required", ErrInvalid)
+	}
+	if err := validateRaceRegionLinks(in.Regions, in.BackgroundPlacements); err != nil {
+		return RaceDTO{}, err
 	}
 	tx, q, err := c.begin(ctx)
 	if err != nil {
@@ -442,10 +458,71 @@ func (c *Content) UpdateRace(ctx context.Context, id int64, in UpdateRaceInput, 
 			return RaceDTO{}, fmt.Errorf("insert race class: %w", err)
 		}
 	}
+	if err := rewriteRaceRegionLinks(ctx, q, id, in.Regions, in.BackgroundPlacements); err != nil {
+		return RaceDTO{}, err
+	}
 	if err := tx.Commit(); err != nil {
 		return RaceDTO{}, err
 	}
 	return c.GetRace(ctx, id, locale)
+}
+
+func validateRaceRegionLinks(regions []RaceRegionIn, placements []RaceBackgroundPlacementIn) error {
+	regionIDs := make(map[int64]struct{}, len(regions))
+	for _, r := range regions {
+		if r.RegionID <= 0 {
+			return fmt.Errorf("%w: region_id required", ErrInvalid)
+		}
+		if r.Weight <= 0 {
+			return fmt.Errorf("%w: region weight must be > 0", ErrInvalid)
+		}
+		if _, dup := regionIDs[r.RegionID]; dup {
+			return fmt.Errorf("%w: duplicate region_id %d", ErrInvalid, r.RegionID)
+		}
+		regionIDs[r.RegionID] = struct{}{}
+	}
+	seen := make(map[[2]int64]struct{}, len(placements))
+	for _, p := range placements {
+		if p.RegionID <= 0 || p.BackgroundID <= 0 {
+			return fmt.Errorf("%w: background placement needs region_id and background_id", ErrInvalid)
+		}
+		if _, ok := regionIDs[p.RegionID]; !ok {
+			return fmt.Errorf("%w: background placement region %d is not linked to this culture", ErrInvalid, p.RegionID)
+		}
+		key := [2]int64{p.RegionID, p.BackgroundID}
+		if _, dup := seen[key]; dup {
+			return fmt.Errorf("%w: duplicate background %d in region %d", ErrInvalid, p.BackgroundID, p.RegionID)
+		}
+		seen[key] = struct{}{}
+	}
+	return nil
+}
+
+func rewriteRaceRegionLinks(
+	ctx context.Context, q *generated.Queries, raceID int64,
+	regions []RaceRegionIn, placements []RaceBackgroundPlacementIn,
+) error {
+	if err := q.DeleteRegionCultureBackgroundsByRace(ctx, raceID); err != nil {
+		return err
+	}
+	if err := q.DeleteRegionCulturesByRace(ctx, raceID); err != nil {
+		return err
+	}
+	for _, r := range regions {
+		if err := q.InsertRegionCulture(ctx, generated.InsertRegionCultureParams{
+			RegionID: r.RegionID, RaceID: raceID, Weight: r.Weight,
+		}); err != nil {
+			return fmt.Errorf("insert region culture: %w", err)
+		}
+	}
+	for _, p := range placements {
+		if err := q.InsertRegionCultureBackground(ctx, generated.InsertRegionCultureBackgroundParams{
+			RegionID: p.RegionID, RaceID: raceID, BackgroundID: p.BackgroundID, SortOrder: p.SortOrder,
+		}); err != nil {
+			return fmt.Errorf("insert region culture background: %w", err)
+		}
+	}
+	return nil
 }
 
 // --- Region ---
@@ -854,21 +931,31 @@ func (c *Content) CreateBackground(ctx context.Context, in CreateBackgroundInput
 	return c.GetBackground(ctx, row.ID, locale)
 }
 
+type BackgroundUseIn struct {
+	RegionID  int64 `json:"region_id"`
+	RaceID    int64 `json:"race_id"`
+	SortOrder int64 `json:"sort_order"`
+}
+
 type UpdateBackgroundInput struct {
-	Label                   string        `json:"label"`
-	Description             string        `json:"description"`
-	Comment                 string        `json:"comment"`
-	FreeGrantKind           string        `json:"free_grant_kind"`
-	FreeSkillID             *int64        `json:"free_skill_id"`
-	FreeSpecializationID    *int64        `json:"free_specialization_id"`
-	FreeSpecializationLabel string        `json:"free_specialization_label"`
-	SortOrder               int64         `json:"sort_order"`
-	Growth                  []GrowthRowIn `json:"growth"`
+	Label                   string            `json:"label"`
+	Description             string            `json:"description"`
+	Comment                 string            `json:"comment"`
+	FreeGrantKind           string            `json:"free_grant_kind"`
+	FreeSkillID             *int64            `json:"free_skill_id"`
+	FreeSpecializationID    *int64            `json:"free_specialization_id"`
+	FreeSpecializationLabel string            `json:"free_specialization_label"`
+	SortOrder               int64             `json:"sort_order"`
+	Growth                  []GrowthRowIn     `json:"growth"`
+	UsedBy                  []BackgroundUseIn `json:"used_by"`
 }
 
 func (c *Content) UpdateBackground(ctx context.Context, id int64, in UpdateBackgroundInput, locale model.Locale) (BackgroundDTO, error) {
 	if strings.TrimSpace(in.Label) == "" {
 		return BackgroundDTO{}, fmt.Errorf("%w: label required", ErrInvalid)
+	}
+	if err := validateBackgroundUses(in.UsedBy); err != nil {
+		return BackgroundDTO{}, err
 	}
 	freeKind, freeSkillID, freeSpecID, freeLabel, err := normalizeGrantFields(
 		in.FreeGrantKind, in.FreeSkillID, in.FreeSpecializationID, in.FreeSpecializationLabel,
@@ -904,10 +991,47 @@ func (c *Content) UpdateBackground(ctx context.Context, id int64, in UpdateBackg
 	if err := writeGrowth(ctx, q, id, normGrowth); err != nil {
 		return BackgroundDTO{}, err
 	}
+	if err := rewriteBackgroundUses(ctx, q, id, in.UsedBy); err != nil {
+		return BackgroundDTO{}, err
+	}
 	if err := tx.Commit(); err != nil {
 		return BackgroundDTO{}, err
 	}
 	return c.GetBackground(ctx, id, locale)
+}
+
+func validateBackgroundUses(uses []BackgroundUseIn) error {
+	seen := make(map[[2]int64]struct{}, len(uses))
+	for _, u := range uses {
+		if u.RegionID <= 0 || u.RaceID <= 0 {
+			return fmt.Errorf("%w: used_by needs region_id and race_id", ErrInvalid)
+		}
+		key := [2]int64{u.RegionID, u.RaceID}
+		if _, dup := seen[key]; dup {
+			return fmt.Errorf("%w: duplicate used_by region %d culture %d", ErrInvalid, u.RegionID, u.RaceID)
+		}
+		seen[key] = struct{}{}
+	}
+	return nil
+}
+
+func rewriteBackgroundUses(ctx context.Context, q *generated.Queries, backgroundID int64, uses []BackgroundUseIn) error {
+	if err := q.DeleteRegionCultureBackgroundsByBackground(ctx, backgroundID); err != nil {
+		return err
+	}
+	for _, u := range uses {
+		if err := q.EnsureRegionCulture(ctx, generated.EnsureRegionCultureParams{
+			RegionID: u.RegionID, RaceID: u.RaceID,
+		}); err != nil {
+			return fmt.Errorf("ensure region culture: %w", err)
+		}
+		if err := q.InsertRegionCultureBackground(ctx, generated.InsertRegionCultureBackgroundParams{
+			RegionID: u.RegionID, RaceID: u.RaceID, BackgroundID: backgroundID, SortOrder: u.SortOrder,
+		}); err != nil {
+			return fmt.Errorf("insert region culture background: %w", err)
+		}
+	}
+	return nil
 }
 
 func normalizeGrantFields(

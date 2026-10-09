@@ -39,8 +39,15 @@ ORDER BY r.sort_order, r.id;
 -- name: DeleteRegionCultures :exec
 DELETE FROM region_culture WHERE region_id = ?;
 
+-- name: DeleteRegionCulturesByRace :exec
+DELETE FROM region_culture WHERE race_id = ?;
+
 -- name: InsertRegionCulture :exec
 INSERT INTO region_culture (region_id, race_id, weight) VALUES (?, ?, ?);
+
+-- name: EnsureRegionCulture :exec
+INSERT INTO region_culture (region_id, race_id, weight) VALUES (?, ?, 1)
+ON CONFLICT (region_id, race_id) DO NOTHING;
 
 -- name: ListRegionCultureBackgrounds :many
 SELECT
@@ -55,6 +62,12 @@ ORDER BY r.sort_order, r.id, rcb.sort_order, b.id;
 
 -- name: DeleteRegionCultureBackgrounds :exec
 DELETE FROM region_culture_background WHERE region_id = ?;
+
+-- name: DeleteRegionCultureBackgroundsByRace :exec
+DELETE FROM region_culture_background WHERE race_id = ?;
+
+-- name: DeleteRegionCultureBackgroundsByBackground :exec
+DELETE FROM region_culture_background WHERE background_id = ?;
 
 -- name: InsertRegionCultureBackground :exec
 INSERT INTO region_culture_background (region_id, race_id, background_id, sort_order)

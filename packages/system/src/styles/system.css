@@ -824,10 +824,6 @@
   opacity: 0.85;
 }
 
-.application.kedom.sheet.item.weapon .window-content {
-  padding: 0.65rem;
-}
-
 .kedom-weapon-sheet {
   display: flex;
   flex-direction: column;
@@ -1039,7 +1035,8 @@
   margin-top: 0.35rem;
 }
 
-.kedom.sheet .sheet-header {
+/* Character banner/portrait header — do not apply to item sheets. */
+.application.kedom.sheet.actor.character .sheet-header {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
@@ -1050,6 +1047,18 @@
   padding: calc(var(--kedom-sheet-chrome-offset) + 0.35rem) 0.15rem 0;
   border: none;
   background: none;
+}
+
+.application.kedom.sheet.item .sheet-header {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.application.kedom.sheet.item .window-content {
+  padding: 0.65rem;
 }
 
 .kedom.sheet .kedom-portrait-stack {

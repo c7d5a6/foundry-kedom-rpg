@@ -1,42 +1,40 @@
 <script lang="ts">
   import { onDestroy, untrack } from "svelte";
-  import { api, type ClassRow, type Race, type Talent, type TranslationField } from "$lib/api";
+  import {
+    api,
+    type Background,
+    type ClassRow,
+    type Race,
+    type Region,
+    type Talent,
+    type TranslationField,
+  } from "$lib/api";
   import RichTextField from "$lib/RichTextField.svelte";
-  import LinkPanel from "$lib/LinkPanel.svelte";
+
+  type RegionDraft = { region_id: number; weight: number };
+  type BgDraft = { region_id: number; background_id: number; sort_order: number };
 
   type Props = {
     culture: Race;
     talents: Talent[];
     classes: ClassRow[];
+    regions: Region[];
+    backgrounds: Background[];
     onSaved: () => void | Promise<void>;
     onDeleted?: () => void | Promise<void>;
     onDirtyChange?: (dirty: boolean) => void;
   };
 
-  let { culture, talents, classes, onSaved, onDeleted, onDirtyChange }: Props = $props();
-
-  const regionLinks = $derived(
-    (culture.linked_regions ?? []).map((r) => ({
-      slug: r.region_slug,
-      label: r.region_label,
-      detail: `weight ${r.weight}`,
-    })),
-  );
-  const bgLinks = $derived(
-    (culture.linked_backgrounds ?? []).map((b) => ({
-      slug: `${b.region_slug}/${b.background_slug}`,
-      label: b.background_label,
-      detail: b.region_label,
-    })),
-  );
-  const talentLink = $derived(
-    culture.talent_slug
-      ? [{ slug: culture.talent_slug, label: culture.talent_slug }]
-      : [],
-  );
-  const classLinks = $derived(
-    culture.classes.map((c) => ({ slug: c.class_slug, label: c.class_label })),
-  );
+  let {
+    culture,
+    talents,
+    classes,
+    regions,
+    backgrounds,
+    onSaved,
+    onDeleted,
+    onDirtyChange,
+  }: Props = $props();
 
   let enLabel = $state("");
   let enDesc = $state("");
@@ -44,6 +42,11 @@
   let enSort = $state(0);
   let talentId = $state(0);
   let classIds = $state<number[]>([]);
+  let regionRows = $state<RegionDraft[]>([]);
+  let backgroundRows = $state<BgDraft[]>([]);
+  let addRegionId = $state<number | "">("");
+  let addBgRegionId = $state<number | "">("");
+  let addBgId = $state<number | "">("");
   let ruLabel = $state("");
   let ruDesc = $state("");
   let status = $state("");
@@ -55,6 +58,8 @@
     enSort: number;
     talentId: number;
     classIds: number[];
+    regionRows: RegionDraft[];
+    backgroundRows: BgDraft[];
     ruLabel: string;
   };
 
@@ -64,6 +69,8 @@
     enSort: 0,
     talentId: 0,
     classIds: [],
+    regionRows: [],
+    backgroundRows: [],
     ruLabel: "",
   });
 
@@ -74,6 +81,15 @@
       enSort: culture.sort_order,
       talentId: culture.talent_id ?? 0,
       classIds: [...culture.classes.map((c) => c.class_id)].sort((a, b) => a - b),
+      regionRows: (culture.linked_regions ?? []).map((r) => ({
+        region_id: r.region_id,
+        weight: r.weight,
+      })),
+      backgroundRows: (culture.linked_backgrounds ?? []).map((b) => ({
+        region_id: b.region_id,
+        background_id: b.background_id,
+        sort_order: b.sort_order,
+      })),
       ruLabel: culture.translations?.label ?? "",
     };
   }
@@ -84,7 +100,12 @@
     enSort = b.enSort;
     talentId = b.talentId;
     classIds = [...b.classIds];
+    regionRows = b.regionRows.map((r) => ({ ...r }));
+    backgroundRows = b.backgroundRows.map((r) => ({ ...r }));
     ruLabel = b.ruLabel;
+    addRegionId = "";
+    addBgRegionId = "";
+    addBgId = "";
   }
 
   function resetFromProps() {
@@ -107,6 +128,23 @@
     return a.every((v, i) => v === b[i]);
   }
 
+  function regionRowsEqual(a: RegionDraft[], b: RegionDraft[]): boolean {
+    if (a.length !== b.length) return false;
+    const sa = [...a].sort((x, y) => x.region_id - y.region_id);
+    const sb = [...b].sort((x, y) => x.region_id - y.region_id);
+    return sa.every(
+      (r, i) => r.region_id === sb[i]!.region_id && Number(r.weight) === Number(sb[i]!.weight),
+    );
+  }
+
+  function bgRowsEqual(a: BgDraft[], b: BgDraft[]): boolean {
+    if (a.length !== b.length) return false;
+    const key = (r: BgDraft) => `${r.region_id}:${r.background_id}:${r.sort_order}`;
+    const sa = [...a].map(key).sort();
+    const sb = [...b].map(key).sort();
+    return sa.every((v, i) => v === sb[i]);
+  }
+
   const dirty = $derived(
     enLabel !== baseline.enLabel ||
       enComment !== baseline.enComment ||
@@ -116,6 +154,8 @@
         [...classIds].sort((a, b) => a - b),
         baseline.classIds,
       ) ||
+      !regionRowsEqual(regionRows, baseline.regionRows) ||
+      !bgRowsEqual(backgroundRows, baseline.backgroundRows) ||
       ruLabel !== baseline.ruLabel,
   );
 
@@ -147,6 +187,122 @@
 
   function talentPayload(): number | null {
     return talentId > 0 ? Number(talentId) : null;
+  }
+
+  function regionLabel(id: number): string {
+    return regions.find((r) => r.id === id)?.label ?? culture.linked_regions.find((r) => r.region_id === id)?.region_label ?? `#${id}`;
+  }
+
+  function backgroundLabel(id: number): string {
+    return (
+      backgrounds.find((b) => b.id === id)?.label ??
+      culture.linked_backgrounds.find((b) => b.background_id === id)?.background_label ??
+      `#${id}`
+    );
+  }
+
+  function availableRegionsToAdd(): Region[] {
+    const used = new Set(regionRows.map((r) => r.region_id));
+    return regions.filter((r) => !used.has(r.id));
+  }
+
+  function addRegion() {
+    if (addRegionId === "") return;
+    const id = Number(addRegionId);
+    regionRows = [...regionRows, { region_id: id, weight: 1 }];
+    addRegionId = "";
+  }
+
+  function removeRegion(regionId: number) {
+    regionRows = regionRows.filter((r) => r.region_id !== regionId);
+    backgroundRows = backgroundRows.filter((b) => b.region_id !== regionId);
+    if (addBgRegionId === regionId) {
+      addBgRegionId = "";
+      addBgId = "";
+    }
+  }
+
+  function backgroundsForRegion(regionId: number): BgDraft[] {
+    return [...backgroundRows.filter((b) => b.region_id === regionId)].sort(
+      (a, b) => a.sort_order - b.sort_order || a.background_id - b.background_id,
+    );
+  }
+
+  function availableBackgrounds(regionId: number): Background[] {
+    const used = new Set(
+      backgroundRows.filter((b) => b.region_id === regionId).map((b) => b.background_id),
+    );
+    return backgrounds.filter((b) => !used.has(b.id));
+  }
+
+  function reindexRegionBackgrounds(regionId: number, rows: BgDraft[]) {
+    const others = backgroundRows.filter((b) => b.region_id !== regionId);
+    backgroundRows = [
+      ...others,
+      ...rows.map((r, i) => ({ ...r, region_id: regionId, sort_order: i })),
+    ];
+  }
+
+  function addBackground() {
+    if (addBgRegionId === "" || addBgId === "") return;
+    const regionId = Number(addBgRegionId);
+    const bgId = Number(addBgId);
+    const existing = backgroundsForRegion(regionId);
+    reindexRegionBackgrounds(regionId, [
+      ...existing,
+      { region_id: regionId, background_id: bgId, sort_order: existing.length },
+    ]);
+    addBgId = "";
+  }
+
+  function removeBackground(regionId: number, backgroundId: number) {
+    reindexRegionBackgrounds(
+      regionId,
+      backgroundsForRegion(regionId).filter((b) => b.background_id !== backgroundId),
+    );
+  }
+
+  function moveBackground(regionId: number, backgroundId: number, delta: -1 | 1) {
+    const rows = backgroundsForRegion(regionId);
+    const i = rows.findIndex((b) => b.background_id === backgroundId);
+    const j = i + delta;
+    if (i < 0 || j < 0 || j >= rows.length) return;
+    const next = [...rows];
+    const tmp = next[i]!;
+    next[i] = next[j]!;
+    next[j] = tmp;
+    reindexRegionBackgrounds(regionId, next);
+  }
+
+  function toRegionsIn() {
+    return regionRows.map((r) => ({
+      region_id: r.region_id,
+      weight: Math.max(1, Number(r.weight) || 1),
+    }));
+  }
+
+  function toPlacementsIn() {
+    return regionRows.flatMap((r) =>
+      backgroundsForRegion(r.region_id).map((b, i) => ({
+        region_id: r.region_id,
+        background_id: b.background_id,
+        sort_order: i,
+      })),
+    );
+  }
+
+  function propsLinkPayload() {
+    return {
+      regions: (culture.linked_regions ?? []).map((r) => ({
+        region_id: r.region_id,
+        weight: r.weight,
+      })),
+      background_placements: (culture.linked_backgrounds ?? []).map((b) => ({
+        region_id: b.region_id,
+        background_id: b.background_id,
+        sort_order: b.sort_order,
+      })),
+    };
   }
 
   async function saveOverlay(field: TranslationField, value: string) {
@@ -181,6 +337,8 @@
         talent_id: talentPayload(),
         sort_order: enSort,
         class_ids: classIds,
+        regions: toRegionsIn(),
+        background_placements: toPlacementsIn(),
       });
       await saveOverlay("label", ruLabel);
       status = "Saved";
@@ -191,6 +349,8 @@
         enSort,
         talentId,
         classIds: [...classIds].sort((a, b) => a - b),
+        regionRows: toRegionsIn(),
+        backgroundRows: toPlacementsIn(),
         ruLabel,
       };
     } catch (e) {
@@ -206,6 +366,7 @@
   }
 
   async function saveEnDescription(markdown: string) {
+    const links = propsLinkPayload();
     await api.patchRace(culture.id, {
       label: culture.label,
       description: markdown,
@@ -213,6 +374,8 @@
       talent_id: culture.talent_id,
       sort_order: culture.sort_order,
       class_ids: culture.classes.map((c) => c.class_id),
+      regions: links.regions,
+      background_placements: links.background_placements,
     });
     enDesc = markdown;
     await onSaved();
@@ -334,6 +497,128 @@
     </section>
   </div>
 
+  <div class="mt-3 border-t border-line pt-3">
+    <h3 class="mb-2 font-display text-lg text-ink">Regions</h3>
+    <p class="mb-2 text-sm text-muted">Where this culture appears, with roll weight.</p>
+    <div class="mb-2 flex flex-wrap items-end gap-2">
+      <div class="forge-field mb-0 min-w-56 flex-1">
+        <label for="culture-add-region">Add region</label>
+        <select id="culture-add-region" class="forge-input" bind:value={addRegionId}>
+          <option value="">Select…</option>
+          {#each availableRegionsToAdd() as r (r.id)}
+            <option value={r.id}>{r.label} ({r.slug})</option>
+          {/each}
+        </select>
+      </div>
+      <button type="button" class="forge-btn" disabled={addRegionId === ""} onclick={addRegion}
+        >Add</button
+      >
+    </div>
+    {#if regionRows.length === 0}
+      <p class="text-sm text-muted">Not assigned to any region.</p>
+    {:else}
+      <div class="flex flex-col gap-1">
+        {#each regionRows as row (row.region_id)}
+          <div
+            class="flex flex-wrap items-center gap-2 rounded-md border border-line px-2.5 py-1.5"
+          >
+            <span class="min-w-40 flex-1 text-sm">{regionLabel(row.region_id)}</span>
+            <label class="flex items-center gap-1 text-xs text-muted">
+              Weight
+              <input class="forge-input w-20 py-1" type="number" min="1" bind:value={row.weight} />
+            </label>
+            <button type="button" class="forge-btn py-1" onclick={() => removeRegion(row.region_id)}
+              >Remove</button
+            >
+          </div>
+        {/each}
+      </div>
+    {/if}
+  </div>
+
+  <div class="mt-3 border-t border-line pt-3">
+    <h3 class="mb-2 font-display text-lg text-ink">Backgrounds by region</h3>
+    <p class="mb-2 text-sm text-muted">
+      Ordered backgrounds for this culture in each region. Add regions above first.
+    </p>
+    <div class="mb-2 flex flex-wrap items-end gap-2">
+      <div class="forge-field mb-0 min-w-40 flex-1">
+        <label for="culture-bg-region">Region</label>
+        <select
+          id="culture-bg-region"
+          class="forge-input"
+          bind:value={addBgRegionId}
+          onchange={() => {
+            addBgId = "";
+          }}
+        >
+          <option value="">Select…</option>
+          {#each regionRows as r (r.region_id)}
+            <option value={r.region_id}>{regionLabel(r.region_id)}</option>
+          {/each}
+        </select>
+      </div>
+      <div class="forge-field mb-0 min-w-40 flex-1">
+        <label for="culture-bg-id">Background</label>
+        <select
+          id="culture-bg-id"
+          class="forge-input"
+          bind:value={addBgId}
+          disabled={addBgRegionId === ""}
+        >
+          <option value="">Select…</option>
+          {#if addBgRegionId !== ""}
+            {#each availableBackgrounds(Number(addBgRegionId)) as b (b.id)}
+              <option value={b.id}>{b.label} ({b.slug})</option>
+            {/each}
+          {/if}
+        </select>
+      </div>
+      <button
+        type="button"
+        class="forge-btn"
+        disabled={addBgRegionId === "" || addBgId === ""}
+        onclick={addBackground}>Add</button
+      >
+    </div>
+
+    {#each regionRows as r (r.region_id)}
+      {@const rows = backgroundsForRegion(r.region_id)}
+      <div class="mb-2 rounded-md border border-line p-2">
+        <p class="mb-1 text-sm font-medium">{regionLabel(r.region_id)}</p>
+        {#if rows.length === 0}
+          <p class="text-xs text-muted">No backgrounds.</p>
+        {:else}
+          <div class="flex flex-col gap-0.5">
+            {#each rows as row, i (row.background_id)}
+              <div class="flex flex-wrap items-center gap-2 px-1 py-0.5 text-sm">
+                <span class="w-6 font-mono text-xs text-muted">{i + 1}.</span>
+                <span class="min-w-32 flex-1">{backgroundLabel(row.background_id)}</span>
+                <button
+                  type="button"
+                  class="forge-btn py-0.5 text-xs"
+                  disabled={i === 0}
+                  onclick={() => moveBackground(row.region_id, row.background_id, -1)}>↑</button
+                >
+                <button
+                  type="button"
+                  class="forge-btn py-0.5 text-xs"
+                  disabled={i === rows.length - 1}
+                  onclick={() => moveBackground(row.region_id, row.background_id, 1)}>↓</button
+                >
+                <button
+                  type="button"
+                  class="forge-btn py-0.5 text-xs"
+                  onclick={() => removeBackground(row.region_id, row.background_id)}>Remove</button
+                >
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
+    {/each}
+  </div>
+
   <div class="mt-2 border-t border-line pt-3">
     <div class="forge-field mb-0">
       <label for="culture-comment"
@@ -346,13 +631,4 @@
         placeholder="Author notes — not translated, not shown in play"></textarea>
     </div>
   </div>
-
-  <LinkPanel title="Talent" links={talentLink} empty="No talent linked." />
-  <LinkPanel title="Allowed classes" links={classLinks} empty="No classes allowed." />
-  <LinkPanel title="Used in regions" links={regionLinks} empty="Not assigned to any region." />
-  <LinkPanel
-    title="Backgrounds via regions"
-    links={bgLinks}
-    empty="No region×culture background assignments."
-  />
 </div>

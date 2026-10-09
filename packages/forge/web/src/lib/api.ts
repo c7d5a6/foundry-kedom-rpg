@@ -290,6 +290,17 @@ export type UpdateTalentBody = {
   sort_order: number;
 };
 
+export type RaceRegionIn = {
+  region_id: number;
+  weight: number;
+};
+
+export type RaceBackgroundPlacementIn = {
+  region_id: number;
+  background_id: number;
+  sort_order: number;
+};
+
 export type CreateRaceBody = {
   label: string;
   description?: string;
@@ -306,6 +317,8 @@ export type UpdateRaceBody = {
   talent_id: number | null;
   sort_order: number;
   class_ids: number[];
+  regions: RaceRegionIn[];
+  background_placements: RaceBackgroundPlacementIn[];
 };
 
 export type RegionCultureIn = { race_id: number; weight: number };
@@ -355,6 +368,12 @@ export type CreateBackgroundBody = {
   growth: GrowthRowIn[];
 };
 
+export type BackgroundUseIn = {
+  region_id: number;
+  race_id: number;
+  sort_order: number;
+};
+
 export type UpdateBackgroundBody = {
   label: string;
   description: string;
@@ -365,6 +384,7 @@ export type UpdateBackgroundBody = {
   free_specialization_label: string;
   sort_order: number;
   growth: GrowthRowIn[];
+  used_by: BackgroundUseIn[];
 };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
