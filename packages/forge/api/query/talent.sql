@@ -35,4 +35,8 @@ DELETE FROM talent WHERE id = ?;
 SELECT id, slug, label FROM race WHERE talent_id = ? ORDER BY sort_order, id;
 
 -- name: ListClassesByTalent :many
-SELECT id, slug, label FROM class WHERE talent_id = ? ORDER BY sort_order, id;
+SELECT c.id, c.slug, c.label
+FROM class_talent ct
+JOIN class c ON c.id = ct.class_id
+WHERE ct.talent_id = ?
+ORDER BY c.sort_order, c.id;

@@ -91,7 +91,7 @@ func (c *Content) talentDTO(ctx context.Context, row generated.Talent, tr Transl
 	if err != nil {
 		return TalentDTO{}, err
 	}
-	classes, err := c.q.ListClassesByTalent(ctx, &row.ID)
+	classes, err := c.q.ListClassesByTalent(ctx, row.ID)
 	if err != nil {
 		return TalentDTO{}, err
 	}

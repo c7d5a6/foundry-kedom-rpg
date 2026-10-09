@@ -7,7 +7,7 @@ const { HTMLField, StringField } = foundry.data.fields;
 
 function talentSchema() {
   return {
-    /** Identity slug — links from culture/class `talentSlug`. */
+    /** Identity slug — links from culture `talentSlug` / class `talentSlugs[]`. */
     slug: new StringField({
       required: true,
       nullable: false,

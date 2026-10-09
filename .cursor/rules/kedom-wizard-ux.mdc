@@ -1,0 +1,23 @@
+---
+description: Character create wizard UX — opaque controls, green ready, nested specs, no false buttons
+globs: packages/system/templates/apps/create-character/**,packages/system/src/applications/apps/character-create-wizard.ts,packages/system/src/creation/resolve-background.ts,packages/system/src/styles/system.css,packages/system/lang/**/*.json
+alwaysApply: false
+---
+
+# Kedom create-character wizard UX
+
+Full requirements: `docs/system/wizard-ux.md`. Priorities: (1) clear/recoverable UX, (2) sheet-aligned chrome, (3) beauty last.
+
+## Hard rules
+
+- **Opaque clickable chrome** on **content** controls only (choices, rolls, skill picks). Do not restyle the Foundry window toolbar or form footer (Back / Next / Create).
+- **Selected must be obvious** among peers (strong gold fill + clear accent).
+- **No false buttons.** Non-interactive rows (growth table, static labels) must not use skill-chip / choice-button styles.
+- **Skills solid, specs dotted.** Specialization options are the same chip family with a dotted border; nest the spec block under the selected skill.
+- **Green = resolved grants only.** Never tint Next green.
+- **Shared panels.** Free skill, roll blocks, and bonus skill use the same panel class.
+- **One numbering source.** `<ol>` numbers steps; i18n labels do not also say “1.” / “2.”. Nest the growth table under rolls — do not make it a fourth top-level step.
+- **Never trap the skill chooser.** For wild/substitute picks, keep the skill grid visible through specialization and after resolve so the player can change skill.
+- **One resolved-grant style** for free / rolled / bonus final chips.
+- **Wizard-only desc images:** float right on `.kedom-create-wizard__desc img` only.
+- **Confirm:** class line includes talent in brackets when known.

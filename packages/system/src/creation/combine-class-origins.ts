@@ -8,6 +8,7 @@ import type {
   OriginDataFields,
   PrioritizedSaveFields,
 } from "../data/item/origin-fields.ts";
+import { classTalentSlugs } from "../data/item/origin-fields.ts";
 import type { ProficiencyTier } from "../config/kedom.ts";
 
 export type CombinedClassOrigin = {
@@ -16,6 +17,7 @@ export type CombinedClassOrigin = {
   hitDie: string;
   hitDiePriority: number;
   talentPicks: OriginDataFields["talentPicks"];
+  talentSlugs: readonly string[];
   arts: {
     skillKey: string;
     abilityKeys: readonly string[];
@@ -87,6 +89,7 @@ export function combineClassOrigins(
     hitDie: hd.hitDie,
     hitDiePriority: hd.hitDiePriority,
     talentPicks: mergeTalentPicks(a.talentPicks, b.talentPicks),
+    talentSlugs: [...new Set([...classTalentSlugs(a), ...classTalentSlugs(b)])],
     arts: {
       skillKey: a.arts.skillKey || b.arts.skillKey,
       abilityKeys: [...new Set([...a.arts.abilityKeys, ...b.arts.abilityKeys])],

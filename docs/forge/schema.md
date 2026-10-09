@@ -22,7 +22,8 @@ flowchart TD
   race --> race_class
   race_class --> class
   race --> talentC[talent]
-  class --> talentK[talent]
+  class --> class_talent
+  class_talent --> talentK[talent]
   background --> background_growth
   background_growth --> skill
   background --> freeSkill[skill]
@@ -221,7 +222,8 @@ Effects (default `[]`). Each effect has its own `foundryId` (assigned once), `na
 Foundry `@` formula), and `priority` (an integer; omitted means 20). There is no script field.
 Pack export writes one transferable effect per array entry and omits `effects` when the array
 is empty. Forge stores `mode`; pack YAML maps it to Foundry v14 change `type` (same string
-values). A class still links one talent; creation copies that item’s effects onto the actor.
+values). A class may link **multiple** talents via `class_talent`; creation copies each linked
+talent item’s effects onto the actor. Cultures still link at most one talent (`race.talent_id`).
 
 ### `race` (culture)
 
@@ -284,9 +286,16 @@ id|label)` across free + growth (wildcards may repeat).
 
 ### `class` (origins fields)
 
+```
+class:         id, slug, …, hit_die / hit_die_priority, talent picks, prioritized saves,
+               arts_skill_key, …
+class_talent:  class_id, talent_id, sort_order
+               PRIMARY KEY (class_id, talent_id)
+```
+
 In addition to roster flags, class rows carry Foundry progression fields used by pack export:
-`talent_id`, `hit_die` / `hit_die_priority`, talent picks, prioritized saves, `arts_skill_key`.
-**Effort** authoring is deferred.
+ordered `class_talent` links (exported as `talentSlugs[]`), `hit_die` / `hit_die_priority`,
+talent picks, prioritized saves, `arts_skill_key`. **Effort** authoring is deferred.
 
 ### `translation`
 

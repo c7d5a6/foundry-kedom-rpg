@@ -152,13 +152,18 @@ function originSchema() {
       }),
       { initial: [] },
     ),
-    /** Race (culture): talent + allowed class slugs. */
+    /** Race (culture): single talent + allowed class slugs. */
     talentSlug: new StringField({
       required: true,
       nullable: false,
       blank: true,
       initial: "",
     }),
+    /** Class: ordered granted talent slugs (preferred over legacy talentSlug). */
+    talentSlugs: new ArrayField(
+      new StringField({ required: true, nullable: false, blank: false, initial: "" }),
+      { initial: [] },
+    ),
     classSlugs: new ArrayField(
       new StringField({ required: true, nullable: false, blank: false, initial: "" }),
       { initial: [] },

@@ -106,8 +106,8 @@ export type ClassRow = {
   is_full: boolean;
   is_partial: boolean;
   hit_die: string;
-  talent_id: number | null;
-  talent_slug: string;
+  talent_ids: number[];
+  talent_slugs: string[];
   hit_die_priority: number;
   talent_picks_warrior: number;
   talent_picks_expert: number;

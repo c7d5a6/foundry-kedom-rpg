@@ -112,65 +112,75 @@
           <ol class="kedom-create-wizard__skill-steps">
             <li>
               <p class="kedom-create-wizard__step-label">{{localize "KEDOM.Creation.Wizard.FreeSkill"}}</p>
-              <div class="kedom-create-wizard__skill-chips">
-                <button type="button" class="kedom-create-wizard__skill is-free" disabled>{{freeLabel}}</button>
-              </div>
-              {{#if freeNeedsWild}}
-                <p class="hint">{{localize "KEDOM.Creation.Wizard.PickFreeWild"}}</p>
-                <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
-                  {{#if freeWildIsCombat}}
-                    {{#each combatOptions}}
-                      <button type="button" class="kedom-create-wizard__choice{{#if (eq ../freeWildPick key)}} is-selected{{/if}}" data-action="setFreeWild" data-skill-key="{{key}}">{{label}}</button>
-                    {{/each}}
-                  {{else}}
-                    {{#each skillOptions}}
-                      <button type="button" class="kedom-create-wizard__choice{{#if (eq ../freeWildPick key)}} is-selected{{/if}}" data-action="setFreeWild" data-skill-key="{{key}}">{{label}}</button>
-                    {{/each}}
-                  {{/if}}
-                </div>
-              {{/if}}
-              {{#if freeSpecUI.show}}
-                <div class="kedom-create-wizard__spec">
-                  <p class="hint">{{localize "KEDOM.Creation.Wizard.PickSpecialization"}}</p>
-                  {{#if freeSpecUI.fixedOptions.length}}
-                    <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
-                      {{#each freeSpecUI.fixedOptions}}
-                        <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setFreeWild" data-spec-leaf="{{leaf}}" {{#if disabled}}disabled{{/if}}>{{label}}</button>
+              <div class="kedom-create-wizard__panel">
+                {{#if freeResolvedLabel}}
+                  <div class="kedom-create-wizard__skill-chips">
+                    <span class="kedom-create-wizard__skill is-ready">{{freeResolvedLabel}}</span>
+                  </div>
+                {{else}}
+                  {{#unless freeNeedsWild}}
+                    <p class="kedom-create-wizard__step-hint hint">{{freeLabel}}</p>
+                  {{/unless}}
+                {{/if}}
+                {{#if freeNeedsWild}}
+                  <p class="hint">{{localize "KEDOM.Creation.Wizard.PickFreeWild"}}</p>
+                  <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
+                    {{#if freeWildIsCombat}}
+                      {{#each combatOptions}}
+                        <button type="button" class="kedom-create-wizard__choice{{#if (eq ../freeWildPick key)}} is-selected{{/if}}" data-action="setFreeWild" data-skill-key="{{key}}">{{label}}</button>
                       {{/each}}
-                    </div>
-                  {{/if}}
-                  {{#if freeSpecUI.freeform}}
-                    <label>
-                      <span>{{localize "KEDOM.Creation.Wizard.SpecLabel"}}</span>
-                      <input type="text" data-spec-target="free" value="{{freeSpecUI.value}}" />
-                    </label>
-                  {{/if}}
-                </div>
-              {{/if}}
-            </li>
-
-            <li>
-              <p class="kedom-create-wizard__step-label">{{localize "KEDOM.Creation.Wizard.GrowthTable"}}</p>
-              <div class="kedom-create-wizard__skill-chips">
-                {{#each tableRows}}
-                  <span class="kedom-create-wizard__skill{{#if duplicate}} is-duplicate{{/if}}">{{n}}. {{label}}</span>
-                {{/each}}
+                    {{else}}
+                      {{#each skillOptions}}
+                        <button type="button" class="kedom-create-wizard__choice{{#if (eq ../freeWildPick key)}} is-selected{{/if}}" data-action="setFreeWild" data-skill-key="{{key}}">{{label}}</button>
+                      {{/each}}
+                    {{/if}}
+                  </div>
+                {{/if}}
+                {{#if freeSpecUI.show}}
+                  <div class="kedom-create-wizard__spec">
+                    <p class="hint">{{localize "KEDOM.Creation.Wizard.PickSpecialization"}}</p>
+                    {{#if freeSpecUI.fixedOptions.length}}
+                      <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
+                        {{#each freeSpecUI.fixedOptions}}
+                          <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setFreeWild" data-spec-leaf="{{leaf}}" {{#if disabled}}disabled{{/if}}>{{label}}</button>
+                        {{/each}}
+                      </div>
+                    {{/if}}
+                    {{#if freeSpecUI.freeform}}
+                      <label>
+                        <span>{{localize "KEDOM.Creation.Wizard.SpecLabel"}}</span>
+                        <input type="text" data-spec-target="free" value="{{freeSpecUI.value}}" />
+                      </label>
+                    {{/if}}
+                  </div>
+                {{/if}}
               </div>
             </li>
 
             <li>
               <p class="kedom-create-wizard__step-label">{{localize "KEDOM.Creation.Wizard.RollSkills"}}</p>
+              <p class="kedom-create-wizard__step-hint hint">{{localize "KEDOM.Creation.Wizard.GrowthTable"}}</p>
+              <ul class="kedom-create-wizard__growth-table">
+                {{#each tableRows}}
+                  <li class="kedom-create-wizard__growth-table__row{{#if duplicate}} is-duplicate{{/if}}">
+                    <span class="kedom-create-wizard__growth-table__n">{{n}}.</span>
+                    <span>{{label}}</span>
+                  </li>
+                {{/each}}
+              </ul>
               <div class="kedom-create-wizard__rolls">
-                <div class="kedom-create-wizard__roll-block">
+                <div class="kedom-create-wizard__panel">
                   <button type="button" data-action="rollSkill1">{{localize "KEDOM.Creation.Wizard.RollSkill1"}}</button>
                   {{#if roll1}}
                     <div class="kedom-create-wizard__skill-chips">
-                      {{#if roll1Substituted}}
-                        <span class="kedom-create-wizard__skill is-rolled">{{roll1}}: {{roll1RolledLabel}}</span>
-                        <span class="kedom-create-wizard__sub-arrow">→</span>
-                        <span class="kedom-create-wizard__skill is-substitute">{{roll1FinalLabel}}</span>
-                      {{else if roll1FinalLabel}}
-                        <span class="kedom-create-wizard__skill is-rolled">{{roll1}}: {{roll1FinalLabel}}</span>
+                      {{#if roll1FinalLabel}}
+                        {{#if roll1Substituted}}
+                          <span class="kedom-create-wizard__skill is-rolled">{{roll1}}: {{roll1RolledLabel}}</span>
+                          <span class="kedom-create-wizard__sub-arrow">→</span>
+                        {{else}}
+                          <span class="kedom-create-wizard__skill is-rolled">{{roll1}}:</span>
+                        {{/if}}
+                        <span class="kedom-create-wizard__skill is-ready">{{roll1FinalLabel}}</span>
                       {{else}}
                         <span class="kedom-create-wizard__skill is-rolled">{{roll1}}: {{roll1Label}}</span>
                       {{/if}}
@@ -184,7 +194,7 @@
                       {{/each}}
                     </div>
                   {{/if}}
-                  {{#if roll1NeedsAny}}
+                  {{#if roll1ShowAnySkills}}
                     <p class="hint">{{localize "KEDOM.Creation.Wizard.DuplicateAnySkill"}}</p>
                     {{#if roll1RolledLabel}}
                       <p class="kedom-create-wizard__sub-note">{{localize "KEDOM.Creation.Wizard.WasRolled" skill=roll1RolledLabel}}</p>
@@ -215,16 +225,18 @@
                   {{/if}}
                 </div>
 
-                <div class="kedom-create-wizard__roll-block">
+                <div class="kedom-create-wizard__panel">
                   <button type="button" data-action="rollSkill2">{{localize "KEDOM.Creation.Wizard.RollSkill2"}}</button>
                   {{#if roll2}}
                     <div class="kedom-create-wizard__skill-chips">
-                      {{#if roll2Substituted}}
-                        <span class="kedom-create-wizard__skill is-rolled">{{roll2}}: {{roll2RolledLabel}}</span>
-                        <span class="kedom-create-wizard__sub-arrow">→</span>
-                        <span class="kedom-create-wizard__skill is-substitute">{{roll2FinalLabel}}</span>
-                      {{else if roll2FinalLabel}}
-                        <span class="kedom-create-wizard__skill is-rolled">{{roll2}}: {{roll2FinalLabel}}</span>
+                      {{#if roll2FinalLabel}}
+                        {{#if roll2Substituted}}
+                          <span class="kedom-create-wizard__skill is-rolled">{{roll2}}: {{roll2RolledLabel}}</span>
+                          <span class="kedom-create-wizard__sub-arrow">→</span>
+                        {{else}}
+                          <span class="kedom-create-wizard__skill is-rolled">{{roll2}}:</span>
+                        {{/if}}
+                        <span class="kedom-create-wizard__skill is-ready">{{roll2FinalLabel}}</span>
                       {{else}}
                         <span class="kedom-create-wizard__skill is-rolled">{{roll2}}: {{roll2Label}}</span>
                       {{/if}}
@@ -238,7 +250,7 @@
                       {{/each}}
                     </div>
                   {{/if}}
-                  {{#if roll2NeedsAny}}
+                  {{#if roll2ShowAnySkills}}
                     <p class="hint">{{localize "KEDOM.Creation.Wizard.DuplicateAnySkill"}}</p>
                     {{#if roll2RolledLabel}}
                       <p class="kedom-create-wizard__sub-note">{{localize "KEDOM.Creation.Wizard.WasRolled" skill=roll2RolledLabel}}</p>
@@ -273,41 +285,43 @@
 
             <li>
               <p class="kedom-create-wizard__step-label">{{localize "KEDOM.Creation.Wizard.BonusSkill"}}</p>
-              <p class="hint">{{localize "KEDOM.Creation.Wizard.PickBonusSkill"}}</p>
-              <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
-                {{#each bonusSkillOptions}}
-                  <button
-                    type="button"
-                    class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}"
-                    data-action="setBonusWild"
-                    data-skill-key="{{key}}"
-                    {{#if disabled}}disabled{{/if}}
-                  >{{label}}</button>
-                {{/each}}
+              <div class="kedom-create-wizard__panel">
+                {{#if bonusResolvedLabel}}
+                  <div class="kedom-create-wizard__skill-chips">
+                    <span class="kedom-create-wizard__skill is-ready">{{bonusResolvedLabel}}</span>
+                  </div>
+                {{/if}}
+                <p class="hint">{{localize "KEDOM.Creation.Wizard.PickBonusSkill"}}</p>
+                <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
+                  {{#each bonusSkillOptions}}
+                    <button
+                      type="button"
+                      class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}"
+                      data-action="setBonusWild"
+                      data-skill-key="{{key}}"
+                      {{#if disabled}}disabled{{/if}}
+                    >{{label}}</button>
+                  {{/each}}
+                </div>
+                {{#if bonusSpecUI.show}}
+                  <div class="kedom-create-wizard__spec">
+                    <p class="hint">{{localize "KEDOM.Creation.Wizard.PickSpecialization"}}</p>
+                    {{#if bonusSpecUI.fixedOptions.length}}
+                      <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
+                        {{#each bonusSpecUI.fixedOptions}}
+                          <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setBonusWild" data-spec-leaf="{{leaf}}" {{#if disabled}}disabled{{/if}}>{{label}}</button>
+                        {{/each}}
+                      </div>
+                    {{/if}}
+                    {{#if bonusSpecUI.freeform}}
+                      <label>
+                        <span>{{localize "KEDOM.Creation.Wizard.SpecLabel"}}</span>
+                        <input type="text" data-spec-target="bonus" value="{{bonusSpecUI.value}}" />
+                      </label>
+                    {{/if}}
+                  </div>
+                {{/if}}
               </div>
-              {{#if bonusSpecUI.show}}
-                <div class="kedom-create-wizard__spec">
-                  <p class="hint">{{localize "KEDOM.Creation.Wizard.PickSpecialization"}}</p>
-                  {{#if bonusSpecUI.fixedOptions.length}}
-                    <div class="kedom-create-wizard__choices kedom-create-wizard__choices--wrap">
-                      {{#each bonusSpecUI.fixedOptions}}
-                        <button type="button" class="kedom-create-wizard__choice{{#if selected}} is-selected{{/if}}" data-action="setBonusWild" data-spec-leaf="{{leaf}}" {{#if disabled}}disabled{{/if}}>{{label}}</button>
-                      {{/each}}
-                    </div>
-                  {{/if}}
-                  {{#if bonusSpecUI.freeform}}
-                    <label>
-                      <span>{{localize "KEDOM.Creation.Wizard.SpecLabel"}}</span>
-                      <input type="text" data-spec-target="bonus" value="{{bonusSpecUI.value}}" />
-                    </label>
-                  {{/if}}
-                </div>
-              {{/if}}
-              {{#if bonusResolvedLabel}}
-                <div class="kedom-create-wizard__skill-chips">
-                  <span class="kedom-create-wizard__skill is-substitute">{{bonusResolvedLabel}}</span>
-                </div>
-              {{/if}}
             </li>
           </ol>
         </section>
@@ -335,12 +349,12 @@
           {{#if classDescriptionHtml}}
             <div class="kedom-create-wizard__desc">{{{classDescriptionHtml}}}</div>
           {{/if}}
-          {{#if classTalentHtml}}
+          {{#each classTalentBlocks}}
             <div class="kedom-create-wizard__talent">
-              <h4>{{localize "KEDOM.Creation.Wizard.TalentHeading"}}{{#if classTalentName}}: {{classTalentName}}{{/if}}</h4>
-              <div class="kedom-create-wizard__desc">{{{classTalentHtml}}}</div>
+              <h4>{{localize "KEDOM.Creation.Wizard.TalentHeading"}}{{#if name}}: {{name}}{{/if}}</h4>
+              <div class="kedom-create-wizard__desc">{{{html}}}</div>
             </div>
-          {{/if}}
+          {{/each}}
         </section>
       {{/if}}
 

@@ -3,6 +3,7 @@
  * Prefer Foundry packs (`kedom.origins`, `kedom.talents`); fall back to draft config.
  */
 import type { OriginDataFields } from "../data/item/origin-fields.ts";
+import { classTalentSlugs } from "../data/item/origin-fields.ts";
 import type { TalentDataFields } from "../data/item/talent.ts";
 import {
   CULTURES_BY_REGION,
@@ -53,7 +54,7 @@ export type CatalogClass = {
   name: string;
   description: string;
   hitDie: string;
-  talentSlug: string;
+  talentSlugs: string[];
   isFull: boolean;
   def: ClassDef | null;
 };
@@ -301,7 +302,7 @@ function buildFromPacks(
       name: localizeContentLabel("Class", slug, doc.name ?? slug),
       description: localizeContentDescription("Class", slug, packDesc),
       hitDie: def.hitDie,
-      talentSlug: sys.talentSlug ?? "",
+      talentSlugs: classTalentSlugs(sys),
       isFull: sys.isFull !== false,
       def,
     };

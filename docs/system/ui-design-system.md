@@ -241,3 +241,7 @@ simpler than Tidy's dual-port proxy setup.
 Between draw-steel's 3,535 and Tidy's 16,213, weighted toward Tidy because that is the target
 quality. Unlike the logic budget, **this one is not a ceiling to stay under** — it is an
 investment to actually make.
+
+## Related
+
+- Character create wizard UX requirements: [wizard-ux.md](./wizard-ux.md)

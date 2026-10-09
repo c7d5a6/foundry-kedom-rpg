@@ -10,14 +10,14 @@ import (
 )
 
 type CreateClassInput struct {
-	Label       string `json:"label"`
-	Description string `json:"description"`
-	Comment     string `json:"comment"`
-	IsFull      *bool  `json:"is_full"`
-	IsPartial   *bool  `json:"is_partial"`
-	HitDie      string `json:"hit_die"`
-	TalentID    *int64 `json:"talent_id"`
-	SortOrder   int64  `json:"sort_order"`
+	Label       string  `json:"label"`
+	Description string  `json:"description"`
+	Comment     string  `json:"comment"`
+	IsFull      *bool   `json:"is_full"`
+	IsPartial   *bool   `json:"is_partial"`
+	HitDie      string  `json:"hit_die"`
+	TalentIDs   []int64 `json:"talent_ids"`
+	SortOrder   int64   `json:"sort_order"`
 }
 
 func (c *Content) CreateClass(ctx context.Context, in CreateClassInput, locale model.Locale) (ClassDTO, error) {
@@ -33,8 +33,13 @@ func (c *Content) CreateClass(ctx context.Context, in CreateClassInput, locale m
 	if in.IsPartial != nil {
 		isPartial = *in.IsPartial
 	}
-	if !isFull && !isPartial {
-		return ClassDTO{}, fmt.Errorf("%w: class must be full and/or partial", ErrInvalid)
+	// Exactly one of full / partial (XOR).
+	if isFull == isPartial {
+		if !isFull {
+			return ClassDTO{}, fmt.Errorf("%w: class must be full or partial", ErrInvalid)
+		}
+		// Both true → treat as full-only.
+		isPartial = false
 	}
 	hitDie := strings.TrimSpace(in.HitDie)
 	if hitDie == "" {
@@ -50,10 +55,17 @@ func (c *Content) CreateClass(ctx context.Context, in CreateClassInput, locale m
 	if err != nil {
 		return ClassDTO{}, err
 	}
-	row, err := c.q.InsertClass(ctx, generated.InsertClassParams{
+
+	tx, q, err := c.begin(ctx)
+	if err != nil {
+		return ClassDTO{}, err
+	}
+	defer tx.Rollback() //nolint:errcheck
+
+	row, err := q.InsertClass(ctx, generated.InsertClassParams{
 		Slug: slug, Label: label, Description: in.Description, Comment: in.Comment,
 		IsFull: isFull, IsPartial: isPartial,
-		HitDie: &hitDie, TalentID: in.TalentID, HitDiePriority: 0,
+		HitDie: &hitDie, HitDiePriority: 0,
 		TalentPicksWarrior: 0, TalentPicksExpert: 0, TalentPicksAny: 0,
 		SavePrimary: "reflex", SavePrimaryPriority: 0,
 		SaveSecondary: "fortitude", SaveSecondaryPriority: 0,
@@ -62,6 +74,12 @@ func (c *Content) CreateClass(ctx context.Context, in CreateClassInput, locale m
 	})
 	if err != nil {
 		return ClassDTO{}, fmt.Errorf("insert class: %w", err)
+	}
+	if err := rewriteClassTalents(ctx, q, row.ID, in.TalentIDs); err != nil {
+		return ClassDTO{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return ClassDTO{}, err
 	}
 	return c.GetClass(ctx, row.ID, locale)
 }

@@ -30,10 +30,10 @@
       specialization_mode: string;
       attributes: { id: number; slug: string; label: string }[];
     };
-    /** When editing a class: talent + progression fields from ClassDTO. */
+    /** When editing a class: talents + progression fields from ClassDTO. */
     classControls?: {
       hit_die: string;
-      talent_id: number | null;
+      talent_ids: number[];
       hit_die_priority: number;
       talent_picks_warrior: number;
       talent_picks_expert: number;
@@ -73,10 +73,11 @@
 
   const cultureLinks = $derived(linkedCultures.map((c) => ({ slug: c.slug, label: c.label })));
   const talentLinks = $derived.by(() => {
-    if (kind !== "class" || !classControls?.talent_id) return [];
-    const t = classControls.talents.find((x) => x.id === classControls.talent_id);
-    if (!t) return [];
-    return [{ slug: t.slug, label: t.label }];
+    if (kind !== "class" || !classControls) return [];
+    const ids = new Set(classTalentIds);
+    return classControls.talents
+      .filter((t) => ids.has(t.id))
+      .map((t) => ({ slug: t.slug, label: t.label }));
   });
 
   let enLabel = $state("");
@@ -87,7 +88,7 @@
   let skillAttributeId = $state(0);
   let skillMode = $state("fixed");
   let classHitDie = $state("");
-  let classTalentId = $state(0);
+  let classTalentIds = $state<number[]>([]);
   let classHitDiePriority = $state(0);
   let classTalentPicksWarrior = $state(0);
   let classTalentPicksExpert = $state(0);
@@ -111,7 +112,7 @@
     skillAttributeId: number;
     skillMode: string;
     classHitDie: string;
-    classTalentId: number;
+    classTalentIds: number[];
     classHitDiePriority: number;
     classTalentPicksWarrior: number;
     classTalentPicksExpert: number;
@@ -133,7 +134,7 @@
     skillAttributeId: 0,
     skillMode: "fixed",
     classHitDie: "",
-    classTalentId: 0,
+    classTalentIds: [],
     classHitDiePriority: 0,
     classTalentPicksWarrior: 0,
     classTalentPicksExpert: 0,
@@ -156,7 +157,7 @@
       skillAttributeId: skillControls?.attribute_id ?? 0,
       skillMode: skillControls?.specialization_mode ?? "fixed",
       classHitDie: classControls?.hit_die ?? "",
-      classTalentId: classControls?.talent_id ?? 0,
+      classTalentIds: [...(classControls?.talent_ids ?? [])],
       classHitDiePriority: classControls?.hit_die_priority ?? 0,
       classTalentPicksWarrior: classControls?.talent_picks_warrior ?? 0,
       classTalentPicksExpert: classControls?.talent_picks_expert ?? 0,
@@ -179,7 +180,7 @@
     skillAttributeId = b.skillAttributeId;
     skillMode = b.skillMode;
     classHitDie = b.classHitDie;
-    classTalentId = b.classTalentId;
+    classTalentIds = [...b.classTalentIds];
     classHitDiePriority = b.classHitDiePriority;
     classTalentPicksWarrior = b.classTalentPicksWarrior;
     classTalentPicksExpert = b.classTalentPicksExpert;
@@ -193,8 +194,17 @@
     ruAbbr = b.ruAbbr;
   }
 
-  function classTalentPayload(): number | null {
-    return classTalentId > 0 ? Number(classTalentId) : null;
+  function toggleClassTalent(id: number) {
+    if (classTalentIds.includes(id)) {
+      classTalentIds = classTalentIds.filter((x) => x !== id);
+    } else {
+      classTalentIds = [...classTalentIds, id];
+    }
+  }
+
+  function talentIdsEqual(a: number[], b: number[]): boolean {
+    if (a.length !== b.length) return false;
+    return a.every((id, i) => id === b[i]);
   }
 
   const hitDieOptions = $derived.by(() => {
@@ -210,7 +220,7 @@
       comment,
       sort_order: sortOrder,
       hit_die: classHitDie,
-      talent_id: classTalentPayload(),
+      talent_ids: [...classTalentIds],
       hit_die_priority: Number(classHitDiePriority),
       talent_picks_warrior: Number(classTalentPicksWarrior),
       talent_picks_expert: Number(classTalentPicksExpert),
@@ -231,7 +241,7 @@
       comment: en.comment,
       sort_order: en.sort_order,
       hit_die: classControls.hit_die,
-      talent_id: classControls.talent_id,
+      talent_ids: [...(classControls.talent_ids ?? [])],
       hit_die_priority: classControls.hit_die_priority,
       talent_picks_warrior: classControls.talent_picks_warrior,
       talent_picks_expert: classControls.talent_picks_expert,
@@ -270,7 +280,7 @@
       skillAttributeId !== baseline.skillAttributeId ||
       skillMode !== baseline.skillMode ||
       classHitDie !== baseline.classHitDie ||
-      classTalentId !== baseline.classTalentId ||
+      !talentIdsEqual(classTalentIds, baseline.classTalentIds) ||
       classHitDiePriority !== baseline.classHitDiePriority ||
       classTalentPicksWarrior !== baseline.classTalentPicksWarrior ||
       classTalentPicksExpert !== baseline.classTalentPicksExpert ||
@@ -373,7 +383,7 @@
         skillAttributeId,
         skillMode,
         classHitDie,
-        classTalentId,
+        classTalentIds: [...classTalentIds],
         classHitDiePriority,
         classTalentPicksWarrior,
         classTalentPicksExpert,
@@ -526,15 +536,26 @@
         </div>
       {/if}
       {#if kind === "class" && classControls}
-        <div class="forge-field">
-          <label for="class-talent">Talent</label>
-          <select id="class-talent" class="forge-input" bind:value={classTalentId}>
-            <option value={0}>(none)</option>
+        <fieldset class="forge-field">
+          <legend class="text-xs font-medium tracking-wide text-muted uppercase">Talents</legend>
+          <div
+            class="mt-1 flex max-h-48 flex-col gap-0.5 overflow-auto rounded-md border border-line p-2"
+          >
             {#each classControls.talents as t (t.id)}
-              <option value={t.id}>{t.label} ({t.slug})</option>
+              <label class="flex items-center gap-2 text-sm text-ink">
+                <input
+                  type="checkbox"
+                  checked={classTalentIds.includes(t.id)}
+                  onchange={() => toggleClassTalent(t.id)}
+                />
+                <span>{t.label}</span>
+                <span class="font-mono text-xs text-muted">{t.slug}</span>
+              </label>
+            {:else}
+              <p class="text-sm text-muted">(no talents)</p>
             {/each}
-          </select>
-        </div>
+          </div>
+        </fieldset>
         <div class="forge-field">
           <label for="class-hit-die">Hit die</label>
           <select id="class-hit-die" class="forge-input font-mono" bind:value={classHitDie}>

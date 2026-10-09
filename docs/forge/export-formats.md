@@ -112,8 +112,9 @@ system:
       backgroundSlugs: [farmer, soldier]
 ```
 
-Culture origins carry `talentSlug` and `classSlugs[]`. Background lists for the wizard come
-from the **selected region’s** culture entry, not only from the culture item.
+Culture origins carry `talentSlug` and `classSlugs[]`. Class origins carry `talentSlugs[]`
+(ordered granted talents). Background lists for the wizard come from the **selected
+region’s** culture entry, not only from the culture item.
 
 A talent with effects exports one transferable Active Effect per `effects_json` entry (`_id`
 from `foundryId`, `_key` `!items.effects!<talent id>.<effect id>`, `transfer: true`). Change

@@ -78,8 +78,8 @@ type ClassDTO struct {
 	IsFull                bool           `json:"is_full"`
 	IsPartial             bool           `json:"is_partial"`
 	HitDie                string         `json:"hit_die"`
-	TalentID              *int64         `json:"talent_id"`
-	TalentSlug            string         `json:"talent_slug"`
+	TalentIDs             []int64        `json:"talent_ids"`
+	TalentSlugs           []string       `json:"talent_slugs"`
 	HitDiePriority        int64          `json:"hit_die_priority"`
 	TalentPicksWarrior    int64          `json:"talent_picks_warrior"`
 	TalentPicksExpert     int64          `json:"talent_picks_expert"`
@@ -316,34 +316,36 @@ func (c *Content) UpdateSpecialization(ctx context.Context, id int64, in UpdateS
 	return c.GetSpecialization(ctx, id, locale)
 }
 
-func classDTOFromList(row generated.ListClassesRow, tr TranslationMap, cultures []EntityRef) ClassDTO {
-	return ClassDTO{
-		ID: row.ID, Slug: row.Slug, Label: row.Label, Description: row.Description, Comment: row.Comment,
-		IsFull: row.IsFull, IsPartial: row.IsPartial, HitDie: ptrStr(row.HitDie),
-		TalentID: row.TalentID, TalentSlug: ptrStr(row.TalentSlug),
-		HitDiePriority: row.HitDiePriority,
-		TalentPicksWarrior: row.TalentPicksWarrior, TalentPicksExpert: row.TalentPicksExpert,
-		TalentPicksAny: row.TalentPicksAny,
-		SavePrimary: row.SavePrimary, SavePrimaryPriority: row.SavePrimaryPriority,
-		SaveSecondary: row.SaveSecondary, SaveSecondaryPriority: row.SaveSecondaryPriority,
-		ArtsSkillKey: row.ArtsSkillKey,
-		SortOrder: row.SortOrder, FoundryID: row.FoundryID,
-		LinkedCultures: cultures, Translations: tr,
+func classDTOFromRow(
+	id int64,
+	slug, label, description, comment string,
+	isFull, isPartial bool,
+	hitDie *string,
+	hitDiePriority, talentPicksWarrior, talentPicksExpert, talentPicksAny int64,
+	savePrimary string, savePrimaryPriority int64,
+	saveSecondary string, saveSecondaryPriority int64,
+	artsSkillKey string,
+	sortOrder int64, foundryID string,
+	talentIDs []int64, talentSlugs []string,
+	tr TranslationMap, cultures []EntityRef,
+) ClassDTO {
+	if talentIDs == nil {
+		talentIDs = []int64{}
 	}
-}
-
-func classDTOFromGet(row generated.GetClassRow, tr TranslationMap, cultures []EntityRef) ClassDTO {
+	if talentSlugs == nil {
+		talentSlugs = []string{}
+	}
 	return ClassDTO{
-		ID: row.ID, Slug: row.Slug, Label: row.Label, Description: row.Description, Comment: row.Comment,
-		IsFull: row.IsFull, IsPartial: row.IsPartial, HitDie: ptrStr(row.HitDie),
-		TalentID: row.TalentID, TalentSlug: ptrStr(row.TalentSlug),
-		HitDiePriority: row.HitDiePriority,
-		TalentPicksWarrior: row.TalentPicksWarrior, TalentPicksExpert: row.TalentPicksExpert,
-		TalentPicksAny: row.TalentPicksAny,
-		SavePrimary: row.SavePrimary, SavePrimaryPriority: row.SavePrimaryPriority,
-		SaveSecondary: row.SaveSecondary, SaveSecondaryPriority: row.SaveSecondaryPriority,
-		ArtsSkillKey: row.ArtsSkillKey,
-		SortOrder: row.SortOrder, FoundryID: row.FoundryID,
+		ID: id, Slug: slug, Label: label, Description: description, Comment: comment,
+		IsFull: isFull, IsPartial: isPartial, HitDie: ptrStr(hitDie),
+		TalentIDs: talentIDs, TalentSlugs: talentSlugs,
+		HitDiePriority: hitDiePriority,
+		TalentPicksWarrior: talentPicksWarrior, TalentPicksExpert: talentPicksExpert,
+		TalentPicksAny: talentPicksAny,
+		SavePrimary: savePrimary, SavePrimaryPriority: savePrimaryPriority,
+		SaveSecondary: saveSecondary, SaveSecondaryPriority: saveSecondaryPriority,
+		ArtsSkillKey: artsSkillKey,
+		SortOrder: sortOrder, FoundryID: foundryID,
 		LinkedCultures: cultures, Translations: tr,
 	}
 }
@@ -358,6 +360,44 @@ func (c *Content) classCultures(ctx context.Context, classID int64) ([]EntityRef
 		out = append(out, EntityRef{ID: r.RaceID, Slug: r.RaceSlug, Label: r.RaceLabel})
 	}
 	return out, nil
+}
+
+func (c *Content) classTalents(ctx context.Context, classID int64) (ids []int64, slugs []string, err error) {
+	rows, err := c.q.ListClassTalents(ctx, classID)
+	if err != nil {
+		return nil, nil, err
+	}
+	ids = make([]int64, 0, len(rows))
+	slugs = make([]string, 0, len(rows))
+	for _, r := range rows {
+		ids = append(ids, r.TalentID)
+		slugs = append(slugs, r.TalentSlug)
+	}
+	return ids, slugs, nil
+}
+
+func rewriteClassTalents(ctx context.Context, q *generated.Queries, classID int64, talentIDs []int64) error {
+	if err := q.DeleteClassTalents(ctx, classID); err != nil {
+		return err
+	}
+	seen := make(map[int64]struct{}, len(talentIDs))
+	order := int64(0)
+	for _, tid := range talentIDs {
+		if tid <= 0 {
+			continue
+		}
+		if _, ok := seen[tid]; ok {
+			continue
+		}
+		seen[tid] = struct{}{}
+		if err := q.InsertClassTalent(ctx, generated.InsertClassTalentParams{
+			ClassID: classID, TalentID: tid, SortOrder: order,
+		}); err != nil {
+			return fmt.Errorf("insert class talent: %w", err)
+		}
+		order++
+	}
+	return nil
 }
 
 func (c *Content) ListClasses(ctx context.Context, locale model.Locale) ([]ClassDTO, error) {
@@ -375,7 +415,19 @@ func (c *Content) ListClasses(ctx context.Context, locale model.Locale) ([]Class
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, classDTOFromList(row, tr, cultures))
+		ids, slugs, err := c.classTalents(ctx, row.ID)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, classDTOFromRow(
+			row.ID, row.Slug, row.Label, row.Description, row.Comment,
+			row.IsFull, row.IsPartial, row.HitDie,
+			row.HitDiePriority, row.TalentPicksWarrior, row.TalentPicksExpert, row.TalentPicksAny,
+			row.SavePrimary, row.SavePrimaryPriority,
+			row.SaveSecondary, row.SaveSecondaryPriority,
+			row.ArtsSkillKey, row.SortOrder, row.FoundryID,
+			ids, slugs, tr, cultures,
+		))
 	}
 	return out, nil
 }
@@ -393,35 +445,53 @@ func (c *Content) GetClass(ctx context.Context, id int64, locale model.Locale) (
 	if err != nil {
 		return ClassDTO{}, err
 	}
-	return classDTOFromGet(row, tr, cultures), nil
+	ids, slugs, err := c.classTalents(ctx, row.ID)
+	if err != nil {
+		return ClassDTO{}, err
+	}
+	return classDTOFromRow(
+		row.ID, row.Slug, row.Label, row.Description, row.Comment,
+		row.IsFull, row.IsPartial, row.HitDie,
+		row.HitDiePriority, row.TalentPicksWarrior, row.TalentPicksExpert, row.TalentPicksAny,
+		row.SavePrimary, row.SavePrimaryPriority,
+		row.SaveSecondary, row.SaveSecondaryPriority,
+		row.ArtsSkillKey, row.SortOrder, row.FoundryID,
+		ids, slugs, tr, cultures,
+	), nil
 }
 
 type UpdateClassInput struct {
-	Label                 string `json:"label"`
-	Description           string `json:"description"`
-	Comment               string `json:"comment"`
-	SortOrder             int64  `json:"sort_order"`
-	HitDie                string `json:"hit_die"`
-	TalentID              *int64 `json:"talent_id"`
-	HitDiePriority        int64  `json:"hit_die_priority"`
-	TalentPicksWarrior    int64  `json:"talent_picks_warrior"`
-	TalentPicksExpert     int64  `json:"talent_picks_expert"`
-	TalentPicksAny        int64  `json:"talent_picks_any"`
-	SavePrimary           string `json:"save_primary"`
-	SavePrimaryPriority   int64  `json:"save_primary_priority"`
-	SaveSecondary         string `json:"save_secondary"`
-	SaveSecondaryPriority int64  `json:"save_secondary_priority"`
-	ArtsSkillKey          string `json:"arts_skill_key"`
+	Label                 string  `json:"label"`
+	Description           string  `json:"description"`
+	Comment               string  `json:"comment"`
+	SortOrder             int64   `json:"sort_order"`
+	HitDie                string  `json:"hit_die"`
+	TalentIDs             []int64 `json:"talent_ids"`
+	HitDiePriority        int64   `json:"hit_die_priority"`
+	TalentPicksWarrior    int64   `json:"talent_picks_warrior"`
+	TalentPicksExpert     int64   `json:"talent_picks_expert"`
+	TalentPicksAny        int64   `json:"talent_picks_any"`
+	SavePrimary           string  `json:"save_primary"`
+	SavePrimaryPriority   int64   `json:"save_primary_priority"`
+	SaveSecondary         string  `json:"save_secondary"`
+	SaveSecondaryPriority int64   `json:"save_secondary_priority"`
+	ArtsSkillKey          string  `json:"arts_skill_key"`
 }
 
 func (c *Content) UpdateClass(ctx context.Context, id int64, in UpdateClassInput, locale model.Locale) (ClassDTO, error) {
 	if strings.TrimSpace(in.Label) == "" {
 		return ClassDTO{}, fmt.Errorf("%w: label required", ErrInvalid)
 	}
+	tx, q, err := c.begin(ctx)
+	if err != nil {
+		return ClassDTO{}, err
+	}
+	defer tx.Rollback() //nolint:errcheck
+
 	hitDie := in.HitDie
-	_, err := c.q.UpdateClass(ctx, generated.UpdateClassParams{
+	_, err = q.UpdateClass(ctx, generated.UpdateClassParams{
 		Label: in.Label, Description: in.Description, Comment: in.Comment, SortOrder: in.SortOrder,
-		HitDie: &hitDie, TalentID: in.TalentID, HitDiePriority: in.HitDiePriority,
+		HitDie: &hitDie, HitDiePriority: in.HitDiePriority,
 		TalentPicksWarrior: in.TalentPicksWarrior, TalentPicksExpert: in.TalentPicksExpert,
 		TalentPicksAny: in.TalentPicksAny,
 		SavePrimary: in.SavePrimary, SavePrimaryPriority: in.SavePrimaryPriority,
@@ -430,6 +500,12 @@ func (c *Content) UpdateClass(ctx context.Context, id int64, in UpdateClassInput
 	})
 	if err != nil {
 		return ClassDTO{}, mapNotFound(err)
+	}
+	if err := rewriteClassTalents(ctx, q, id, in.TalentIDs); err != nil {
+		return ClassDTO{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return ClassDTO{}, err
 	}
 	return c.GetClass(ctx, id, locale)
 }

@@ -80,7 +80,7 @@ type PackClass struct {
 	IsFull                bool
 	HitDie                string
 	HitDiePriority        int64
-	TalentSlug            string
+	TalentSlugs           []string
 	TalentPicksWarrior    int64
 	TalentPicksExpert     int64
 	TalentPicksAny        int64
@@ -292,7 +292,8 @@ func WritePacks(outDir string, in PackInput) error {
 						"save": cl.SaveSecondary, "priority": cl.SaveSecondaryPriority,
 					},
 				},
-				"talentSlug":      cl.TalentSlug,
+				"talentSlugs":     cl.TalentSlugs,
+				"talentSlug":      "",
 				"cultures":        []any{},
 				"classSlugs":      []string{},
 				"backgroundSlugs": []string{},

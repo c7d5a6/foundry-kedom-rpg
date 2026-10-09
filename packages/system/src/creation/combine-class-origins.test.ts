@@ -11,6 +11,7 @@ function partial(
     grants: { skills: [], specializations: [], abilities: [] },
     cultures: [],
     talentSlug: "",
+    talentSlugs: [],
     classSlugs: [],
     free: { skillKey: "", specSlug: "" },
     growth: [],
@@ -65,6 +66,20 @@ describe("combineClassOrigins", () => {
   it("merges talent picks", () => {
     const combined = combineClassOrigins(warrior, "Warrior", expert, "Expert");
     expect(combined?.talentPicks).toEqual({ warrior: 1, expert: 1, any: 1 });
+  });
+
+  it("unions talentSlugs (first then second, unique)", () => {
+    const a = { ...warrior, talentSlugs: ["steel-will", "shared"] };
+    const b = { ...expert, talentSlugs: ["shared", "lorekeeper"] };
+    const combined = combineClassOrigins(a, "Warrior", b, "Expert");
+    expect(combined?.talentSlugs).toEqual(["steel-will", "shared", "lorekeeper"]);
+  });
+
+  it("falls back to legacy talentSlug when talentSlugs empty", () => {
+    const a = { ...warrior, talentSlug: "steel-will" };
+    const b = { ...expert, talentSlug: "quick-hands" };
+    const combined = combineClassOrigins(a, "Warrior", b, "Expert");
+    expect(combined?.talentSlugs).toEqual(["steel-will", "quick-hands"]);
   });
 
   it("rejects full-class rows", () => {

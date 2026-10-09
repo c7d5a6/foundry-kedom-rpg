@@ -126,10 +126,14 @@ func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 		if hitDie == "" {
 			hitDie = "1d6"
 		}
+		talentSlugs := cl.TalentSlugs
+		if talentSlugs == nil {
+			talentSlugs = []string{}
+		}
 		out.Classes = append(out.Classes, export.PackClass{
 			Slug: cl.Slug, Label: cl.Label, Description: cl.Description,
 			FoundryID: cl.FoundryID, IsFull: cl.IsFull, HitDie: hitDie,
-			HitDiePriority: cl.HitDiePriority, TalentSlug: cl.TalentSlug,
+			HitDiePriority: cl.HitDiePriority, TalentSlugs: talentSlugs,
 			TalentPicksWarrior: cl.TalentPicksWarrior, TalentPicksExpert: cl.TalentPicksExpert,
 			TalentPicksAny: cl.TalentPicksAny,
 			SavePrimary:    cl.SavePrimary, SavePrimaryPriority: cl.SavePrimaryPriority,

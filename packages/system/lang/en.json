@@ -432,11 +432,11 @@
       "Region": {
         "nerland": {
           "label": "Náirland",
-          "description": "\u003cp\u003eСуровый северный край холодных зим, тайги и бедных земель, отрезанный Дварфскими горами и морями от Нитэля. Здесь живут высокие светловолосые нерланцы: прямые, преданные долгу, ценящие договор и привыкшие к тяжёлому труду. Рядом с ними торгуют дварфы, оседают полурослики, а с окраин лесов и гор грозят гоблины, альпас и более тёмные и древние ужасы. Чтут старых богов и западные культы Мортизара.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://www.gailerauktionen.de/_Resources/Persistent/b/5/b/e/b5be965b20fd3f492bee350f01b67e00a2cdc10b/309-4.jpg\" alt=\"link\"\u003e\u003c/p\u003e"
+          "description": "\u003cp\u003e\u003cimg src=\"https://www.gailerauktionen.de/_Resources/Persistent/b/5/b/e/b5be965b20fd3f492bee350f01b67e00a2cdc10b/309-4.jpg\" alt=\"link\"\u003e\u003c/p\u003e\n\u003cp\u003eСуровый северный край холодных зим, тайги и бедных земель, отрезанный Дварфскими горами и морями от Нитэля. Здесь живут высокие светловолосые нерланцы: прямые, преданные долгу, ценящие договор и привыкшие к тяжёлому труду. Рядом с ними торгуют дварфы, оседают полурослики, а с окраин лесов и гор грозят гоблины, альпас и более тёмные и древние ужасы. Чтут старых богов и западные культы Мортизара.\u003c/p\u003e"
         },
         "nirland": {
           "label": "Náirland",
-          "description": "\u003cp\u003eСуровый северный край холодных зим, тайги и бедных земель, отрезанный Дварфскими горами и морями от Нитэля. Здесь живут высокие светловолосые нерланцы: прямые, преданные долгу, ценящие договор и привыкшие к тяжёлому труду. Рядом с ними торгуют дварфы, оседают полурослики, а с окраин лесов и гор грозят гоблины, альпас и более тёмные и древние ужасы. Чтут старых богов и западные культы Мортизара.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://www.gailerauktionen.de/_Resources/Persistent/b/5/b/e/b5be965b20fd3f492bee350f01b67e00a2cdc10b/309-4.jpg\" alt=\"link\"\u003e\u003c/p\u003e"
+          "description": "\u003cp\u003e\u003cimg src=\"https://www.gailerauktionen.de/_Resources/Persistent/b/5/b/e/b5be965b20fd3f492bee350f01b67e00a2cdc10b/309-4.jpg\" alt=\"link\"\u003e\u003c/p\u003e\n\u003cp\u003eСуровый северный край холодных зим, тайги и бедных земель, отрезанный Дварфскими горами и морями от Нитэля. Здесь живут высокие светловолосые нерланцы: прямые, преданные долгу, ценящие договор и привыкшие к тяжёлому труду. Рядом с ними торгуют дварфы, оседают полурослики, а с окраин лесов и гор грозят гоблины, альпас и более тёмные и древние ужасы. Чтут старых богов и западные культы Мортизара.\u003c/p\u003e"
         }
       },
       "Culture": {
@@ -450,7 +450,7 @@
         },
         "item-3": {
           "label": "Нерланцы",
-          "description": "\u003cp\u003eНерланцы — могучие дикари с севера, отгороженные от южных земель горами и редко появляющиеся там.\u003c/p\u003e\n\u003cp\u003eФизически сильные и грубые, они весьма востребованы для разнообразных тяжёлых работ. Многие из них отличаются в искусствах ремесел, часто работая кузнецами или плотниками, но также часто можно увидеть их с оружием в руках.\u003c/p\u003e\n\u003cp\u003eНерланцев легко узнать по высокому росту, светлым волосам и коже, простой одежде и грубому акценту. Другие культуры оценивают их как прямых, преданных долгу и простых людей. Как и дварфы, они ценят договоры, что делает их взаимоотношения взаимно уважительными.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/ancestry/nerland.webp\" alt=\"link\"\u003e\u003c/p\u003e"
+          "description": "\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/ancestry/nerland.webp\" alt=\"link\"\u003e\u003c/p\u003e\n\u003cp\u003eНерланцы — могучие дикари с севера, отгороженные от южных земель горами и редко появляющиеся там.\u003c/p\u003e\n\u003cp\u003eФизически сильные и грубые, они весьма востребованы для разнообразных тяжёлых работ. Многие из них отличаются в искусствах ремесел, часто работая кузнецами или плотниками, но также часто можно увидеть их с оружием в руках.\u003c/p\u003e\n\u003cp\u003eНерланцев легко узнать по высокому росту, светлым волосам и коже, простой одежде и грубому акценту. Другие культуры оценивают их как прямых, преданных долгу и простых людей. Как и дварфы, они ценят договоры, что делает их взаимоотношения взаимно уважительными.\u003c/p\u003e"
         },
         "item-4": {
           "label": "Дварфские горы"
@@ -521,11 +521,11 @@
       "Class": {
         "expert": {
           "label": "Expert",
-          "description": "\u003cp\u003eЭксперты — мастера искусств, блистающие в ролях воров, дипломатов, целителей, ученых, исследователей или ремесленников. Эти герои посвящают себя совершенствованию своих умений, доводя их до уровня легенд, способные на поистине волшебные подвиги. Обладая невероятным талантом к успеху, многие Эксперты способны в последний момент вырывая победу из пасти поражения. Их неутомимая жажда знаний и самосовершенствования простирается даже на умения, выходящие за рамки их основной специализации.\u003c/p\u003e\n\u003cp\u003eХотя их основное внимание сосредоточено на мирных умениях, Эксперты далеки от беззащитности. Многие из них способны постоять за себя в бою, а некоторые, как смертельные ассасины, используют свою скрытность и обман для быстрого летального эффекта. Эксперты — это воплощение стремления к знанию и мастерству, а их путь — это путь искусства и тайны.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/class/expert.webp\" alt=\"link\"\u003e\u003c/p\u003e"
+          "description": "\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/class/expert.webp\" alt=\"link\"\u003e\u003c/p\u003e\n\u003cp\u003eЭксперты — мастера искусств, блистающие в ролях воров, дипломатов, целителей, ученых, исследователей или ремесленников. Эти герои посвящают себя совершенствованию своих умений, доводя их до уровня легенд, способные на поистине волшебные подвиги. Обладая невероятным талантом к успеху, многие Эксперты способны в последний момент вырывая победу из пасти поражения. Их неутомимая жажда знаний и самосовершенствования простирается даже на умения, выходящие за рамки их основной специализации.\u003c/p\u003e\n\u003cp\u003eХотя их основное внимание сосредоточено на мирных умениях, Эксперты далеки от беззащитности. Многие из них способны постоять за себя в бою, а некоторые, как смертельные ассасины, используют свою скрытность и обман для быстрого летального эффекта. Эксперты — это воплощение стремления к знанию и мастерству, а их путь — это путь искусства и тайны.\u003c/p\u003e"
         },
         "warrior": {
           "label": "Warrior",
-          "description": "\u003cp\u003eВоин — герой, рожденный для битвы, несущий в себе врожденный дар к физическому насилию. От свирепых варваров и закаленных наемников до смелых деревенских парней и простых работников с талантом к кровопролитию — воины происходят из самых разных слоев общества. Формально они не всегда являются солдатами или ветеранами, но любой искатель приключений, встречающий вызовы грубой силой, может быть воином.\u003c/p\u003e\n\u003cp\u003eВоины обладают большим запасом здоровья, чем любой другой класс, выдерживая раны и трудности, которые бы сломили обычных людей. Они обладают превосходным боевым мастерством и наносят сокрушительный урон, делая их грозными противниками в бою.\u003c/p\u003e\n\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/class/warrior.webp\" alt=\"link\"\u003e\u003c/p\u003e"
+          "description": "\u003cp\u003e\u003cimg src=\"https://kedom.owlbeardm.com/img/class/warrior.webp\" alt=\"link\"\u003e\u003c/p\u003e\n\u003cp\u003eВоин — герой, рожденный для битвы, несущий в себе врожденный дар к физическому насилию. От свирепых варваров и закаленных наемников до смелых деревенских парней и простых работников с талантом к кровопролитию — воины происходят из самых разных слоев общества. Формально они не всегда являются солдатами или ветеранами, но любой искатель приключений, встречающий вызовы грубой силой, может быть воином.\u003c/p\u003e\n\u003cp\u003eВоины обладают большим запасом здоровья, чем любой другой класс, выдерживая раны и трудности, которые бы сломили обычных людей. Они обладают превосходным боевым мастерством и наносят сокрушительный урон, делая их грозными противниками в бою.\u003c/p\u003e"
         }
       },
       "Talent": {
@@ -544,6 +544,14 @@
         "item-2": {
           "label": "Везение ветерана",
           "description": "\u003cp\u003eOnce per scene, as an Instant action, the Warrior may turn a missed attack they have made into a hit. Alternately, they may turn a successful attack against them into a miss, also as an Instant action. This ability is particularly lethal when used with the Make a Snap Attack action and leveled against weaker monsters or ordinary human warriors.\u003c/p\u003e"
+        },
+        "item-3": {
+          "label": "Непревзойденное мастерство",
+          "description": "\u003cp\u003eOnce per scene, the Expert may reroll any non-combat skill check as an Instant action. This allows the Expert to make a roll and then immediately use this ability if the resulting total isn’t good enough to succeed. In cases where it matters, the better of the two rolls may be used.\u003c/p\u003e"
+        },
+        "item-4": {
+          "label": "Способный ученик",
+          "description": "\u003cp\u003eWhen you advance a character level, you gain an extra skill point which may only be spent on gaining or improving non-combat skills or raising attributes. You may save this point to spend later if you wish.\u003c/p\u003e"
         }
       }
     },
@@ -637,7 +645,7 @@
         "BackgroundHint": "Pick a background from this culture, take its free skill, roll 2d8 on the growth table, then pick any additional skill.",
         "BackgroundRollFlavor": "Character creation — background",
         "BackgroundSkillRollFlavor": "Character creation — background skill",
-        "BonusSkill": "3. Additional skill",
+        "BonusSkill": "Additional skill",
         "ClassHint": "Choose a class allowed for this culture, roll starting hit points, then enter a name.",
         "ConfirmHint": "Create this character?",
         "Create": "Create character",
@@ -648,8 +656,8 @@
         "DefaultName": "New Character",
         "DirectoryButton": "Create Character",
         "DuplicateAnySkill": "That skill is already granted — pick any skill instead:",
-        "FreeSkill": "1. Free skill",
-        "GrowthTable": "Growth table (1d8)",
+        "FreeSkill": "Free skill",
+        "GrowthTable": "Growth table (1d8) — reference for the rolls below:",
         "HpRollFlavor": "Character creation — hit points ({hitDie})",
         "IncompleteStep": "Finish this step before continuing.",
         "NameLabel": "Character name",
@@ -667,7 +675,7 @@
         "RollHp": "Roll HP",
         "RollSkill1": "Roll skill (1)",
         "RollSkill2": "Roll skill (2)",
-        "RollSkills": "2. Roll 2d8 (two independent 1d8)",
+        "RollSkills": "Roll skills (two independent 1d8)",
         "SetFourteen": "Set to 14",
         "SpecLabel": "Specialization",
         "StartingHp": "Starting HP {hp} (rolled {roll} on {hitDie} + Might)",

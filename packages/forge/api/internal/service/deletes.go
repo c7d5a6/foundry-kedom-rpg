@@ -35,7 +35,7 @@ func (c *Content) DeleteTalent(ctx context.Context, id int64) error {
 	if err != nil {
 		return err
 	}
-	classes, err := c.q.ListClassesByTalent(ctx, &id)
+	classes, err := c.q.ListClassesByTalent(ctx, id)
 	if err != nil {
 		return err
 	}

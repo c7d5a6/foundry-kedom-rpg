@@ -527,7 +527,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const regionSlug = (detailsRaw.region ?? "").trim();
 
     const originItems = this.actor.items.filter((item) => (item.type as string) === "origin");
-    const findOrigin = (subType: string, label: string, slugHint = "") => {
+    const findOrigin = (
+      subType: string,
+      label: string,
+      slugHint = "",
+      contentKind?: "Region" | "Culture" | "Background" | "Class",
+    ) => {
       const bySlug = slugHint
         ? originItems.find((item) => {
             const sys = item.system as unknown as { subType?: string; slug?: string };
@@ -536,10 +541,18 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         : undefined;
       if (bySlug) return bySlug;
       return originItems.find((item) => {
-        const sys = item.system as unknown as { subType?: string };
+        const sys = item.system as unknown as { subType?: string; slug?: string };
         if (sys.subType !== subType) return false;
         if (!label) return true;
-        return item.name === label;
+        if (item.name === label) return true;
+        // Pack item names may differ from localized details labels.
+        if (contentKind) {
+          const slug = (sys.slug ?? "").trim();
+          if (slug && localizeContentLabel(contentKind, slug, item.name ?? slug) === label) {
+            return true;
+          }
+        }
+        return false;
       });
     };
 
@@ -568,10 +581,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       return { label, tooltipHtml, itemId };
     };
 
-    const regionItem = findOrigin("region", "", regionSlug);
-    const raceItem = findOrigin("race", culture);
-    const backgroundItem = findOrigin("background", background);
-    const classItem = findOrigin("class", className);
+    const regionItem = findOrigin("region", "", regionSlug, "Region");
+    const raceItem = findOrigin("race", culture, "", "Culture");
+    const backgroundItem = findOrigin("background", background, "", "Background");
+    const classItem = findOrigin("class", className, "", "Class");
     const raceSlug = (
       (raceItem?.system as unknown as { slug?: string } | undefined)?.slug ?? ""
     ).trim();

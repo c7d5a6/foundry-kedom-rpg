@@ -1198,6 +1198,7 @@
   border-bottom: 1px dotted color-mix(in srgb, currentColor 55%, transparent);
 }
 
+.kedom.sheet .kedom-identity__tip:hover,
 .kedom.sheet .kedom-identity__open:hover {
   color: var(--kedom-text-primary, var(--kedom-color-primary-50, #fff4e1));
   border-bottom-style: solid;
@@ -2674,6 +2675,13 @@ button.kedom-skill__tag.is-blocked:hover {
 }
 
 /* —— Character create wizard —— */
+.kedom-create-wizard {
+  --kedom-wizard-ready: #7ec8a0;
+  --kedom-wizard-btn-bg: var(--kedom-color-primary-500, #251a31);
+  --kedom-wizard-btn-border: var(--kedom-color-gold-300, #df7126);
+  --kedom-wizard-btn-text: var(--kedom-color-gold-100, #faf591);
+}
+
 .kedom-create-wizard .kedom-create-wizard__form {
   display: flex;
   flex-direction: column;
@@ -2701,6 +2709,36 @@ button.kedom-skill__tag.is-blocked:hover {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
+}
+
+/*
+ * Opaque action chrome — content controls only (not window toolbar / form footer).
+ * Matches sheet control language.
+ */
+.kedom-create-wizard__scroll button[data-action],
+.kedom-create-wizard__scroll .kedom-create-wizard__choice,
+.kedom-create-wizard__scroll .kedom-create-wizard__skill:is(button) {
+  appearance: none;
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--kedom-wizard-btn-border);
+  border-radius: 0.2rem;
+  background: var(--kedom-wizard-btn-bg);
+  color: var(--kedom-wizard-btn-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.kedom-create-wizard__scroll button[data-action]:hover:not(:disabled),
+.kedom-create-wizard__scroll .kedom-create-wizard__choice:hover:not(:disabled),
+.kedom-create-wizard__scroll .kedom-create-wizard__skill:is(button):hover:not(:disabled) {
+  background: var(--kedom-color-primary-400, #3a2a48);
+}
+
+.kedom-create-wizard__scroll button[data-action]:disabled,
+.kedom-create-wizard__scroll .kedom-create-wizard__choice:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .kedom-create-wizard__abilities {
@@ -2755,27 +2793,89 @@ button.kedom-skill__tag.is-blocked:hover {
   font-weight: 600;
 }
 
-.kedom-create-wizard__choice.is-selected {
-  outline: 1px solid color-mix(in srgb, var(--kedom-color-gold-200, #fdbb42) 70%, transparent);
-  background: color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 22%, transparent);
+.kedom-create-wizard__scroll button[data-action].is-selected,
+.kedom-create-wizard__scroll .kedom-create-wizard__choice.is-selected,
+.kedom-create-wizard__scroll .kedom-create-wizard__skill.is-selected {
+  border-color: var(--kedom-color-gold-50, #fff4a3);
+  border-width: 2px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kedom-color-gold-50, #fff4a3) 40%, transparent);
+  background: var(--kedom-color-gold-300, #df7126);
+  color: var(--kedom-color-primary-700, #12111a);
+  font-weight: 700;
 }
 
-.kedom-create-wizard__choice:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+.kedom-create-wizard__scroll button[data-action].is-selected:hover:not(:disabled),
+.kedom-create-wizard__scroll .kedom-create-wizard__choice.is-selected:hover:not(:disabled) {
+  background: var(--kedom-color-gold-200, #fdbb42);
+  color: var(--kedom-color-primary-700, #12111a);
+}
+
+.kedom-create-wizard__skill.is-ready {
+  border-color: color-mix(in srgb, var(--kedom-wizard-ready) 70%, transparent);
+  background: color-mix(in srgb, var(--kedom-wizard-ready) 18%, var(--kedom-wizard-btn-bg));
+  color: var(--kedom-text-primary, #fff4e1);
 }
 
 .kedom-create-wizard__skill-steps {
-  margin: 0.5rem 0 0;
+  margin: 0.75rem 0 0;
   padding-left: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1rem;
+}
+
+.kedom-create-wizard__skill-steps > li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .kedom-create-wizard__step-label {
-  margin: 0 0 0.35rem;
+  margin: 0;
   font-weight: 600;
+}
+
+.kedom-create-wizard__step-hint {
+  margin: 0;
+}
+
+.kedom-create-wizard__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.55rem;
+  border: 1px dashed color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 45%, transparent);
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--kedom-color-primary-600, #14101a) 35%, transparent);
+}
+
+.kedom-create-wizard__growth-table {
+  list-style: none;
+  margin: 0 0 0.35rem;
+  padding: 0.35rem 0.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  border: 1px solid color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 25%, transparent);
+  background: color-mix(in srgb, var(--kedom-color-primary-600, #14101a) 40%, transparent);
+  font-size: 0.85rem;
+}
+
+.kedom-create-wizard__growth-table__row {
+  display: flex;
+  gap: 0.4rem;
+  opacity: 0.9;
+}
+
+.kedom-create-wizard__growth-table__row.is-duplicate {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.kedom-create-wizard__growth-table__n {
+  font-variant-numeric: tabular-nums;
+  min-width: 1.1rem;
+  opacity: 0.75;
 }
 
 .kedom-create-wizard__skill-chips {
@@ -2786,7 +2886,8 @@ button.kedom-skill__tag.is-blocked:hover {
 }
 
 .kedom-create-wizard__skill {
-  appearance: none;
+  display: inline-flex;
+  align-items: center;
   border: 1px solid color-mix(in srgb, var(--kedom-color-gold-200, #fdbb42) 40%, transparent);
   background: color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 10%, #1a1612);
   color: inherit;
@@ -2794,34 +2895,15 @@ button.kedom-skill__tag.is-blocked:hover {
   padding: 0.35rem 0.55rem;
   font-size: 0.85rem;
   text-align: left;
-  cursor: pointer;
 }
 
-.kedom-create-wizard__skill.is-free {
+.kedom-create-wizard__skill.is-rolled {
   cursor: default;
-  opacity: 0.85;
-  border-style: dashed;
+  opacity: 0.9;
 }
 
-.kedom-create-wizard__skill:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
-  border-style: dashed;
-}
-
-.kedom-create-wizard__skill.is-selected {
-  border-color: var(--kedom-color-gold-200, #fdbb42);
-  background: color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 28%, #1a1612);
-}
-
-.kedom-create-wizard__skill.is-rolled,
-.kedom-create-wizard__skill.is-substitute {
+.kedom-create-wizard__skill.is-ready {
   cursor: default;
-}
-
-.kedom-create-wizard__skill.is-substitute {
-  border-color: color-mix(in srgb, #7ec8a0 55%, transparent);
-  background: color-mix(in srgb, #7ec8a0 12%, #1a1612);
 }
 
 .kedom-create-wizard__sub-arrow {
@@ -2830,25 +2912,22 @@ button.kedom-skill__tag.is-blocked:hover {
 }
 
 .kedom-create-wizard__sub-note {
-  margin: 0.25rem 0;
+  margin: 0;
   font-size: 0.8rem;
   opacity: 0.85;
-}
-
-.kedom-create-wizard__roll-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  padding: 0.5rem;
-  border: 1px dashed color-mix(in srgb, var(--kedom-color-gold-400, #a15537) 35%, transparent);
-  border-radius: 0.25rem;
 }
 
 .kedom-create-wizard__spec {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  margin-top: 0.25rem;
+  margin: 0.15rem 0 0 0.65rem;
+  padding: 0.45rem 0.5rem;
+  border-left: 2px solid color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 45%, transparent);
+}
+
+.kedom-create-wizard__spec .kedom-create-wizard__choice {
+  border-style: dotted;
 }
 
 .kedom-create-wizard__spec label {
@@ -2856,10 +2935,6 @@ button.kedom-skill__tag.is-blocked:hover {
   flex-direction: column;
   gap: 0.2rem;
   font-size: 0.8rem;
-}
-
-.kedom-create-wizard__ability button.is-selected {
-  outline: 1px solid color-mix(in srgb, var(--kedom-color-gold-200, #fdbb42) 70%, transparent);
 }
 
 .kedom-create-wizard__bg-detail {
@@ -2884,6 +2959,7 @@ button.kedom-skill__tag.is-blocked:hover {
 .kedom-create-wizard__desc {
   font-size: 0.9em;
   line-height: 1.35;
+  overflow: auto;
 }
 
 .kedom-create-wizard__desc > *:first-child {
@@ -2892,6 +2968,26 @@ button.kedom-skill__tag.is-blocked:hover {
 
 .kedom-create-wizard__desc > *:last-child {
   margin-bottom: 0;
+}
+
+.kedom-create-wizard__desc img {
+  float: right;
+  min-width: 200px;
+  max-width: 45%;
+  height: auto;
+  margin: 0 0 0.75rem 0.85rem;
+}
+
+.kedom-create-wizard__desc::after,
+.kedom-create-wizard__selection-detail::after,
+.kedom-create-wizard__bg-detail > .kedom-create-wizard__desc::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.kedom-create-wizard__talent {
+  clear: both;
 }
 
 .kedom-create-wizard__talent h4 {
@@ -2905,10 +3001,6 @@ button.kedom-skill__tag.is-blocked:hover {
   align-items: flex-start;
   gap: 0.35rem;
   margin-top: 0.5rem;
-}
-
-.kedom-create-wizard__skill.is-duplicate {
-  opacity: 0.55;
 }
 
 .kedom-create-wizard__rolls {

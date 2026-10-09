@@ -46,6 +46,7 @@ import {
   skillNeedsSpecialization,
   type ResolvePick,
   type ResolvedSkillGrant,
+  type RolledResolveState,
 } from "../../creation/resolve-background.ts";
 
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
@@ -428,16 +429,23 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     }));
 
     const cultureTalent = culture ? getCatalogTalent(catalog, culture.talentSlug) : undefined;
-    const classTalent = selectedClass
-      ? getCatalogTalent(catalog, selectedClass.talentSlug)
-      : undefined;
+    const classTalents = selectedClass
+      ? selectedClass.talentSlugs
+          .map((slug) => getCatalogTalent(catalog, slug))
+          .filter((t): t is NonNullable<typeof t> => Boolean(t))
+      : [];
 
     const regionDescriptionHtml = region ? await enrichHtml(region.description) : "";
     const cultureDescriptionHtml = culture ? await enrichHtml(culture.description) : "";
     const cultureTalentHtml = cultureTalent ? await enrichHtml(cultureTalent.description) : "";
     const backgroundDescriptionHtml = background ? await enrichHtml(background.description) : "";
     const classDescriptionHtml = selectedClass ? await enrichHtml(selectedClass.description) : "";
-    const classTalentHtml = classTalent ? await enrichHtml(classTalent.description) : "";
+    const classTalentBlocks = await Promise.all(
+      classTalents.map(async (t) => ({
+        name: t.name,
+        html: await enrichHtml(t.description),
+      })),
+    );
 
     return {
       stepId,
@@ -466,6 +474,8 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       roll2Label: roll2Entry ? this.#entryLabel(roll2Entry) : "",
       roll1NeedsCombat: roll1State?.needsCombatPick ?? false,
       roll1NeedsAny: roll1State?.needsAnySkill ?? false,
+      // Keep skill chooser while wild/substitute pick is incomplete (incl. needing a specialization).
+      roll1ShowAnySkills: this.#showAnySkillChooser(roll1State, roll1Entry),
       roll1NeedsSpec: roll1State?.needsSpecialization ?? false,
       roll1Substituted: roll1State?.substituted ?? false,
       roll1RolledLabel:
@@ -476,6 +486,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       roll1SpecUI: this.#specUI("roll1", d.roll1Wild, ownedBeforeRoll1),
       roll2NeedsCombat: roll2State?.needsCombatPick ?? false,
       roll2NeedsAny: roll2State?.needsAnySkill ?? false,
+      roll2ShowAnySkills: this.#showAnySkillChooser(roll2State, roll2Entry),
       roll2NeedsSpec: roll2State?.needsSpecialization ?? false,
       roll2Substituted: roll2State?.substituted ?? false,
       roll2RolledLabel:
@@ -510,8 +521,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       backgroundDescriptionHtml,
       showBackgroundDetail: Boolean(background),
       classDescriptionHtml,
-      classTalentName: classTalent?.name ?? "",
-      classTalentHtml,
+      classTalentBlocks,
       showClassDetail: Boolean(selectedClass),
       confirmLines: this.#confirmLines(catalog),
       canNext: this.#canAdvance(catalog),
@@ -577,6 +587,22 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     return `${skill} (${spec})`;
   }
 
+  /**
+   * Keep the any-skill grid visible for wild/substitute picks — including after a
+   * specialization is chosen — so the player can change their mind.
+   */
+  #showAnySkillChooser(
+    state: RolledResolveState | null,
+    entry: GrowthEntry | null,
+  ): boolean {
+    if (!state) return false;
+    if (state.needsCombatPick) return false;
+    if (state.needsAnySkill) return true;
+    // Substitute or anySkill wild pick: stay open even once the grant resolves.
+    if (state.substituted || entry?.kind === "anySkill") return true;
+    return false;
+  }
+
   #ownedGrants(
     catalog: OriginsCatalog,
     opts?: {
@@ -635,7 +661,12 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const background = this.#selectedBackground(catalog);
     if (background) lines.push(background.name);
     const cls = this.#selectedClass(catalog);
-    if (cls) lines.push(cls.name);
+    if (cls) {
+      const talentNames = cls.talentSlugs
+        .map((slug) => getCatalogTalent(catalog, slug)?.name)
+        .filter((n): n is string => Boolean(n));
+      lines.push(talentNames.length ? `${cls.name} (${talentNames.join(", ")})` : cls.name);
+    }
     const hp = this.#startingHp();
     if (hp !== null && cls) {
       lines.push(
@@ -1159,8 +1190,22 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
         });
       }
       if (classPayload) items.push(classPayload);
+      else {
+        items.push({
+          name: classLabel,
+          type: "origin",
+          img: "icons/svg/combat.svg",
+          system: {
+            subType: "class",
+            slug: d.classKey,
+            description: catalogClass.description,
+          },
+        });
+      }
       this.#pushTalentPayload(items, catalog, culture.talentSlug, seenTalents);
-      this.#pushTalentPayload(items, catalog, catalogClass.talentSlug, seenTalents);
+      for (const slug of catalogClass.talentSlugs) {
+        this.#pushTalentPayload(items, catalog, slug, seenTalents);
+      }
     } else {
       items.push(
         {
@@ -1187,6 +1232,16 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
             subType: "background",
             slug: d.backgroundKey,
             description: background.description,
+          },
+        },
+        {
+          name: classLabel,
+          type: "origin",
+          img: "icons/svg/combat.svg",
+          system: {
+            subType: "class",
+            slug: d.classKey,
+            description: catalogClass.description,
           },
         },
       );

@@ -37,8 +37,10 @@ export type OriginDataFields = {
   grants: GrantsFields;
   /** Region only. */
   cultures: RegionCultureFields[];
-  /** Race (culture) only. */
+  /** Race (culture) only — single talent. Also legacy single class talent. */
   talentSlug: string;
+  /** Class only — ordered granted talents (preferred). */
+  talentSlugs: string[];
   classSlugs: string[];
   /** Background only. */
   free: BackgroundSkillPickFields;
@@ -59,5 +61,16 @@ export type OriginDataFields = {
    */
   bannerImg: string;
 };
+
+/** Class granted talents: prefer talentSlugs[]; fall back to legacy talentSlug. */
+export function classTalentSlugs(system: {
+  talentSlugs?: readonly string[] | null;
+  talentSlug?: string | null;
+}): string[] {
+  const fromArray = (system.talentSlugs ?? []).map((s) => s.trim()).filter(Boolean);
+  if (fromArray.length) return [...new Set(fromArray)];
+  const legacy = (system.talentSlug ?? "").trim();
+  return legacy ? [legacy] : [];
+}
 
 export type { OriginSubtype, GrantsFields };

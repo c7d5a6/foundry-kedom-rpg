@@ -37,6 +37,7 @@ function classOrigin(
     grants: { skills: [], specializations: [], abilities: [] },
     cultures: [],
     talentSlug: "",
+    talentSlugs: [],
     classSlugs: [],
     free: { skillKey: "", specSlug: "" },
     growth: [],

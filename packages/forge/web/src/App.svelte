@@ -775,7 +775,7 @@
             translations={selectedClass.translations ?? {}}
             classControls={{
               hit_die: selectedClass.hit_die ?? "",
-              talent_id: selectedClass.talent_id,
+              talent_ids: selectedClass.talent_ids ?? [],
               hit_die_priority: selectedClass.hit_die_priority,
               talent_picks_warrior: selectedClass.talent_picks_warrior,
               talent_picks_expert: selectedClass.talent_picks_expert,
@@ -785,7 +785,9 @@
               save_secondary: selectedClass.save_secondary ?? "",
               save_secondary_priority: selectedClass.save_secondary_priority,
               arts_skill_key: selectedClass.arts_skill_key ?? "",
-              talents: talents.map((t) => ({ id: t.id, slug: t.slug, label: t.label })),
+              talents: talents
+                .filter((t) => t.category === "class")
+                .map((t) => ({ id: t.id, slug: t.slug, label: t.label })),
               saves: saveOptions,
               skills: skills.map((s) => ({ slug: s.slug, label: s.label })),
             }}
