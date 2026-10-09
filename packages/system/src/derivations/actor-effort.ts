@@ -42,8 +42,7 @@ function artCommits(actor: Actor.Implementation): EffortArtCommit[] {
       const sys = item.system as unknown as ArtDataFields;
       return {
         commitment: sys.commitment,
-        effortCommitted: Boolean(sys.effortCommitted),
-        concentrating: Boolean(sys.concentrating),
+        activeUses: Number(sys.activeUses) || 0,
       };
     });
 }

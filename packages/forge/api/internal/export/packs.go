@@ -347,9 +347,8 @@ func WritePacks(outDir string, in PackInput) error {
 				"slug":            a.Slug,
 				"description":     renderMD(md, a.Description),
 				"classSlug":       a.ClassSlug,
-				"commitment":      a.Commitment,
-				"effortCommitted": false,
-				"concentrating":   false,
+				"commitment": a.Commitment,
+				"activeUses": 0,
 			},
 			"_key": "!items!" + a.FoundryID,
 		}

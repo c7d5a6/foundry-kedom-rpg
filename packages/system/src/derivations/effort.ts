@@ -5,21 +5,21 @@
  *       + (1 if Adventurer and both partials have Effort)
  * clamp min 1
  *
- * current = max − committed (scene/day/concentration each count 1 when active)
+ * current = max − sum(activeUses) for non-free arts (each use is a separate commit)
  */
 
 export type EffortCommitment = "scene" | "day" | "concentration" | "free";
 
 export type EffortArtCommit = {
   commitment: EffortCommitment | string;
-  effortCommitted: boolean;
-  concentrating: boolean;
+  /** How many separate uses currently hold Effort (0 for free). */
+  activeUses: number;
 };
 
 export type DeriveEffortMaxInput = {
   /** Ability mods for Effort ability keys (empty → treat as 0). */
   abilityMods: readonly number[];
-  /** Proficiency bonuses for Effort skills (empty → treat as 0). */
+  /** Skill proficiency *tier* bonuses for Effort skills (trained=2; empty → 0). */
   skillProficiencyBonuses: readonly number[];
   /** Adventurer: +1 only when both partials have a non-empty Effort skill. */
   bothPartialsHaveEffort?: boolean;
@@ -35,17 +35,17 @@ export function deriveEffortMax(input: DeriveEffortMaxInput): number {
   return Math.max(1, max);
 }
 
+/** Normalized active use count for Effort accounting (free → 0). */
+export function artActiveUses(art: EffortArtCommit): number {
+  if (art.commitment === "free") return 0;
+  const n = art.activeUses;
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.floor(n));
+}
+
 export function countCommittedEffort(arts: readonly EffortArtCommit[]): number {
   let n = 0;
-  for (const art of arts) {
-    const c = art.commitment;
-    if (c === "free") continue;
-    if (c === "concentration") {
-      if (art.concentrating) n += 1;
-      continue;
-    }
-    if ((c === "scene" || c === "day") && art.effortCommitted) n += 1;
-  }
+  for (const art of arts) n += artActiveUses(art);
   return n;
 }
 
@@ -93,10 +93,7 @@ export function normalizeSlotsByLevel(raw: readonly number[] | undefined): numbe
   return out;
 }
 
-/** Whether an art currently holds Effort. */
+/** Whether an art currently holds any Effort. */
 export function artHoldsEffort(art: EffortArtCommit): boolean {
-  if (art.commitment === "free") return false;
-  if (art.commitment === "concentration") return art.concentrating;
-  if (art.commitment === "scene" || art.commitment === "day") return art.effortCommitted;
-  return false;
+  return artActiveUses(art) > 0;
 }

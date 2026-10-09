@@ -77,9 +77,9 @@ max = max(abilityMods from class Effort ability keys)
 clamp min 1
 ```
 
-`current = max −` commits on owned **`art`** items (`effortCommitted` for scene/day,
-`concentrating` for concentration; free uses cost nothing). End Scene / End Day (owner)
-clear scene/day commits; concentration is released manually.
+`current = max −` sum of `activeUses` on owned **`art`** items (each Use/Concentrate
+adds one commit; free arts never increment). End Scene / End Day (owner) clear
+scene/day uses; concentration is released one use at a time from the Committed list.
 
 Class origins export `arts.skillKey`, `arts.abilityKeys`, and `arts.slotsByLevel` (levels
 1–10). The sheet shows owned arts vs slot budget (informational). Arts are Foundry item type

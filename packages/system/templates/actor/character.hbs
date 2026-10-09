@@ -340,7 +340,7 @@
                       data-item-id="{{id}}"
                       {{#unless @root.editable}}disabled{{/unless}}
                     >
-                      {{#if concentrating}}{{localize "KEDOM.Art.Release"}}{{else}}{{localize "KEDOM.Art.Concentrate"}}{{/if}}
+                      {{localize "KEDOM.Art.Concentrate"}}
                     </button>
                   {{else}}
                     <button
@@ -387,7 +387,23 @@
           <div class="kedom-arts-used__group">
             <h4>{{localize "KEDOM.Art.Commitment.concentration"}}</h4>
             {{#if usedConcentration.length}}
-              <ul>{{#each usedConcentration}}<li>{{name}}</li>{{/each}}</ul>
+              <ul>
+                {{#each usedConcentration}}
+                  <li class="kedom-arts-used__row">
+                    <span>{{name}}</span>
+                    <button
+                      type="button"
+                      class="kedom-arts-used__release"
+                      data-action="releaseArtEffort"
+                      data-item-id="{{id}}"
+                      {{#unless @root.editable}}disabled{{/unless}}
+                      title="{{localize "KEDOM.Art.Release"}}"
+                    >
+                      <i class="fa-solid fa-xmark" inert></i>
+                    </button>
+                  </li>
+                {{/each}}
+              </ul>
             {{else}}
               <p class="kedom-arts-used__empty">—</p>
             {{/if}}
@@ -395,7 +411,23 @@
           <div class="kedom-arts-used__group">
             <h4>{{localize "KEDOM.Art.Commitment.scene"}}</h4>
             {{#if usedScene.length}}
-              <ul>{{#each usedScene}}<li>{{name}}</li>{{/each}}</ul>
+              <ul>
+                {{#each usedScene}}
+                  <li class="kedom-arts-used__row">
+                    <span>{{name}}</span>
+                    <button
+                      type="button"
+                      class="kedom-arts-used__release"
+                      data-action="releaseArtEffort"
+                      data-item-id="{{id}}"
+                      {{#unless @root.editable}}disabled{{/unless}}
+                      title="{{localize "KEDOM.Art.Release"}}"
+                    >
+                      <i class="fa-solid fa-xmark" inert></i>
+                    </button>
+                  </li>
+                {{/each}}
+              </ul>
             {{else}}
               <p class="kedom-arts-used__empty">—</p>
             {{/if}}
@@ -403,7 +435,23 @@
           <div class="kedom-arts-used__group">
             <h4>{{localize "KEDOM.Art.Commitment.day"}}</h4>
             {{#if usedDay.length}}
-              <ul>{{#each usedDay}}<li>{{name}}</li>{{/each}}</ul>
+              <ul>
+                {{#each usedDay}}
+                  <li class="kedom-arts-used__row">
+                    <span>{{name}}</span>
+                    <button
+                      type="button"
+                      class="kedom-arts-used__release"
+                      data-action="releaseArtEffort"
+                      data-item-id="{{id}}"
+                      {{#unless @root.editable}}disabled{{/unless}}
+                      title="{{localize "KEDOM.Art.Release"}}"
+                    >
+                      <i class="fa-solid fa-xmark" inert></i>
+                    </button>
+                  </li>
+                {{/each}}
+              </ul>
             {{else}}
               <p class="kedom-arts-used__empty">—</p>
             {{/if}}

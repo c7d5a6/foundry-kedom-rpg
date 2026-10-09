@@ -43,7 +43,7 @@ import { type ArmorDataFields } from "../../data/item/armor.ts";
 import type { ArtDataFields } from "../../data/item/art.ts";
 import { normalizeWeaponSkill, type WeaponDataFields } from "../../data/item/weapon.ts";
 import { summarizeActorEffort } from "../../derivations/actor-effort.ts";
-import { artHoldsEffort } from "../../derivations/effort.ts";
+import { artActiveUses, artHoldsEffort } from "../../derivations/effort.ts";
 import { postArtUseChat } from "../../chat/art-card.ts";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -148,6 +148,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       deleteTalent: CharacterSheet.#onDeleteTalent,
       useArt: CharacterSheet.#onUseArt,
       toggleArtConcentration: CharacterSheet.#onToggleArtConcentration,
+      releaseArtEffort: CharacterSheet.#onReleaseArtEffort,
       editArt: CharacterSheet.#onEditArt,
       deleteArt: CharacterSheet.#onDeleteArt,
       endArtScene: CharacterSheet.#onEndArtScene,
@@ -697,10 +698,13 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           secrets: this.actor.isOwner,
           relativeTo: item,
         });
+        const activeUses = artActiveUses({
+          commitment: system.commitment,
+          activeUses: Number(system.activeUses) || 0,
+        });
         const holding = artHoldsEffort({
           commitment: system.commitment,
-          effortCommitted: system.effortCommitted,
-          concentrating: system.concentrating,
+          activeUses,
         });
         return {
           id: item.id,
@@ -710,17 +714,30 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           commitmentLabel: game.i18n.localize(`KEDOM.Art.Commitment.${system.commitment}`),
           isFree: system.commitment === "free",
           isConcentration: system.commitment === "concentration",
-          concentrating: Boolean(system.concentrating),
-          effortCommitted: Boolean(system.effortCommitted),
+          activeUses,
           holding,
           enrichedDescription,
           hasDescription: Boolean((system.description ?? "").replace(/<[^>]*>/g, "").trim()),
         };
       }),
     );
-    const usedConcentration = arts.filter((a) => a.isConcentration && a.concentrating);
-    const usedScene = arts.filter((a) => a.commitment === "scene" && a.effortCommitted);
-    const usedDay = arts.filter((a) => a.commitment === "day" && a.effortCommitted);
+    /** One list row per active use so stacked uses can be released individually. */
+    const expandUses = (
+      rows: typeof arts,
+      commitment: string,
+    ): { id: string; name: string; useIndex: number }[] => {
+      const out: { id: string; name: string; useIndex: number }[] = [];
+      for (const a of rows) {
+        if (a.commitment !== commitment || a.activeUses < 1) continue;
+        for (let i = 0; i < a.activeUses; i++) {
+          out.push({ id: a.id, name: a.name, useIndex: i });
+        }
+      }
+      return out;
+    };
+    const usedConcentration = expandUses(arts, "concentration");
+    const usedScene = expandUses(arts, "scene");
+    const usedDay = expandUses(arts, "day");
     const isArtOwner = this.actor.isOwner;
 
     const actorEffects: {
@@ -1028,23 +1045,9 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const art = this.actor.items.get(itemId);
     if (!art || (art.type as string) !== "art") return;
     const system = art.system as unknown as ArtDataFields;
+    // Concentration arts use Concentrate only.
+    if (system.commitment === "concentration") return;
     if (system.commitment === "free") {
-      await postArtUseChat(art);
-      return;
-    }
-    if (system.commitment === "concentration") {
-      if (!system.concentrating) {
-        const effort = summarizeActorEffort(this.actor);
-        if (effort.value < 1) {
-          ui.notifications?.warn(game.i18n.localize("KEDOM.Art.NoEffort"));
-          return;
-        }
-        await art.update({ "system.concentrating": true });
-      }
-      await postArtUseChat(art);
-      return;
-    }
-    if (system.effortCommitted) {
       await postArtUseChat(art);
       return;
     }
@@ -1053,7 +1056,8 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       ui.notifications?.warn(game.i18n.localize("KEDOM.Art.NoEffort"));
       return;
     }
-    await art.update({ "system.effortCommitted": true });
+    const uses = Math.max(0, Math.floor(Number(system.activeUses) || 0));
+    await art.update({ "system.activeUses": uses + 1 });
     await postArtUseChat(art);
   }
 
@@ -1069,16 +1073,31 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (!art || (art.type as string) !== "art") return;
     const system = art.system as unknown as ArtDataFields;
     if (system.commitment !== "concentration") return;
-    if (system.concentrating) {
-      await art.update({ "system.concentrating": false });
-      return;
-    }
     const effort = summarizeActorEffort(this.actor);
     if (effort.value < 1) {
       ui.notifications?.warn(game.i18n.localize("KEDOM.Art.NoEffort"));
       return;
     }
-    await art.update({ "system.concentrating": true });
+    const uses = Math.max(0, Math.floor(Number(system.activeUses) || 0));
+    await art.update({ "system.activeUses": uses + 1 });
+    await postArtUseChat(art);
+  }
+
+  static async #onReleaseArtEffort(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (!this.isEditable || !this.actor) return;
+    const itemId = target.dataset.itemId;
+    if (!itemId) return;
+    const art = this.actor.items.get(itemId);
+    if (!art || (art.type as string) !== "art") return;
+    const system = art.system as unknown as ArtDataFields;
+    if (system.commitment === "free") return;
+    const uses = Math.max(0, Math.floor(Number(system.activeUses) || 0));
+    if (uses < 1) return;
+    await art.update({ "system.activeUses": uses - 1 });
   }
 
   static async #onEditArt(
@@ -1120,9 +1139,9 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       .filter((item) => (item.type as string) === "art")
       .filter((item) => {
         const s = item.system as unknown as ArtDataFields;
-        return s.commitment === "scene" && s.effortCommitted;
+        return s.commitment === "scene" && (Number(s.activeUses) || 0) > 0;
       })
-      .map((item) => ({ _id: item.id, "system.effortCommitted": false }));
+      .map((item) => ({ _id: item.id, "system.activeUses": 0 }));
     if (updates.length) await this.actor.updateEmbeddedDocuments("Item", updates);
   }
 
@@ -1132,9 +1151,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       .filter((item) => (item.type as string) === "art")
       .filter((item) => {
         const s = item.system as unknown as ArtDataFields;
-        return (s.commitment === "scene" || s.commitment === "day") && s.effortCommitted;
+        return (
+          (s.commitment === "scene" || s.commitment === "day") &&
+          (Number(s.activeUses) || 0) > 0
+        );
       })
-      .map((item) => ({ _id: item.id, "system.effortCommitted": false }));
+      .map((item) => ({ _id: item.id, "system.activeUses": 0 }));
     if (updates.length) await this.actor.updateEmbeddedDocuments("Item", updates);
   }
 

@@ -3333,14 +3333,86 @@ button.kedom-skill__tag.is-blocked:hover {
 }
 
 .kedom-arts-used__group ul {
+  list-style: none;
   margin: 0;
-  padding-left: 1.1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.kedom-arts-used__row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.kedom-arts-used__row span {
+  flex: 1;
+  min-width: 0;
+}
+
+.kedom-arts-used__release {
+  flex: 0 0 auto;
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  line-height: 1;
+  font-size: 0.7rem;
 }
 
 .kedom-arts-panel__empty,
 .kedom-arts-used__empty {
   opacity: 0.7;
   font-size: 0.85rem;
+}
+
+/* Art chat card — keep thumbnail small (Foundry message-content imgs are otherwise full-width). */
+.kedom-chat--art {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.kedom-chat--art .kedom-chat__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.kedom-chat--art .kedom-chat__img {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  max-width: 2rem;
+  max-height: 2rem;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.kedom-chat--art .kedom-chat__titles {
+  min-width: 0;
+}
+
+.kedom-chat--art .kedom-chat__name {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.kedom-chat--art .kedom-chat__meta {
+  margin: 0.1rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.kedom-chat--art .kedom-chat__body {
+  font-size: 0.9rem;
+}
+
+.kedom-chat--art .kedom-chat__body img {
+  max-width: 100%;
+  height: auto;
 }
 
 /* —— Talent grants panel —— */
