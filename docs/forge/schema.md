@@ -293,14 +293,17 @@ id|label)` across free + growth (wildcards may repeat).
 
 ```
 class:         id, slug, …, hit_die / hit_die_priority, talent picks, prioritized saves,
-               arts_skill_key, …
+               effort_skill_key, effort_ability_key_1/2, art_slots_json, …
 class_talent:  class_id, talent_id, sort_order
                PRIMARY KEY (class_id, talent_id)
+art:           id, slug, …, class_id, commitment, effects_json, …
 ```
 
 In addition to roster flags, class rows carry Foundry progression fields used by pack export:
 ordered `class_talent` links (exported as `talentSlugs[]`), `hit_die` / `hit_die_priority`,
-talent picks, prioritized saves, `arts_skill_key`. **Effort** authoring is deferred.
+talent picks, prioritized saves, Effort (`effort_skill_key` + two ability keys) and
+`art_slots_json` (10 ints → `arts.slotsByLevel`). Arts are a separate catalog table linked by
+`class_id` (commitment: `scene` | `day` | `concentration` | `free`).
 
 ### `translation`
 
@@ -310,7 +313,7 @@ The full design is [localisation.md](localisation.md).
 ```
 id
 entity_kind     'attribute' | 'skill' | 'specialization' | 'race' | 'class'
-                | 'background' | 'region' | 'talent' | 'power' | 'condition'
+                | 'background' | 'region' | 'talent' | 'art' | 'power' | 'condition'
                 | 'injury'
 entity_id       INTEGER NOT NULL
 locale          TEXT NOT NULL        currently only 'ru'

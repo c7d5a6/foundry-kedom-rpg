@@ -37,10 +37,15 @@
       save_primary_priority: number;
       save_secondary: string;
       save_secondary_priority: number;
-      arts_skill_key: string;
+      effort_skill_key: string;
+      effort_ability_key_1: string;
+      effort_ability_key_2: string;
+      art_slots: number[];
       talents: { id: number; slug: string; label: string }[];
       saves: { slug: string; label: string }[];
       skills: { slug: string; label: string }[];
+      attributes: { slug: string; label: string }[];
+      linked_arts: { slug: string; label: string }[];
     };
     /** Cultures that allow this class (class editor only). */
     linkedCultures?: { slug: string; label: string }[];
@@ -74,6 +79,23 @@
       .filter((t) => ids.has(t.id))
       .map((t) => ({ slug: t.slug, label: t.label }));
   });
+  const artLinks = $derived(
+    kind === "class" ? (classControls?.linked_arts ?? []) : [],
+  );
+
+  function normalizeSlots(raw: number[] | undefined): number[] {
+    const out = Array.from({ length: 10 }, () => 0);
+    if (!raw) return out;
+    for (let i = 0; i < 10 && i < raw.length; i++) {
+      const n = Number(raw[i]);
+      out[i] = Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+    }
+    return out;
+  }
+
+  function slotsEqual(a: number[], b: number[]): boolean {
+    return a.length === b.length && a.every((v, i) => v === b[i]);
+  }
 
   let enLabel = $state("");
   let enAbbr = $state("");
@@ -94,7 +116,10 @@
   let classSavePrimaryPriority = $state(0);
   let classSaveSecondary = $state("");
   let classSaveSecondaryPriority = $state(0);
-  let classArtsSkillKey = $state("");
+  let classEffortSkillKey = $state("");
+  let classEffortAbility1 = $state("");
+  let classEffortAbility2 = $state("");
+  let classArtSlots = $state<number[]>(Array.from({ length: 10 }, () => 0));
   let ruLabel = $state("");
   let ruAbbr = $state("");
   let ruDesc = $state("");
@@ -119,7 +144,10 @@
     classSavePrimaryPriority: number;
     classSaveSecondary: string;
     classSaveSecondaryPriority: number;
-    classArtsSkillKey: string;
+    classEffortSkillKey: string;
+    classEffortAbility1: string;
+    classEffortAbility2: string;
+    classArtSlots: number[];
     ruLabel: string;
     ruAbbr: string;
   };
@@ -142,7 +170,10 @@
     classSavePrimaryPriority: 0,
     classSaveSecondary: "",
     classSaveSecondaryPriority: 0,
-    classArtsSkillKey: "",
+    classEffortSkillKey: "",
+    classEffortAbility1: "",
+    classEffortAbility2: "",
+    classArtSlots: Array.from({ length: 10 }, () => 0),
     ruLabel: "",
     ruAbbr: "",
   });
@@ -166,7 +197,10 @@
       classSavePrimaryPriority: classControls?.save_primary_priority ?? 0,
       classSaveSecondary: classControls?.save_secondary ?? "",
       classSaveSecondaryPriority: classControls?.save_secondary_priority ?? 0,
-      classArtsSkillKey: classControls?.arts_skill_key ?? "",
+      classEffortSkillKey: classControls?.effort_skill_key ?? "",
+      classEffortAbility1: classControls?.effort_ability_key_1 ?? "",
+      classEffortAbility2: classControls?.effort_ability_key_2 ?? "",
+      classArtSlots: normalizeSlots(classControls?.art_slots),
       ruLabel: translations.label ?? "",
       ruAbbr: translations.abbreviation ?? "",
     };
@@ -190,7 +224,10 @@
     classSavePrimaryPriority = b.classSavePrimaryPriority;
     classSaveSecondary = b.classSaveSecondary;
     classSaveSecondaryPriority = b.classSaveSecondaryPriority;
-    classArtsSkillKey = b.classArtsSkillKey;
+    classEffortSkillKey = b.classEffortSkillKey;
+    classEffortAbility1 = b.classEffortAbility1;
+    classEffortAbility2 = b.classEffortAbility2;
+    classArtSlots = [...b.classArtSlots];
     ruLabel = b.ruLabel;
     ruAbbr = b.ruAbbr;
   }
@@ -227,7 +264,10 @@
       save_primary_priority: Number(classSavePrimaryPriority),
       save_secondary: classSaveSecondary,
       save_secondary_priority: Number(classSaveSecondaryPriority),
-      arts_skill_key: classArtsSkillKey,
+      effort_skill_key: classEffortSkillKey,
+      effort_ability_key_1: classEffortAbility1,
+      effort_ability_key_2: classEffortAbility2,
+      art_slots: normalizeSlots(classArtSlots),
     };
   }
 
@@ -251,7 +291,10 @@
       save_primary_priority: classControls.save_primary_priority,
       save_secondary: classControls.save_secondary,
       save_secondary_priority: classControls.save_secondary_priority,
-      arts_skill_key: classControls.arts_skill_key,
+      effort_skill_key: classControls.effort_skill_key,
+      effort_ability_key_1: classControls.effort_ability_key_1,
+      effort_ability_key_2: classControls.effort_ability_key_2,
+      art_slots: normalizeSlots(classControls.art_slots),
     };
   }
 
@@ -291,7 +334,10 @@
       classSavePrimaryPriority !== baseline.classSavePrimaryPriority ||
       classSaveSecondary !== baseline.classSaveSecondary ||
       classSaveSecondaryPriority !== baseline.classSaveSecondaryPriority ||
-      classArtsSkillKey !== baseline.classArtsSkillKey ||
+      classEffortSkillKey !== baseline.classEffortSkillKey ||
+      classEffortAbility1 !== baseline.classEffortAbility1 ||
+      classEffortAbility2 !== baseline.classEffortAbility2 ||
+      !slotsEqual(classArtSlots, baseline.classArtSlots) ||
       ruLabel !== baseline.ruLabel ||
       ruAbbr !== baseline.ruAbbr,
   );
@@ -395,7 +441,10 @@
         classSavePrimaryPriority,
         classSaveSecondary,
         classSaveSecondaryPriority,
-        classArtsSkillKey,
+        classEffortSkillKey,
+        classEffortAbility1,
+        classEffortAbility2,
+        classArtSlots: [...classArtSlots],
         ruLabel,
         ruAbbr,
       };
@@ -668,17 +717,61 @@
           </div>
         </div>
         <div class="forge-field">
-          <label for="class-arts">Arts skill</label>
-          <select id="class-arts" class="forge-input" bind:value={classArtsSkillKey}>
-            <option value="">(none)</option>
+          <label for="class-effort-skill">Effort skill</label>
+          <select id="class-effort-skill" class="forge-input" bind:value={classEffortSkillKey}>
+            <option value="">(none — no Effort)</option>
             {#each classControls.skills as s (s.slug)}
               <option value={s.slug}>{s.label} ({s.slug})</option>
             {/each}
-            {#if classArtsSkillKey &&
-              !classControls.skills.some((s) => s.slug === classArtsSkillKey)}
-              <option value={classArtsSkillKey}>{classArtsSkillKey} (unknown)</option>
+            {#if classEffortSkillKey &&
+              !classControls.skills.some((s) => s.slug === classEffortSkillKey)}
+              <option value={classEffortSkillKey}>{classEffortSkillKey} (unknown)</option>
             {/if}
           </select>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="forge-field">
+            <label for="class-effort-ab1">Effort ability 1</label>
+            <select id="class-effort-ab1" class="forge-input" bind:value={classEffortAbility1}>
+              <option value="">(none)</option>
+              {#each classControls.attributes as a (a.slug)}
+                <option value={a.slug}>{a.label} ({a.slug})</option>
+              {/each}
+              {#if classEffortAbility1 &&
+                !classControls.attributes.some((a) => a.slug === classEffortAbility1)}
+                <option value={classEffortAbility1}>{classEffortAbility1} (unknown)</option>
+              {/if}
+            </select>
+          </div>
+          <div class="forge-field">
+            <label for="class-effort-ab2">Effort ability 2</label>
+            <select id="class-effort-ab2" class="forge-input" bind:value={classEffortAbility2}>
+              <option value="">(none)</option>
+              {#each classControls.attributes as a (a.slug)}
+                <option value={a.slug}>{a.label} ({a.slug})</option>
+              {/each}
+              {#if classEffortAbility2 &&
+                !classControls.attributes.some((a) => a.slug === classEffortAbility2)}
+                <option value={classEffortAbility2}>{classEffortAbility2} (unknown)</option>
+              {/if}
+            </select>
+          </div>
+        </div>
+        <div class="forge-field">
+          <span class="mb-1 block text-sm text-ink">Art slots by level</span>
+          <div class="grid grid-cols-5 gap-1">
+            {#each classArtSlots as _slot, i (i)}
+              <label class="flex flex-col gap-0.5 font-mono text-xs text-muted">
+                L{i + 1}
+                <input
+                  class="forge-input"
+                  type="number"
+                  min="0"
+                  bind:value={classArtSlots[i]}
+                />
+              </label>
+            {/each}
+          </div>
         </div>
       {/if}
     </section>
@@ -734,5 +827,6 @@
   {#if kind === "class"}
     <LinkPanel title="Linked cultures" links={cultureLinks} empty="Not linked to any culture." />
     <LinkPanel title="Talent" links={talentLinks} empty="No talent linked." />
+    <LinkPanel title="Arts" links={artLinks} empty="No arts for this class." />
   {/if}
 </div>

@@ -13,6 +13,12 @@ func (a *API) mountOrigins(mux *http.ServeMux) {
 	mux.HandleFunc("PATCH /api/talents/{id}", a.patchTalent)
 	mux.HandleFunc("DELETE /api/talents/{id}", a.deleteTalent)
 
+	mux.HandleFunc("GET /api/arts", a.listArts)
+	mux.HandleFunc("POST /api/arts", a.createArt)
+	mux.HandleFunc("GET /api/arts/{id}", a.getArt)
+	mux.HandleFunc("PATCH /api/arts/{id}", a.patchArt)
+	mux.HandleFunc("DELETE /api/arts/{id}", a.deleteArt)
+
 	mux.HandleFunc("GET /api/races", a.listRaces)
 	mux.HandleFunc("POST /api/races", a.createRace)
 	mux.HandleFunc("GET /api/races/{id}", a.getRace)
@@ -182,6 +188,55 @@ func (a *API) deleteTalent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err := a.content.DeleteTalent(r.Context(), id)
+	if err != nil {
+		a.respond(w, nil, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func (a *API) listArts(w http.ResponseWriter, r *http.Request) {
+	rows, err := a.content.ListArts(r.Context(), locale(r))
+	a.respond(w, rows, err)
+}
+
+func (a *API) createArt(w http.ResponseWriter, r *http.Request) {
+	var in service.CreateArtInput
+	if !decode(w, r, &in) {
+		return
+	}
+	row, err := a.content.CreateArt(r.Context(), in, locale(r))
+	a.respond(w, row, err)
+}
+
+func (a *API) getArt(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+	row, err := a.content.GetArt(r.Context(), id, locale(r))
+	a.respond(w, row, err)
+}
+
+func (a *API) patchArt(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+	var in service.UpdateArtInput
+	if !decode(w, r, &in) {
+		return
+	}
+	row, err := a.content.UpdateArt(r.Context(), id, in, locale(r))
+	a.respond(w, row, err)
+}
+
+func (a *API) deleteArt(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+	err := a.content.DeleteArt(r.Context(), id)
 	if err != nil {
 		a.respond(w, nil, err)
 		return

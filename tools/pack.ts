@@ -24,7 +24,7 @@ const packsRoot = join(systemDir, "packs");
 const fvttHome = join(root, ".fvtt-cli");
 
 const SYSTEM_ID = "kedom";
-const PACKS = ["origins", "talents"] as const;
+const PACKS = ["origins", "talents", "arts"] as const;
 
 function runFvtt(args: string[]): number {
   mkdirSync(fvttHome, { recursive: true });

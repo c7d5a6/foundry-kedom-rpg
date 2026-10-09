@@ -1,0 +1,114 @@
+<div class="kedom-art-sheet">
+  <header class="sheet-header kedom-item-sheet__header">
+    <img
+      class="profile-img"
+      src="{{item.img}}"
+      data-action="editImage"
+      data-edit="img"
+      title="{{item.name}}"
+      alt="{{item.name}}"
+    />
+    <div class="header-fields">
+      {{#if editable}}
+        {{formInput fields.name value=source.name placeholder=(localize "DOCUMENT.FIELDS.name.label")}}
+      {{else}}
+        <h1 class="document-name">{{item.name}}</h1>
+      {{/if}}
+    </div>
+  </header>
+
+  <section class="kedom-item-sheet__body">
+    <div class="kedom-item-sheet__field">
+      <label for="art-commitment">{{localize "KEDOM.Art.commitment"}}</label>
+      {{#if editable}}
+        {{formInput systemFields.commitment value=source.system.commitment}}
+      {{else}}
+        <span>{{commitmentLabel}}</span>
+      {{/if}}
+    </div>
+
+    <div class="kedom-item-sheet__field">
+      <label for="art-class-slug">{{localize "KEDOM.Art.classSlug"}}</label>
+      {{#if editable}}
+        {{formInput systemFields.classSlug value=source.system.classSlug}}
+      {{else}}
+        <span class="kedom-item-sheet__mono">{{system.classSlug}}</span>
+      {{/if}}
+    </div>
+
+    <div class="kedom-item-sheet__field kedom-item-sheet__field--block">
+      <label>{{localize "KEDOM.Art.description"}}</label>
+      {{#if editable}}
+        {{formInput
+          systemFields.description
+          value=source.system.description
+          enriched=enrichedDescription
+          toggled=true
+        }}
+      {{else}}
+        <div class="kedom-item-sheet__prose">{{{enrichedDescription}}}</div>
+      {{/if}}
+    </div>
+
+    <section class="kedom-effects-panel">
+      <header class="kedom-effects-panel__header">
+        <h2 class="kedom-effects-panel__title">{{localize "KEDOM.Art.Effects"}}</h2>
+        {{#if editable}}
+          <div class="kedom-effects-panel__actions">
+            <button
+              type="button"
+              class="kedom-effects-panel__btn"
+              data-action="createEffect"
+              title="{{localize "KEDOM.Sheet.Action.createEffect"}}"
+            >
+              {{localize "KEDOM.Sheet.Action.createEffect"}}
+            </button>
+          </div>
+        {{/if}}
+      </header>
+      {{#if effects.length}}
+        <ul class="kedom-effects-list">
+          {{#each effects}}
+            <li class="kedom-effects-list__item{{#if disabled}} is-disabled{{/if}}">
+              <img class="kedom-effects-list__img" src="{{img}}" alt="" />
+              <div class="kedom-effects-list__info">
+                <span class="kedom-effects-list__name">{{name}}</span>
+              </div>
+              <div class="kedom-effects-list__actions">
+                <button
+                  type="button"
+                  class="kedom-effects-list__btn"
+                  data-action="toggleEffect"
+                  data-effect-id="{{id}}"
+                  {{#unless @root.editable}}disabled{{/unless}}
+                  title="{{localize "KEDOM.Sheet.Action.editEffect"}}"
+                >
+                  <i class="fa-solid fa-power-off" inert></i>
+                </button>
+                <button
+                  type="button"
+                  class="kedom-effects-list__btn"
+                  data-action="editEffect"
+                  data-effect-id="{{id}}"
+                >
+                  {{localize "KEDOM.Sheet.Action.editEffect"}}
+                </button>
+                <button
+                  type="button"
+                  class="kedom-effects-list__btn"
+                  data-action="deleteEffect"
+                  data-effect-id="{{id}}"
+                  {{#unless @root.editable}}disabled{{/unless}}
+                >
+                  {{localize "KEDOM.Sheet.Action.deleteEffect"}}
+                </button>
+              </div>
+            </li>
+          {{/each}}
+        </ul>
+      {{else}}
+        <p class="kedom-effects-panel__empty">{{localize "KEDOM.Talent.EffectsEmpty"}}</p>
+      {{/if}}
+    </section>
+  </section>
+</div>

@@ -11,6 +11,7 @@ import { SKILL_FIXED_SPECIALIZATIONS } from "../config/specializations.ts";
 import { ORIGIN_SUBTYPES } from "../config/origin.ts";
 import { CREATION_FREE_SPEC_I18N } from "../config/creation-spec-labels.ts";
 import { TALENT_CATEGORIES } from "../config/talent.ts";
+import { ART_COMMITMENTS } from "../config/art.ts";
 /** Display titles for class families (shared by full / partial origin items). */
 const CLASS_TITLE_KEYS = ["warrior", "expert"] as const;
 
@@ -88,6 +89,10 @@ const TEMPLATE_EXPANDERS: {
     expand: () => TALENT_CATEGORIES.map((c) => `KEDOM.Talent.Category.${c}`),
   },
   {
+    pattern: /^KEDOM\.Art\.Commitment\.\$\{[^}]+\}$/,
+    expand: () => ART_COMMITMENTS.map((c) => `KEDOM.Art.Commitment.${c}`),
+  },
+  {
     pattern: /^KEDOM\.Creation\.Step\.\$\{[^}]+\}$/,
     expand: () => CREATION_STEP_IDS.map((s) => `KEDOM.Creation.Step.${s}`),
   },
@@ -106,6 +111,23 @@ const TEMPLATE_EXPANDERS: {
     pattern: /^KEDOM\.Specialization\.\$\{[^}]+\}\.\$\{[^}]+\}$/,
     expand: () => fixedSpecializationLangKeys(),
   },
+  // Open catalog / free-form slugs — validated at runtime, not as closed lang keys.
+  {
+    pattern: /^KEDOM\.Specialization\.\$\{[^}]+\}$/,
+    expand: () => [],
+  },
+  {
+    pattern: /^KEDOM\.Content\.\$\{[^}]+\}\.\$\{[^}]+\}\.label$/,
+    expand: () => [],
+  },
+  {
+    pattern: /^KEDOM\.Content\.\$\{[^}]+\}\.\$\{[^}]+\}\.description$/,
+    expand: () => [],
+  },
+  {
+    pattern: /^KEDOM\.Creation\.\$\{[^}]+\}\.\$\{[^}]+\}$/,
+    expand: () => [],
+  },
 ];
 
 /** Keys every config enum must have labels for, even before first reference. */
@@ -121,6 +143,7 @@ export function configDrivenLangKeys(): string[] {
     ...BODY_PART_KEYS.map((p) => `KEDOM.Wound.BodyPart.${p}`),
     ...ORIGIN_SUBTYPES.map((s) => `KEDOM.Origin.SubType.${s}`),
     ...TALENT_CATEGORIES.map((c) => `KEDOM.Talent.Category.${c}`),
+    ...ART_COMMITMENTS.map((c) => `KEDOM.Art.Commitment.${c}`),
     ...CLASS_TITLE_KEYS.map((k) => `KEDOM.Class.${k}`),
     ...fixedSpecializationLangKeys(),
   ];

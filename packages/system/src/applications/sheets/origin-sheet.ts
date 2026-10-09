@@ -39,6 +39,7 @@ function formatClassJson(system: OriginDataFields): string {
     arts: system.arts ?? {
       skillKey: "",
       abilityKeys: [],
+      slotsByLevel: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       receiveTableKey: "",
       artKeys: [],
     },
@@ -50,6 +51,11 @@ function parseClassJson(raw: string): ClassJsonBlock | null {
   try {
     const parsed = JSON.parse(raw) as ClassJsonBlock;
     if (!parsed || typeof parsed !== "object") return null;
+    const slotsRaw = Array.isArray(parsed.arts?.slotsByLevel) ? parsed.arts.slotsByLevel : [];
+    const slotsByLevel = Array.from({ length: 10 }, (_, i) => {
+      const n = Number(slotsRaw[i]);
+      return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+    });
     return {
       talentPicks: {
         warrior: Number(parsed.talentPicks?.warrior) || 0,
@@ -59,6 +65,7 @@ function parseClassJson(raw: string): ClassJsonBlock | null {
       arts: {
         skillKey: parsed.arts?.skillKey ?? "",
         abilityKeys: Array.isArray(parsed.arts?.abilityKeys) ? parsed.arts.abilityKeys : [],
+        slotsByLevel,
         receiveTableKey: parsed.arts?.receiveTableKey ?? "",
         artKeys: Array.isArray(parsed.arts?.artKeys) ? parsed.arts.artKeys : [],
       },

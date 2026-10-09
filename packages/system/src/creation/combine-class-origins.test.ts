@@ -19,7 +19,13 @@ function partial(
     hitDie: "1d6",
     hitDiePriority: 0,
     talentPicks: { warrior: 0, expert: 0, any: 0 },
-    arts: { skillKey: "", abilityKeys: [], receiveTableKey: "", artKeys: [] },
+    arts: {
+      skillKey: "",
+      abilityKeys: [],
+      slotsByLevel: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      receiveTableKey: "",
+      artKeys: [],
+    },
     saves: {
       primary: { save: "reflex", priority: 0 },
       secondary: { save: "fortitude", priority: 0 },

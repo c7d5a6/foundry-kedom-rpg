@@ -20,7 +20,11 @@ export type EntityKind =
   | "region"
   | "background"
   | "talent"
+  | "art"
   | VocabKind;
+
+export const ART_COMMITMENTS = ["scene", "day", "concentration", "free"] as const;
+export type ArtCommitment = (typeof ART_COMMITMENTS)[number];
 
 export const VOCAB_KINDS: { kind: VocabKind; label: string }[] = [
   { kind: "proficiency", label: "Proficiency" },
@@ -116,10 +120,14 @@ export type ClassRow = {
   save_primary_priority: number;
   save_secondary: string;
   save_secondary_priority: number;
-  arts_skill_key: string;
+  effort_skill_key: string;
+  effort_ability_key_1: string;
+  effort_ability_key_2: string;
+  art_slots: number[];
   sort_order: number;
   foundry_id: string;
   linked_cultures: EntityRef[];
+  linked_arts: EntityRef[];
   translations: TranslationMap;
 };
 
@@ -136,6 +144,22 @@ export type Talent = {
   foundry_id: string;
   linked_cultures: EntityRef[];
   linked_classes: EntityRef[];
+  translations: TranslationMap;
+};
+
+export type Art = {
+  id: number;
+  slug: string;
+  label: string;
+  description: string;
+  comment: string;
+  class_id: number;
+  class_slug: string;
+  class_label: string;
+  commitment: ArtCommitment | string;
+  effects_json: string;
+  sort_order: number;
+  foundry_id: string;
   translations: TranslationMap;
 };
 
@@ -474,6 +498,40 @@ export const api = {
     }),
   deleteTalent: (id: number) =>
     request<{ status: string }>(`/api/talents/${id}`, { method: "DELETE" }),
+
+  arts: () => request<Art[]>(`/api/arts?${localeQ}`),
+  art: (id: number) => request<Art>(`/api/arts/${id}?${localeQ}`),
+  createArt: (body: {
+    label: string;
+    class_id: number;
+    commitment?: string;
+    description?: string;
+    comment?: string;
+    effects_json?: string;
+    sort_order?: number;
+  }) =>
+    request<Art>(`/api/arts?${localeQ}`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  patchArt: (
+    id: number,
+    body: {
+      label: string;
+      description: string;
+      comment: string;
+      class_id: number;
+      commitment: string;
+      effects_json: string;
+      sort_order: number;
+    },
+  ) =>
+    request<Art>(`/api/arts/${id}?${localeQ}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  deleteArt: (id: number) =>
+    request<{ status: string }>(`/api/arts/${id}`, { method: "DELETE" }),
 
   races: () => request<Race[]>(`/api/races?${localeQ}`),
   race: (id: number) => request<Race>(`/api/races/${id}?${localeQ}`),

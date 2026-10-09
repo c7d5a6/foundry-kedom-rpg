@@ -3,6 +3,7 @@
   import {
     api,
     VOCAB_KINDS,
+    type Art,
     type Attribute,
     type Background,
     type ClassRow,
@@ -15,6 +16,7 @@
     type Vocab,
     type VocabKind,
   } from "$lib/api";
+  import ArtEditor from "$lib/ArtEditor.svelte";
   import BackgroundEditor from "$lib/BackgroundEditor.svelte";
   import CultureEditor from "$lib/CultureEditor.svelte";
   import RegionEditor from "$lib/RegionEditor.svelte";
@@ -28,6 +30,7 @@
     | "cultures"
     | "classes"
     | "talents"
+    | "arts"
     | "backgrounds"
     | "vocab"
     | "completeness"
@@ -54,6 +57,11 @@
   let talents = $state<Talent[]>([]);
   let selectedTalent = $state<Talent | null>(null);
   let newTalentLabel = $state("");
+
+  let arts = $state<Art[]>([]);
+  let selectedArt = $state<Art | null>(null);
+  let newArtLabel = $state("");
+  let newArtClassId = $state(0);
   let createStatus = $state("");
 
   let cultures = $state<Race[]>([]);
@@ -132,6 +140,16 @@
     } else {
       selectedTalent = talents[0] ?? null;
     }
+  }
+
+  async function loadArts() {
+    arts = await api.arts();
+    if (selectedArt) {
+      selectedArt = arts.find((a) => a.id === selectedArt!.id) ?? arts[0] ?? null;
+    } else {
+      selectedArt = arts[0] ?? null;
+    }
+    if (!newArtClassId && classes[0]) newArtClassId = classes[0].id;
   }
 
   async function loadCultures() {
@@ -255,9 +273,17 @@
       } else if (next === "cultures") {
         await Promise.all([loadCultures(), loadTalents(), loadClasses()]);
       } else if (next === "classes") {
-        await Promise.all([loadClasses(), loadTalents(), loadSkills(), loadSaveOptions()]);
+        await Promise.all([
+          loadClasses(),
+          loadTalents(),
+          loadSkills(),
+          loadAttributes(),
+          loadSaveOptions(),
+        ]);
       } else if (next === "talents") await loadTalents();
-      else if (next === "backgrounds") {
+      else if (next === "arts") {
+        await Promise.all([loadClasses(), loadArts()]);
+      } else if (next === "backgrounds") {
         await Promise.all([loadBackgrounds(), loadSkills()]);
       } else if (next === "vocab") await loadVocab();
       else if (next === "completeness") await loadCompleteness();
@@ -297,6 +323,12 @@
     if (selectedTalent?.id === t.id) return;
     if (!confirmLeave()) return;
     selectedTalent = t;
+  }
+
+  function selectArt(a: Art) {
+    if (selectedArt?.id === a.id) return;
+    if (!confirmLeave()) return;
+    selectedArt = a;
   }
 
   function selectCulture(c: Race) {
@@ -348,6 +380,21 @@
       createStatus = `Created ${created.slug}`;
       await loadTalents();
       selectedTalent = created;
+    } catch (e) {
+      createStatus = e instanceof Error ? e.message : String(e);
+    }
+  }
+
+  async function createArt() {
+    const label = newArtLabel.trim();
+    if (!label || !newArtClassId) return;
+    createStatus = "Creating…";
+    try {
+      const created = await api.createArt({ label, class_id: newArtClassId });
+      newArtLabel = "";
+      createStatus = `Created ${created.slug}`;
+      await loadArts();
+      selectedArt = created;
     } catch (e) {
       createStatus = e instanceof Error ? e.message : String(e);
     }
@@ -466,6 +513,12 @@
         class="forge-nav-btn"
         data-active={page === "talents"}
         onclick={() => go("talents")}>Talents</button
+      >
+      <button
+        type="button"
+        class="forge-nav-btn"
+        data-active={page === "arts"}
+        onclick={() => go("arts")}>Arts</button
       >
       <button
         type="button"
@@ -785,12 +838,20 @@
               save_primary_priority: selectedClass.save_primary_priority,
               save_secondary: selectedClass.save_secondary ?? "",
               save_secondary_priority: selectedClass.save_secondary_priority,
-              arts_skill_key: selectedClass.arts_skill_key ?? "",
+              effort_skill_key: selectedClass.effort_skill_key ?? "",
+              effort_ability_key_1: selectedClass.effort_ability_key_1 ?? "",
+              effort_ability_key_2: selectedClass.effort_ability_key_2 ?? "",
+              art_slots: selectedClass.art_slots ?? Array.from({ length: 10 }, () => 0),
               talents: talents
                 .filter((t) => t.category === "class")
                 .map((t) => ({ id: t.id, slug: t.slug, label: t.label })),
               saves: saveOptions,
               skills: skills.map((s) => ({ slug: s.slug, label: s.label })),
+              attributes: attributes.map((a) => ({ slug: a.slug, label: a.label })),
+              linked_arts: (selectedClass.linked_arts ?? []).map((a) => ({
+                slug: a.slug,
+                label: a.label,
+              })),
             }}
             linkedCultures={selectedClass.linked_cultures ?? []}
             onSaved={loadClasses}
@@ -848,6 +909,67 @@
               afterDeleted(() => {
                 selectedTalent = null;
               }, loadTalents)}
+            onDirtyChange={(d) => (editorDirty = d)}
+          />
+        {/if}
+      </div>
+    {:else if page === "arts"}
+      <div class="grid grid-cols-[14rem_1fr] gap-3">
+        <div class="forge-panel max-h-[calc(100vh-1.5rem)] overflow-auto">
+          <div class="border-b border-line p-2">
+            <div class="forge-field mb-1">
+              <label for="new-art">New art</label>
+              <input
+                id="new-art"
+                class="forge-input"
+                bind:value={newArtLabel}
+                placeholder="Label"
+                onkeydown={(ev) => {
+                  if (ev.key === "Enter") void createArt();
+                }}
+              />
+            </div>
+            <div class="forge-field mb-1">
+              <label for="new-art-class">Class</label>
+              <select id="new-art-class" class="forge-input" bind:value={newArtClassId}>
+                {#each classes as c (c.id)}
+                  <option value={c.id}>{c.label}</option>
+                {/each}
+              </select>
+            </div>
+            <button
+              type="button"
+              class="forge-btn forge-btn-primary w-full"
+              disabled={!newArtLabel.trim() || !newArtClassId}
+              onclick={() => void createArt()}>Create</button
+            >
+            {#if createStatus}
+              <p class="mt-1 font-mono text-xs text-muted">{createStatus}</p>
+            {/if}
+          </div>
+          {#each arts as a (a.id)}
+            <button
+              type="button"
+              class="forge-list-btn"
+              data-active={selectedArt?.id === a.id}
+              onclick={() => selectArt(a)}
+            >
+              <span class="block font-medium">{a.label}</span>
+              <span class="mt-0.5 block font-mono text-xs text-muted"
+                >{a.slug} · {a.class_slug} · {a.commitment}</span
+              >
+            </button>
+          {/each}
+        </div>
+        {#if selectedArt}
+          <ArtEditor
+            art={selectedArt}
+            {classes}
+            onSaved={loadArts}
+            onDeleted={() =>
+              afterDeleted(() => {
+                selectedArt = null;
+              }, loadArts)}
             onDirtyChange={(d) => (editorDirty = d)}
           />
         {/if}

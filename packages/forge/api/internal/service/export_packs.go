@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/c7d5a6/foundry-kedom-rpg/packages/forge/api/internal/export"
 	"github.com/c7d5a6/foundry-kedom-rpg/packages/forge/api/internal/model"
 )
 
-// ExportPacks writes origins + talents YAML under packages/system/packs/_source/.
+// ExportPacks writes origins + talents + arts YAML under packages/system/packs/_source/.
 // Invokes lang export first so closed UI labels stay aligned with pack English.
+// Also writes Babele overlays under packages/system/lang/babele/ru/.
 func (c *Content) ExportPacks(ctx context.Context, packsSourceDir, langDir string) error {
 	if langDir != "" {
 		if err := c.ExportLang(ctx, langDir); err != nil {
@@ -25,13 +27,45 @@ func (c *Content) ExportPacks(ctx context.Context, packsSourceDir, langDir strin
 	if err := export.WritePacks(packsSourceDir, in); err != nil {
 		return err
 	}
+
+	if langDir != "" {
+		ruArts, err := c.ListArts(ctx, model.LocaleRU)
+		if err != nil {
+			return err
+		}
+		ruBySlug := make(map[string]export.ContentEntry, len(ruArts))
+		for _, a := range ruArts {
+			ruBySlug[a.Slug] = contentEntry(a.Label, a.Description, a.Translations)
+		}
+		babeleDir := filepath.Join(langDir, "babele", "ru")
+		if err := export.WriteBabeleArts(babeleDir, in.Arts, ruBySlug); err != nil {
+			return fmt.Errorf("export babele arts: %w", err)
+		}
+	}
 	return nil
+}
+
+func classEffortAbilityKeys(key1, key2 string) []string {
+	out := make([]string, 0, 2)
+	k1 := strings.TrimSpace(key1)
+	k2 := strings.TrimSpace(key2)
+	if k1 != "" {
+		out = append(out, k1)
+	}
+	if k2 != "" && k2 != k1 {
+		out = append(out, k2)
+	}
+	return out
 }
 
 func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 	locale := model.Locale("en")
 
 	talents, err := c.ListTalents(ctx, locale)
+	if err != nil {
+		return export.PackInput{}, err
+	}
+	arts, err := c.ListArts(ctx, locale)
 	if err != nil {
 		return export.PackInput{}, err
 	}
@@ -54,6 +88,7 @@ func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 
 	out := export.PackInput{
 		Talents:     make([]export.PackTalent, 0, len(talents)),
+		Arts:        make([]export.PackArt, 0, len(arts)),
 		Regions:     make([]export.PackRegion, 0, len(regions)),
 		Races:       make([]export.PackRace, 0, len(races)),
 		Backgrounds: make([]export.PackBackground, 0, len(backgrounds)),
@@ -65,6 +100,14 @@ func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 			Slug: t.Slug, Label: t.Label, Description: t.Description,
 			FoundryID: t.FoundryID, Category: t.Category,
 			GrantsJSON: t.GrantsJSON, EffectsJSON: t.EffectsJSON,
+		})
+	}
+
+	for _, a := range arts {
+		out.Arts = append(out.Arts, export.PackArt{
+			Slug: a.Slug, Label: a.Label, Description: a.Description,
+			FoundryID: a.FoundryID, ClassSlug: a.ClassSlug,
+			Commitment: a.Commitment, EffectsJSON: a.EffectsJSON,
 		})
 	}
 
@@ -130,6 +173,10 @@ func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 		if talentSlugs == nil {
 			talentSlugs = []string{}
 		}
+		slots := cl.ArtSlots
+		if slots == nil {
+			slots = ParseArtSlots("")
+		}
 		out.Classes = append(out.Classes, export.PackClass{
 			Slug: cl.Slug, Label: cl.Label, Description: cl.Description,
 			FoundryID: cl.FoundryID, IsFull: cl.IsFull, HitDie: hitDie,
@@ -138,7 +185,9 @@ func (c *Content) packInput(ctx context.Context) (export.PackInput, error) {
 			TalentPicksAny: cl.TalentPicksAny,
 			SavePrimary:    cl.SavePrimary, SavePrimaryPriority: cl.SavePrimaryPriority,
 			SaveSecondary: cl.SaveSecondary, SaveSecondaryPriority: cl.SaveSecondaryPriority,
-			ArtsSkillKey: cl.ArtsSkillKey,
+			EffortSkillKey:    cl.EffortSkillKey,
+			EffortAbilityKeys: classEffortAbilityKeys(cl.EffortAbilityKey1, cl.EffortAbilityKey2),
+			SlotsByLevel:      slots,
 		})
 	}
 

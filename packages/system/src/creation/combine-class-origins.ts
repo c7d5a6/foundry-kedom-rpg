@@ -10,6 +10,7 @@ import type {
 } from "../data/item/origin-fields.ts";
 import { classTalentSlugs } from "../data/item/origin-fields.ts";
 import type { ProficiencyTier } from "../config/kedom.ts";
+import { normalizeSlotsByLevel, sumSlotsByLevel } from "../derivations/effort.ts";
 
 export type CombinedClassOrigin = {
   partialSlugs: readonly [string, string];
@@ -19,8 +20,13 @@ export type CombinedClassOrigin = {
   talentPicks: OriginDataFields["talentPicks"];
   talentSlugs: readonly string[];
   arts: {
-    skillKey: string;
+    /** Union of non-empty Effort skill keys from both partials. */
+    skillKeys: readonly string[];
     abilityKeys: readonly string[];
+    /** Per-level sum of both partials' slotsByLevel. */
+    slotsByLevel: readonly number[];
+    /** True when both partials have a non-empty Effort skillKey. */
+    bothPartialsHaveEffort: boolean;
     receiveTables: readonly {
       partialSlug: string;
       receiveTableKey: string;
@@ -83,6 +89,9 @@ export function combineClassOrigins(
   if (!a.slug || !b.slug) return null;
 
   const hd = pickHitDie(a, b);
+  const skillA = (a.arts.skillKey ?? "").trim();
+  const skillB = (b.arts.skillKey ?? "").trim();
+  const skillKeys = [...new Set([skillA, skillB].filter(Boolean))];
   return {
     partialSlugs: [a.slug, b.slug],
     names: [aName, bName],
@@ -91,8 +100,13 @@ export function combineClassOrigins(
     talentPicks: mergeTalentPicks(a.talentPicks, b.talentPicks),
     talentSlugs: [...new Set([...classTalentSlugs(a), ...classTalentSlugs(b)])],
     arts: {
-      skillKey: a.arts.skillKey || b.arts.skillKey,
+      skillKeys,
       abilityKeys: [...new Set([...a.arts.abilityKeys, ...b.arts.abilityKeys])],
+      slotsByLevel: sumSlotsByLevel(
+        normalizeSlotsByLevel(a.arts.slotsByLevel),
+        normalizeSlotsByLevel(b.arts.slotsByLevel),
+      ),
+      bothPartialsHaveEffort: Boolean(skillA && skillB),
       receiveTables: [
         {
           partialSlug: a.slug,

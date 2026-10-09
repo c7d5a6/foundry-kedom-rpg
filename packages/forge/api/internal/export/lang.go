@@ -28,12 +28,13 @@ type LangClosedInput struct {
 	SkillDescription          map[string]string
 	SpecializationDescription map[string]map[string]string
 
-	// Catalog content (origins + talents): label + HTML description by slug.
+	// Catalog content (origins + talents + arts): label + HTML description by slug.
 	Region     map[string]ContentEntry
 	Culture    map[string]ContentEntry // race
 	Background map[string]ContentEntry
 	Class      map[string]ContentEntry
 	Talent     map[string]ContentEntry
+	Art        map[string]ContentEntry
 }
 
 // AbilityLabel is the Foundry Ability i18n shape.
@@ -321,6 +322,7 @@ func contentRootToOrdered(closed LangClosedInput) orderedObject {
 		{k: "Background", v: contentMapToOrdered(closed.Background)},
 		{k: "Class", v: contentMapToOrdered(closed.Class)},
 		{k: "Talent", v: contentMapToOrdered(closed.Talent)},
+		{k: "Art", v: contentMapToOrdered(closed.Art)},
 	}
 }
 

@@ -66,24 +66,21 @@ significant choices:
 - Whether spellcasting is interruptible, and its interaction with **Stunned**, which the
   condition table says prevents spellcasting.
 
-## Implementation note
+## Implementation note (Effort + arts)
 
-The WWN pattern is worth copying wholesale here, because it is the single best idea in that
-codebase.
+**Effort is derived, never stored on the actor.** `src/derivations/effort.ts` computes:
 
-**Effort pools are derived, never stored.** In `foundryvtt-wwn`, a pool is computed in
-`module/derivations/resource-pools.mjs` from each class item's `poolGrant` — a name, a formula,
-and a per-level progression — minus what each power item has committed through
-`poolCommitted.{none,active,scene,day}`. The consequence is that a pool cannot drift out of
-sync with its source, and removing a class item removes its pool automatically.
+```
+max = max(abilityMods from class Effort ability keys)
+    + floor(max(proficiencyBonus among Effort skills) / 2)
+    + (1 if Adventurer and both partials have Effort)
+clamp min 1
+```
 
-Kedom does the same: `src/derivations/pools.ts` computes available Effort from class grants
-minus active commitments.
+`current = max −` commits on owned **`art`** items (`effortCommitted` for scene/day,
+`concentrating` for concentration; free uses cost nothing). End Scene / End Day (owner)
+clear scene/day commits; concentration is released manually.
 
-The one thing **not** to copy is WWN's pool identity resolution, which matches a generic
-`"Effort"` grant against `"{source} Effort"` by string. Kedom's pools use slugs, consistent
-with [20-skills.md](20-skills.md).
-
-Arts and spells are a **single `power` item type with a `subType` discriminator**, following
-WWN's consolidation of what were once separate `art`, `spell`, and `ability` types. Fewer
-types with a discriminator beats many near-identical types.
+Class origins export `arts.skillKey`, `arts.abilityKeys`, and `arts.slotsByLevel` (levels
+1–10). The sheet shows owned arts vs slot budget (informational). Arts are Foundry item type
+**`art`** (RU **Искусство**), not a `power` wrapper — spell/ability consolidation can wait.

@@ -51,6 +51,9 @@ function classArtsSchema() {
       }),
       { initial: [] },
     ),
+    slotsByLevel: new ArrayField(new NumberField({ required: true, nullable: false, integer: true, min: 0, initial: 0 }), {
+      initial: () => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    }),
     receiveTableKey: new StringField({
       required: true,
       nullable: false,

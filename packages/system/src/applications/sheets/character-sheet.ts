@@ -40,7 +40,11 @@ import { rollStrainSave } from "../../rolls/strain-save.ts";
 import { previewWeaponRollBonuses } from "../../rolls/attack-roll.ts";
 import { previewWoundLuckBonus, takeWound } from "../../rolls/wound-roll.ts";
 import { type ArmorDataFields } from "../../data/item/armor.ts";
+import type { ArtDataFields } from "../../data/item/art.ts";
 import { normalizeWeaponSkill, type WeaponDataFields } from "../../data/item/weapon.ts";
+import { summarizeActorEffort } from "../../derivations/actor-effort.ts";
+import { artHoldsEffort } from "../../derivations/effort.ts";
+import { postArtUseChat } from "../../chat/art-card.ts";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -54,6 +58,7 @@ const SHEET_TABS = Object.freeze({
   SKILLS: "skills",
   COMBAT: "combat",
   TALENTS: "talents",
+  ARTS: "arts",
   NOTES: "notes",
   EFFECTS: "effects",
 } as const);
@@ -64,6 +69,7 @@ function isSheetTab(value: string | undefined): value is SheetTab {
     value === SHEET_TABS.SKILLS ||
     value === SHEET_TABS.COMBAT ||
     value === SHEET_TABS.TALENTS ||
+    value === SHEET_TABS.ARTS ||
     value === SHEET_TABS.NOTES ||
     value === SHEET_TABS.EFFECTS
   );
@@ -140,6 +146,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       createTalent: CharacterSheet.#onCreateTalent,
       editTalent: CharacterSheet.#onEditTalent,
       deleteTalent: CharacterSheet.#onDeleteTalent,
+      useArt: CharacterSheet.#onUseArt,
+      toggleArtConcentration: CharacterSheet.#onToggleArtConcentration,
+      editArt: CharacterSheet.#onEditArt,
+      deleteArt: CharacterSheet.#onDeleteArt,
+      endArtScene: CharacterSheet.#onEndArtScene,
+      endArtDay: CharacterSheet.#onEndArtDay,
       createActorEffect: CharacterSheet.#onCreateActorEffect,
       editEffect: CharacterSheet.#onEditEffect,
       deleteEffect: CharacterSheet.#onDeleteEffect,
@@ -520,6 +532,19 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       },
     ];
 
+    const effortSummary = summarizeActorEffort(this.actor);
+    if (effortSummary.showArtsTab) {
+      tabs.splice(3, 0, {
+        id: SHEET_TABS.ARTS,
+        label: game.i18n.localize("KEDOM.Sheet.Tab.arts"),
+        icon: "fa-solid fa-wand-magic-sparkles",
+        active: this.#primaryTab === SHEET_TABS.ARTS,
+      });
+    } else if (this.#primaryTab === SHEET_TABS.ARTS) {
+      this.#primaryTab = SHEET_TABS.SKILLS;
+      for (const tab of tabs) tab.active = tab.id === SHEET_TABS.SKILLS;
+    }
+
     const level = Math.max(1, Math.floor(detailsRaw.level ?? 1));
     const culture = (detailsRaw.culture ?? "").trim();
     const background = (detailsRaw.background ?? "").trim();
@@ -662,6 +687,42 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       }),
     );
 
+    const artItems = this.actor.items
+      .filter((item) => (item.type as string) === "art")
+      .sort((a, b) => a.name.localeCompare(b.name));
+    const arts = await Promise.all(
+      artItems.map(async (item) => {
+        const system = item.system as unknown as ArtDataFields;
+        const enrichedDescription = await TextEditor.enrichHTML(system.description ?? "", {
+          secrets: this.actor.isOwner,
+          relativeTo: item,
+        });
+        const holding = artHoldsEffort({
+          commitment: system.commitment,
+          effortCommitted: system.effortCommitted,
+          concentrating: system.concentrating,
+        });
+        return {
+          id: item.id,
+          name: item.name,
+          img: item.img,
+          commitment: system.commitment,
+          commitmentLabel: game.i18n.localize(`KEDOM.Art.Commitment.${system.commitment}`),
+          isFree: system.commitment === "free",
+          isConcentration: system.commitment === "concentration",
+          concentrating: Boolean(system.concentrating),
+          effortCommitted: Boolean(system.effortCommitted),
+          holding,
+          enrichedDescription,
+          hasDescription: Boolean((system.description ?? "").replace(/<[^>]*>/g, "").trim()),
+        };
+      }),
+    );
+    const usedConcentration = arts.filter((a) => a.isConcentration && a.concentrating);
+    const usedScene = arts.filter((a) => a.commitment === "scene" && a.effortCommitted);
+    const usedDay = arts.filter((a) => a.commitment === "day" && a.effortCommitted);
+    const isArtOwner = this.actor.isOwner;
+
     const actorEffects: {
       id: string;
       name: string;
@@ -712,6 +773,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       weapons,
       armor,
       talents,
+      arts,
+      effort: effortSummary,
+      usedConcentration,
+      usedScene,
+      usedDay,
+      isArtOwner,
       actorEffects,
       itemEffects,
       level,
@@ -722,6 +789,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       isSkillsTab: this.#primaryTab === SHEET_TABS.SKILLS,
       isCombatTab: this.#primaryTab === SHEET_TABS.COMBAT,
       isTalentsTab: this.#primaryTab === SHEET_TABS.TALENTS,
+      isArtsTab: this.#primaryTab === SHEET_TABS.ARTS,
       isNotesTab: this.#primaryTab === SHEET_TABS.NOTES,
       isEffectsTab: this.#primaryTab === SHEET_TABS.EFFECTS,
       enrichedWoundsNotes,
@@ -742,6 +810,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.element.classList.toggle("tab-skills", this.#primaryTab === SHEET_TABS.SKILLS);
     this.element.classList.toggle("tab-combat", this.#primaryTab === SHEET_TABS.COMBAT);
     this.element.classList.toggle("tab-talents", this.#primaryTab === SHEET_TABS.TALENTS);
+    this.element.classList.toggle("tab-arts", this.#primaryTab === SHEET_TABS.ARTS);
     this.element.classList.toggle("tab-notes", this.#primaryTab === SHEET_TABS.NOTES);
     this.element.classList.toggle("tab-effects", this.#primaryTab === SHEET_TABS.EFFECTS);
     this.#applySheetBanner(
@@ -946,6 +1015,127 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     });
     if (!confirmed) return;
     await talent.delete();
+  }
+
+  static async #onUseArt(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (!this.isEditable || !this.actor) return;
+    const itemId = target.dataset.itemId;
+    if (!itemId) return;
+    const art = this.actor.items.get(itemId);
+    if (!art || (art.type as string) !== "art") return;
+    const system = art.system as unknown as ArtDataFields;
+    if (system.commitment === "free") {
+      await postArtUseChat(art);
+      return;
+    }
+    if (system.commitment === "concentration") {
+      if (!system.concentrating) {
+        const effort = summarizeActorEffort(this.actor);
+        if (effort.value < 1) {
+          ui.notifications?.warn(game.i18n.localize("KEDOM.Art.NoEffort"));
+          return;
+        }
+        await art.update({ "system.concentrating": true });
+      }
+      await postArtUseChat(art);
+      return;
+    }
+    if (system.effortCommitted) {
+      await postArtUseChat(art);
+      return;
+    }
+    const effort = summarizeActorEffort(this.actor);
+    if (effort.value < 1) {
+      ui.notifications?.warn(game.i18n.localize("KEDOM.Art.NoEffort"));
+      return;
+    }
+    await art.update({ "system.effortCommitted": true });
+    await postArtUseChat(art);
+  }
+
+  static async #onToggleArtConcentration(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (!this.isEditable || !this.actor) return;
+    const itemId = target.dataset.itemId;
+    if (!itemId) return;
+    const art = this.actor.items.get(itemId);
+    if (!art || (art.type as string) !== "art") return;
+    const system = art.system as unknown as ArtDataFields;
+    if (system.commitment !== "concentration") return;
+    if (system.concentrating) {
+      await art.update({ "system.concentrating": false });
+      return;
+    }
+    const effort = summarizeActorEffort(this.actor);
+    if (effort.value < 1) {
+      ui.notifications?.warn(game.i18n.localize("KEDOM.Art.NoEffort"));
+      return;
+    }
+    await art.update({ "system.concentrating": true });
+  }
+
+  static async #onEditArt(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (!this.actor) return;
+    const itemId = target.dataset.itemId;
+    if (!itemId) return;
+    const art = this.actor.items.get(itemId);
+    if (!art || (art.type as string) !== "art") return;
+    await art.sheet?.render(true);
+  }
+
+  static async #onDeleteArt(
+    this: CharacterSheet,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    if (!this.isEditable || !this.actor) return;
+    const itemId = target.dataset.itemId;
+    if (!itemId) return;
+    const art = this.actor.items.get(itemId);
+    if (!art || (art.type as string) !== "art") return;
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize("KEDOM.Sheet.Action.deleteOwnedItem") },
+      content: `<p>${game.i18n.format("KEDOM.Sheet.DeleteOwnedItemConfirm", {
+        name: art.name,
+      })}</p>`,
+    });
+    if (!confirmed) return;
+    await art.delete();
+  }
+
+  static async #onEndArtScene(this: CharacterSheet): Promise<void> {
+    if (!this.isEditable || !this.actor?.isOwner) return;
+    const updates = this.actor.items
+      .filter((item) => (item.type as string) === "art")
+      .filter((item) => {
+        const s = item.system as unknown as ArtDataFields;
+        return s.commitment === "scene" && s.effortCommitted;
+      })
+      .map((item) => ({ _id: item.id, "system.effortCommitted": false }));
+    if (updates.length) await this.actor.updateEmbeddedDocuments("Item", updates);
+  }
+
+  static async #onEndArtDay(this: CharacterSheet): Promise<void> {
+    if (!this.isEditable || !this.actor?.isOwner) return;
+    const updates = this.actor.items
+      .filter((item) => (item.type as string) === "art")
+      .filter((item) => {
+        const s = item.system as unknown as ArtDataFields;
+        return (s.commitment === "scene" || s.commitment === "day") && s.effortCommitted;
+      })
+      .map((item) => ({ _id: item.id, "system.effortCommitted": false }));
+    if (updates.length) await this.actor.updateEmbeddedDocuments("Item", updates);
   }
 
   static async #onCreateActorEffect(this: CharacterSheet): Promise<void> {

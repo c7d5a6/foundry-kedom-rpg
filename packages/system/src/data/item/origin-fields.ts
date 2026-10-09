@@ -13,6 +13,8 @@ export type PrioritizedSaveFields = {
 export type ClassArtsFields = {
   skillKey: string;
   abilityKeys: string[];
+  /** Levels 1–10: arts that may be known at that level (budget display). */
+  slotsByLevel: number[];
   receiveTableKey: string;
   artKeys: string[];
 };

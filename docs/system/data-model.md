@@ -143,7 +143,8 @@ Seven. Each has a reason to exist that no other type covers.
 | `armor` | Wound Luck-save bonus (`woundBonus`). Does not change Defense. **POC shipped.** Skill penalty deferred. |
 | `gear` | Everything else carried. |
 | `talent` | Character talent (WWN-style feat; not the Focus ability). Grants + transferable Active Effects. **POC:** description, grant arrays, skill-advantage AE helper; auto-apply on embed with level-gate overflow. |
-| `power` | Arts, spells, and abilities, behind a `subType` discriminator. |
+| `art` | Magical arts (Effort commitments). Spells may join later as a separate type or a `power` discriminator. |
+| `power` | Reserved / docs-legacy name for a possible future arts+spells union; shipped arts use `art`. |
 | `origin` | Region, race, background, or class, behind a `subType` discriminator. Class origins
   carry `slug`, `isFull` (`true` = full, `false` = Adventurer partial — never both), hit
   die + priority, `talentSlugs[]`, talent picks, arts, and primary / secondary saves. Race

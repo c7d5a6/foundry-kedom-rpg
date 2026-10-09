@@ -8,7 +8,7 @@ const root = import.meta.dirname;
 
 /** Copy compiled ClassicLevel packs into dist (gitignored paths skip static-copy globs). */
 function copyCompendiumPacks(): Plugin {
-  const packNames = ["origins", "talents"] as const;
+  const packNames = ["origins", "talents", "arts"] as const;
   return {
     name: "kedom-copy-compendium-packs",
     closeBundle() {

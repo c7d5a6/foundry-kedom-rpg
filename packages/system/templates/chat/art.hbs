@@ -1,0 +1,12 @@
+<div class="kedom-chat kedom-chat--art">
+  <header class="kedom-chat__header">
+    <img class="kedom-chat__img" src="{{img}}" alt="" />
+    <div class="kedom-chat__titles">
+      <h3 class="kedom-chat__name">{{name}}</h3>
+      <p class="kedom-chat__meta">{{commitmentLabel}}{{#if effortCost}} · {{effortCostLabel}}{{/if}}</p>
+    </div>
+  </header>
+  {{#if description}}
+    <div class="kedom-chat__body">{{{description}}}</div>
+  {{/if}}
+</div>

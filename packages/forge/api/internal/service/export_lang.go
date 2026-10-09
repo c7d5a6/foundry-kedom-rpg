@@ -74,6 +74,7 @@ func (c *Content) langExport(ctx context.Context, locale model.Locale) (export.L
 		Background:                map[string]export.ContentEntry{},
 		Class:                     map[string]export.ContentEntry{},
 		Talent:                    map[string]export.ContentEntry{},
+		Art:                       map[string]export.ContentEntry{},
 	}
 
 	for _, a := range attrs {
@@ -187,6 +188,14 @@ func (c *Content) langExport(ctx context.Context, locale model.Locale) (export.L
 	}
 	for _, t := range talents {
 		out.Talent[t.Slug] = contentEntry(t.Label, t.Description, t.Translations)
+	}
+
+	arts, err := c.ListArts(ctx, overlayLocale)
+	if err != nil {
+		return export.LangClosedInput{}, err
+	}
+	for _, a := range arts {
+		out.Art[a.Slug] = contentEntry(a.Label, a.Description, a.Translations)
 	}
 
 	return out, nil

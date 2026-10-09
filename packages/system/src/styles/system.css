@@ -3212,6 +3212,137 @@ button.kedom-skill__tag.is-blocked:hover {
   background: transparent;
 }
 
+/* —— Arts panel (mirrors talents) —— */
+.kedom-arts-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.35rem 0.25rem 0.5rem;
+}
+
+.kedom-arts-panel__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+}
+
+.kedom-arts-panel__title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.kedom-arts-panel__stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.kedom-arts-panel__owner-actions,
+.kedom-arts-list__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+
+.kedom-arts-panel__btn,
+.kedom-arts-list__btn {
+  font-size: 0.8rem;
+}
+
+.kedom-arts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.kedom-arts-list__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: flex-start;
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  padding: 0.35rem 0.45rem;
+}
+
+.kedom-arts-list__item.is-committed {
+  border-color: color-mix(in srgb, var(--color-warm) 50%, var(--color-border));
+}
+
+.kedom-arts-list__details {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.kedom-arts-list__summary {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.kedom-arts-list__summary::-webkit-details-marker {
+  display: none;
+}
+
+.kedom-arts-list__img {
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+.kedom-arts-list__name {
+  font-weight: 600;
+}
+
+.kedom-arts-list__meta {
+  font-size: 0.75rem;
+  opacity: 0.75;
+  margin-left: auto;
+}
+
+.kedom-arts-list__body {
+  margin-top: 0.35rem;
+  padding-left: 2.2rem;
+}
+
+.kedom-arts-used {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.kedom-arts-used__title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.kedom-arts-used__group h4 {
+  margin: 0.25rem 0 0.1rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.kedom-arts-used__group ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.kedom-arts-panel__empty,
+.kedom-arts-used__empty {
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+
 /* —— Talent grants panel —— */
 .kedom-grants-panel {
   display: flex;

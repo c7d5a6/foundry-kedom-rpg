@@ -292,6 +292,124 @@
           <p class="kedom-talents-panel__empty">{{localize "KEDOM.Sheet.TalentsEmpty"}}</p>
         {{/if}}
       </section>
+    {{else if isArtsTab}}
+      <section class="kedom-arts-panel">
+        <header class="kedom-arts-panel__header">
+          <h2 class="kedom-arts-panel__title">{{localize "KEDOM.Sheet.Arts"}}</h2>
+          <div class="kedom-arts-panel__stats">
+            <span>{{localize "KEDOM.Art.Effort"}} {{effort.value}} / {{effort.max}}</span>
+            <span>{{localize "KEDOM.Sheet.Arts"}} {{effort.artsOwned}} / {{effort.artsBudget}}</span>
+          </div>
+          {{#if isArtOwner}}
+            <div class="kedom-arts-panel__owner-actions">
+              <button type="button" class="kedom-arts-panel__btn" data-action="endArtScene">
+                {{localize "KEDOM.Art.EndScene"}}
+              </button>
+              <button type="button" class="kedom-arts-panel__btn" data-action="endArtDay">
+                {{localize "KEDOM.Art.EndDay"}}
+              </button>
+            </div>
+          {{/if}}
+        </header>
+
+        {{#if arts.length}}
+          <ul class="kedom-arts-list">
+            {{#each arts}}
+              <li class="kedom-arts-list__item{{#if holding}} is-committed{{/if}}">
+                <details class="kedom-arts-list__details">
+                  <summary class="kedom-arts-list__summary">
+                    <img class="kedom-arts-list__img" src="{{img}}" alt="" />
+                    <span class="kedom-arts-list__name">{{name}}</span>
+                    <span class="kedom-arts-list__meta">{{commitmentLabel}}</span>
+                    <i class="fa-solid fa-chevron-down kedom-arts-list__chevron" inert></i>
+                  </summary>
+                  <div class="kedom-arts-list__body">
+                    {{#if hasDescription}}
+                      <div class="kedom-arts-list__description">{{{enrichedDescription}}}</div>
+                    {{else}}
+                      <p class="kedom-arts-list__description-empty">{{localize "KEDOM.Sheet.ArtNoDescription"}}</p>
+                    {{/if}}
+                  </div>
+                </details>
+                <div class="kedom-arts-list__actions">
+                  {{#if isConcentration}}
+                    <button
+                      type="button"
+                      class="kedom-arts-list__btn"
+                      data-action="toggleArtConcentration"
+                      data-item-id="{{id}}"
+                      {{#unless @root.editable}}disabled{{/unless}}
+                    >
+                      {{#if concentrating}}{{localize "KEDOM.Art.Release"}}{{else}}{{localize "KEDOM.Art.Concentrate"}}{{/if}}
+                    </button>
+                  {{else}}
+                    <button
+                      type="button"
+                      class="kedom-arts-list__btn"
+                      data-action="useArt"
+                      data-item-id="{{id}}"
+                      {{#unless @root.editable}}disabled{{/unless}}
+                    >
+                      {{localize "KEDOM.Art.Use"}}
+                    </button>
+                  {{/if}}
+                  {{#if @root.isEdit}}
+                    <button
+                      type="button"
+                      class="kedom-arts-list__btn"
+                      data-action="editArt"
+                      data-item-id="{{id}}"
+                      title="{{localize "KEDOM.Sheet.Action.edit"}}"
+                    >
+                      <i class="fa-solid fa-pen" inert></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="kedom-arts-list__btn"
+                      data-action="deleteArt"
+                      data-item-id="{{id}}"
+                      {{#unless @root.editable}}disabled{{/unless}}
+                      title="{{localize "KEDOM.Sheet.Action.deleteOwnedItem"}}"
+                    >
+                      <i class="fa-solid fa-trash" inert></i>
+                    </button>
+                  {{/if}}
+                </div>
+              </li>
+            {{/each}}
+          </ul>
+        {{else}}
+          <p class="kedom-arts-panel__empty">{{localize "KEDOM.Sheet.ArtsEmpty"}}</p>
+        {{/if}}
+
+        <div class="kedom-arts-used">
+          <h3 class="kedom-arts-used__title">{{localize "KEDOM.Art.Used"}}</h3>
+          <div class="kedom-arts-used__group">
+            <h4>{{localize "KEDOM.Art.Commitment.concentration"}}</h4>
+            {{#if usedConcentration.length}}
+              <ul>{{#each usedConcentration}}<li>{{name}}</li>{{/each}}</ul>
+            {{else}}
+              <p class="kedom-arts-used__empty">—</p>
+            {{/if}}
+          </div>
+          <div class="kedom-arts-used__group">
+            <h4>{{localize "KEDOM.Art.Commitment.scene"}}</h4>
+            {{#if usedScene.length}}
+              <ul>{{#each usedScene}}<li>{{name}}</li>{{/each}}</ul>
+            {{else}}
+              <p class="kedom-arts-used__empty">—</p>
+            {{/if}}
+          </div>
+          <div class="kedom-arts-used__group">
+            <h4>{{localize "KEDOM.Art.Commitment.day"}}</h4>
+            {{#if usedDay.length}}
+              <ul>{{#each usedDay}}<li>{{name}}</li>{{/each}}</ul>
+            {{else}}
+              <p class="kedom-arts-used__empty">—</p>
+            {{/if}}
+          </div>
+        </div>
+      </section>
     {{else if isNotesTab}}
       <section class="kedom-notes-panel">
         {{#if editable}}

@@ -88,10 +88,14 @@ type ClassDTO struct {
 	SavePrimaryPriority   int64          `json:"save_primary_priority"`
 	SaveSecondary         string         `json:"save_secondary"`
 	SaveSecondaryPriority int64          `json:"save_secondary_priority"`
-	ArtsSkillKey          string         `json:"arts_skill_key"`
+	EffortSkillKey        string         `json:"effort_skill_key"`
+	EffortAbilityKey1     string         `json:"effort_ability_key_1"`
+	EffortAbilityKey2     string         `json:"effort_ability_key_2"`
+	ArtSlots              []int64        `json:"art_slots"`
 	SortOrder             int64          `json:"sort_order"`
 	FoundryID             string         `json:"foundry_id"`
 	LinkedCultures        []EntityRef    `json:"linked_cultures"`
+	LinkedArts            []EntityRef    `json:"linked_arts"`
 	Translations          TranslationMap `json:"translations"`
 }
 
@@ -324,16 +328,19 @@ func classDTOFromRow(
 	hitDiePriority, talentPicksWarrior, talentPicksExpert, talentPicksAny int64,
 	savePrimary string, savePrimaryPriority int64,
 	saveSecondary string, saveSecondaryPriority int64,
-	artsSkillKey string,
+	effortSkillKey, effortAbilityKey1, effortAbilityKey2, artSlotsJSON string,
 	sortOrder int64, foundryID string,
 	talentIDs []int64, talentSlugs []string,
-	tr TranslationMap, cultures []EntityRef,
+	tr TranslationMap, cultures []EntityRef, arts []EntityRef,
 ) ClassDTO {
 	if talentIDs == nil {
 		talentIDs = []int64{}
 	}
 	if talentSlugs == nil {
 		talentSlugs = []string{}
+	}
+	if arts == nil {
+		arts = []EntityRef{}
 	}
 	return ClassDTO{
 		ID: id, Slug: slug, Label: label, Description: description, Comment: comment,
@@ -344,9 +351,10 @@ func classDTOFromRow(
 		TalentPicksAny: talentPicksAny,
 		SavePrimary: savePrimary, SavePrimaryPriority: savePrimaryPriority,
 		SaveSecondary: saveSecondary, SaveSecondaryPriority: saveSecondaryPriority,
-		ArtsSkillKey: artsSkillKey,
+		EffortSkillKey: effortSkillKey, EffortAbilityKey1: effortAbilityKey1,
+		EffortAbilityKey2: effortAbilityKey2, ArtSlots: ParseArtSlots(artSlotsJSON),
 		SortOrder: sortOrder, FoundryID: foundryID,
-		LinkedCultures: cultures, Translations: tr,
+		LinkedCultures: cultures, LinkedArts: arts, Translations: tr,
 	}
 }
 
@@ -419,15 +427,32 @@ func (c *Content) ListClasses(ctx context.Context, locale model.Locale) ([]Class
 		if err != nil {
 			return nil, err
 		}
+		arts, err := c.classArtRefs(ctx, row.ID)
+		if err != nil {
+			return nil, err
+		}
 		out = append(out, classDTOFromRow(
 			row.ID, row.Slug, row.Label, row.Description, row.Comment,
 			row.IsFull, row.IsPartial, row.HitDie,
 			row.HitDiePriority, row.TalentPicksWarrior, row.TalentPicksExpert, row.TalentPicksAny,
 			row.SavePrimary, row.SavePrimaryPriority,
 			row.SaveSecondary, row.SaveSecondaryPriority,
-			row.ArtsSkillKey, row.SortOrder, row.FoundryID,
-			ids, slugs, tr, cultures,
+			row.EffortSkillKey, row.EffortAbilityKey1, row.EffortAbilityKey2, row.ArtSlotsJson,
+			row.SortOrder, row.FoundryID,
+			ids, slugs, tr, cultures, arts,
 		))
+	}
+	return out, nil
+}
+
+func (c *Content) classArtRefs(ctx context.Context, classID int64) ([]EntityRef, error) {
+	rows, err := c.q.ListArtsByClass(ctx, classID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]EntityRef, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, EntityRef{ID: r.ID, Slug: r.Slug, Label: r.Label})
 	}
 	return out, nil
 }
@@ -449,14 +474,19 @@ func (c *Content) GetClass(ctx context.Context, id int64, locale model.Locale) (
 	if err != nil {
 		return ClassDTO{}, err
 	}
+	arts, err := c.classArtRefs(ctx, row.ID)
+	if err != nil {
+		return ClassDTO{}, err
+	}
 	return classDTOFromRow(
 		row.ID, row.Slug, row.Label, row.Description, row.Comment,
 		row.IsFull, row.IsPartial, row.HitDie,
 		row.HitDiePriority, row.TalentPicksWarrior, row.TalentPicksExpert, row.TalentPicksAny,
 		row.SavePrimary, row.SavePrimaryPriority,
 		row.SaveSecondary, row.SaveSecondaryPriority,
-		row.ArtsSkillKey, row.SortOrder, row.FoundryID,
-		ids, slugs, tr, cultures,
+		row.EffortSkillKey, row.EffortAbilityKey1, row.EffortAbilityKey2, row.ArtSlotsJson,
+		row.SortOrder, row.FoundryID,
+		ids, slugs, tr, cultures, arts,
 	), nil
 }
 
@@ -477,7 +507,10 @@ type UpdateClassInput struct {
 	SavePrimaryPriority   int64   `json:"save_primary_priority"`
 	SaveSecondary         string  `json:"save_secondary"`
 	SaveSecondaryPriority int64   `json:"save_secondary_priority"`
-	ArtsSkillKey          string  `json:"arts_skill_key"`
+	EffortSkillKey        string  `json:"effort_skill_key"`
+	EffortAbilityKey1     string  `json:"effort_ability_key_1"`
+	EffortAbilityKey2     string  `json:"effort_ability_key_2"`
+	ArtSlots              []int64 `json:"art_slots"`
 }
 
 func (c *Content) UpdateClass(ctx context.Context, id int64, in UpdateClassInput, locale model.Locale) (ClassDTO, error) {
@@ -506,7 +539,9 @@ func (c *Content) UpdateClass(ctx context.Context, id int64, in UpdateClassInput
 		TalentPicksAny: in.TalentPicksAny,
 		SavePrimary: in.SavePrimary, SavePrimaryPriority: in.SavePrimaryPriority,
 		SaveSecondary: in.SaveSecondary, SaveSecondaryPriority: in.SaveSecondaryPriority,
-		ArtsSkillKey: in.ArtsSkillKey, ID: id,
+		EffortSkillKey: in.EffortSkillKey, EffortAbilityKey1: in.EffortAbilityKey1,
+		EffortAbilityKey2: in.EffortAbilityKey2, ArtSlotsJson: EncodeArtSlots(in.ArtSlots),
+		ID: id,
 	})
 	if err != nil {
 		return ClassDTO{}, mapNotFound(err)
@@ -729,7 +764,7 @@ func mapNotFound(err error) error {
 func validKind(k model.EntityKind) bool {
 	switch k {
 	case model.EntityAttribute, model.EntitySkill, model.EntitySpecialization, model.EntityClass,
-		model.EntityRace, model.EntityRegion, model.EntityBackground, model.EntityTalent:
+		model.EntityRace, model.EntityRegion, model.EntityBackground, model.EntityTalent, model.EntityArt:
 		return true
 	default:
 		return model.IsVocabKind(k)

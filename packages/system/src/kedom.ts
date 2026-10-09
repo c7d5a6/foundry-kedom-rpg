@@ -1,9 +1,11 @@
 import { CharacterData } from "./data/actor/character.ts";
 import { ArmorData } from "./data/item/armor.ts";
+import { ArtData } from "./data/item/art.ts";
 import { OriginData } from "./data/item/origin.ts";
 import { TalentData } from "./data/item/talent.ts";
 import { WeaponData } from "./data/item/weapon.ts";
 import { ArmorSheet } from "./applications/sheets/armor-sheet.ts";
+import { ArtSheet } from "./applications/sheets/art-sheet.ts";
 import { CharacterSheet } from "./applications/sheets/character-sheet.ts";
 import { OriginSheet } from "./applications/sheets/origin-sheet.ts";
 import { TalentSheet } from "./applications/sheets/talent-sheet.ts";
@@ -29,6 +31,8 @@ Hooks.once("init", () => {
   CONFIG.Item.dataModels.origin = OriginData;
   // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
   CONFIG.Item.dataModels.talent = TalentData;
+  // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
+  CONFIG.Item.dataModels.art = ArtData;
 
   foundry.documents.collections.Actors.registerSheet("kedom", CharacterSheet, {
     types: ["character"],
@@ -64,6 +68,13 @@ Hooks.once("init", () => {
     label: "KEDOM.Sheet.Talent",
   });
 
+  foundry.documents.collections.Items.registerSheet("kedom", ArtSheet, {
+    // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
+    types: ["art"],
+    makeDefault: true,
+    label: "KEDOM.Sheet.Art",
+  });
+
   registerSettings();
 
   void foundry.applications.handlebars.loadTemplates([
@@ -71,6 +82,7 @@ Hooks.once("init", () => {
     "systems/kedom/templates/chat/wound.hbs",
     "systems/kedom/templates/chat/attack.hbs",
     "systems/kedom/templates/chat/damage.hbs",
+    "systems/kedom/templates/chat/art.hbs",
     "systems/kedom/templates/apps/check-dialog.hbs",
     "systems/kedom/templates/apps/create-character/wizard.hbs",
     "systems/kedom/templates/actor/partials/skill.hbs",
@@ -79,9 +91,10 @@ Hooks.once("init", () => {
     "systems/kedom/templates/item/armor.hbs",
     "systems/kedom/templates/item/origin.hbs",
     "systems/kedom/templates/item/talent.hbs",
+    "systems/kedom/templates/item/art.hbs",
   ]);
 
-  console.log("Kedom RPG | initialized (character + origin/talent/weapon/armor + rolls + AE)");
+  console.log("Kedom RPG | initialized (character + origin/talent/art/weapon/armor + rolls + AE)");
 });
 
 Hooks.on("renderActorDirectory", registerCharacterCreateDirectoryButton);

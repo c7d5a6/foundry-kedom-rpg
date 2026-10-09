@@ -88,25 +88,48 @@ type PackClass struct {
 	SavePrimaryPriority   int64
 	SaveSecondary         string
 	SaveSecondaryPriority int64
-	ArtsSkillKey          string
+	EffortSkillKey        string
+	EffortAbilityKeys     []string
+	SlotsByLevel          []int64
 }
 
-// PackInput is everything needed to write origins + talents packs.
+// PackArt is an art item document.
+type PackArt struct {
+	Slug        string
+	Label       string
+	Description string
+	FoundryID   string
+	ClassSlug   string
+	Commitment  string
+	EffectsJSON string
+}
+
+// PackInput is everything needed to write origins + talents + arts packs.
 type PackInput struct {
 	Talents     []PackTalent
+	Arts        []PackArt
 	Regions     []PackRegion
 	Races       []PackRace
 	Backgrounds []PackBackground
 	Classes     []PackClass
 }
 
-// WritePacks writes YAML sources under outDir/origins and outDir/talents.
+func emptyArtsBlock() map[string]any {
+	return map[string]any{
+		"skillKey": "", "abilityKeys": []string{},
+		"slotsByLevel": []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		"receiveTableKey": "", "artKeys": []string{},
+	}
+}
+
+// WritePacks writes YAML sources under outDir/origins, outDir/talents, and outDir/arts.
 // Each pack source directory is removed and recreated first so deleted entities
 // cannot leave stale YAML behind for packs:build.
 func WritePacks(outDir string, in PackInput) error {
 	originsDir := filepath.Join(outDir, "origins")
 	talentsDir := filepath.Join(outDir, "talents")
-	for _, dir := range []string{originsDir, talentsDir} {
+	artsDir := filepath.Join(outDir, "arts")
+	for _, dir := range []string{originsDir, talentsDir, artsDir} {
 		if err := os.RemoveAll(dir); err != nil {
 			return fmt.Errorf("clean pack source %s: %w", dir, err)
 		}
@@ -168,9 +191,7 @@ func WritePacks(outDir string, in PackInput) error {
 				"hitDie":         "1d6",
 				"hitDiePriority": 0,
 				"talentPicks":    map[string]int{"warrior": 0, "expert": 0, "any": 0},
-				"arts": map[string]any{
-					"skillKey": "", "abilityKeys": []string{}, "receiveTableKey": "", "artKeys": []string{},
-				},
+				"arts":            emptyArtsBlock(),
 				"saves":           defaultSaves(),
 				"talentSlug":      "",
 				"classSlugs":      []string{},
@@ -203,9 +224,7 @@ func WritePacks(outDir string, in PackInput) error {
 				"hitDie":         "1d6",
 				"hitDiePriority": 0,
 				"talentPicks":    map[string]int{"warrior": 0, "expert": 0, "any": 0},
-				"arts": map[string]any{
-					"skillKey": "", "abilityKeys": []string{}, "receiveTableKey": "", "artKeys": []string{},
-				},
+				"arts":            emptyArtsBlock(),
 				"saves":           defaultSaves(),
 				"backgroundSlugs": []string{},
 				"free":            map[string]any{"skillKey": "", "specSlug": ""},
@@ -246,9 +265,7 @@ func WritePacks(outDir string, in PackInput) error {
 				"hitDie":         "1d6",
 				"hitDiePriority": 0,
 				"talentPicks":    map[string]int{"warrior": 0, "expert": 0, "any": 0},
-				"arts": map[string]any{
-					"skillKey": "", "abilityKeys": []string{}, "receiveTableKey": "", "artKeys": []string{},
-				},
+				"arts":            emptyArtsBlock(),
 				"saves":           defaultSaves(),
 				"talentSlug":      "",
 				"classSlugs":      []string{},
@@ -262,6 +279,16 @@ func WritePacks(outDir string, in PackInput) error {
 	}
 
 	for _, cl := range in.Classes {
+		abilityKeys := cl.EffortAbilityKeys
+		if abilityKeys == nil {
+			abilityKeys = []string{}
+		}
+		slots := cl.SlotsByLevel
+		if len(slots) != 10 {
+			norm := make([]int64, 10)
+			copy(norm, slots)
+			slots = norm
+		}
 		doc := map[string]any{
 			"_id":  cl.FoundryID,
 			"name": cl.Label,
@@ -281,8 +308,11 @@ func WritePacks(outDir string, in PackInput) error {
 					"any":     cl.TalentPicksAny,
 				},
 				"arts": map[string]any{
-					"skillKey": cl.ArtsSkillKey, "abilityKeys": []string{},
-					"receiveTableKey": "", "artKeys": []string{},
+					"skillKey":        cl.EffortSkillKey,
+					"abilityKeys":     abilityKeys,
+					"slotsByLevel":    slots,
+					"receiveTableKey": "",
+					"artKeys":         []string{},
 				},
 				"saves": map[string]any{
 					"primary": map[string]any{
@@ -303,6 +333,34 @@ func WritePacks(outDir string, in PackInput) error {
 			"_key": "!items!" + cl.FoundryID,
 		}
 		if err := writeYAML(filepath.Join(originsDir, "class."+cl.Slug+".yml"), doc); err != nil {
+			return err
+		}
+	}
+
+	for _, a := range in.Arts {
+		doc := map[string]any{
+			"_id":  a.FoundryID,
+			"name": a.Label,
+			"type": "art",
+			"img":  "icons/svg/explosion.svg",
+			"system": map[string]any{
+				"slug":            a.Slug,
+				"description":     renderMD(md, a.Description),
+				"classSlug":       a.ClassSlug,
+				"commitment":      a.Commitment,
+				"effortCommitted": false,
+				"concentrating":   false,
+			},
+			"_key": "!items!" + a.FoundryID,
+		}
+		effects, err := talentActiveEffects(a.FoundryID, a.EffectsJSON)
+		if err != nil {
+			return fmt.Errorf("art %s effects: %w", a.Slug, err)
+		}
+		if len(effects) > 0 {
+			doc["effects"] = effects
+		}
+		if err := writeYAML(filepath.Join(artsDir, a.Slug+".yml"), doc); err != nil {
 			return err
 		}
 	}

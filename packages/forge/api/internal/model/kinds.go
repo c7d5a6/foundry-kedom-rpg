@@ -12,6 +12,7 @@ const (
 	EntityRegion          EntityKind = "region"
 	EntityBackground      EntityKind = "background"
 	EntityTalent          EntityKind = "talent"
+	EntityArt             EntityKind = "art"
 	EntityProficiency     EntityKind = "proficiency"
 	EntityOutcome         EntityKind = "outcome"
 	EntitySave            EntityKind = "save"
