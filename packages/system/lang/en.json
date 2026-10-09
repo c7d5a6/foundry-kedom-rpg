@@ -263,7 +263,8 @@
       "strainLimit": "Strain Limit",
       "strainLimitShort": "SL",
       "strainShort": "S",
-      "wounds": "Wounds"
+      "wounds": "Wounds",
+      "woundsShort": "W"
     },
     "Condition": {
       "blinded": "Blinded",

@@ -24,6 +24,7 @@ INSERT INTO schema_migrations VALUES('0015_talent_effects','2026-10-09T13:53:23Z
 INSERT INTO schema_migrations VALUES('0016_region_banner','2026-10-09T13:53:23Z');
 INSERT INTO schema_migrations VALUES('0017_drop_feature_keys','2026-10-09T15:56:19Z');
 INSERT INTO schema_migrations VALUES('0018_drop_unused_columns','2026-10-09T16:44:10Z');
+INSERT INTO schema_migrations VALUES('0019_wounds_short_vocab','2026-10-09T17:07:45Z');
 CREATE TABLE attribute (
 	id           INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug         TEXT NOT NULL UNIQUE
@@ -234,6 +235,7 @@ INSERT INTO vocab VALUES(60,'derived','resolve','Resolve','RSV',18,'');
 INSERT INTO vocab VALUES(61,'derived','resolveShort','RSV','',19,'');
 INSERT INTO vocab VALUES(62,'derived','meleeDamage','Melee Damage','',20,'');
 INSERT INTO vocab VALUES(63,'save','luck','Luck','',4,'');
+INSERT INTO vocab VALUES(64,'derived','woundsShort','W','',21,'');
 CREATE TABLE IF NOT EXISTS "translation" (
 	id          INTEGER PRIMARY KEY AUTOINCREMENT,
 	entity_kind TEXT NOT NULL
@@ -424,6 +426,7 @@ INSERT INTO translation VALUES(255,'region',2,'ru','label','Нерланд');
 INSERT INTO translation VALUES(267,'derived',58,'ru','abbreviation','ПИ');
 INSERT INTO translation VALUES(269,'derived',60,'ru','abbreviation','РШ');
 INSERT INTO translation VALUES(270,'save',63,'ru','label','Удача');
+INSERT INTO translation VALUES(272,'derived',64,'ru','label','Р');
 CREATE TABLE race (
 	id              INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug            TEXT NOT NULL UNIQUE
@@ -476,7 +479,7 @@ CREATE TABLE IF NOT EXISTS "talent" (
 		CHECK (length(foundry_id) = 16 AND foundry_id NOT GLOB '*[^A-Za-z0-9]*')
 , effects_json TEXT NOT NULL DEFAULT '[]'
 	CHECK (json_valid(effects_json) AND json_type(effects_json) = 'array'));
-INSERT INTO talent VALUES(1,'human','Human','Люди получают дополнительный Expert Talent.','','culture','{"skills":[],"specializations":[],"abilities":[]}',0,'nFjTXEjXH9daq71S','[]');
+INSERT INTO talent VALUES(1,'human','Человек','Люди получают дополнительный Expert Talent.','','culture','{"skills":[],"specializations":[],"abilities":[]}',0,'nFjTXEjXH9daq71S','[]');
 INSERT INTO talent VALUES(2,'dwarven-focus','Dwarven focus','Gain Exert as a bonus skill. You have a natural resistance to magic, gaining a +2 bonus on all saves against hostile magical effects. You need only half the usual amount of food, water, and air and gain a +1 CON modifier.','','culture','{"skills":[],"specializations":[],"abilities":[]}',0,'vDfMjwfYbA9st6Z0','[]');
 INSERT INTO talent VALUES(3,'item','Смертельный удар','Whenever a Warrior inflicts damage with any attack, spell, or special ability they may add half their character level, rounded up, to the damage done. This damage is also added to any Shock they may inflict.','','class','{"skills":[],"specializations":[],"abilities":[]}',0,'XMijkFptnGaQzBT2','[{"foundryId":"C4i246SoIl9YsqdX","name":"Смертельный удар","img":"icons/svg/aura.svg","disabled":false,"changes":[{"key":"system.skills.stab.attackMod","mode":"add","value":"max(@skills.stab.proficiencyBonus, 0)","priority":20},{"key":"system.skills.punch.attackMod","mode":"add","value":"max(@skills.punch.proficiencyBonus, 0)","priority":20},{"key":"system.skills.shoot.attackMod","mode":"add","value":"max(@skills.shoot.proficiencyBonus, 0)","priority":20},{"key":"system.skills.stab.damageMod","mode":"add","value":"max(@skills.stab.proficiencyBonus, 0)","priority":20},{"key":"system.skills.shoot.damageMod","mode":"add","value":"max(@skills.shoot.proficiencyBonus, 0)","priority":20},{"key":"system.skills.punch.damageMod","mode":"add","value":"max(@skills.punch.proficiencyBonus, 0)","priority":20}]}]');
 INSERT INTO talent VALUES(4,'item-2','Везение ветерана','Once per scene, as an Instant action, the Warrior may turn a missed attack they have made into a hit. Alternately, they may turn a successful attack against them into a miss, also as an Instant action. This ability is particularly lethal when used with the Make a Snap Attack action and leveled against weaker monsters or ordinary human warriors.','','class','{"skills":[],"specializations":[],"abilities":[]}',0,'BINZ0EzYsd9yXXZP','[]');

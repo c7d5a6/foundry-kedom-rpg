@@ -263,7 +263,8 @@
       "strainLimit": "Предел изнурения",
       "strainLimitShort": "ПИ",
       "strainShort": "И",
-      "wounds": "Раны"
+      "wounds": "Раны",
+      "woundsShort": "Р"
     },
     "Condition": {
       "blinded": "Ослеплён",
