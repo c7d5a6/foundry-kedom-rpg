@@ -27,7 +27,7 @@ describe("loadOriginsCatalog", () => {
     expect(catalog.fromPacks).toBe(false);
     expect(catalog.regions.length).toBeGreaterThan(0);
     expect(catalog.backgrounds.size).toBeGreaterThan(0);
-    expect(catalog.classes.length).toBeGreaterThan(0);
+    expect(catalog.classes).toEqual([]);
 
     const nerland = catalog.regions.find((r) => r.slug === "nerland");
     expect(nerland).toBeDefined();

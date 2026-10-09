@@ -5,9 +5,9 @@
 import type { OriginDataFields } from "../data/item/origin-fields.ts";
 import type { TalentDataFields } from "../data/item/talent.ts";
 import {
-  CLASSES,
   CULTURES_BY_REGION,
   REGIONS,
+  classDefFromOriginFields,
   type ClassDef,
   type GrowthEntry,
   type RegionKey,
@@ -18,10 +18,7 @@ import {
 } from "../config/backgrounds-draft.ts";
 import { getCulture as getDraftCulture } from "../config/creation.ts";
 import { SKILL_KEYS, type SkillKey } from "../config/kedom.ts";
-import {
-  localizeContentDescription,
-  localizeContentLabel,
-} from "../i18n/content-labels.ts";
+import { localizeContentDescription, localizeContentLabel } from "../i18n/content-labels.ts";
 
 export type CatalogCulture = {
   slug: string;
@@ -302,13 +299,13 @@ function buildFromPacks(
   const classes: CatalogClass[] = classDocs.map((doc) => {
     const sys = originSystem(doc)!;
     const slug = sys.slug || slugOf(doc, sys);
-    const def = CLASSES.find((c) => c.key === slug) ?? null;
+    const def = classDefFromOriginFields(sys, slug);
     const packDesc = sys.description ?? "";
     return {
       slug,
       name: localizeContentLabel("Class", slug, doc.name ?? slug),
       description: localizeContentDescription("Class", slug, packDesc),
-      hitDie: sys.hitDie || def?.hitDie || "1d6",
+      hitDie: def.hitDie,
       talentSlug: sys.talentSlug ?? "",
       isFull: sys.isFull !== false,
       def,
@@ -372,15 +369,7 @@ function buildFromDraft(
     };
   });
 
-  const classes: CatalogClass[] = CLASSES.map((c) => ({
-    slug: c.key,
-    name: localizeLabel(c.labelKey, c.key),
-    description: "",
-    hitDie: c.hitDie,
-    talentSlug: "",
-    isFull: true,
-    def: c,
-  }));
+  const classes: CatalogClass[] = [];
 
   return {
     fromPacks: false,
@@ -425,11 +414,6 @@ export function getCatalogTalent(
 ): CatalogTalent | undefined {
   if (!talentSlug) return undefined;
   return catalog.talents.get(talentSlug);
-}
-
-/** Draft-compatible ClassDef when packs lack matching class system data. */
-export function classDefForSlug(slug: string): ClassDef | undefined {
-  return CLASSES.find((c) => c.key === slug);
 }
 
 export function draftBackground(regionKey: RegionKey, key: string) {

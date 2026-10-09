@@ -32,10 +32,9 @@ pipeline are ready; authoring is not finished (Q25).
 the revised source and the public site's generator. See
 [30-character-creation.md](30-character-creation.md#classes).
 
-**Hit dice are required on every class origin item** (`packages/system/src/data/item/origin.ts`,
-seeded in `packages/system/src/creation/class-origins.ts` until Forge packs own them).
-Warrior and Expert (full and partial) are authored there; other classes are not in the Foundry
-content yet.
+**Hit dice are required on every class origin item** (`packages/system/src/data/item/origin.ts`).
+The create wizard reads hit dice, talent picks, and saves from class documents in the origins
+pack. Authoring those numbers for the full roster is still open.
 
 Still open: skill points per level, and Effort / arts pools. Kedom has **no class attack
 progression** — attacks use attribute mod + proficiency
@@ -230,8 +229,8 @@ Each class should have a **primary** and **secondary** save that progress better
 third. Adventurer takes both partials' primaries; if those collide, the player picks any other
 save as secondary. See [30-character-creation.md](30-character-creation.md#saves).
 
-Every class origin item must carry primary and secondary saves. Warrior and Expert (full and
-partial) are filled in `packages/system/src/creation/class-origins.ts`.
+Every class origin item must carry primary and secondary saves. The create wizard trains those
+two from the pack class item.
 
 Still missing for the rest of the roster: which save is primary/secondary, which **attribute**
 feeds Reflex / Fortitude / Will, and what the numerical "better progression" is (flat bonus

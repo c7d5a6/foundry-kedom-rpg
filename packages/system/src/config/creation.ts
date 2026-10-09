@@ -1,11 +1,7 @@
 import type { ProficiencyTier, SkillKey } from "./kedom.ts";
 import { SAVE_KEYS, type SaveKey } from "./kedom.ts";
-import { getClassOrigin } from "../creation/class-origins.ts";
-import {
-  combineClassOriginsBySlug,
-  combinedOriginSaveProficiencies,
-  originSaveProficiencies,
-} from "../creation/combine-class-origins.ts";
+import type { OriginDataFields } from "../data/item/origin-fields.ts";
+import { originSaveProficiencies } from "../creation/combine-class-origins.ts";
 
 export const CREATION_ABILITY_KEYS = ["mgh", "dex", "kno", "foc", "pre", "lck"] as const;
 export type CreationAbilityKey = (typeof CREATION_ABILITY_KEYS)[number];
@@ -49,9 +45,7 @@ export type SkillGrantSpec = {
 };
 
 export type GrowthEntry =
-  | ({ kind: "skill" } & SkillGrantSpec)
-  | { kind: "anyCombat" }
-  | { kind: "anySkill" };
+  ({ kind: "skill" } & SkillGrantSpec) | { kind: "anyCombat" } | { kind: "anySkill" };
 
 export type BackgroundDef = {
   key: string;
@@ -74,42 +68,21 @@ export const REGIONS: ReadonlyArray<{ key: RegionKey; labelKey: string }> = [
   { key: "nerland", labelKey: "KEDOM.Creation.Region.nerland" },
 ];
 
-/** Wizard-facing class keys → origin item slug(s). Adventurer is two partials. */
-function classDefFromOrigin(key: string): ClassDef | undefined {
-  if (key === "adventurer") {
-    const combined = combineClassOriginsBySlug("warrior-partial", "expert-partial");
-    if (!combined) return undefined;
-    return {
-      key: "adventurer",
-      labelKey: "KEDOM.Creation.Class.adventurer",
-      hitDie: combined.hitDie,
-      talentPicks: combined.talentPicks,
-      saveProficiencies: combinedOriginSaveProficiencies(combined),
-    };
-  }
-
-  const origin = getClassOrigin(key);
-  if (!origin || !origin.system.isFull) return undefined;
-  const picks = origin.system.talentPicks;
+/** Hit die, talent picks, and starting saves from a pack class origin. */
+export function classDefFromOriginFields(system: OriginDataFields, slug = system.slug): ClassDef {
+  const picks = system.talentPicks;
   const talentPicks: TalentPickBudget = {};
   if (picks.warrior) talentPicks.warrior = picks.warrior;
   if (picks.expert) talentPicks.expert = picks.expert;
   if (picks.any) talentPicks.any = picks.any;
   return {
-    key,
-    labelKey:
-      key === "expert" ? "KEDOM.Creation.Class.expert" : "KEDOM.Creation.Class.warrior",
-    hitDie: origin.system.hitDie,
+    key: slug,
+    labelKey: "",
+    hitDie: system.hitDie || "1d6",
     talentPicks,
-    saveProficiencies: originSaveProficiencies(origin.system),
+    saveProficiencies: originSaveProficiencies(system),
   };
 }
-
-export const CLASSES: ReadonlyArray<ClassDef> = [
-  classDefFromOrigin("warrior")!,
-  classDefFromOrigin("expert")!,
-  classDefFromOrigin("adventurer")!,
-];
 
 export const CULTURES_BY_REGION: Record<RegionKey, readonly CultureDef[]> = {
   nerland: [
@@ -140,10 +113,6 @@ export function getCulture(regionKey: RegionKey, cultureKey: string): CultureDef
   return CULTURES_BY_REGION[regionKey]?.find((c) => c.key === cultureKey);
 }
 
-export function getClass(classKey: string): ClassDef | undefined {
-  return classDefFromOrigin(classKey) ?? CLASSES.find((c) => c.key === classKey);
-}
-
 /** Actor `system.saves` payload from class starting proficiencies. */
 export function classSaveSystemData(
   classDef: ClassDef,
@@ -171,9 +140,12 @@ export function resolveTalentPickBudget(
 
 export function roll3d6(): number {
   return (
-    1 + Math.floor(Math.random() * 6) +
-    1 + Math.floor(Math.random() * 6) +
-    1 + Math.floor(Math.random() * 6)
+    1 +
+    Math.floor(Math.random() * 6) +
+    1 +
+    Math.floor(Math.random() * 6) +
+    1 +
+    Math.floor(Math.random() * 6)
   );
 }
 

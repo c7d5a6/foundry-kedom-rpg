@@ -19,7 +19,14 @@ function talentSchema() {
       required: true,
       nullable: false,
       blank: false,
-      choices: [...TALENT_CATEGORIES],
+      // A record, not an array: formInput uses Object.entries, so an array's option values are 0, 1, 2…
+      choices: () =>
+        Object.fromEntries(
+          TALENT_CATEGORIES.map((category) => [
+            category,
+            game.i18n.localize(`KEDOM.Talent.Category.${category}`),
+          ]),
+        ),
       initial: "general",
     }),
     featureKey: new StringField({

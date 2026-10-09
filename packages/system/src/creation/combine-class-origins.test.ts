@@ -1,64 +1,84 @@
 import { describe, expect, it } from "vitest";
-import {
-  combineClassOriginsBySlug,
-  originSaveProficiencies,
-} from "./combine-class-origins.ts";
-import {
-  fullClassOrigins,
-  getClassOrigin,
-  partialClassOrigins,
-} from "./class-origins.ts";
+import type { OriginDataFields } from "../data/item/origin-fields.ts";
+import { combineClassOrigins, originSaveProficiencies } from "./combine-class-origins.ts";
 
-describe("class origin seeds", () => {
-  it("has four Warrior/Expert rows as origin items", () => {
-    expect(fullClassOrigins().map((c) => c.system.slug)).toEqual(["warrior", "expert"]);
-    expect(partialClassOrigins().map((c) => c.system.slug)).toEqual([
-      "warrior-partial",
-      "expert-partial",
-    ]);
+function partial(
+  overrides: Partial<OriginDataFields> & Pick<OriginDataFields, "slug">,
+): OriginDataFields {
+  return {
+    subType: "class",
+    description: "",
+    grants: { skills: [], specializations: [], abilities: [] },
+    cultures: [],
+    talentSlug: "",
+    classSlugs: [],
+    free: { skillKey: "", specSlug: "" },
+    growth: [],
+    isFull: false,
+    hitDie: "1d6",
+    hitDiePriority: 0,
+    classTalentKeys: [],
+    talentPicks: { warrior: 0, expert: 0, any: 0 },
+    arts: { skillKey: "", abilityKeys: [], receiveTableKey: "", artKeys: [] },
+    saves: {
+      primary: { save: "reflex", priority: 0 },
+      secondary: { save: "fortitude", priority: 0 },
+    },
+    ...overrides,
+  };
+}
+
+describe("combineClassOrigins", () => {
+  const warrior = partial({
+    slug: "warrior-partial",
+    hitDie: "1d6+2",
+    hitDiePriority: 1000,
+    talentPicks: { warrior: 1, expert: 0, any: 0 },
+    saves: {
+      primary: { save: "reflex", priority: 1000 },
+      secondary: { save: "fortitude", priority: 100 },
+    },
+  });
+  const expert = partial({
+    slug: "expert-partial",
+    hitDie: "1d6",
+    hitDiePriority: 500,
+    talentPicks: { warrior: 0, expert: 1, any: 1 },
+    saves: {
+      primary: { save: "reflex", priority: 500 },
+      secondary: { save: "luck", priority: 200 },
+    },
   });
 
-  it("stores class fields on the origin system", () => {
-    const warrior = getClassOrigin("warrior");
-    expect(warrior?.type).toBe("origin");
-    expect(warrior?.system.subType).toBe("class");
-    expect(warrior?.system.isFull).toBe(true);
-    expect(warrior?.system.hitDie).toBe("1d6+2");
-    expect(warrior?.system.hitDiePriority).toBe(1000);
-    expect(warrior?.system.saves.primary.save).toBe("reflex");
-    expect(warrior?.system.saves.secondary.save).toBe("fortitude");
-  });
-});
-
-describe("combineClassOriginsBySlug", () => {
-  it("takes the higher-priority hit die from partials", () => {
-    const combined = combineClassOriginsBySlug("warrior-partial", "expert-partial");
+  it("takes the higher-priority hit die", () => {
+    const combined = combineClassOrigins(warrior, "Warrior", expert, "Expert");
     expect(combined?.hitDie).toBe("1d6+2");
     expect(combined?.names).toEqual(["Warrior", "Expert"]);
   });
 
   it("on primary collision, keeps that primary and the higher-priority secondary", () => {
-    const combined = combineClassOriginsBySlug("warrior-partial", "expert-partial");
+    const combined = combineClassOrigins(warrior, "Warrior", expert, "Expert");
     expect(combined?.saves.primary.save).toBe("reflex");
-    expect(combined?.saves.secondary.save).toBe("fortitude");
+    expect(combined?.saves.secondary.save).toBe("luck");
   });
 
   it("merges talent picks and concatenates class talents", () => {
-    const combined = combineClassOriginsBySlug("warrior-partial", "expert-partial");
+    const combined = combineClassOrigins(warrior, "Warrior", expert, "Expert");
     expect(combined?.talentPicks).toEqual({ warrior: 1, expert: 1, any: 1 });
     expect(combined?.classTalentKeys).toEqual([]);
   });
 
   it("rejects full-class rows", () => {
-    expect(combineClassOriginsBySlug("warrior", "expert-partial")).toBeNull();
-    expect(combineClassOriginsBySlug("warrior", "expert")).toBeNull();
+    expect(
+      combineClassOrigins({ ...warrior, isFull: true }, "Warrior", expert, "Expert"),
+    ).toBeNull();
   });
 });
 
 describe("originSaveProficiencies", () => {
   it("marks primary and secondary trained", () => {
-    const warrior = getClassOrigin("warrior")!;
-    expect(originSaveProficiencies(warrior.system)).toEqual({
+    const system = partial({ slug: "warrior" });
+    expect(originSaveProficiencies(system)).toEqual({
       reflex: "trained",
       fortitude: "trained",
       will: "apprentice",

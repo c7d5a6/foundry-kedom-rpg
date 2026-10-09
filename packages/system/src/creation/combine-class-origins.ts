@@ -9,7 +9,6 @@ import type {
   PrioritizedSaveFields,
 } from "../data/item/origin-fields.ts";
 import type { ProficiencyTier } from "../config/kedom.ts";
-import { getClassOrigin } from "./class-origins.ts";
 
 export type CombinedClassOrigin = {
   partialSlugs: readonly [string, string];
@@ -64,8 +63,7 @@ function combineSaves(
       primaryA.priority >= primaryB.priority ? primaryB : primaryA;
     return { primary: main, secondary };
   }
-  const secondary =
-    a.secondary.priority >= b.secondary.priority ? a.secondary : b.secondary;
+  const secondary = a.secondary.priority >= b.secondary.priority ? a.secondary : b.secondary;
   return { primary: primaryA, secondary };
 }
 
@@ -109,17 +107,6 @@ export function combineClassOrigins(
     },
     saves: combineSaves(a.saves, b.saves),
   };
-}
-
-/** Combine by slug from {@link getClassOrigin} seeds. */
-export function combineClassOriginsBySlug(
-  firstSlug: string,
-  secondSlug: string,
-): CombinedClassOrigin | null {
-  const a = getClassOrigin(firstSlug);
-  const b = getClassOrigin(secondSlug);
-  if (!a || !b) return null;
-  return combineClassOrigins(a.system, a.name, b.system, b.name);
 }
 
 function emptySaveProficiencies(): Record<ClassSaveTrack, ProficiencyTier> {

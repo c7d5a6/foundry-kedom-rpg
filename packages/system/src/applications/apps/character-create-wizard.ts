@@ -2,7 +2,6 @@ import { ABILITY_KEYS, SKILL_KEYS, type SkillKey } from "../../config/kedom.ts";
 import {
   CREATION_ABILITY_KEYS,
   CREATION_REPLACEABLE_ABILITY_KEYS,
-  getClass,
   getCulture,
   resolveTalentPickBudget,
   classSaveSystemData,
@@ -10,8 +9,6 @@ import {
   type GrowthEntry,
   type RegionKey,
 } from "../../config/creation.ts";
-import { getClassOrigin } from "../../creation/class-origins.ts";
-import { combineClassOriginsBySlug } from "../../creation/combine-class-origins.ts";
 import { abilityModifier } from "../../derivations/ability-mod.ts";
 import { localizePersistedSpecLabel } from "../../config/creation-spec-labels.ts";
 import {
@@ -978,39 +975,6 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     await this.#createActor();
   }
 
-  /** Origin system payload for the embedded class item (from class origin seeds). */
-  #classOriginSystem(classKey: string, hitDieFallback: string): Record<string, unknown> {
-    if (classKey === "adventurer") {
-      const combined = combineClassOriginsBySlug("warrior-partial", "expert-partial");
-      if (!combined) {
-        return { subType: "class", slug: "adventurer", hitDie: hitDieFallback, isFull: true };
-      }
-      return {
-        subType: "class",
-        slug: "adventurer",
-        description: "",
-        isFull: true,
-        hitDie: combined.hitDie,
-        hitDiePriority: combined.hitDiePriority,
-        classTalentKeys: [...combined.classTalentKeys],
-        talentPicks: combined.talentPicks,
-        arts: {
-          skillKey: combined.arts.skillKey,
-          abilityKeys: [...combined.arts.abilityKeys],
-          receiveTableKey: "",
-          artKeys: [],
-        },
-        saves: combined.saves,
-        grants: { skills: [], specializations: [], abilities: [] },
-      };
-    }
-    const seed = getClassOrigin(classKey);
-    if (!seed) {
-      return { subType: "class", slug: classKey, hitDie: hitDieFallback, isFull: true };
-    }
-    return { ...seed.system };
-  }
-
   #pushTalentPayload(
     items: CatalogItemPayload[],
     catalog: OriginsCatalog,
@@ -1035,7 +999,8 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const catalogClass = this.#selectedClass(catalog);
     if (!culture || !background || !catalogClass) return;
 
-    const classDef = catalogClass.def ?? getClass(d.classKey) ?? null;
+    const classDef = catalogClass.def;
+    if (!classDef) return;
     const grants = this.#ownedGrants(catalog);
     const merged = mergeSkillGrants(grants);
 
@@ -1061,7 +1026,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const classLabel = catalogClass.name;
 
     const draftCulture = getCulture(d.regionKey as RegionKey, d.cultureKey) ?? undefined;
-    const talentPicks = resolveTalentPickBudget(draftCulture, classDef ?? undefined);
+    const talentPicks = resolveTalentPickBudget(draftCulture, classDef);
 
     const hpMax = this.#startingHp();
     if (hpMax === null || d.hitDieTotal === null) {
@@ -1069,9 +1034,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       return;
     }
 
-    const saves = classDef
-      ? classSaveSystemData(classDef)
-      : classSaveSystemData(getClass("warrior")!);
+    const saves = classSaveSystemData(classDef);
 
     const items: CatalogItemPayload[] = [];
     const seenTalents = new Set<string>();
@@ -1116,14 +1079,6 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
         });
       }
       if (classPayload) items.push(classPayload);
-      else {
-        items.push({
-          name: classLabel,
-          type: "origin",
-          img: "icons/svg/combat.svg",
-          system: this.#classOriginSystem(d.classKey, catalogClass.hitDie),
-        });
-      }
       this.#pushTalentPayload(items, catalog, culture.talentSlug, seenTalents);
       this.#pushTalentPayload(items, catalog, catalogClass.talentSlug, seenTalents);
     } else {
@@ -1153,12 +1108,6 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
             slug: d.backgroundKey,
             description: background.description,
           },
-        },
-        {
-          name: classLabel,
-          type: "origin",
-          img: "icons/svg/combat.svg",
-          system: this.#classOriginSystem(d.classKey, catalogClass.hitDie),
         },
       );
     }

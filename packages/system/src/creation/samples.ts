@@ -1,8 +1,6 @@
 import type { GrantsFields } from "../data/item/grants.ts";
 import type { OriginSubtype } from "../config/origin.ts";
 import type { TalentCategory } from "../config/talent.ts";
-import { CLASS_ORIGIN_SEEDS } from "./class-origins.ts";
-
 export type SampleItemData = {
   name: string;
   type: "origin" | "talent";
@@ -63,26 +61,9 @@ export const CREATION_SAMPLES: SampleItemData[] = [
     description: "<p>Free skill: Shoot. Growth deferred for POC.</p>",
     grants: grants({
       skills: [{ skillKey: "shoot", proficiency: "apprentice" }],
-      specializations: [
-        { skillKey: "survive", slug: "survive.tracking", label: "Tracking" },
-      ],
+      specializations: [{ skillKey: "survive", slug: "survive.tracking", label: "Tracking" }],
     }),
   }),
-  ...CLASS_ORIGIN_SEEDS.map((c) => ({
-    sampleId: `sample-class-${c.system.slug}`,
-    name: c.name,
-    type: "origin" as const,
-    img: c.img,
-    system: {
-      ...c.system,
-      grants:
-        c.system.slug === "warrior"
-          ? grants({
-              skills: [{ skillKey: "exert", proficiency: "apprentice" }],
-            })
-          : c.system.grants,
-    },
-  })),
   talent(
     "sample-talent-alert",
     "Alert",
