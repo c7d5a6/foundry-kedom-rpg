@@ -736,6 +736,15 @@
   color: var(--kedom-color-gold-100, #faf591);
   font-size: 0.75rem;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.kedom-roll-bonus {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  opacity: 0.95;
 }
 
 .kedom-weapons-list__btn:hover:not(:disabled) {
@@ -756,17 +765,6 @@
   margin-block-start: 0.45rem;
   padding-block-start: 0.35rem;
   border-top: 1px solid color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 35%, transparent);
-}
-
-.kedom.sheet .kedom-combat-stubs__input {
-  width: 3.5rem;
-  margin: 0;
-  padding: 0.1rem 0.25rem;
-  border: 1px solid color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 55%, transparent);
-  background: color-mix(in srgb, var(--kedom-color-primary-600, #14101a) 70%, transparent);
-  color: var(--kedom-text-primary, #fff4e1);
-  font-variant-numeric: tabular-nums;
-  text-align: center;
 }
 
 .kedom-chat-attack,
@@ -940,6 +938,9 @@
   font-family: var(--kedom-font-body, Georgia, serif);
   font-weight: 600;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .kedom-wounds-panel__take:disabled {
@@ -1870,61 +1871,6 @@
   line-height: 1;
 }
 
-.kedom.sheet .kedom-combat-stubs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.3rem;
-  margin: 0 0 0.55rem;
-}
-
-.kedom.sheet .kedom-combat-stubs__item,
-.kedom.sheet .kedom-combat-stubs .kedom-wounds {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1rem;
-  padding: 0.3rem 0.2rem;
-  border-radius: var(--kedom-radius-md, 0.5rem);
-  background: var(--kedom-color-primary-600, #14101a);
-  text-align: center;
-}
-
-.kedom.sheet .kedom-combat-stubs__label,
-.kedom.sheet .kedom-wounds__label {
-  font-size: 0.58rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--kedom-text-primary, var(--kedom-color-primary-50, #fff4e1));
-  opacity: 0.85;
-}
-
-.kedom.sheet .kedom-combat-stubs__value,
-.kedom.sheet .kedom-wounds__value,
-.kedom.sheet .kedom-wounds input[type="number"] {
-  font-size: 0.85rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--kedom-color-gold-300, #df7126);
-}
-
-.kedom.sheet .kedom-wounds input[type="number"] {
-  width: 2.4rem;
-  margin: 0;
-  padding: 0.05rem 0.15rem;
-  text-align: center;
-  border: 1px solid transparent;
-  border-radius: 0.25rem;
-  color: inherit;
-  background:
-    linear-gradient(
-        var(--kedom-color-primary-600, #14101a),
-        var(--kedom-color-primary-600, #14101a)
-      )
-      padding-box,
-    var(--kedom-chrome-gold, var(--kedom-gradient-gold)) border-box;
-}
-
 .kedom.sheet .ability-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1932,11 +1878,70 @@
   margin: 0;
 }
 
+.kedom.sheet .kedom-aside-rule {
+  height: 1px;
+  margin: 0.55rem 0.15rem;
+  border: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 35%, transparent) 12%,
+    var(--kedom-color-gold-100, #faf591) 50%,
+    color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 35%, transparent) 88%,
+    transparent 100%
+  );
+  opacity: 0.85;
+}
+
+.kedom.sheet .kedom-defense {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 55%, transparent);
+  border-radius: var(--kedom-radius-md, 0.5rem);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--kedom-color-gold-300, #df7126) 18%, transparent),
+      color-mix(in srgb, var(--kedom-color-primary-600, #14101a) 88%, transparent) 55%
+    ),
+    var(--kedom-color-primary-600, #14101a);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kedom-color-gold-100, #faf591) 12%, transparent);
+}
+
+.kedom.sheet .kedom-defense__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  color: var(--kedom-color-gold-100, #faf591);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.kedom.sheet .kedom-defense__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--kedom-text-primary, var(--kedom-color-primary-50, #fff4e1));
+}
+
+.kedom.sheet .kedom-defense__value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--kedom-color-gold-300, #df7126);
+}
+
 .kedom.sheet .save-list {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  margin: 0.55rem 0 0;
+  margin: 0;
 }
 
 .kedom.sheet .save-list > .kedom-save {

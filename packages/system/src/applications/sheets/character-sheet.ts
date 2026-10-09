@@ -37,8 +37,9 @@ import { rollLuckSave } from "../../rolls/luck-save.ts";
 import { rollSaveCheck } from "../../rolls/save-check.ts";
 import { prepareSkillCheck, rollSkillCheck } from "../../rolls/skill-check.ts";
 import { rollStrainSave } from "../../rolls/strain-save.ts";
-import { takeWound } from "../../rolls/wound-roll.ts";
-import type { ArmorDataFields } from "../../data/item/armor.ts";
+import { previewWeaponRollBonuses } from "../../rolls/attack-roll.ts";
+import { previewWoundLuckBonus, takeWound } from "../../rolls/wound-roll.ts";
+import { type ArmorDataFields } from "../../data/item/armor.ts";
 import { normalizeWeaponSkill, type WeaponDataFields } from "../../data/item/weapon.ts";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -389,13 +390,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     const combatData = system.combat as {
       ac: number;
-      meleeDamageBonus: number;
     };
-    const meleeDamageBonus = combatData.meleeDamageBonus ?? 0;
     const combat = {
       ac: combatData.ac ?? 0,
-      meleeDamageBonus,
-      meleeDamageSigned: formatSignedBonus(meleeDamageBonus),
+      woundLuckSigned: formatSignedBonus(previewWoundLuckBonus(this.actor)),
     };
 
     const weapons = this.actor.items
@@ -403,15 +401,17 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       .map((item) => {
         const wsys = item.system as unknown as WeaponDataFields;
         const skill = normalizeWeaponSkill(wsys.skill);
-        const weaponBonus = Math.floor(wsys.attackBonus ?? 0);
+        const preview = previewWeaponRollBonuses(this.actor, item);
+        const attackTotal = preview?.attackBonus ?? Math.floor(wsys.attackBonus ?? 0);
+        const damageTotal = preview?.damageBonus ?? 0;
         return {
           id: item.id,
           name: item.name,
           skill,
           skillLabel: game.i18n.localize(`KEDOM.Skill.${skill}`),
           damageFormula: wsys.damageFormula || "1d6",
-          attackBonus: weaponBonus,
-          attackBonusSigned: weaponBonus !== 0 ? formatSignedBonus(weaponBonus) : "",
+          attackTotalSigned: formatSignedBonus(attackTotal),
+          damageTotalSigned: formatSignedBonus(damageTotal),
         };
       })
       .sort((a, b) => a.name.localeCompare(b.name, game.i18n.lang));

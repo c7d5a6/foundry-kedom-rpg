@@ -249,6 +249,8 @@
       "acRanged": "Ranged AC",
       "acShort": "AC",
       "attackBonus": "Attack Bonus",
+      "defense": "Defense",
+      "defenseShort": "DEF",
       "encumbrance": "Encumbrance",
       "experience": "Experience",
       "hp": "Hit Points",

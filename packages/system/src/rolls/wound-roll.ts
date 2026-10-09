@@ -33,22 +33,14 @@ export type KedomWoundFlags = {
   ignored: boolean;
 };
 
-/**
- * Increment wound count, then roll a Luck save (`d20` + Luck mod + Luck proficiency +
- * owned armor wound bonuses) for the wound table, plus body part (`d8`).
- */
-export async function takeWound(actor: Actor.Implementation): Promise<void> {
+/** Flat Luck-save modifiers used by the wound table roll (sheet button preview). */
+export function previewWoundLuckBonus(actor: Actor.Implementation): number {
+  const mods = buildWoundLuckModifiers(actor);
+  return mods.reduce((sum, m) => sum + m.value, 0);
+}
+
+function buildWoundLuckModifiers(actor: Actor.Implementation): Modifier[] {
   const system = actor.system as CharacterData;
-  const attrs = system.attributes as {
-    wounds?: { value?: number };
-  };
-  const current = Math.max(0, Math.floor(attrs.wounds?.value ?? 0));
-  const woundCount = current + 1;
-
-  await actor.update({
-    system: { attributes: { wounds: { value: woundCount } } },
-  });
-
   const save = system.saves.luck as SaveFields | undefined;
   const lck = (system.abilities as { lck?: { mod?: number } }).lck;
   const luckMod = lck?.mod ?? 0;
@@ -82,6 +74,28 @@ export async function takeWound(actor: Actor.Implementation): Promise<void> {
       kind: "armor",
     });
   }
+  return modifiers;
+}
+
+/**
+ * Increment wound count, then roll a Luck save (`d20` + Luck mod + Luck proficiency +
+ * owned armor wound bonuses) for the wound table, plus body part (`d8`).
+ */
+export async function takeWound(actor: Actor.Implementation): Promise<void> {
+  const system = actor.system as CharacterData;
+  const attrs = system.attributes as {
+    wounds?: { value?: number };
+  };
+  const current = Math.max(0, Math.floor(attrs.wounds?.value ?? 0));
+  const woundCount = current + 1;
+
+  await actor.update({
+    system: { attributes: { wounds: { value: woundCount } } },
+  });
+
+  const modifiers = buildWoundLuckModifiers(actor);
+  const luckMod = modifiers.find((m) => m.source.id === "ability.lck")?.value ?? 0;
+  const armorBonus = modifiers.find((m) => m.source.id === "armor.woundBonus")?.value ?? 0;
 
   const saveLabel = localize("KEDOM.Save.luck", "Luck");
   const formula = labeledCheckFormula("1d20", saveLabel, modifiers);

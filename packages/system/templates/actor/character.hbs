@@ -23,6 +23,18 @@
       {{/each}}
     </div>
 
+    <div class="kedom-aside-rule" aria-hidden="true"></div>
+
+    <div class="kedom-defense" title="{{localize "KEDOM.Attributes.defense"}}">
+      <span class="kedom-defense__icon" aria-hidden="true">
+        <i class="fa-solid fa-shield-halved" inert></i>
+      </span>
+      <span class="kedom-defense__label">{{localize "KEDOM.Attributes.defense"}}</span>
+      <span class="kedom-defense__value">{{combat.ac}}</span>
+    </div>
+
+    <div class="kedom-aside-rule" aria-hidden="true"></div>
+
     <div class="save-list">
       {{#each saves}}
         {{> "systems/kedom/templates/actor/partials/save.hbs"}}
@@ -42,27 +54,6 @@
       </div>
     {{else if isCombatTab}}
       <div class="kedom-combat-tab">
-        <div class="kedom-combat-stubs">
-          <div class="kedom-combat-stubs__item">
-            <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.defenseShort"}}</span>
-            <span class="kedom-combat-stubs__value">{{combat.ac}}</span>
-          </div>
-          <div class="kedom-combat-stubs__item">
-            <span class="kedom-combat-stubs__label">{{localize "KEDOM.Attributes.meleeDamage"}}</span>
-            {{#if @root.isEdit}}
-              <input
-                class="kedom-combat-stubs__input"
-                type="number"
-                name="system.combat.meleeDamageBonus"
-                value="{{combat.meleeDamageBonus}}"
-                aria-label="{{localize "KEDOM.Attributes.meleeDamage"}}"
-              />
-            {{else}}
-              <span class="kedom-combat-stubs__value">{{combat.meleeDamageSigned}}</span>
-            {{/if}}
-          </div>
-        </div>
-
         <section class="kedom-weapons-panel">
           <header class="kedom-weapons-panel__header">
             <h2 class="kedom-weapons-panel__title">{{localize "KEDOM.Sheet.Weapons"}}</h2>
@@ -75,7 +66,6 @@
                     <span class="kedom-weapons-list__name">{{name}}</span>
                     <span class="kedom-weapons-list__meta">
                       {{skillLabel}} · {{damageFormula}}
-                      {{#if attackBonusSigned}} · {{attackBonusSigned}}{{/if}}
                     </span>
                   </div>
                   <div class="kedom-weapons-list__actions">
@@ -85,9 +75,10 @@
                       data-action="rollAttack"
                       data-item-id="{{id}}"
                       {{#unless @root.isPlay}}disabled{{/unless}}
-                      title="{{localize "KEDOM.Sheet.Action.rollAttack"}}"
+                      title="{{localize "KEDOM.Sheet.Action.rollAttack"}} {{attackTotalSigned}}"
                     >
                       {{localize "KEDOM.Sheet.Action.rollAttack"}}
+                      <span class="kedom-roll-bonus">{{attackTotalSigned}}</span>
                     </button>
                     <button
                       type="button"
@@ -95,31 +86,34 @@
                       data-action="rollDamage"
                       data-item-id="{{id}}"
                       {{#unless @root.isPlay}}disabled{{/unless}}
-                      title="{{localize "KEDOM.Sheet.Action.rollDamage"}}"
+                      title="{{localize "KEDOM.Sheet.Action.rollDamage"}} {{damageTotalSigned}}"
                     >
                       {{localize "KEDOM.Sheet.Action.rollDamage"}}
+                      <span class="kedom-roll-bonus">{{damageTotalSigned}}</span>
                     </button>
-                    <button
-                      type="button"
-                      class="kedom-weapons-list__btn kedom-weapons-list__btn--icon"
-                      data-action="editWeapon"
-                      data-item-id="{{id}}"
-                      title="{{localize "KEDOM.Sheet.Action.editWeapon"}}"
-                      aria-label="{{localize "KEDOM.Sheet.Action.editWeapon"}}"
-                    >
-                      <i class="fa-solid fa-pen" inert></i>
-                    </button>
-                    <button
-                      type="button"
-                      class="kedom-weapons-list__btn kedom-weapons-list__btn--icon"
-                      data-action="deleteWeapon"
-                      data-item-id="{{id}}"
-                      {{#unless @root.editable}}disabled{{/unless}}
-                      title="{{localize "KEDOM.Sheet.Action.deleteWeapon"}}"
-                      aria-label="{{localize "KEDOM.Sheet.Action.deleteWeapon"}}"
-                    >
-                      <i class="fa-solid fa-trash" inert></i>
-                    </button>
+                    {{#if @root.isEdit}}
+                      <button
+                        type="button"
+                        class="kedom-weapons-list__btn kedom-weapons-list__btn--icon"
+                        data-action="editWeapon"
+                        data-item-id="{{id}}"
+                        title="{{localize "KEDOM.Sheet.Action.editWeapon"}}"
+                        aria-label="{{localize "KEDOM.Sheet.Action.editWeapon"}}"
+                      >
+                        <i class="fa-solid fa-pen" inert></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="kedom-weapons-list__btn kedom-weapons-list__btn--icon"
+                        data-action="deleteWeapon"
+                        data-item-id="{{id}}"
+                        {{#unless @root.editable}}disabled{{/unless}}
+                        title="{{localize "KEDOM.Sheet.Action.deleteWeapon"}}"
+                        aria-label="{{localize "KEDOM.Sheet.Action.deleteWeapon"}}"
+                      >
+                        <i class="fa-solid fa-trash" inert></i>
+                      </button>
+                    {{/if}}
                   </div>
                 </li>
               {{/each}}
@@ -144,29 +138,31 @@
                       {{#if woundBonusSigned}} {{woundBonusSigned}}{{else}} +0{{/if}}
                     </span>
                   </div>
-                  <div class="kedom-weapons-list__actions">
-                    <button
-                      type="button"
-                      class="kedom-weapons-list__btn kedom-weapons-list__btn--icon"
-                      data-action="editArmor"
-                      data-item-id="{{id}}"
-                      title="{{localize "KEDOM.Sheet.Action.editArmor"}}"
-                      aria-label="{{localize "KEDOM.Sheet.Action.editArmor"}}"
-                    >
-                      <i class="fa-solid fa-pen" inert></i>
-                    </button>
-                    <button
-                      type="button"
-                      class="kedom-weapons-list__btn kedom-weapons-list__btn--icon"
-                      data-action="deleteArmor"
-                      data-item-id="{{id}}"
-                      {{#unless @root.editable}}disabled{{/unless}}
-                      title="{{localize "KEDOM.Sheet.Action.deleteArmor"}}"
-                      aria-label="{{localize "KEDOM.Sheet.Action.deleteArmor"}}"
-                    >
-                      <i class="fa-solid fa-trash" inert></i>
-                    </button>
-                  </div>
+                  {{#if @root.isEdit}}
+                    <div class="kedom-weapons-list__actions">
+                      <button
+                        type="button"
+                        class="kedom-weapons-list__btn kedom-weapons-list__btn--icon"
+                        data-action="editArmor"
+                        data-item-id="{{id}}"
+                        title="{{localize "KEDOM.Sheet.Action.editArmor"}}"
+                        aria-label="{{localize "KEDOM.Sheet.Action.editArmor"}}"
+                      >
+                        <i class="fa-solid fa-pen" inert></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="kedom-weapons-list__btn kedom-weapons-list__btn--icon"
+                        data-action="deleteArmor"
+                        data-item-id="{{id}}"
+                        {{#unless @root.editable}}disabled{{/unless}}
+                        title="{{localize "KEDOM.Sheet.Action.deleteArmor"}}"
+                        aria-label="{{localize "KEDOM.Sheet.Action.deleteArmor"}}"
+                      >
+                        <i class="fa-solid fa-trash" inert></i>
+                      </button>
+                    </div>
+                  {{/if}}
                 </li>
               {{/each}}
             </ul>
@@ -209,9 +205,10 @@
               class="kedom-wounds-panel__take"
               data-action="takeWound"
               {{#unless @root.isPlay}}disabled{{/unless}}
-              title="{{localize "KEDOM.Sheet.Action.takeWound"}}"
+              title="{{localize "KEDOM.Sheet.Action.takeWound"}} {{combat.woundLuckSigned}}"
             >
               {{localize "KEDOM.Sheet.Action.takeWound"}}
+              <span class="kedom-roll-bonus">{{combat.woundLuckSigned}}</span>
             </button>
           </div>
 
@@ -263,29 +260,31 @@
                     {{/if}}
                   </div>
                 </details>
-                <div class="kedom-talents-list__actions">
-                  <button
-                    type="button"
-                    class="kedom-talents-list__btn"
-                    data-action="editTalent"
-                    data-item-id="{{id}}"
-                    title="{{localize "KEDOM.Sheet.Action.edit"}}"
-                    aria-label="{{localize "KEDOM.Sheet.Action.edit"}}"
-                  >
-                    <i class="fa-solid fa-pen" inert></i>
-                  </button>
-                  <button
-                    type="button"
-                    class="kedom-talents-list__btn"
-                    data-action="deleteTalent"
-                    data-item-id="{{id}}"
-                    {{#unless @root.editable}}disabled{{/unless}}
-                    title="{{localize "KEDOM.Sheet.Action.deleteOwnedItem"}}"
-                    aria-label="{{localize "KEDOM.Sheet.Action.deleteOwnedItem"}}"
-                  >
-                    <i class="fa-solid fa-trash" inert></i>
-                  </button>
-                </div>
+                {{#if @root.isEdit}}
+                  <div class="kedom-talents-list__actions">
+                    <button
+                      type="button"
+                      class="kedom-talents-list__btn"
+                      data-action="editTalent"
+                      data-item-id="{{id}}"
+                      title="{{localize "KEDOM.Sheet.Action.edit"}}"
+                      aria-label="{{localize "KEDOM.Sheet.Action.edit"}}"
+                    >
+                      <i class="fa-solid fa-pen" inert></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="kedom-talents-list__btn"
+                      data-action="deleteTalent"
+                      data-item-id="{{id}}"
+                      {{#unless @root.editable}}disabled{{/unless}}
+                      title="{{localize "KEDOM.Sheet.Action.deleteOwnedItem"}}"
+                      aria-label="{{localize "KEDOM.Sheet.Action.deleteOwnedItem"}}"
+                    >
+                      <i class="fa-solid fa-trash" inert></i>
+                    </button>
+                  </div>
+                {{/if}}
               </li>
             {{/each}}
           </ul>
@@ -333,37 +332,39 @@
                       <span class="kedom-effects-list__meta">{{localize "KEDOM.Sheet.EffectDisabled"}}</span>
                     {{/if}}
                   </div>
-                  <div class="kedom-effects-list__actions">
-                    <button
-                      type="button"
-                      class="kedom-effects-list__btn"
-                      data-action="toggleEffect"
-                      data-effect-id="{{id}}"
-                      {{#unless @root.editable}}disabled{{/unless}}
-                      title="{{localize "KEDOM.Sheet.Action.toggleEffect"}}"
-                    >
-                      <i class="fa-solid {{#if disabled}}fa-toggle-off{{else}}fa-toggle-on{{/if}}" inert></i>
-                    </button>
-                    <button
-                      type="button"
-                      class="kedom-effects-list__btn"
-                      data-action="editEffect"
-                      data-effect-id="{{id}}"
-                      title="{{localize "KEDOM.Sheet.Action.editEffect"}}"
-                    >
-                      <i class="fa-solid fa-pen" inert></i>
-                    </button>
-                    <button
-                      type="button"
-                      class="kedom-effects-list__btn"
-                      data-action="deleteEffect"
-                      data-effect-id="{{id}}"
-                      {{#unless @root.editable}}disabled{{/unless}}
-                      title="{{localize "KEDOM.Sheet.Action.deleteEffect"}}"
-                    >
-                      <i class="fa-solid fa-trash" inert></i>
-                    </button>
-                  </div>
+                  {{#if @root.isEdit}}
+                    <div class="kedom-effects-list__actions">
+                      <button
+                        type="button"
+                        class="kedom-effects-list__btn"
+                        data-action="toggleEffect"
+                        data-effect-id="{{id}}"
+                        {{#unless @root.editable}}disabled{{/unless}}
+                        title="{{localize "KEDOM.Sheet.Action.toggleEffect"}}"
+                      >
+                        <i class="fa-solid {{#if disabled}}fa-toggle-off{{else}}fa-toggle-on{{/if}}" inert></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="kedom-effects-list__btn"
+                        data-action="editEffect"
+                        data-effect-id="{{id}}"
+                        title="{{localize "KEDOM.Sheet.Action.editEffect"}}"
+                      >
+                        <i class="fa-solid fa-pen" inert></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="kedom-effects-list__btn"
+                        data-action="deleteEffect"
+                        data-effect-id="{{id}}"
+                        {{#unless @root.editable}}disabled{{/unless}}
+                        title="{{localize "KEDOM.Sheet.Action.deleteEffect"}}"
+                      >
+                        <i class="fa-solid fa-trash" inert></i>
+                      </button>
+                    </div>
+                  {{/if}}
                 </li>
               {{/each}}
             </ul>
@@ -388,38 +389,40 @@
                       {{#if disabled}} · {{localize "KEDOM.Sheet.EffectDisabled"}}{{/if}}
                     </span>
                   </div>
-                  <div class="kedom-effects-list__actions">
-                    <button
-                      type="button"
-                      class="kedom-effects-list__btn"
-                      data-action="toggleEffect"
-                      data-effect-id="{{id}}"
-                      {{#unless @root.editable}}disabled{{/unless}}
-                      title="{{localize "KEDOM.Sheet.Action.toggleEffect"}}"
-                    >
-                      <i class="fa-solid {{#if disabled}}fa-toggle-off{{else}}fa-toggle-on{{/if}}" inert></i>
-                    </button>
-                    {{#if parentItemId}}
+                  {{#if @root.isEdit}}
+                    <div class="kedom-effects-list__actions">
                       <button
                         type="button"
                         class="kedom-effects-list__btn"
-                        data-action="openEffectSource"
-                        data-item-id="{{parentItemId}}"
-                        title="{{localize "KEDOM.Sheet.Action.openEffectSource"}}"
+                        data-action="toggleEffect"
+                        data-effect-id="{{id}}"
+                        {{#unless @root.editable}}disabled{{/unless}}
+                        title="{{localize "KEDOM.Sheet.Action.toggleEffect"}}"
                       >
-                        <i class="fa-solid fa-box" inert></i>
+                        <i class="fa-solid {{#if disabled}}fa-toggle-off{{else}}fa-toggle-on{{/if}}" inert></i>
                       </button>
-                    {{/if}}
-                    <button
-                      type="button"
-                      class="kedom-effects-list__btn"
-                      data-action="editEffect"
-                      data-effect-id="{{id}}"
-                      title="{{localize "KEDOM.Sheet.Action.editEffect"}}"
-                    >
-                      <i class="fa-solid fa-pen" inert></i>
-                    </button>
-                  </div>
+                      {{#if parentItemId}}
+                        <button
+                          type="button"
+                          class="kedom-effects-list__btn"
+                          data-action="openEffectSource"
+                          data-item-id="{{parentItemId}}"
+                          title="{{localize "KEDOM.Sheet.Action.openEffectSource"}}"
+                        >
+                          <i class="fa-solid fa-box" inert></i>
+                        </button>
+                      {{/if}}
+                      <button
+                        type="button"
+                        class="kedom-effects-list__btn"
+                        data-action="editEffect"
+                        data-effect-id="{{id}}"
+                        title="{{localize "KEDOM.Sheet.Action.editEffect"}}"
+                      >
+                        <i class="fa-solid fa-pen" inert></i>
+                      </button>
+                    </div>
+                  {{/if}}
                 </li>
               {{/each}}
             </ul>

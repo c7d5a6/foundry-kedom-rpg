@@ -249,6 +249,8 @@
       "acRanged": "ЗАЩ против стрельбы",
       "acShort": "ЗАЩ",
       "attackBonus": "Бонус атаки",
+      "defense": "Защита",
+      "defenseShort": "ЗАЩ",
       "encumbrance": "Нагрузка",
       "experience": "Опыт",
       "hp": "Пункты здоровья",

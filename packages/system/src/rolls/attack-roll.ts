@@ -130,6 +130,21 @@ export function buildWeaponDamageModifiers(
   });
 }
 
+/** Flat totals matching Attack / Damage roll modifiers (sheet button previews). */
+export function previewWeaponRollBonuses(
+  actor: Actor.Implementation,
+  weapon: Item.Implementation,
+): { attackBonus: number; damageBonus: number } | null {
+  const wsys = readWeaponSystem(weapon);
+  if (!wsys) return null;
+  const attackMods = buildAttackMods(actor, wsys);
+  if (!attackMods) return null;
+  return {
+    attackBonus: attackBonusTotal(attackMods),
+    damageBonus: attackBonusTotal(buildWeaponDamageModifiers(actor, wsys)),
+  };
+}
+
 async function styleAttackRollHTML(
   roll: Roll,
   opts: {

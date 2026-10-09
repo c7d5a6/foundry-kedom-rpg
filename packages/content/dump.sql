@@ -25,6 +25,7 @@ INSERT INTO schema_migrations VALUES('0016_region_banner','2026-10-09T13:53:23Z'
 INSERT INTO schema_migrations VALUES('0017_drop_feature_keys','2026-10-09T15:56:19Z');
 INSERT INTO schema_migrations VALUES('0018_drop_unused_columns','2026-10-09T16:44:10Z');
 INSERT INTO schema_migrations VALUES('0019_wounds_short_vocab','2026-10-09T17:07:45Z');
+INSERT INTO schema_migrations VALUES('0020_defense_short_vocab','2026-10-09T17:13:46Z');
 CREATE TABLE attribute (
 	id           INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug         TEXT NOT NULL UNIQUE
@@ -236,6 +237,8 @@ INSERT INTO vocab VALUES(61,'derived','resolveShort','RSV','',19,'');
 INSERT INTO vocab VALUES(62,'derived','meleeDamage','Melee Damage','',20,'');
 INSERT INTO vocab VALUES(63,'save','luck','Luck','',4,'');
 INSERT INTO vocab VALUES(64,'derived','woundsShort','W','',21,'');
+INSERT INTO vocab VALUES(65,'derived','defense','Defense','DEF',22,'');
+INSERT INTO vocab VALUES(66,'derived','defenseShort','DEF','',23,'');
 CREATE TABLE IF NOT EXISTS "translation" (
 	id          INTEGER PRIMARY KEY AUTOINCREMENT,
 	entity_kind TEXT NOT NULL
@@ -427,6 +430,8 @@ INSERT INTO translation VALUES(267,'derived',58,'ru','abbreviation','ПИ');
 INSERT INTO translation VALUES(269,'derived',60,'ru','abbreviation','РШ');
 INSERT INTO translation VALUES(270,'save',63,'ru','label','Удача');
 INSERT INTO translation VALUES(272,'derived',64,'ru','label','Р');
+INSERT INTO translation VALUES(273,'derived',65,'ru','label','Защита');
+INSERT INTO translation VALUES(274,'derived',66,'ru','label','ЗАЩ');
 CREATE TABLE race (
 	id              INTEGER PRIMARY KEY AUTOINCREMENT,
 	slug            TEXT NOT NULL UNIQUE
