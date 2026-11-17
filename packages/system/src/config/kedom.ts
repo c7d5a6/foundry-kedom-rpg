@@ -34,7 +34,7 @@ export const PROFICIENCY_TIERS = [
 export type ProficiencyTier = (typeof PROFICIENCY_TIERS)[number];
 
 export const PROFICIENCY_BONUS: Record<ProficiencyTier, number> = {
-  untrained: -2,
+  untrained: -1,
   apprentice: 0,
   trained: 2,
   expert: 4,

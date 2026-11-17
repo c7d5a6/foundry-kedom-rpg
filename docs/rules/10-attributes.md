@@ -51,7 +51,7 @@ on 9–12. Paired with 3d6 generation that puts most characters at 0 and makes a
 rare.
 
 This is a **wider spread than WWN**, which matters because Kedom stacks it on top of a
-proficiency bonus running −2…+8 ([20-skills.md](20-skills.md)). A Legendary specialist with an
+proficiency bonus running −1…+8 ([20-skills.md](20-skills.md)). A Legendary specialist with an
 18 carries +11 before dice.
 
 ## Secondary attributes

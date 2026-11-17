@@ -140,7 +140,7 @@ whether it varies by class. Without it the cost table cannot be tuned. WWN grant
 
 ### Q8 — Untrained restrictions
 
-Untrained proficiency is **−2** (changed from −1). Whether every skill can be attempted
+Untrained proficiency is **−1**. Whether every skill can be attempted
 untrained is still unstated. Most OSR systems gate a few — surgery, spellcasting.
 
 ### Q9 — Human sub-cultures need mechanics

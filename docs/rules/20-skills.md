@@ -16,7 +16,7 @@ and the three-outcome ladder; they are not rolled on `d20` against a derived tar
 
 **Without a relevant specialisation, add half proficiency** instead of the full value (skills
 only — saves have no specialisations). Half applies only to **positive** proficiency bonuses;
-Untrained (−2) and Apprentice (0) are unchanged when unspecialised.
+Untrained (−1) and Apprentice (0) are unchanged when unspecialised.
 
 **Attacks** use a different die, deliberately:
 
@@ -36,21 +36,21 @@ Six tiers, with a flat bonus, a point cost, and a character-level gate.
 
 | Tier | Bonus | Cost to reach | Min. character level |
 |---|---|---|---|
-| Untrained | −2 | — | — |
+| Untrained | −1 | — | — |
 | Apprentice | 0 | 2 | — |
 | Trained | +2 | 3 | — |
 | Expert | +4 | 4 | 3 |
 | Master | +6 | 5 | 6 |
 | Legendary | +8 | 6 | 9 |
 
-The bonus moves in uniform steps of +2. Costs rise by one per tier, so **Legendary costs 20
+Above Apprentice the bonus moves in uniform steps of +2. Costs rise by one per tier, so **Legendary costs 20
 points cumulatively**, and the gates at levels 3, 6, and 9 match WWN's.
 
 Two consequences for implementation:
 
 - **Proficiency is a tier, not a number.** Store the tier; derive the bonus. The bonus table
   and the gates are configuration.
-- **Untrained is a real tier with a real penalty (−2)**, not the absence of a value.
+- **Untrained is a real tier with a real penalty (−1)**, not the absence of a value.
 
 If saves use this ladder, each class also designates a primary and secondary save with
 better progression — see [30-character-creation.md](30-character-creation.md#saves).
@@ -90,7 +90,7 @@ Unmodified:
 | 16–20 | 15% |
 | 21+ | 0% without modifiers |
 
-For calibration at the extremes: an untrained character with a 0 attribute (−2 total) clears
+For calibration at the extremes: an untrained character with a 0 attribute (−1 total) clears
 an Easy task only on a high roll; a Legendary specialist with an 18 (+11) beats a Legendary
 task most of the time. Neither end is locked for balance, but the bands are continuous and
 implementable.
@@ -176,5 +176,5 @@ grants 3 per level. Tracked as
 
 ## Untrained use
 
-Untrained proficiency is **−2**. Whether every skill can be attempted untrained, or whether
+Untrained proficiency is **−1**. Whether every skill can be attempted untrained, or whether
 some require at least Apprentice, is [Q8](99-open-questions.md#q8--untrained-restrictions).

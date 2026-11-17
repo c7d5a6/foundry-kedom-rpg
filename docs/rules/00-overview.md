@@ -64,7 +64,7 @@ It deliberately diverges on:
 - **The resolution dice and the success ladder** (WWN is `2d6` pass/fail against a difficulty
   number; Kedom uses `2d10` with a graded three-outcome ladder for skills and saves, and
   `1d20` for attacks).
-- **Proficiency as flat tiers** (−2 to +8 in steps of two) rather than WWN's skill levels.
+- **Proficiency as flat tiers** (−1 to +8: Untrained −1, then steps of two from Apprentice 0) rather than WWN's skill levels.
 - **Skill specialisations** as a first-class mechanic.
 - **Wounds** replacing WWN's Mortally Wounded and Frail states — see
   [50-wounds-strain.md](50-wounds-strain.md).
