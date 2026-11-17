@@ -3,6 +3,7 @@ import type { ArmorDataFields } from "../../data/item/armor.ts";
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
 
+// @ts-expect-error fvtt-types: HandlebarsApplicationMixin(ItemSheetV2) hits excessive stack depth
 export class ArmorSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static override DEFAULT_OPTIONS = {
     ...ItemSheetV2.DEFAULT_OPTIONS,

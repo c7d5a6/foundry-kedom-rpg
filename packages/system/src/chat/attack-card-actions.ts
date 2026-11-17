@@ -3,6 +3,7 @@ import { attackHits, luckCostToHit } from "../rolls/attack-helpers.ts";
 import { renderAttackCardContent, rollAttack, type KedomAttackFlags } from "../rolls/attack-roll.ts";
 import { rollDamage } from "../rolls/damage-roll.ts";
 import { takeWound } from "../rolls/wound-roll.ts";
+import { updateKedomMessage } from "./message-update.ts";
 import { getKedomAttackFlags } from "./attack-flags.ts";
 
 function canControlActor(actor: Actor.Implementation): boolean {
@@ -80,8 +81,9 @@ export function decorateAttackCardActions(
     critBtn.type = "button";
     critBtn.className = "kedom-chat-check__action kedom-chat-attack__action--crit";
     critBtn.textContent = game.i18n.localize("KEDOM.Chat.CriticalWound");
+    critBtn.disabled = flags.critWoundApplied === true;
     critBtn.addEventListener("click", () => {
-      void onCriticalWound(flags);
+      void onCriticalWound(message);
     });
     actions.append(critBtn);
   }
@@ -113,10 +115,6 @@ async function onSpendLuck(message: ChatMessage.Implementation, cost: number): P
     return;
   }
 
-  await actor.update({
-    system: { abilities: { lck: { value: pool - cost } } },
-  });
-
   const newTotal = flags.total + cost;
   const hit = attackHits(newTotal, flags.targetAc);
   const updated: KedomAttackFlags = {
@@ -127,14 +125,17 @@ async function onSpendLuck(message: ChatMessage.Implementation, cost: number): P
   };
 
   const content = await renderAttackCardContent(updated, [...message.rolls]);
-  await message.update({
+  const ok = await updateKedomMessage(message, {
     content,
-    flags: {
-      kedom: {
-        attack: updated,
-      },
-    },
-  } as Parameters<ChatMessage.Implementation["update"]>[0]);
+    flags: { kedom: { attack: updated } },
+  });
+  if (!ok) {
+    ui.notifications.warn(game.i18n.localize("KEDOM.Chat.SpendLuckFailed"));
+    return;
+  }
+  await actor.update({
+    system: { abilities: { lck: { value: pool - cost } } },
+  });
 }
 
 async function onRollDamage(flags: KedomAttackFlags): Promise<void> {
@@ -153,13 +154,18 @@ async function onReroll(flags: KedomAttackFlags): Promise<void> {
   await rollAttack(actor, weapon);
 }
 
-async function onCriticalWound(flags: KedomAttackFlags): Promise<void> {
-  if (!flags.targetActorUuid) return;
+async function onCriticalWound(message: ChatMessage.Implementation): Promise<void> {
+  const flags = getKedomAttackFlags(message);
+  if (!flags?.targetActorUuid || flags.critWoundApplied === true) return;
   const target = await fromUuid(flags.targetActorUuid);
   if (!(target instanceof Actor)) return;
-  if (!canControlActor(target) && !game.user?.isGM) {
+  if (!canControlActor(target)) {
     ui.notifications.warn(game.i18n.localize("KEDOM.Chat.CriticalWoundNoPermission"));
     return;
   }
+  // Mark first so a second click (or another client) cannot apply it again.
+  const updated: KedomAttackFlags = { ...flags, critWoundApplied: true };
+  const ok = await updateKedomMessage(message, { flags: { kedom: { attack: updated } } });
+  if (!ok) return;
   await takeWound(target);
 }

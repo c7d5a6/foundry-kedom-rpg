@@ -1,4 +1,5 @@
 import type { CharacterData } from "../data/actor/character.ts";
+import { updateKedomMessage } from "./message-update.ts";
 import type { KedomWoundFlags } from "../rolls/wound-roll.ts";
 
 function canControlActor(actor: Actor.Implementation): boolean {
@@ -67,8 +68,6 @@ async function onIgnoreWound(message: ChatMessage.Implementation): Promise<void>
     return;
   }
 
-  await actor.update({ system: { abilities: { lck: { value: 0 } } } });
-
   const bodyPartLabel = game.i18n.localize(`KEDOM.Wound.BodyPart.${flags.bodyPart}`);
   const tableRow = flags.tableRow ?? flags.tableTotal;
   const content = await foundry.applications.handlebars.renderTemplate(
@@ -94,12 +93,13 @@ async function onIgnoreWound(message: ChatMessage.Implementation): Promise<void>
   );
 
   const updated: KedomWoundFlags = { ...flags, ignored: true };
-  await message.update({
+  const ok = await updateKedomMessage(message, {
     content,
-    flags: {
-      kedom: {
-        wound: updated,
-      },
-    },
-  } as Parameters<ChatMessage.Implementation["update"]>[0]);
+    flags: { kedom: { wound: updated } },
+  });
+  if (!ok) {
+    ui.notifications.warn(game.i18n.localize("KEDOM.Chat.SpendLuckFailed"));
+    return;
+  }
+  await actor.update({ system: { abilities: { lck: { value: 0 } } } });
 }

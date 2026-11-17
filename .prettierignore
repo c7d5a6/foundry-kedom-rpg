@@ -15,3 +15,6 @@ packages/system/packs/
 
 # gofumpt owns Go.
 *.go
+
+# Prettier's Handlebars parser rejects {{#if}} inside tags/attributes (used throughout).
+packages/system/templates/

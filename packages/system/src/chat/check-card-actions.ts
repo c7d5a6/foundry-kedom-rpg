@@ -6,6 +6,7 @@ import { rollLuckSave } from "../rolls/luck-save.ts";
 import { resolveOutcome } from "../rolls/resolve-outcome.ts";
 import { rollSaveCheck } from "../rolls/save-check.ts";
 import { rollSkillCheck } from "../rolls/skill-check.ts";
+import { updateKedomMessage } from "./message-update.ts";
 import { getKedomCheckFlags, type KedomGradedCheckFlags } from "./check-flags.ts";
 
 function canControlActor(actor: Actor.Implementation): boolean {
@@ -104,10 +105,6 @@ async function onSpendLuck(message: ChatMessage.Implementation, cost: number): P
     return;
   }
 
-  await actor.update({
-    system: { abilities: { lck: { value: pool - cost } } },
-  });
-
   const newTotal = flags.total + cost;
   const newLuckSpent = flags.luckSpent + cost;
   const outcome = resolveOutcome({ total: newTotal, difficulty: flags.difficulty });
@@ -128,14 +125,18 @@ async function onSpendLuck(message: ChatMessage.Implementation, cost: number): P
     luckSpent: newLuckSpent,
   };
 
-  await message.update({
+  // Update the card first; only deduct Luck once the card reflects the spend.
+  const ok = await updateKedomMessage(message, {
     content,
-    flags: {
-      kedom: {
-        check: updatedFlags,
-      },
-    },
-  } as Parameters<ChatMessage.Implementation["update"]>[0]);
+    flags: { kedom: { check: updatedFlags } },
+  });
+  if (!ok) {
+    ui.notifications.warn(game.i18n.localize("KEDOM.Chat.SpendLuckFailed"));
+    return;
+  }
+  await actor.update({
+    system: { abilities: { lck: { value: pool - cost } } },
+  });
 }
 
 async function onReroll(flags: KedomGradedCheckFlags): Promise<void> {

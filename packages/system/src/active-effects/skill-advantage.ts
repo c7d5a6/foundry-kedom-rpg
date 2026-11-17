@@ -47,7 +47,7 @@ export async function createSkillAdvantageEffect(
           value: "1",
           priority: 20,
         },
-      ],
+      ] as never,
     },
   ]);
   const effect = Array.isArray(created) ? created[0] : created;
@@ -66,7 +66,7 @@ export async function promptSkillKeyForAdvantage(): Promise<SkillKey | null> {
         <select name="skillKey" autofocus>${options}</select></label></p>`,
       ok: {
         label: game.i18n.localize("KEDOM.Sheet.Action.create"),
-        callback: (_event, button) => {
+        callback: (_event: Event, button: HTMLButtonElement) => {
           const form = button.form;
           if (!form) return "";
           return String(new FormData(form).get("skillKey") ?? "").trim();

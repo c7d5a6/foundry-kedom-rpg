@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { maxProficiencyTier, mergeSpecializationGrants } from "./apply-grants.ts";
+import { maxProficiencyTier, mergeSpecializationGrants, planAbilityGrantRevert } from "./apply-grants.ts";
 
 describe("maxProficiencyTier", () => {
   it("picks the higher tier", () => {
@@ -34,5 +34,18 @@ describe("mergeSpecializationGrants", () => {
       label: "Blacksmith",
       selected: true,
     });
+  });
+});
+
+describe("planAbilityGrantRevert", () => {
+  it("reverses only the deleted item's deltas", () => {
+    const plan = planAbilityGrantRevert({ "a:mgh": 1, "a:dex": -1, "b:mgh": 2 }, "a");
+    expect(plan.baseModDeltas).toEqual({ mgh: -1, dex: 1 });
+    expect(plan.remaining).toEqual({ "b:mgh": 2 });
+  });
+
+  it("does nothing for items without recorded deltas", () => {
+    const plan = planAbilityGrantRevert({ "b:mgh": 2 }, "a");
+    expect(plan.baseModDeltas).toEqual({});
   });
 });

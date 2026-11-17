@@ -66,7 +66,7 @@ function freeSpecLeafForLabel(label: string): string | undefined {
   // Build path without a static `KEDOM.…` literal (FreeSpec is an object, not a leaf key).
   const freeSpecPath = ["KEDOM", "Creation", "FreeSpec"].join(".");
   const tables: unknown[] = [i18nProp(game.i18n.translations, freeSpecPath)];
-  const fallback = (game.i18n as { _fallback?: unknown })._fallback;
+  const fallback = (game.i18n as unknown as { _fallback?: unknown })._fallback;
   if (fallback) tables.push(i18nProp(fallback, freeSpecPath));
   for (const table of tables) {
     if (!table || typeof table !== "object") continue;

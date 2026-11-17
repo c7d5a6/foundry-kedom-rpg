@@ -6,6 +6,8 @@ import {
 } from "../config/kedom.ts";
 import type { CharacterData, SaveFields } from "../data/actor/character.ts";
 import { formatSignedBonus } from "./build-skill-check.ts";
+import { effectDeltaModifiers } from "./effect-modifier.ts";
+import type { Modifier } from "./collectors.ts";
 import type { CheckConfigureOptions } from "./check-configure.ts";
 import { renderGradedCheckContent } from "./check-card.ts";
 import { labeledCheckFormula } from "./labeled-formula.ts";
@@ -44,13 +46,13 @@ export async function rollSaveCheck(
   const abilityMod = ability?.mod ?? 0;
   const tier = save.proficiency as ProficiencyTier;
   const profBonus = PROFICIENCY_BONUS[tier] ?? 0;
-  const bonus = abilityMod + profBonus;
+  const bonus = save.mod ?? abilityMod + profBonus;
 
   const saveLabel = localize(`KEDOM.Save.${saveKey}`, saveKey);
   const abilityLabel = localize(`KEDOM.Ability.${abilityKey}.label`, abilityKey);
   const tierLabel = localize(`KEDOM.Proficiency.${tier}`, tier);
 
-  const baseModifiers = [
+  const baseModifiers: Modifier[] = [
     {
       label: abilityLabel,
       value: abilityMod,
@@ -64,6 +66,14 @@ export async function rollSaveCheck(
       kind: "skill" as const,
     },
   ].filter((m) => m.value !== 0);
+  baseModifiers.push(
+    ...effectDeltaModifiers({
+      derived: save.mod,
+      expected: abilityMod + profBonus,
+      id: `save.${saveKey}.effects`,
+      label: localize("KEDOM.Roll.modifier.effects", "Effects"),
+    }),
+  );
 
   const configured = await resolveCheckConfigure(
     game.i18n.format("KEDOM.Roll.Dialog.titleSave", { save: saveLabel }),

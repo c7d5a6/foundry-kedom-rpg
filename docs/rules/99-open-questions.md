@@ -352,6 +352,19 @@ document chose.
 
 ---
 
+## Raised by the code review (system)
+
+- **Ignoring a wound:** the card spends all Luck but leaves the wound count incremented. Should
+  ignoring also remove the wound?
+- **Luck pool vs. Luck modifier:** spending Luck lowers `abilities.lck.value`, which also lowers
+  the Luck modifier used by Luck saves and wound rolls. Intended?
+- **Ability re-rolls at creation:** the wizard allows unlimited 3d6 re-rolls. Is one roll the rule?
+- **Strain Limit:** it is derived but nothing enforces it when Strain rises past it.
+- **Weapon proficiency:** attacks use the half-proficiency value on skills that have
+  specialisations and cannot select one. Should weapons count as specialised?
+
+---
+
 ## Not questions, but noted
 
 **The setting is much larger than the rules.** The `kedom/` vault has 161 notes covering

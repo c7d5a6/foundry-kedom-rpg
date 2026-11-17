@@ -275,6 +275,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
     const skills = this.skills as Record<SkillKey, SkillFields>;
     for (const key of SKILL_KEYS) {
       const skill = skills[key];
+      if (!skill) continue;
       // Ensure AE change paths exist; keep persisted base (ADD stacks on top).
       skill.baseDice = Math.max(1, Math.floor(skill.baseDice ?? 2));
       skill.defaultAdvantage = Math.floor(skill.defaultAdvantage ?? 0);
@@ -303,9 +304,11 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
 
     const foc = this.abilities.foc as AbilityFields;
     const attrs = this.attributes as AttributesDerived;
-    attrs.strainLimit = strainLimitFromFocus(foc.mod ?? 0);
-    attrs.resolve = resolveFromFocus(foc.mod ?? 0);
+    // `+=`: prepareBaseData zeroed these so Active Effects ADD before derivation.
+    attrs.strainLimit = (attrs.strainLimit ?? 0) + strainLimitFromFocus(foc.mod ?? 0);
+    attrs.resolve = (attrs.resolve ?? 0) + resolveFromFocus(foc.mod ?? 0);
     attrs.wounded = (attrs.wounds?.value ?? 0) >= 1;
+    if (attrs.hp.max > 0 && attrs.hp.value > attrs.hp.max) attrs.hp.value = attrs.hp.max;
 
     for (const key of SAVE_KEYS) {
       const s = this.saves[key] as SaveFields;
@@ -313,18 +316,18 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
       const ability = this.abilities[abilityKey] as AbilityFields;
       const tier = s.proficiency as ProficiencyTier;
       const tierBonus = PROFICIENCY_BONUS[tier] ?? 0;
-      s.mod = (ability.mod ?? 0) + tierBonus;
+      s.mod = (s.mod ?? 0) + (ability.mod ?? 0) + tierBonus;
     }
 
     const luckSave = this.saves.luck as SaveFields;
     const lck = this.abilities.lck as AbilityFields;
     const luckTier = luckSave.proficiency as ProficiencyTier;
-    luckSave.mod = (lck.mod ?? 0) + (PROFICIENCY_BONUS[luckTier] ?? 0);
+    luckSave.mod = (luckSave.mod ?? 0) + (lck.mod ?? 0) + (PROFICIENCY_BONUS[luckTier] ?? 0);
 
     // Defense = 10 + Reflex save modifier (armor does not affect Defense for now).
     const reflex = this.saves.reflex as SaveFields;
     const combat = this.combat as { ac: number };
-    combat.ac = 10 + (reflex.mod ?? 0);
+    combat.ac = (combat.ac ?? 0) + 10 + (reflex.mod ?? 0);
   }
 }
 

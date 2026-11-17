@@ -107,7 +107,8 @@ export class OriginSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     return Object.assign(context, {
       item: this.item,
       system: { ...system, subType },
-      systemFields: this.item.system.schema.fields,
+      systemFields: (this.item.system as unknown as { schema: { fields: unknown } }).schema
+        .fields,
       enrichedDescription: await TextEditor.enrichHTML(system.description ?? "", {
         secrets: this.item.isOwner,
         relativeTo: this.item,

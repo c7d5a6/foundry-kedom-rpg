@@ -26,7 +26,11 @@ export default tseslint.config(
   {
     languageOptions: {
       parserOptions: {
-        projectService: true,
+        // Root configs and repo tasks sit outside every package tsconfig.
+        projectService: {
+          allowDefaultProject: ["*.config.ts", "*.config.mjs", "tools/*.ts", "packages/*/vite.config.ts", "packages/*/*.config.mjs", "packages/*/*/svelte.config.js"],
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 30,
+        },
         tsconfigRootDir: import.meta.dirname,
       },
       globals: {

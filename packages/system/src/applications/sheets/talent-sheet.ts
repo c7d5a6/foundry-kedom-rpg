@@ -51,7 +51,8 @@ export class TalentSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     return Object.assign(context, {
       item: this.item,
       system,
-      systemFields: this.item.system.schema.fields,
+      systemFields: (this.item.system as unknown as { schema: { fields: unknown } }).schema
+        .fields,
       enrichedDescription,
       categoryLabel: game.i18n.localize(`KEDOM.Talent.Category.${system.category}`),
       effects: effectListRows(this.item.effects),

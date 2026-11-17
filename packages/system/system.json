@@ -19,6 +19,7 @@
   "license": "LICENSE",
   "readme": "README.md",
   "bugs": "https://github.com/c7d5a6/foundry-kedom-rpg/issues",
+  "socket": true,
   "esmodules": [
     "kedom.mjs"
   ],

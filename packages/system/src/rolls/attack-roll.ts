@@ -38,6 +38,8 @@ export type KedomAttackFlags = {
   targetAc: number | null;
   hit: boolean | null;
   isCrit: boolean;
+  /** Set once the critical wound has been applied to the target. */
+  critWoundApplied?: boolean;
   damageTotal: number | null;
   modifiers: { label: string; value: number }[];
   damageModifiers: { label: string; value: number }[];

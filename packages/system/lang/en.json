@@ -85,6 +85,7 @@
     },
     "Outcome": {
       "cost": "Success at a Cost",
+      "harm": "Harm",
       "failure": "Failure",
       "success": "Success"
     },
@@ -224,6 +225,7 @@
       "SkillCheckFlavor": "{skill} — {difficulty}",
       "SpendLuck": "Spend {cost} Luck → {outcome}",
       "SpendLuckPlusOne": "Spend {cost} Luck (+1)",
+      "SpendLuckFailed": "Could not update the chat card; Luck was not spent.",
       "SpendLuckStale": "This card’s outcome changed. Refresh and try again.",
       "SpendLuckToHit": "Spend {cost} Luck → hit",
       "StrainSaveFlavor": "Strain Save — Resolve {resolve}, Strain {strain}",
@@ -329,6 +331,7 @@
         "ability": "{ability} modifier",
         "armorPenalty": "Armor penalty",
         "effect": "{effect}",
+        "effects": "Effects",
         "halfProficiency": "{proficiency} (no specialization)",
         "luckSpend": "Luck",
         "situational": "Situational",

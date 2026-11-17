@@ -85,6 +85,7 @@
     },
     "Outcome": {
       "cost": "Успех с последствиями",
+      "harm": "Вред",
       "failure": "Провал",
       "success": "Успех"
     },
@@ -224,6 +225,7 @@
       "SkillCheckFlavor": "{skill} — {difficulty}",
       "SpendLuck": "Потратить {cost} Удачи → {outcome}",
       "SpendLuckPlusOne": "Потратить {cost} Удачи (+1)",
+      "SpendLuckFailed": "Не удалось обновить карточку; Удача не потрачена.",
       "SpendLuckStale": "Результат на этой карточке изменился. Обновите и попробуйте снова.",
       "SpendLuckToHit": "Потратить {cost} Удачи → попадание",
       "StrainSaveFlavor": "Испытание напряжения — Решимость {resolve}, напряжение {strain}",
@@ -329,6 +331,7 @@
         "ability": "модификатор {ability}",
         "armorPenalty": "Штраф доспеха",
         "effect": "{effect}",
+        "effects": "Эффекты",
         "halfProficiency": "{proficiency} (без специализации)",
         "luckSpend": "Удача",
         "situational": "Ситуативный",

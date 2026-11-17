@@ -46,6 +46,11 @@ export function mergeSpecializationGrants(
   return [...bySlug.values()];
 }
 
+/** fvtt-types does not know the `kedom` flag scope yet. */
+function kedomFlagsPatch(patch: object): never {
+  return { kedom: patch } as never;
+}
+
 type AppliedAbilityDeltas = Record<string, number>;
 
 function abilityDeltaKey(itemId: string, abilityKey: string): string {
@@ -97,6 +102,55 @@ function buildFingerprint(items: Item.Implementation[]): string {
 }
 
 /**
+ * Pure: baseMod corrections and remaining delta map after an item's grants are removed.
+ * Only deltas recorded in `applied` under `${itemId}:` are reversed.
+ */
+export function planAbilityGrantRevert(
+  applied: AppliedAbilityDeltas,
+  itemId: string,
+): { baseModDeltas: Record<string, number>; remaining: AppliedAbilityDeltas } {
+  const prefix = `${itemId}:`;
+  const baseModDeltas: Record<string, number> = {};
+  const remaining: AppliedAbilityDeltas = {};
+  for (const [flagKey, delta] of Object.entries(applied)) {
+    if (flagKey.startsWith(prefix)) {
+      baseModDeltas[flagKey.slice(prefix.length)] = -delta;
+    } else {
+      remaining[flagKey] = delta;
+    }
+  }
+  return { baseModDeltas, remaining };
+}
+
+/** Undo the ability `baseMod` bumps an item granted (call when it is deleted). */
+export async function revertItemAbilityGrants(
+  actor: Actor.Implementation,
+  item: Item.Implementation,
+): Promise<void> {
+  if (!item.id) return;
+  const flags = kedomFlags(actor);
+  const { baseModDeltas, remaining } = planAbilityGrantRevert(
+    flags.appliedAbilityDeltas ?? {},
+    item.id,
+  );
+  const keys = Object.keys(baseModDeltas);
+  if (keys.length === 0) return;
+
+  const system = actor.system as CharacterData;
+  const update: Record<string, unknown> = {};
+  for (const key of keys) {
+    const ability = (system.abilities as Record<string, { baseMod?: number } | undefined>)[key];
+    if (!ability) continue;
+    update[`system.abilities.${key}.baseMod`] =
+      Math.floor(ability.baseMod ?? 0) + (baseModDeltas[key] ?? 0);
+  }
+  await actor.update({
+    ...update,
+    flags: kedomFlagsPatch({ ...flags, appliedAbilityDeltas: remaining }),
+  });
+}
+
+/**
  * Apply ability deltas from a newly-added talent.
  * Talents do not grant skill proficiency — use Active Effects for advantage/etc.
  */
@@ -137,12 +191,7 @@ export async function applyTalentAbilityGrants(
 
   await actor.update({
     ...abilityUpdate,
-    flags: {
-      kedom: {
-        ...flags,
-        appliedAbilityDeltas: appliedDeltas,
-      },
-    },
+    flags: kedomFlagsPatch({ ...flags, appliedAbilityDeltas: appliedDeltas }),
   });
 
   ui.notifications.info(
@@ -264,12 +313,10 @@ export async function applyGrants(actor: Actor.Implementation): Promise<{
   await actor.update({
     ...skillsUpdate,
     ...abilityUpdate,
-    flags: {
-      kedom: {
-        grantsApplied: stableFingerprint,
-        appliedAbilityDeltas: appliedDeltas,
-      },
-    },
+    flags: kedomFlagsPatch({
+      grantsApplied: stableFingerprint,
+      appliedAbilityDeltas: appliedDeltas,
+    }),
   });
 
   ui.notifications.info(

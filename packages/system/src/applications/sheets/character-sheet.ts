@@ -75,6 +75,15 @@ function isSheetTab(value: string | undefined): value is SheetTab {
   );
 }
 
+/** Typed escape hatch: `system.activeUses` is not in the fvtt-types Item update union. */
+function setArtUses(art: Item.Implementation, uses: number): Promise<unknown> {
+  return art.update({ system: { activeUses: uses } } as never);
+}
+
+function isSkillKey(value: string | undefined): value is SkillKey {
+  return value !== undefined && Object.hasOwn(SKILL_ABILITY, value);
+}
+
 function localizeSpecLabel(skillKey: SkillKey, leaf: string): string {
   const path = `KEDOM.Specialization.${skillKey}.${leaf}`;
   const v = game.i18n.localize(path);
@@ -99,7 +108,6 @@ function specializationSlots(proficiency: string): number {
   return PROFICIENCY_SPECIALIZATION_SLOTS[proficiency as ProficiencyTier] ?? 0;
 }
 
-// @ts-expect-error fvtt-types: HandlebarsApplicationMixin(ActorSheetV2) hits excessive stack depth
 export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static MODES = SHEET_MODES;
 
@@ -108,6 +116,9 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   /** Primary sheet tab — instance UI state. */
   #primaryTab: SheetTab = SHEET_TABS.SKILLS;
+
+  /** Art item ids with an effort update in flight (blocks double-click overspend). */
+  readonly #artBusy = new Set<string>();
 
   get isPlayMode(): boolean {
     return this.#mode === SHEET_MODES.PLAY;
@@ -237,7 +248,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const abilityKey = SKILL_ABILITY[key];
       const skill = skillsData[key]!;
       const proficiency = skill.proficiency as ProficiencyTier;
-      const kind = SKILL_SPECIALIZATION_KIND[key];
+      const kind = SKILL_SPECIALIZATION_KIND[key] ?? "none";
       const ownedBySlug = new Map(skill.specializations.map((s) => [s.slug, s]));
       const fixedLeaves = SKILL_FIXED_SPECIALIZATIONS[key] ?? [];
       const slots = specializationSlots(proficiency);
@@ -500,7 +511,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       relativeTo: this.actor,
     });
 
-    const tabs = [
+    const tabs: { id: SheetTab; label: string; icon: string; active: boolean }[] = [
       {
         id: SHEET_TABS.SKILLS,
         label: game.i18n.localize("KEDOM.Sheet.Tab.skills"),
@@ -968,7 +979,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (!this.isEditable) return;
     await this.render({
       mode: this.isPlayMode ? SHEET_MODES.EDIT : SHEET_MODES.PLAY,
-    } as foundry.applications.api.ApplicationV2.RenderOptions);
+    } as unknown as foundry.applications.api.ApplicationV2.RenderOptions);
   }
 
   static async #onChangeSheetTab(
@@ -985,10 +996,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static async #onCreateTalent(this: CharacterSheet): Promise<void> {
     if (!this.isEditable || !this.actor) return;
-    // @ts-expect-error fvtt-types: talent Item subtype
     const created = await this.actor.createEmbeddedDocuments("Item", [
       {
         name: game.i18n.localize("KEDOM.Talent.NewTalent"),
+        // @ts-expect-error fvtt-types: talent Item subtype
         type: "talent",
         img: "icons/svg/upgrade.svg",
         system: {
@@ -1036,6 +1047,21 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   static async #onUseArt(
     this: CharacterSheet,
+    event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    const itemId = target.dataset.itemId;
+    if (!itemId || this.#artBusy.has(itemId)) return;
+    this.#artBusy.add(itemId);
+    try {
+      await CharacterSheet.#onUseArtImpl.call(this, event, target);
+    } finally {
+      this.#artBusy.delete(itemId);
+    }
+  }
+
+  static async #onUseArtImpl(
+    this: CharacterSheet,
     _event: PointerEvent,
     target: HTMLElement,
   ): Promise<void> {
@@ -1057,11 +1083,26 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       return;
     }
     const uses = Math.max(0, Math.floor(Number(system.activeUses) || 0));
-    await art.update({ "system.activeUses": uses + 1 });
+    await setArtUses(art, uses + 1);
     await postArtUseChat(art);
   }
 
   static async #onToggleArtConcentration(
+    this: CharacterSheet,
+    event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    const itemId = target.dataset.itemId;
+    if (!itemId || this.#artBusy.has(itemId)) return;
+    this.#artBusy.add(itemId);
+    try {
+      await CharacterSheet.#onToggleArtConcentrationImpl.call(this, event, target);
+    } finally {
+      this.#artBusy.delete(itemId);
+    }
+  }
+
+  static async #onToggleArtConcentrationImpl(
     this: CharacterSheet,
     _event: PointerEvent,
     target: HTMLElement,
@@ -1079,11 +1120,26 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       return;
     }
     const uses = Math.max(0, Math.floor(Number(system.activeUses) || 0));
-    await art.update({ "system.activeUses": uses + 1 });
+    await setArtUses(art, uses + 1);
     await postArtUseChat(art);
   }
 
   static async #onReleaseArtEffort(
+    this: CharacterSheet,
+    event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    const itemId = target.dataset.itemId;
+    if (!itemId || this.#artBusy.has(itemId)) return;
+    this.#artBusy.add(itemId);
+    try {
+      await CharacterSheet.#onReleaseArtEffortImpl.call(this, event, target);
+    } finally {
+      this.#artBusy.delete(itemId);
+    }
+  }
+
+  static async #onReleaseArtEffortImpl(
     this: CharacterSheet,
     _event: PointerEvent,
     target: HTMLElement,
@@ -1097,7 +1153,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (system.commitment === "free") return;
     const uses = Math.max(0, Math.floor(Number(system.activeUses) || 0));
     if (uses < 1) return;
-    await art.update({ "system.activeUses": uses - 1 });
+    await setArtUses(art, uses - 1);
   }
 
   static async #onEditArt(
@@ -1369,7 +1425,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   ): Promise<void> {
     if (this.isEditMode) return;
     const skillKey = target.dataset.skillKey;
-    if (!skillKey || !this.actor) return;
+    if (!isSkillKey(skillKey) || !this.actor) return;
     await rollSkillCheck(this.actor, skillKey, {
       configure: event.ctrlKey || event.metaKey,
     });
@@ -1420,7 +1476,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (this.isEditMode) return;
     const skillKey = target.dataset.skillKey;
     const specializationSlug = target.dataset.specializationSlug;
-    if (!skillKey || !specializationSlug || !this.actor) return;
+    if (!isSkillKey(skillKey) || !specializationSlug || !this.actor) return;
     await rollSkillCheck(this.actor, skillKey, {
       specializationSlug,
       configure: event.ctrlKey || event.metaKey,
@@ -1441,7 +1497,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const skill = (system.skills as Record<SkillKey, SkillFields>)[skillKey];
     if (!skill) return;
 
-    const kind = SKILL_SPECIALIZATION_KIND[skillKey];
+    const kind = SKILL_SPECIALIZATION_KIND[skillKey] ?? "none";
     const isFreeForm = target.dataset.free === "1";
     const existing = skill.specializations.find((s) => s.slug === slug);
     const currentlySelected = existing !== undefined && isSpecializationSelected(existing);
@@ -1495,7 +1551,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   ): Promise<void> {
     const skillKey = target.dataset.skillKey as SkillKey | undefined;
     if (!skillKey || !this.actor || !this.isEditMode) return;
-    const kind = SKILL_SPECIALIZATION_KIND[skillKey];
+    const kind = SKILL_SPECIALIZATION_KIND[skillKey] ?? "none";
     if (!allowsFreeSpecialization(kind)) return;
 
     const label = await CharacterSheet.#promptFreeLabel(skillKey);
@@ -1523,7 +1579,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const skillKey = target.dataset.skillKey as SkillKey | undefined;
     const slug = target.dataset.specializationSlug;
     if (!skillKey || !slug || !this.actor) return;
-    if (!allowsFreeSpecialization(SKILL_SPECIALIZATION_KIND[skillKey])) return;
+    if (!allowsFreeSpecialization(SKILL_SPECIALIZATION_KIND[skillKey] ?? "none")) return;
     const system = this.actor.system as CharacterData;
     const skill = (system.skills as Record<SkillKey, SkillFields>)[skillKey];
     if (!skill) return;
@@ -1553,7 +1609,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static async #promptFreeLabel(skillKey: SkillKey): Promise<string | null> {
     const skillLabel = game.i18n.localize(`KEDOM.Skill.${skillKey}`);
     try {
-      const result = await foundry.applications.api.DialogV2.prompt({
+      const result: unknown = await foundry.applications.api.DialogV2.prompt({
         window: {
           title: game.i18n.format("KEDOM.Sheet.Action.addSpecialization", { skill: skillLabel }),
         },
@@ -1561,7 +1617,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           <input type="text" name="label" autofocus /></label></p>`,
         ok: {
           label: game.i18n.localize("KEDOM.Sheet.Action.create"),
-          callback: (_event, button) => {
+          callback: (_event: Event, button: HTMLButtonElement) => {
             const form = button.form;
             if (!form) return "";
             const data = new FormData(form);

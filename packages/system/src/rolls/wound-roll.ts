@@ -8,6 +8,7 @@ import {
 } from "../config/wound-table.ts";
 import type { CharacterData, SaveFields } from "../data/actor/character.ts";
 import { formatSignedBonus } from "./build-skill-check.ts";
+import { effectDeltaModifiers } from "./effect-modifier.ts";
 import { labeledCheckFormula } from "./labeled-formula.ts";
 import type { Modifier } from "./collectors.ts";
 
@@ -66,6 +67,14 @@ function buildWoundLuckModifiers(actor: Actor.Implementation): Modifier[] {
       kind: "skill",
     },
   ];
+  modifiers.push(
+    ...effectDeltaModifiers({
+      derived: save?.mod,
+      expected: luckMod + profBonus,
+      id: "save.luck.effects",
+      label: localize("KEDOM.Roll.modifier.effects", "Effects"),
+    }),
+  );
   if (armorBonus !== 0) {
     modifiers.push({
       label: armorLabel,

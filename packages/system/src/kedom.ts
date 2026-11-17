@@ -11,11 +11,12 @@ import { OriginSheet } from "./applications/sheets/origin-sheet.ts";
 import { TalentSheet } from "./applications/sheets/talent-sheet.ts";
 import { WeaponSheet } from "./applications/sheets/weapon-sheet.ts";
 import { registerCharacterCreateDirectoryButton } from "./applications/apps/character-create-wizard.ts";
-import { applyTalentAbilityGrants } from "./creation/apply-grants.ts";
+import { applyTalentAbilityGrants, revertItemAbilityGrants } from "./creation/apply-grants.ts";
 import { decorateAttackCardActions } from "./chat/attack-card-actions.ts";
 import { decorateCheckCardActions } from "./chat/check-card-actions.ts";
 import { decorateChatMessageHeader } from "./chat/decorate-message-header.ts";
 import { decorateWoundCardActions } from "./chat/wound-card-actions.ts";
+import { registerMessageSocket } from "./chat/message-update.ts";
 import { registerSettings } from "./settings.ts";
 
 Hooks.once("init", () => {
@@ -94,23 +95,45 @@ Hooks.once("init", () => {
     "systems/kedom/templates/item/art.hbs",
   ]);
 
-  console.log("Kedom RPG | initialized (character + origin/talent/art/weapon/armor + rolls + AE)");
 });
 
 Hooks.on("renderActorDirectory", registerCharacterCreateDirectoryButton);
 
 /** When a talent is added to a character, apply skill/ability grants (with level-gate overflow). */
+function onCreateItem(
+  item: Item.Implementation,
+  _data: unknown,
+  _options: unknown,
+  userId: string,
+): void {
+  if (game.userId !== userId) return;
+  if ((item.type as string) !== "talent") return;
+  const parent = item.parent;
+  if (!parent || parent.documentName !== "Actor") return;
+  if ((parent as Actor.Implementation).type !== "character") return;
+  void applyTalentAbilityGrants(parent as Actor.Implementation, item);
+}
+
+// fvtt-types: Hooks.on overload resolution is excessively deep for Item hooks.
+Hooks.on("createItem", onCreateItem as never);
+
+/** When a talent/origin leaves a character, undo the ability bumps it granted. */
 Hooks.on(
-  "createItem",
-  (item: Item.Implementation, _data: unknown, _options: unknown, userId: string) => {
+  "deleteItem",
+  (item: Item.Implementation, _options: unknown, userId: string) => {
     if (game.userId !== userId) return;
-    if ((item.type as string) !== "talent") return;
+    const type = item.type as string;
+    if (type !== "talent" && type !== "origin") return;
     const parent = item.parent;
     if (!parent || parent.documentName !== "Actor") return;
     if ((parent as Actor.Implementation).type !== "character") return;
-    void applyTalentAbilityGrants(parent as Actor.Implementation, item);
+    revertItemAbilityGrants(parent as Actor.Implementation, item).catch((err: unknown) => {
+      console.error("Kedom | grant revert failed", err);
+    });
   },
 );
+
+Hooks.once("ready", registerMessageSocket);
 
 Hooks.on("renderChatMessageHTML", (message, html) => {
   decorateChatMessageHeader(message, html);

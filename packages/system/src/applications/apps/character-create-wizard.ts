@@ -111,6 +111,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   #draft: Draft;
   #nameAbort: AbortController | null = null;
   #catalog: OriginsCatalog | null = null;
+  #creating = false;
 
   constructor() {
     super();
@@ -1204,7 +1205,13 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       ui.notifications.warn(localize("KEDOM.Creation.Wizard.IncompleteStep"));
       return;
     }
-    await this.#createActor();
+    if (this.#creating) return;
+    this.#creating = true;
+    try {
+      await this.#createActor();
+    } finally {
+      this.#creating = false;
+    }
   }
 
   #pushTalentPayload(
@@ -1431,6 +1438,7 @@ export function registerCharacterCreateDirectoryButton(
       ? element
       : ((element as JQuery).get?.(0) as HTMLElement | undefined);
   if (!root) return;
+  if (!game.user.can("ACTOR_CREATE")) return;
   if (root.querySelector("[data-action='kedomCreateCharacter']")) return;
 
   const footer =

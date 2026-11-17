@@ -24,7 +24,7 @@ export async function postArtUseChat(item: Item.Implementation): Promise<void> {
   );
   await ChatMessage.implementation.create({
     author: game.user?.id,
-    speaker: ChatMessage.implementation.getSpeaker({ actor }),
+    speaker: ChatMessage.implementation.getSpeaker({ actor: actor as Actor.Stored }),
     content,
     style: CONST.CHAT_MESSAGE_STYLES.OTHER,
   });

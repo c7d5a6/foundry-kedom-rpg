@@ -18,7 +18,7 @@ export function decorateChatMessageHeader(
 
   const image = document.createElement("img");
   image.alt = actor.name;
-  image.src = actor.img;
+  image.src = String(actor.img);
   image.inert = true;
 
   const portrait = document.createElement("div");

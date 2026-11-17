@@ -1,11 +1,14 @@
 import {
+  PROFICIENCY_BONUS,
   SKILL_ABILITY,
   type ProficiencyTier,
   type SkillKey,
 } from "../config/kedom.ts";
+import { appliedProficiencyBonus } from "../derivations/skill-proficiency.ts";
+import { effectDeltaModifiers } from "./effect-modifier.ts";
 import { SKILL_SPECIALIZATION_KIND } from "../config/specializations.ts";
 import type { CharacterData, SkillFields } from "../data/actor/character.ts";
-import { buildSkillCheck, skillCheckIsSpecialized } from "./build-skill-check.ts";
+import { buildSkillCheck, skillCheckIsSpecialized, sumModifiers } from "./build-skill-check.ts";
 import type { CheckConfigureOptions } from "./check-configure.ts";
 import { renderGradedCheckContent } from "./check-card.ts";
 import { labeledCheckFormula } from "./labeled-formula.ts";
@@ -70,7 +73,7 @@ export function prepareSkillCheck(
   const skill = (system.skills as Record<SkillKey, SkillFields>)[skillKey];
   if (!ability || !skill) return null;
 
-  const kind = SKILL_SPECIALIZATION_KIND[skillKey];
+  const kind = SKILL_SPECIALIZATION_KIND[skillKey] ?? "none";
   let specializationLabel: string | null = null;
   let specializationSlug: string | null = null;
 
@@ -105,12 +108,24 @@ export function prepareSkillCheck(
     specializationLabel,
   });
 
+  const effectMods = effectDeltaModifiers({
+    derived: skill.proficiencyBonus,
+    expected: appliedProficiencyBonus({
+      tierBonus: PROFICIENCY_BONUS[proficiency] ?? 0,
+      specialized: (kind ?? "none") === "none",
+    }),
+    id: `skill.${skillKey}.effects`,
+    label: localize("KEDOM.Roll.modifier.effects", "Effects"),
+  });
+  const modifiers = [...built.modifiers, ...effectMods];
+  const bonus = built.bonus + sumModifiers(effectMods);
+
   const formulaLabel =
     specializationLabel !== null ? `${skillLabel} (${specializationLabel})` : skillLabel;
 
   return {
-    modifiers: built.modifiers,
-    bonus: built.bonus,
+    modifiers,
+    bonus,
     skillLabel,
     formulaLabel,
     specializationLabel,
@@ -122,7 +137,7 @@ export async function rollSkillCheck(
   skillKey: string,
   options: SkillCheckOptions = {},
 ): Promise<void> {
-  if (!(skillKey in SKILL_ABILITY)) {
+  if (!Object.hasOwn(SKILL_ABILITY, skillKey)) {
     ui.notifications.error(game.i18n.format("KEDOM.Chat.UnknownSkill", { skill: skillKey }));
     return;
   }
