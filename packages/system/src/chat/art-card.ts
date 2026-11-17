@@ -1,3 +1,4 @@
+import { enrichHTML } from "../applications/enrich.ts";
 import type { ArtDataFields } from "../data/item/art.ts";
 
 /** Post an art use chat card for the owning actor. */
@@ -5,7 +6,7 @@ export async function postArtUseChat(item: Item.Implementation): Promise<void> {
   const actor = item.actor;
   if (!actor) return;
   const system = item.system as unknown as ArtDataFields;
-  const description = await TextEditor.enrichHTML(system.description ?? "", {
+  const description = await enrichHTML(system.description ?? "", {
     secrets: false,
     relativeTo: item,
   });

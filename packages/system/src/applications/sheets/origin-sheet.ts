@@ -1,3 +1,4 @@
+import { enrichHTML } from "../enrich.ts";
 import {
   CLASS_SAVE_TRACKS,
   ORIGIN_SUBTYPES,
@@ -109,7 +110,7 @@ export class OriginSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       system: { ...system, subType },
       systemFields: (this.item.system as unknown as { schema: { fields: unknown } }).schema
         .fields,
-      enrichedDescription: await TextEditor.enrichHTML(system.description ?? "", {
+      enrichedDescription: await enrichHTML(system.description ?? "", {
         secrets: this.item.isOwner,
         relativeTo: this.item,
       }),

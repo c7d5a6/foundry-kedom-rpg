@@ -1,3 +1,4 @@
+import { enrichHTML } from "../enrich.ts";
 import {
   ABILITY_KEYS,
   LUCK_SCORE_MAX,
@@ -78,6 +79,19 @@ function isSheetTab(value: string | undefined): value is SheetTab {
 /** Typed escape hatch: `system.activeUses` is not in the fvtt-types Item update union. */
 function setArtUses(art: Item.Implementation, uses: number): Promise<unknown> {
   return art.update({ system: { activeUses: uses } } as never);
+}
+
+let collator: Intl.Collator | null = null;
+let collatorLang = "";
+
+/** Locale-aware compare with one cached `Intl.Collator` (per-call `localeCompare` rebuilds it). */
+function collate(a: string, b: string): number {
+  const lang = game.i18n.lang;
+  if (collator === null || collatorLang !== lang) {
+    collator = new Intl.Collator(lang);
+    collatorLang = lang;
+  }
+  return collator.compare(a, b);
 }
 
 function isSkillKey(value: string | undefined): value is SkillKey {
@@ -226,6 +240,20 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   ) {
     const context = await super._prepareContext(options);
     const system = this.actor.system as CharacterData;
+    // Hidden tabs are not rendered, so skip their (sometimes async) preparation.
+    const tab = this.#primaryTab;
+    const onSkills = tab === SHEET_TABS.SKILLS;
+    const onCombat = tab === SHEET_TABS.COMBAT;
+    const onTalents = tab === SHEET_TABS.TALENTS;
+    const onArts = tab === SHEET_TABS.ARTS;
+    const onNotes = tab === SHEET_TABS.NOTES;
+    const onEffects = tab === SHEET_TABS.EFFECTS;
+    const tierOptions = PROFICIENCY_TIERS.map((value) => ({
+      value,
+      label: game.i18n.localize(`KEDOM.Proficiency.${value}`),
+      letter: proficiencyLetterFromLabel(value),
+      rankClass: `kedom-skill--${value}`,
+    }));
     const abilitiesData = system.abilities as Record<string, AbilityView>;
     const skillsData = system.skills as Record<SkillKey, SkillFields>;
 
@@ -244,7 +272,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       };
     });
 
-    const skills = SKILL_KEYS.map((key) => {
+    const skills = (onSkills ? SKILL_KEYS : ([] as typeof SKILL_KEYS)).map((key) => {
       const abilityKey = SKILL_ABILITY[key];
       const skill = skillsData[key]!;
       const proficiency = skill.proficiency as ProficiencyTier;
@@ -330,7 +358,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
       specializationTags.sort((a, b) => {
         if (a.selected !== b.selected) return a.selected ? -1 : 1;
-        return a.label.localeCompare(b.label, game.i18n.lang);
+        return collate(a.label, b.label);
       });
       const lastSelectedIndex = specializationTags.findLastIndex((t) => t.selected);
       const tagsWithMod = specializationTags.map((tag, index) => ({
@@ -367,18 +395,9 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
               slots: String(slots),
             })
           : null,
-        proficiencyOptions: PROFICIENCY_TIERS.map((value) => {
-          const label = game.i18n.localize(`KEDOM.Proficiency.${value}`);
-          return {
-            value,
-            label,
-            letter: proficiencyLetterFromLabel(value),
-            selected: value === proficiency,
-            rankClass: `kedom-skill--${value}`,
-          };
-        }),
+        proficiencyOptions: tierOptions.map((o) => ({ ...o, selected: o.value === proficiency })),
       };
-    }).sort((a, b) => a.label.localeCompare(b.label, game.i18n.lang));
+    }).sort((a, b) => collate(a.label, b.label));
 
     const attrs = system.attributes as {
       hp: { value: number; max: number };
@@ -417,11 +436,11 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     };
     const combat = {
       ac: combatData.ac ?? 0,
-      woundLuckSigned: formatSignedBonus(previewWoundLuckBonus(this.actor)),
+      woundLuckSigned: onCombat ? formatSignedBonus(previewWoundLuckBonus(this.actor)) : "",
     };
 
     const weapons = this.actor.items
-      .filter((item) => (item.type as string) === "weapon")
+      .filter((item) => onCombat && (item.type as string) === "weapon")
       .map((item) => {
         const wsys = item.system as unknown as WeaponDataFields;
         const skill = normalizeWeaponSkill(wsys.skill);
@@ -438,10 +457,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           damageTotalSigned: formatSignedBonus(damageTotal),
         };
       })
-      .sort((a, b) => a.name.localeCompare(b.name, game.i18n.lang));
+      .sort((a, b) => collate(a.name, b.name));
 
     const armor = this.actor.items
-      .filter((item) => (item.type as string) === "armor")
+      .filter((item) => onCombat && (item.type as string) === "armor")
       .map((item) => {
         const asys = item.system as unknown as ArmorDataFields;
         const woundBonus = Math.floor(asys.woundBonus ?? 0);
@@ -452,7 +471,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           woundBonusSigned: woundBonus !== 0 ? formatSignedBonus(woundBonus) : "",
         };
       })
-      .sort((a, b) => a.name.localeCompare(b.name, game.i18n.lang));
+      .sort((a, b) => collate(a.name, b.name));
 
     const savesData = system.saves as Record<SaveKey | "luck", SaveFields>;
     const saveView = (
@@ -473,25 +492,18 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         proficiencyClass: `kedom-skill--${proficiency}`,
         bonusSigned: formatSignedBonus(mod),
         rollAction: key === "luck" ? "rollLuckSave" : "rollSave",
-        proficiencyOptions: PROFICIENCY_TIERS.map((value) => {
-          const label = game.i18n.localize(`KEDOM.Proficiency.${value}`);
-          return {
-            value,
-            label,
-            letter: proficiencyLetterFromLabel(value),
-            selected: value === proficiency,
-            rankClass: `kedom-skill--${value}`,
-          };
-        }),
+        proficiencyOptions: tierOptions.map((o) => ({ ...o, selected: o.value === proficiency })),
       };
     };
     const saves = SAVE_KEYS.map((key) => saveView(key, SAVE_ABILITY[key]));
     const luckSave = saveView("luck", "lck");
 
-    const enrichedWoundsNotes = await TextEditor.enrichHTML(attrs.wounds.notes ?? "", {
-      secrets: this.actor.isOwner,
-      relativeTo: this.actor,
-    });
+    const enrichedWoundsNotes = onCombat
+      ? await enrichHTML(attrs.wounds.notes ?? "", {
+          secrets: this.actor.isOwner,
+          relativeTo: this.actor,
+        })
+      : "";
 
     const detailsRaw =
       (
@@ -506,10 +518,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }
       ).details ?? {};
 
-    const enrichedNotes = await TextEditor.enrichHTML(detailsRaw.notes ?? "", {
-      secrets: this.actor.isOwner,
-      relativeTo: this.actor,
-    });
+    const enrichedNotes = onNotes
+      ? await enrichHTML(detailsRaw.notes ?? "", {
+          secrets: this.actor.isOwner,
+          relativeTo: this.actor,
+        })
+      : "";
 
     const tabs: { id: SheetTab; label: string; icon: string; active: boolean }[] = [
       {
@@ -611,10 +625,16 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const raw = slug ? localizeContentDescription(kind, slug, packDesc) : packDesc;
       const plain = raw.replace(/<[^>]*>/g, "").trim();
       if (!plain) return { label, tooltipHtml: "", itemId };
-      const tooltipHtml = await TextEditor.enrichHTML(raw, {
-        secrets: this.actor.isOwner,
-        relativeTo: item,
-      });
+      const cacheKey = `${game.i18n.lang}|${String(this.actor.isOwner)}|${item?.uuid ?? ""}|${raw}`;
+      let tooltipHtml = this.#tipCache.get(cacheKey);
+      if (tooltipHtml === undefined) {
+        tooltipHtml = await enrichHTML(raw, {
+          secrets: this.actor.isOwner,
+          relativeTo: item,
+        });
+        if (this.#tipCache.size >= 50) this.#tipCache.clear();
+        this.#tipCache.set(cacheKey, tooltipHtml);
+      }
       return { label, tooltipHtml, itemId };
     };
 
@@ -680,12 +700,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const sheetBannerImg = (regionSys?.bannerImg ?? "").trim();
 
     const talentItems = this.actor.items
-      .filter((item) => (item.type as string) === "talent")
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .filter((item) => onTalents && (item.type as string) === "talent")
+      .sort((a, b) => collate(a.name, b.name));
     const talents = await Promise.all(
       talentItems.map(async (item) => {
         const system = item.system as unknown as { description?: string };
-        const enrichedDescription = await TextEditor.enrichHTML(system.description ?? "", {
+        const enrichedDescription = await enrichHTML(system.description ?? "", {
           secrets: this.actor.isOwner,
           relativeTo: item,
         });
@@ -700,12 +720,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     );
 
     const artItems = this.actor.items
-      .filter((item) => (item.type as string) === "art")
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .filter((item) => onArts && (item.type as string) === "art")
+      .sort((a, b) => collate(a.name, b.name));
     const arts = await Promise.all(
       artItems.map(async (item) => {
         const system = item.system as unknown as ArtDataFields;
-        const enrichedDescription = await TextEditor.enrichHTML(system.description ?? "", {
+        const enrichedDescription = await enrichHTML(system.description ?? "", {
           secrets: this.actor.isOwner,
           relativeTo: item,
         });
@@ -761,7 +781,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       parentItemId: string | null;
     }[] = [];
     const itemEffects: typeof actorEffects = [];
-    for (const effect of this.actor.allApplicableEffects()) {
+    for (const effect of onEffects ? this.actor.allApplicableEffects() : []) {
       const parent = effect.parent;
       const parentIsActor = parent === this.actor;
       const parentItem =
@@ -784,7 +804,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const byDisabledThenName = (
       a: (typeof actorEffects)[number],
       b: (typeof actorEffects)[number],
-    ) => Number(a.disabled) - Number(b.disabled) || a.name.localeCompare(b.name);
+    ) => Number(a.disabled) - Number(b.disabled) || collate(a.name, b.name);
     actorEffects.sort(byDisabledThenName);
     itemEffects.sort(byDisabledThenName);
 
@@ -864,11 +884,18 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   /** Move tab strip outside `.window-content` (dnd5e-style external nav). */
   #placeExternalTabs(): void {
-    const tabs = this.element.querySelector(".kedom-sheet-tabs-part");
-    if (!(tabs instanceof HTMLElement)) return;
-    if (tabs.parentElement === this.element) return;
-    this.element.append(tabs);
+    // A freshly rendered tabs part lands inside `.window-content`; an earlier one may
+    // already sit outside it. Keep only the fresh one (partial renders re-create it).
+    const fresh = this.element.querySelector(".window-content .kedom-sheet-tabs-part");
+    if (!(fresh instanceof HTMLElement)) return;
+    for (const stale of this.element.querySelectorAll(":scope > .kedom-sheet-tabs-part")) {
+      stale.remove();
+    }
+    this.element.append(fresh);
   }
+
+  /** Enriched identity tooltips, keyed by content so edits invalidate naturally. */
+  readonly #tipCache = new Map<string, string>();
 
   #meterAbort: AbortController | null = null;
 
@@ -991,7 +1018,10 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (!isSheetTab(tab)) return;
     if (this.#primaryTab === tab) return;
     this.#primaryTab = tab;
-    await this.render();
+    // The header does not depend on the tab; skip re-rendering it.
+    await this.render({
+      parts: ["tabs", "body"],
+    } as unknown as foundry.applications.api.ApplicationV2.RenderOptions);
   }
 
   static async #onCreateTalent(this: CharacterSheet): Promise<void> {

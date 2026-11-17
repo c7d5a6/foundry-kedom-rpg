@@ -1,3 +1,4 @@
+import { enrichHTML } from "../enrich.ts";
 import { ABILITY_KEYS, SKILL_KEYS, type SkillKey } from "../../config/kedom.ts";
 import {
   CREATION_ABILITY_KEYS,
@@ -104,7 +105,7 @@ function localize(path: string, fallback?: string): string {
 
 async function enrichHtml(html: string): Promise<string> {
   if (!html.trim()) return "";
-  return TextEditor.enrichHTML(html, {});
+  return enrichHTML(html, {});
 }
 
 export class CharacterCreateWizard extends HandlebarsApplicationMixin(ApplicationV2) {

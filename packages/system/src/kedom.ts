@@ -16,6 +16,7 @@ import { decorateAttackCardActions } from "./chat/attack-card-actions.ts";
 import { decorateCheckCardActions } from "./chat/check-card-actions.ts";
 import { decorateChatMessageHeader } from "./chat/decorate-message-header.ts";
 import { decorateWoundCardActions } from "./chat/wound-card-actions.ts";
+import { loadOriginsCatalog } from "./creation/origins-catalog.ts";
 import { registerMessageSocket } from "./chat/message-update.ts";
 import { registerSettings } from "./settings.ts";
 
@@ -133,7 +134,19 @@ Hooks.on(
   },
 );
 
-Hooks.once("ready", registerMessageSocket);
+Hooks.once("ready", () => {
+  registerMessageSocket();
+  // Warm the origins catalog (loads every pack document) off the critical path so the
+  // creation wizard opens instantly.
+  if (!game.user.can("ACTOR_CREATE")) return;
+  const warm = (): void => {
+    loadOriginsCatalog().catch((err: unknown) => {
+      console.warn("Kedom | catalog prewarm failed", err);
+    });
+  };
+  if ("requestIdleCallback" in window) window.requestIdleCallback(warm, { timeout: 10_000 });
+  else setTimeout(warm, 2000);
+});
 
 Hooks.on("renderChatMessageHTML", (message, html) => {
   decorateChatMessageHeader(message, html);

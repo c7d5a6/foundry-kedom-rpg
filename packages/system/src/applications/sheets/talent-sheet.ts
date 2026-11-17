@@ -1,3 +1,4 @@
+import { enrichHTML } from "../enrich.ts";
 import type { TalentDataFields } from "../../data/item/talent.ts";
 import {
   createSkillAdvantageEffect,
@@ -43,7 +44,7 @@ export class TalentSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   ) {
     const context = await super._prepareContext(options);
     const system = this.item.system as unknown as TalentDataFields;
-    const enrichedDescription = await TextEditor.enrichHTML(system.description ?? "", {
+    const enrichedDescription = await enrichHTML(system.description ?? "", {
       secrets: this.item.isOwner,
       relativeTo: this.item,
     });
