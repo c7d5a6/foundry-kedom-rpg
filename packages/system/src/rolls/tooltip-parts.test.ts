@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { modifierTooltipParts } from "./skill-check.ts";
+import { modifierTooltipParts } from "./tooltip-parts.ts";
 
 describe("modifierTooltipParts", () => {
   it("formats signed formulas and keeps Foundry-style flavor labels", () => {

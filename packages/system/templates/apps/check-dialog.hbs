@@ -14,6 +14,23 @@
       </label>
       {{/each}}
     </div>
+    <table class="kedom-check-dialog__bands" data-selected="{{difficulty}}">
+      <caption class="sr-only">{{localize "KEDOM.Roll.Dialog.bandsCaption"}}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{{localize "KEDOM.Roll.Dialog.bandsTotal"}}</th>
+          {{#each difficulties}}<th scope="col" data-col="{{key}}">{{label}}</th>{{/each}}
+        </tr>
+      </thead>
+      <tbody>
+        {{#each bandRows}}
+        <tr>
+          <th scope="row">{{range}}</th>
+          {{#each cells}}<td data-col="{{key}}" class="is-{{kind}}">{{label}}</td>{{/each}}
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
   </fieldset>
 
   <div class="kedom-check-dialog__advantage form-group">
@@ -34,6 +51,7 @@
         value="{{advantageSlider}}"
       />
     </div>
+    <p class="kedom-check-dialog__dice hint">{{localize "KEDOM.Roll.Dialog.diceLine"}} <strong class="kedom-check-dialog__dice-term">{{diceLine}}</strong></p>
   </div>
 
   <div class="kedom-check-dialog__situational form-group">

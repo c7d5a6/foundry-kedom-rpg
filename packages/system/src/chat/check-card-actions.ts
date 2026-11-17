@@ -1,23 +1,13 @@
+import { canControlActor, confirmReroll, luckPool, rerolledNote } from "./card-common.ts";
 import type { SaveKey, SkillKey } from "../config/kedom.ts";
-import type { CharacterData } from "../data/actor/character.ts";
-import { renderGradedCheckContent } from "../rolls/check-card.ts";
+import { renderGradedCheckContent } from "../actions/check-card.ts";
 import { luckCostToNextOutcome } from "../rolls/luck-spend.ts";
-import { rollLuckSave } from "../rolls/luck-save.ts";
+import { rollLuckSave } from "../actions/luck-save.ts";
 import { resolveOutcome } from "../rolls/resolve-outcome.ts";
-import { rollSaveCheck } from "../rolls/save-check.ts";
-import { rollSkillCheck } from "../rolls/skill-check.ts";
+import { rollSaveCheck } from "../actions/save-check.ts";
+import { rollSkillCheck } from "../actions/skill-check.ts";
 import { updateKedomMessage } from "./message-update.ts";
 import { getKedomCheckFlags, type KedomGradedCheckFlags } from "./check-flags.ts";
-
-function canControlActor(actor: Actor.Implementation): boolean {
-  return Boolean(game.user?.isGM || actor.isOwner);
-}
-
-function luckPool(actor: Actor.Implementation): number {
-  const system = actor.system as CharacterData;
-  const lck = (system.abilities as { lck?: { value?: number } }).lck;
-  return Math.max(0, Math.floor(lck?.value ?? 0));
-}
 
 function localizeOutcome(outcome: { kind: string }): string {
   const path = `KEDOM.Outcome.${outcome.kind}`;
@@ -41,6 +31,11 @@ export function decorateCheckCardActions(
   if (!(actor instanceof Actor)) return;
   if (!canControlActor(actor)) return;
 
+  if (flags.rerolled) {
+    root.append(rerolledNote("kedom-chat-check__actions"));
+    return;
+  }
+
   const actions = document.createElement("div");
   actions.className = "kedom-chat-check__actions";
 
@@ -62,7 +57,7 @@ export function decorateCheckCardActions(
             cost: String(next.cost),
             available: String(pool),
           })
-        : (spendBtn.textContent ?? "");
+        : `${spendBtn.textContent ?? ""} — ${game.i18n.format("KEDOM.Chat.LuckLeft", { available: String(pool) })}`;
     spendBtn.addEventListener("click", () => {
       void onSpendLuck(message, next.cost);
     });
@@ -74,7 +69,10 @@ export function decorateCheckCardActions(
   rerollBtn.className = "kedom-chat-check__action kedom-chat-check__action--reroll";
   rerollBtn.textContent = game.i18n.localize("KEDOM.Chat.Reroll");
   rerollBtn.addEventListener("click", () => {
-    void onReroll(flags);
+    rerollBtn.disabled = true;
+    void onReroll(message).finally(() => {
+      rerollBtn.disabled = false;
+    });
   });
   actions.append(rerollBtn);
 
@@ -83,7 +81,7 @@ export function decorateCheckCardActions(
 
 async function onSpendLuck(message: ChatMessage.Implementation, cost: number): Promise<void> {
   const flags = getKedomCheckFlags(message);
-  if (!flags || flags.kind === "luck-save") return;
+  if (!flags || flags.rerolled || flags.kind === "luck-save") return;
 
   const actor = await fromUuid(flags.actorUuid);
   if (!(actor instanceof Actor) || !canControlActor(actor)) return;
@@ -117,6 +115,7 @@ async function onSpendLuck(message: ChatMessage.Implementation, cost: number): P
     modifiers: flags.modifiers ?? [],
     effectiveTotal: newTotal,
     luckSpent: newLuckSpent,
+    difficulty: flags.difficulty,
   });
 
   const updatedFlags: KedomGradedCheckFlags = {
@@ -139,10 +138,21 @@ async function onSpendLuck(message: ChatMessage.Implementation, cost: number): P
   });
 }
 
-async function onReroll(flags: KedomGradedCheckFlags): Promise<void> {
+async function onReroll(message: ChatMessage.Implementation): Promise<void> {
+  const flags = getKedomCheckFlags(message);
+  if (!flags || flags.rerolled) return;
   const actor = await fromUuid(flags.actorUuid);
   if (!(actor instanceof Actor) || !canControlActor(actor)) return;
+  if (!(await confirmReroll(flags.luckSpent))) return;
+  await rerollCheck(actor, flags);
+  // Roll first, then retire the old card, so a failed roll does not strand it.
+  await updateKedomMessage(message, { flags: { kedom: { check: { ...flags, rerolled: true } } } });
+}
 
+async function rerollCheck(
+  actor: Actor.Implementation,
+  flags: KedomGradedCheckFlags,
+): Promise<void> {
   const opts = {
     configure: false as const,
     difficulty: flags.difficulty,

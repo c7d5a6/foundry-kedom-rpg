@@ -1,3 +1,4 @@
+import { systemOf, characterData } from "../types/accessors.ts";
 import {
   PROFICIENCY_TIERS,
   type AbilityKey,
@@ -60,11 +61,11 @@ function abilityDeltaKey(itemId: string, abilityKey: string): string {
 function readItemGrants(item: Item.Implementation): GrantsFields | null {
   const type = item.type as string;
   if (type === "origin") {
-    const system = item.system as unknown as OriginDataFields;
+    const system = systemOf<OriginDataFields>(item);
     return system.grants ?? { skills: [], specializations: [], abilities: [] };
   }
   if (type === "talent") {
-    const system = item.system as unknown as TalentDataFields;
+    const system = systemOf<TalentDataFields>(item);
     return system.grants ?? { skills: [], specializations: [], abilities: [] };
   }
   return null;
@@ -136,7 +137,7 @@ export async function revertItemAbilityGrants(
   const keys = Object.keys(baseModDeltas);
   if (keys.length === 0) return;
 
-  const system = actor.system as CharacterData;
+  const system = characterData(actor);
   const update: Record<string, unknown> = {};
   for (const key of keys) {
     const ability = (system.abilities as Record<string, { baseMod?: number } | undefined>)[key];
@@ -168,7 +169,7 @@ export async function applyTalentAbilityGrants(
   const appliedDeltas: AppliedAbilityDeltas = { ...(flags.appliedAbilityDeltas ?? {}) };
   let abilitiesUpdated = 0;
   const abilityUpdate: Record<string, unknown> = {};
-  const system = actor.system as CharacterData;
+  const system = characterData(actor);
 
   for (const ag of grants.abilities ?? []) {
     const key = ag.key as AbilityKey;
@@ -229,7 +230,7 @@ export async function applyGrants(actor: Actor.Implementation): Promise<{
   }
 
   const level = characterLevel(actor);
-  const system = actor.system as CharacterData;
+  const system = characterData(actor);
   const skillsUpdate: Record<string, unknown> = {};
   let skillsUpdated = 0;
   let specsAdded = 0;

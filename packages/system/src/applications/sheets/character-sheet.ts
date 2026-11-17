@@ -1,56 +1,65 @@
+import { characterData } from "../../types/accessors.ts";
 import { enrichHTML } from "../enrich.ts";
+import { buildCombat } from "./character/context/combat.ts";
+import { buildEffects } from "./character/context/effects.ts";
+import { buildIdentity, type CharacterDetails } from "./character/context/identity.ts";
+import { buildArts, buildTalents } from "./character/context/items.ts";
 import {
-  ABILITY_KEYS,
-  LUCK_SCORE_MAX,
-  LUCK_SCORE_MIN,
-  PROFICIENCY_SPECIALIZATION_SLOTS,
-  PROFICIENCY_TIERS,
-  SAVE_ABILITY,
-  SAVE_KEYS,
-  SKILL_ABILITY,
-  SKILL_KEYS,
-  type ProficiencyTier,
-  type SaveKey,
-  type SkillKey,
-} from "../../config/kedom.ts";
-import {
-  SKILL_FIXED_SPECIALIZATIONS,
-  SKILL_FREE_PARAMETER,
-  SKILL_SPECIALIZATION_KIND,
-  allowsFreeSpecialization,
-  freeParameterSpecializationSlug,
-  freeSpecializationSlug,
-  hasFixedSpecializationCatalog,
-  specializationSlug,
-} from "../../config/specializations.ts";
-import { localizePersistedSpecLabel } from "../../config/creation-spec-labels.ts";
-import { localizeContentDescription, localizeContentLabel } from "../../i18n/content-labels.ts";
-import type {
-  CharacterData,
-  SaveFields,
-  SkillFields,
-  SkillSpecialization,
-} from "../../data/actor/character.ts";
-import { formatSignedBonus } from "../../rolls/build-skill-check.ts";
-import { rollAttack } from "../../rolls/attack-roll.ts";
-import { rollDamage } from "../../rolls/damage-roll.ts";
-import { rollLuckSave } from "../../rolls/luck-save.ts";
-import { rollSaveCheck } from "../../rolls/save-check.ts";
-import { prepareSkillCheck, rollSkillCheck } from "../../rolls/skill-check.ts";
-import { rollStrainSave } from "../../rolls/strain-save.ts";
-import { previewWeaponRollBonuses } from "../../rolls/attack-roll.ts";
-import { previewWoundLuckBonus, takeWound } from "../../rolls/wound-roll.ts";
-import { type ArmorDataFields } from "../../data/item/armor.ts";
-import type { ArtDataFields } from "../../data/item/art.ts";
-import { normalizeWeaponSkill, type WeaponDataFields } from "../../data/item/weapon.ts";
+  buildAbilities,
+  buildResources,
+  buildSaves,
+  woundsNotesOf,
+} from "./character/context/resources.ts";
+import { buildTierOptions } from "./character/context/shared.ts";
+import { buildSkills } from "./character/context/skills.ts";
 import { summarizeActorEffort } from "../../derivations/actor-effort.ts";
-import { artActiveUses, artHoldsEffort } from "../../derivations/effort.ts";
-import { postArtUseChat } from "../../chat/art-card.ts";
+import type { CharacterData } from "../../data/actor/character.ts";
+
+import {
+  onCreateArmor,
+  onCreateArt,
+  onCreateTalent,
+  onCreateWeapon,
+  onEditTalent,
+  onDeleteTalent,
+  onUseArt,
+  onToggleArtConcentration,
+  onReleaseArtEffort,
+  onEditArt,
+  onDeleteArt,
+  onEndArtScene,
+  onEndArtDay,
+  onOpenIdentityItem,
+  onEditWeapon,
+  onDeleteWeapon,
+  onEditArmor,
+  onDeleteArmor,
+} from "./character/item-actions.ts";
+import {
+  onCreateActorEffect,
+  onEditEffect,
+  onDeleteEffect,
+  onToggleEffect,
+  onOpenEffectSource,
+} from "./character/effect-actions.ts";
+import {
+  onTakeWound,
+  onRollAttack,
+  onRollDamage,
+  onRollSkill,
+  onRollSave,
+  onRollLuckSave,
+  onRollStrainSave,
+} from "./character/roll-actions.ts";
+import {
+  onRollSpecialization,
+  onToggleSpecialization,
+  onAddSpecialization,
+  onRemoveSpecialization,
+} from "./character/specialization-actions.ts";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
-
-type AbilityView = { value: number; mod?: number };
 
 const SHEET_MODES = Object.freeze({ PLAY: "play", EDIT: "edit" } as const);
 type SheetMode = (typeof SHEET_MODES)[keyof typeof SHEET_MODES];
@@ -76,52 +85,6 @@ function isSheetTab(value: string | undefined): value is SheetTab {
   );
 }
 
-/** Typed escape hatch: `system.activeUses` is not in the fvtt-types Item update union. */
-function setArtUses(art: Item.Implementation, uses: number): Promise<unknown> {
-  return art.update({ system: { activeUses: uses } } as never);
-}
-
-let collator: Intl.Collator | null = null;
-let collatorLang = "";
-
-/** Locale-aware compare with one cached `Intl.Collator` (per-call `localeCompare` rebuilds it). */
-function collate(a: string, b: string): number {
-  const lang = game.i18n.lang;
-  if (collator === null || collatorLang !== lang) {
-    collator = new Intl.Collator(lang);
-    collatorLang = lang;
-  }
-  return collator.compare(a, b);
-}
-
-function isSkillKey(value: string | undefined): value is SkillKey {
-  return value !== undefined && Object.hasOwn(SKILL_ABILITY, value);
-}
-
-function localizeSpecLabel(skillKey: SkillKey, leaf: string): string {
-  const path = `KEDOM.Specialization.${skillKey}.${leaf}`;
-  const v = game.i18n.localize(path);
-  return !v || v === path ? leaf : v;
-}
-
-function proficiencyLetterFromLabel(tier: ProficiencyTier): string {
-  const label = game.i18n.localize(`KEDOM.Proficiency.${tier}`);
-  const first = Array.from(label)[0] ?? "";
-  return first.toLocaleUpperCase(game.i18n.lang);
-}
-
-function isSpecializationSelected(spec: SkillSpecialization): boolean {
-  return spec.selected !== false;
-}
-
-function countSelectedSpecializations(skill: SkillFields): number {
-  return skill.specializations.filter(isSpecializationSelected).length;
-}
-
-function specializationSlots(proficiency: string): number {
-  return PROFICIENCY_SPECIALIZATION_SLOTS[proficiency as ProficiencyTier] ?? 0;
-}
-
 export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static MODES = SHEET_MODES;
 
@@ -130,9 +93,6 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   /** Primary sheet tab — instance UI state. */
   #primaryTab: SheetTab = SHEET_TABS.SKILLS;
-
-  /** Art item ids with an effort update in flight (blocks double-click overspend). */
-  readonly #artBusy = new Set<string>();
 
   get isPlayMode(): boolean {
     return this.#mode === SHEET_MODES.PLAY;
@@ -157,38 +117,41 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     actions: {
       toggleMode: CharacterSheet.#onToggleMode,
       changeSheetTab: CharacterSheet.#onChangeSheetTab,
-      rollSkill: CharacterSheet.#onRollSkill,
-      rollSave: CharacterSheet.#onRollSave,
-      rollLuckSave: CharacterSheet.#onRollLuckSave,
-      rollStrainSave: CharacterSheet.#onRollStrainSave,
-      takeWound: CharacterSheet.#onTakeWound,
-      rollAttack: CharacterSheet.#onRollAttack,
-      rollDamage: CharacterSheet.#onRollDamage,
-      editWeapon: CharacterSheet.#onEditWeapon,
-      deleteWeapon: CharacterSheet.#onDeleteWeapon,
-      editArmor: CharacterSheet.#onEditArmor,
-      deleteArmor: CharacterSheet.#onDeleteArmor,
-      createTalent: CharacterSheet.#onCreateTalent,
-      editTalent: CharacterSheet.#onEditTalent,
-      deleteTalent: CharacterSheet.#onDeleteTalent,
-      useArt: CharacterSheet.#onUseArt,
-      toggleArtConcentration: CharacterSheet.#onToggleArtConcentration,
-      releaseArtEffort: CharacterSheet.#onReleaseArtEffort,
-      editArt: CharacterSheet.#onEditArt,
-      deleteArt: CharacterSheet.#onDeleteArt,
-      endArtScene: CharacterSheet.#onEndArtScene,
-      endArtDay: CharacterSheet.#onEndArtDay,
-      createActorEffect: CharacterSheet.#onCreateActorEffect,
-      editEffect: CharacterSheet.#onEditEffect,
-      deleteEffect: CharacterSheet.#onDeleteEffect,
-      toggleEffect: CharacterSheet.#onToggleEffect,
-      openEffectSource: CharacterSheet.#onOpenEffectSource,
-      openIdentityItem: CharacterSheet.#onOpenIdentityItem,
+      rollSkill: onRollSkill,
+      rollSave: onRollSave,
+      rollLuckSave: onRollLuckSave,
+      rollStrainSave: onRollStrainSave,
+      takeWound: onTakeWound,
+      rollAttack: onRollAttack,
+      rollDamage: onRollDamage,
+      editWeapon: onEditWeapon,
+      deleteWeapon: onDeleteWeapon,
+      editArmor: onEditArmor,
+      deleteArmor: onDeleteArmor,
+      createTalent: onCreateTalent,
+      createWeapon: onCreateWeapon,
+      createArmor: onCreateArmor,
+      createArt: onCreateArt,
+      editTalent: onEditTalent,
+      deleteTalent: onDeleteTalent,
+      useArt: onUseArt,
+      toggleArtConcentration: onToggleArtConcentration,
+      releaseArtEffort: onReleaseArtEffort,
+      editArt: onEditArt,
+      deleteArt: onDeleteArt,
+      endArtScene: onEndArtScene,
+      endArtDay: onEndArtDay,
+      createActorEffect: onCreateActorEffect,
+      editEffect: onEditEffect,
+      deleteEffect: onDeleteEffect,
+      toggleEffect: onToggleEffect,
+      openEffectSource: onOpenEffectSource,
+      openIdentityItem: onOpenIdentityItem,
       editResource: CharacterSheet.#onEditResource,
-      rollSpecialization: CharacterSheet.#onRollSpecialization,
-      toggleSpecialization: CharacterSheet.#onToggleSpecialization,
-      addSpecialization: CharacterSheet.#onAddSpecialization,
-      removeSpecialization: CharacterSheet.#onRemoveSpecialization,
+      rollSpecialization: onRollSpecialization,
+      toggleSpecialization: onToggleSpecialization,
+      addSpecialization: onAddSpecialization,
+      removeSpecialization: onRemoveSpecialization,
     },
   };
 
@@ -239,291 +202,18 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     options: foundry.applications.api.ApplicationV2.RenderOptions,
   ) {
     const context = await super._prepareContext(options);
-    const system = this.actor.system as CharacterData;
+    const actor = this.actor;
+    const system = characterData(actor);
     // Hidden tabs are not rendered, so skip their (sometimes async) preparation.
     const tab = this.#primaryTab;
-    const onSkills = tab === SHEET_TABS.SKILLS;
     const onCombat = tab === SHEET_TABS.COMBAT;
-    const onTalents = tab === SHEET_TABS.TALENTS;
-    const onArts = tab === SHEET_TABS.ARTS;
     const onNotes = tab === SHEET_TABS.NOTES;
-    const onEffects = tab === SHEET_TABS.EFFECTS;
-    const tierOptions = PROFICIENCY_TIERS.map((value) => ({
-      value,
-      label: game.i18n.localize(`KEDOM.Proficiency.${value}`),
-      letter: proficiencyLetterFromLabel(value),
-      rankClass: `kedom-skill--${value}`,
-    }));
-    const abilitiesData = system.abilities as Record<string, AbilityView>;
-    const skillsData = system.skills as Record<SkillKey, SkillFields>;
+    const tierOptions = buildTierOptions();
+    const details = (system as CharacterData & { details?: CharacterDetails }).details ?? {};
+    const richText = { secrets: actor.isOwner, relativeTo: actor };
 
-    const abilities = ABILITY_KEYS.map((key) => {
-      const ability = abilitiesData[key]!;
-      const mod = ability.mod ?? 0;
-      return {
-        key,
-        label: game.i18n.localize(`KEDOM.Ability.${key}.label`),
-        abbr: game.i18n.localize(`KEDOM.Ability.${key}.abbr`),
-        value: ability.value,
-        min: key === "lck" ? LUCK_SCORE_MIN : 3,
-        max: key === "lck" ? LUCK_SCORE_MAX : 18,
-        mod,
-        modSigned: mod >= 0 ? `+${mod}` : String(mod),
-      };
-    });
-
-    const skills = (onSkills ? SKILL_KEYS : ([] as typeof SKILL_KEYS)).map((key) => {
-      const abilityKey = SKILL_ABILITY[key];
-      const skill = skillsData[key]!;
-      const proficiency = skill.proficiency as ProficiencyTier;
-      const kind = SKILL_SPECIALIZATION_KIND[key] ?? "none";
-      const ownedBySlug = new Map(skill.specializations.map((s) => [s.slug, s]));
-      const fixedLeaves = SKILL_FIXED_SPECIALIZATIONS[key] ?? [];
-      const slots = specializationSlots(proficiency);
-      const selectedCount = countSelectedSpecializations(skill);
-      const overLimit = selectedCount > slots;
-      const canSelectMore = selectedCount < slots;
-
-      const skillCheck = this.actor ? prepareSkillCheck(this.actor, key) : null;
-      const bonusSigned = skillCheck !== null ? formatSignedBonus(skillCheck.bonus) : "+0";
-      const baseDice = Math.max(1, Math.floor(skill.baseDice ?? 2));
-      const defaultAdvantage = Math.floor(skill.defaultAdvantage ?? 0);
-      const hasNonDefaultRoll = baseDice !== 2 || defaultAdvantage !== 0;
-      const rollHintParts: string[] = [];
-      if (baseDice !== 2) {
-        rollHintParts.push(
-          game.i18n.format("KEDOM.Sheet.SkillBaseDiceHint", { dice: String(baseDice) }),
-        );
-      }
-      if (defaultAdvantage > 0) {
-        rollHintParts.push(game.i18n.localize("KEDOM.Sheet.SkillAdvHint"));
-      } else if (defaultAdvantage < 0) {
-        rollHintParts.push(game.i18n.localize("KEDOM.Sheet.SkillDisadvHint"));
-      }
-      const rollHint = rollHintParts.join(" ");
-
-      type SpecTag = {
-        slug: string;
-        leaf?: string;
-        label: string;
-        skillKey: SkillKey;
-        selected: boolean;
-        isFree: boolean;
-        bonusSigned: string | null;
-        canSelect: boolean;
-      };
-
-      let specializationTags: SpecTag[] = [];
-      if (hasFixedSpecializationCatalog(kind)) {
-        specializationTags = fixedLeaves.map((leaf) => {
-          const slug = specializationSlug(key, leaf);
-          const owned = ownedBySlug.get(slug);
-          const selected = owned !== undefined && isSpecializationSelected(owned);
-          const specCheck =
-            selected && this.actor
-              ? prepareSkillCheck(this.actor, key, { specializationSlug: slug })
-              : null;
-          return {
-            slug,
-            leaf,
-            label: localizeSpecLabel(key, leaf),
-            skillKey: key,
-            selected,
-            isFree: false,
-            bonusSigned: specCheck !== null ? formatSignedBonus(specCheck.bonus) : null,
-            canSelect: selected || canSelectMore,
-          };
-        });
-      }
-      if (allowsFreeSpecialization(kind)) {
-        const fixedSlugs = new Set(specializationTags.map((t) => t.slug));
-        for (const s of skill.specializations) {
-          if (fixedSlugs.has(s.slug)) continue;
-          const selected = isSpecializationSelected(s);
-          const specCheck =
-            selected && this.actor
-              ? prepareSkillCheck(this.actor, key, { specializationSlug: s.slug })
-              : null;
-          specializationTags.push({
-            slug: s.slug,
-            label: localizePersistedSpecLabel(key, s.slug, s.label),
-            skillKey: key,
-            selected,
-            isFree: true,
-            bonusSigned: specCheck !== null ? formatSignedBonus(specCheck.bonus) : null,
-            canSelect: selected || canSelectMore,
-          });
-        }
-      }
-
-      specializationTags.sort((a, b) => {
-        if (a.selected !== b.selected) return a.selected ? -1 : 1;
-        return collate(a.label, b.label);
-      });
-      const lastSelectedIndex = specializationTags.findLastIndex((t) => t.selected);
-      const tagsWithMod = specializationTags.map((tag, index) => ({
-        ...tag,
-        showMod: index === lastSelectedIndex,
-      }));
-
-      return {
-        key,
-        label: game.i18n.localize(`KEDOM.Skill.${key}`),
-        abilityKey,
-        abilityAbbr: game.i18n.localize(`KEDOM.Ability.${abilityKey}.abbr`),
-        proficiency,
-        proficiencyLetter: proficiencyLetterFromLabel(proficiency),
-        proficiencyLabel: game.i18n.localize(`KEDOM.Proficiency.${proficiency}`),
-        proficiencyClass: `kedom-skill--${proficiency}`,
-        bonusSigned,
-        baseDice,
-        defaultAdvantage,
-        hasNonDefaultRoll,
-        rollHint,
-        allowsSpecialization: kind !== "none",
-        allowsFreeAdd: allowsFreeSpecialization(kind),
-        isFree: kind === "free",
-        isFixed: kind === "fixed",
-        isParameterized: kind === "parameterized",
-        specializationTags: tagsWithMod,
-        specializationSlots: slots,
-        specializationSelectedCount: selectedCount,
-        specializationOverLimit: overLimit,
-        specializationOverLimitMessage: overLimit
-          ? game.i18n.format("KEDOM.Sheet.SpecializationOverLimit", {
-              selected: String(selectedCount),
-              slots: String(slots),
-            })
-          : null,
-        proficiencyOptions: tierOptions.map((o) => ({ ...o, selected: o.value === proficiency })),
-      };
-    }).sort((a, b) => collate(a.label, b.label));
-
-    const attrs = system.attributes as {
-      hp: { value: number; max: number };
-      strain: { value: number };
-      wounds: { value: number; notes?: string };
-      strainLimit?: number;
-      resolve?: number;
-      wounded?: boolean;
-    };
-    const hpMax = attrs.hp.max ?? 0;
-    const hpValue = attrs.hp.value ?? 0;
-    const strainLimit = attrs.strainLimit ?? 0;
-    const strainValue = attrs.strain.value ?? 0;
-    const hpPct = hpMax > 0 ? Math.min(100, Math.round((hpValue / hpMax) * 100)) : 0;
-    const woundValue = attrs.wounds.value ?? 0;
-    const resources = {
-      hp: {
-        value: hpValue,
-        max: hpMax,
-        pct: hpPct,
-      },
-      strain: {
-        value: strainValue,
-        limit: strainLimit,
-        pct: strainLimit > 0 ? Math.min(100, Math.round((strainValue / strainLimit) * 100)) : 0,
-      },
-      wounds: {
-        value: woundValue,
-      },
-      wounded: attrs.wounded ?? woundValue >= 1,
-      resolve: attrs.resolve ?? 0,
-    };
-
-    const combatData = system.combat as {
-      ac: number;
-    };
-    const combat = {
-      ac: combatData.ac ?? 0,
-      woundLuckSigned: onCombat ? formatSignedBonus(previewWoundLuckBonus(this.actor)) : "",
-    };
-
-    const weapons = this.actor.items
-      .filter((item) => onCombat && (item.type as string) === "weapon")
-      .map((item) => {
-        const wsys = item.system as unknown as WeaponDataFields;
-        const skill = normalizeWeaponSkill(wsys.skill);
-        const preview = previewWeaponRollBonuses(this.actor, item);
-        const attackTotal = preview?.attackBonus ?? Math.floor(wsys.attackBonus ?? 0);
-        const damageTotal = preview?.damageBonus ?? 0;
-        return {
-          id: item.id,
-          name: item.name,
-          skill,
-          skillLabel: game.i18n.localize(`KEDOM.Skill.${skill}`),
-          damageFormula: wsys.damageFormula || "1d6",
-          attackTotalSigned: formatSignedBonus(attackTotal),
-          damageTotalSigned: formatSignedBonus(damageTotal),
-        };
-      })
-      .sort((a, b) => collate(a.name, b.name));
-
-    const armor = this.actor.items
-      .filter((item) => onCombat && (item.type as string) === "armor")
-      .map((item) => {
-        const asys = item.system as unknown as ArmorDataFields;
-        const woundBonus = Math.floor(asys.woundBonus ?? 0);
-        return {
-          id: item.id,
-          name: item.name,
-          woundBonus,
-          woundBonusSigned: woundBonus !== 0 ? formatSignedBonus(woundBonus) : "",
-        };
-      })
-      .sort((a, b) => collate(a.name, b.name));
-
-    const savesData = system.saves as Record<SaveKey | "luck", SaveFields>;
-    const saveView = (
-      key: SaveKey | "luck",
-      abilityKey: (typeof SAVE_ABILITY)[SaveKey] | "lck",
-    ) => {
-      const save = savesData[key]!;
-      const proficiency = save.proficiency as ProficiencyTier;
-      const mod = save.mod ?? 0;
-      return {
-        key,
-        label: game.i18n.localize(`KEDOM.Save.${key}`),
-        abilityKey,
-        abilityAbbr: game.i18n.localize(`KEDOM.Ability.${abilityKey}.abbr`),
-        proficiency,
-        proficiencyLetter: proficiencyLetterFromLabel(proficiency),
-        proficiencyLabel: game.i18n.localize(`KEDOM.Proficiency.${proficiency}`),
-        proficiencyClass: `kedom-skill--${proficiency}`,
-        bonusSigned: formatSignedBonus(mod),
-        rollAction: key === "luck" ? "rollLuckSave" : "rollSave",
-        proficiencyOptions: tierOptions.map((o) => ({ ...o, selected: o.value === proficiency })),
-      };
-    };
-    const saves = SAVE_KEYS.map((key) => saveView(key, SAVE_ABILITY[key]));
-    const luckSave = saveView("luck", "lck");
-
-    const enrichedWoundsNotes = onCombat
-      ? await enrichHTML(attrs.wounds.notes ?? "", {
-          secrets: this.actor.isOwner,
-          relativeTo: this.actor,
-        })
-      : "";
-
-    const detailsRaw =
-      (
-        system as CharacterData & {
-          details?: {
-            level?: number;
-            culture?: string;
-            background?: string;
-            class?: string;
-            notes?: string;
-          };
-        }
-      ).details ?? {};
-
-    const enrichedNotes = onNotes
-      ? await enrichHTML(detailsRaw.notes ?? "", {
-          secrets: this.actor.isOwner,
-          relativeTo: this.actor,
-        })
-      : "";
+    const enrichedWoundsNotes = onCombat ? await enrichHTML(woundsNotesOf(system), richText) : "";
+    const enrichedNotes = onNotes ? await enrichHTML(details.notes ?? "", richText) : "";
 
     const tabs: { id: SheetTab; label: string; icon: string; active: boolean }[] = [
       {
@@ -571,267 +261,28 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       for (const tab of tabs) tab.active = tab.id === SHEET_TABS.SKILLS;
     }
 
-    const level = Math.max(1, Math.floor(detailsRaw.level ?? 1));
-    const culture = (detailsRaw.culture ?? "").trim();
-    const background = (detailsRaw.background ?? "").trim();
-    const className = (detailsRaw.class ?? "").trim();
-    const regionSlug = (detailsRaw.region ?? "").trim();
-
-    const originItems = this.actor.items.filter((item) => (item.type as string) === "origin");
-    const findOrigin = (
-      subType: string,
-      label: string,
-      slugHint = "",
-      contentKind?: "Region" | "Culture" | "Background" | "Class",
-    ) => {
-      const bySlug = slugHint
-        ? originItems.find((item) => {
-            const sys = item.system as unknown as { subType?: string; slug?: string };
-            return sys.subType === subType && (sys.slug ?? "") === slugHint;
-          })
-        : undefined;
-      if (bySlug) return bySlug;
-      return originItems.find((item) => {
-        const sys = item.system as unknown as { subType?: string; slug?: string };
-        if (sys.subType !== subType) return false;
-        if (!label) return true;
-        if (item.name === label) return true;
-        // Pack item names may differ from localized details labels.
-        if (contentKind) {
-          const slug = (sys.slug ?? "").trim();
-          if (slug && localizeContentLabel(contentKind, slug, item.name ?? slug) === label) {
-            return true;
-          }
-        }
-        return false;
-      });
-    };
-
-    const identityTip = async (
-      kind: "Region" | "Culture" | "Background" | "Class",
-      displayLabel: string,
-      item: Item.Implementation | undefined,
-      slugHint = "",
-    ): Promise<{ label: string; tooltipHtml: string; itemId: string | null } | null> => {
-      if (!displayLabel && !slugHint) return null;
-      const sys = item?.system as unknown as { slug?: string; description?: string } | undefined;
-      const slug = (slugHint || sys?.slug || "").trim();
-      const label = slug
-        ? localizeContentLabel(kind, slug, displayLabel || item?.name || slug)
-        : displayLabel;
-      if (!label) return null;
-      const itemId = item?.id ?? null;
-      const packDesc = sys?.description ?? "";
-      const raw = slug ? localizeContentDescription(kind, slug, packDesc) : packDesc;
-      const plain = raw.replace(/<[^>]*>/g, "").trim();
-      if (!plain) return { label, tooltipHtml: "", itemId };
-      const cacheKey = `${game.i18n.lang}|${String(this.actor.isOwner)}|${item?.uuid ?? ""}|${raw}`;
-      let tooltipHtml = this.#tipCache.get(cacheKey);
-      if (tooltipHtml === undefined) {
-        tooltipHtml = await enrichHTML(raw, {
-          secrets: this.actor.isOwner,
-          relativeTo: item,
-        });
-        if (this.#tipCache.size >= 50) this.#tipCache.clear();
-        this.#tipCache.set(cacheKey, tooltipHtml);
-      }
-      return { label, tooltipHtml, itemId };
-    };
-
-    const regionItem = findOrigin("region", "", regionSlug, "Region");
-    const raceItem = findOrigin("race", culture, "", "Culture");
-    const backgroundItem = findOrigin("background", background, "", "Background");
-    const raceSlug = (
-      (raceItem?.system as unknown as { slug?: string } | undefined)?.slug ?? ""
-    ).trim();
-    const backgroundSlug = (
-      (backgroundItem?.system as unknown as { slug?: string } | undefined)?.slug ?? ""
-    ).trim();
-
-    // Full class: one origin. Adventurer: two partial origins (details.class is "A / B").
-    const classOriginItems = originItems.filter((item) => {
-      const sys = item.system as unknown as { subType?: string };
-      return sys.subType === "class";
-    });
-    const classLabelParts = className
-      .split(/\s*\/\s*/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const orderedClassItems = (() => {
-      if (classOriginItems.length <= 1) return classOriginItems;
-      if (!classLabelParts.length) return classOriginItems;
-      const remaining = [...classOriginItems];
-      const ordered: Item.Implementation[] = [];
-      for (const part of classLabelParts) {
-        const idx = remaining.findIndex((item) => {
-          const sys = item.system as unknown as { slug?: string };
-          if (item.name === part) return true;
-          const slug = (sys.slug ?? "").trim();
-          return Boolean(
-            slug && localizeContentLabel("Class", slug, item.name ?? slug) === part,
-          );
-        });
-        if (idx >= 0) ordered.push(remaining.splice(idx, 1)[0]!);
-      }
-      return [...ordered, ...remaining];
-    })();
-
-    const classTips =
-      orderedClassItems.length > 0
-        ? await Promise.all(
-            orderedClassItems.map((item) => {
-              const sys = item.system as unknown as { slug?: string };
-              const slug = (sys.slug ?? "").trim();
-              return identityTip("Class", item.name ?? "", item, slug);
-            }),
-          )
-        : [await identityTip("Class", className, undefined, "")];
-
-    const identityParts = (
-      await Promise.all([
-        identityTip("Region", regionItem?.name ?? regionSlug, regionItem, regionSlug),
-        identityTip("Culture", culture, raceItem, raceSlug),
-        identityTip("Background", background, backgroundItem, backgroundSlug),
-        ...classTips,
-      ])
-    ).filter((p): p is { label: string; tooltipHtml: string; itemId: string | null } => p !== null);
-
-    const regionSys = regionItem?.system as unknown as { bannerImg?: string } | undefined;
-    const sheetBannerImg = (regionSys?.bannerImg ?? "").trim();
-
-    const talentItems = this.actor.items
-      .filter((item) => onTalents && (item.type as string) === "talent")
-      .sort((a, b) => collate(a.name, b.name));
-    const talents = await Promise.all(
-      talentItems.map(async (item) => {
-        const system = item.system as unknown as { description?: string };
-        const enrichedDescription = await enrichHTML(system.description ?? "", {
-          secrets: this.actor.isOwner,
-          relativeTo: item,
-        });
-        return {
-          id: item.id,
-          name: item.name,
-          img: item.img,
-          enrichedDescription,
-          hasDescription: Boolean((system.description ?? "").replace(/<[^>]*>/g, "").trim()),
-        };
-      }),
-    );
-
-    const artItems = this.actor.items
-      .filter((item) => onArts && (item.type as string) === "art")
-      .sort((a, b) => collate(a.name, b.name));
-    const arts = await Promise.all(
-      artItems.map(async (item) => {
-        const system = item.system as unknown as ArtDataFields;
-        const enrichedDescription = await enrichHTML(system.description ?? "", {
-          secrets: this.actor.isOwner,
-          relativeTo: item,
-        });
-        const activeUses = artActiveUses({
-          commitment: system.commitment,
-          activeUses: Number(system.activeUses) || 0,
-        });
-        const holding = artHoldsEffort({
-          commitment: system.commitment,
-          activeUses,
-        });
-        return {
-          id: item.id,
-          name: item.name,
-          img: item.img,
-          commitment: system.commitment,
-          commitmentLabel: game.i18n.localize(`KEDOM.Art.Commitment.${system.commitment}`),
-          isFree: system.commitment === "free",
-          isConcentration: system.commitment === "concentration",
-          activeUses,
-          holding,
-          enrichedDescription,
-          hasDescription: Boolean((system.description ?? "").replace(/<[^>]*>/g, "").trim()),
-        };
-      }),
-    );
-    /** One list row per active use so stacked uses can be released individually. */
-    const expandUses = (
-      rows: typeof arts,
-      commitment: string,
-    ): { id: string; name: string; useIndex: number }[] => {
-      const out: { id: string; name: string; useIndex: number }[] = [];
-      for (const a of rows) {
-        if (a.commitment !== commitment || a.activeUses < 1) continue;
-        for (let i = 0; i < a.activeUses; i++) {
-          out.push({ id: a.id, name: a.name, useIndex: i });
-        }
-      }
-      return out;
-    };
-    const usedConcentration = expandUses(arts, "concentration");
-    const usedScene = expandUses(arts, "scene");
-    const usedDay = expandUses(arts, "day");
-    const isArtOwner = this.actor.isOwner;
-
-    const actorEffects: {
-      id: string;
-      name: string;
-      img: string;
-      disabled: boolean;
-      sourceName: string;
-      parentIsActor: boolean;
-      parentItemId: string | null;
-    }[] = [];
-    const itemEffects: typeof actorEffects = [];
-    for (const effect of onEffects ? this.actor.allApplicableEffects() : []) {
-      const parent = effect.parent;
-      const parentIsActor = parent === this.actor;
-      const parentItem =
-        !parentIsActor && parent && "documentName" in parent && parent.documentName === "Item"
-          ? (parent as Item.Implementation)
-          : null;
-      const row = {
-        id: effect.id ?? "",
-        name: effect.name,
-        img: effect.img || "icons/svg/aura.svg",
-        disabled: effect.disabled,
-        sourceName: parentItem?.name ?? (effect as { sourceName?: string }).sourceName ?? "",
-        parentIsActor,
-        parentItemId: parentItem?.id ?? null,
-      };
-      if (!row.id) continue;
-      if (parentIsActor) actorEffects.push(row);
-      else itemEffects.push(row);
-    }
-    const byDisabledThenName = (
-      a: (typeof actorEffects)[number],
-      b: (typeof actorEffects)[number],
-    ) => Number(a.disabled) - Number(b.disabled) || collate(a.name, b.name);
-    actorEffects.sort(byDisabledThenName);
-    itemEffects.sort(byDisabledThenName);
+    const [identity, talents, artsView, effects] = await Promise.all([
+      buildIdentity(actor, details, this.#tipCache),
+      buildTalents(actor, tab === SHEET_TABS.TALENTS),
+      buildArts(actor, tab === SHEET_TABS.ARTS),
+      Promise.resolve(buildEffects(actor, tab === SHEET_TABS.EFFECTS)),
+    ]);
 
     return Object.assign(context, {
-      actor: this.actor,
+      actor,
       system,
-      systemFields: this.actor.system.schema.fields,
-      abilities,
-      skills,
-      saves,
-      luckSave,
-      resources,
-      combat,
-      weapons,
-      armor,
+      systemFields: actor.system.schema.fields,
+      abilities: buildAbilities(system),
+      skills: buildSkills(actor, tierOptions, tab === SHEET_TABS.SKILLS),
+      ...buildSaves(system, tierOptions),
+      resources: buildResources(system),
+      ...buildCombat(actor, system, onCombat),
       talents,
-      arts,
+      ...artsView,
       effort: effortSummary,
-      usedConcentration,
-      usedScene,
-      usedDay,
-      isArtOwner,
-      actorEffects,
-      itemEffects,
-      level,
-      identityParts,
-      sheetBannerImg,
+      isArtOwner: actor.isOwner,
+      ...effects,
+      ...identity,
       tabs,
       primaryTab: this.#primaryTab,
       isSkillsTab: this.#primaryTab === SHEET_TABS.SKILLS,
@@ -844,6 +295,8 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       enrichedNotes,
       editable: this.isEditable,
       isPlay: this.isPlayMode,
+      /** Rolling needs ownership and play mode; observers see the buttons disabled. */
+      canRoll: this.isEditable && this.isPlayMode,
       isEdit: this.isEditMode,
     });
   }
@@ -962,7 +415,9 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       created = true;
     }
 
-    const hint = game.i18n.localize("KEDOM.Sheet.Mode.toggleHint");
+    const hint = `${game.i18n.localize(
+      wantEdit ? "KEDOM.Sheet.Mode.edit" : "KEDOM.Sheet.Mode.play",
+    )} — ${game.i18n.localize("KEDOM.Sheet.Mode.toggleHint")}`;
     toggle.title = hint;
     toggle.setAttribute("aria-label", hint);
     toggle.setAttribute("aria-pressed", wantEdit ? "true" : "false");
@@ -1024,468 +479,6 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     } as unknown as foundry.applications.api.ApplicationV2.RenderOptions);
   }
 
-  static async #onCreateTalent(this: CharacterSheet): Promise<void> {
-    if (!this.isEditable || !this.actor) return;
-    const created = await this.actor.createEmbeddedDocuments("Item", [
-      {
-        name: game.i18n.localize("KEDOM.Talent.NewTalent"),
-        // @ts-expect-error fvtt-types: talent Item subtype
-        type: "talent",
-        img: "icons/svg/upgrade.svg",
-        system: {
-          description: "",
-          grants: { skills: [], specializations: [], abilities: [] },
-        },
-      },
-    ]);
-    const item = Array.isArray(created) ? created[0] : created;
-    if (item) await item.sheet?.render(true);
-  }
-
-  static async #onEditTalent(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.actor) return;
-    const itemId = target.dataset.itemId;
-    if (!itemId) return;
-    const talent = this.actor.items.get(itemId);
-    if (!talent || (talent.type as string) !== "talent") return;
-    await talent.sheet?.render(true);
-  }
-
-  static async #onDeleteTalent(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.isEditable || !this.actor) return;
-    const itemId = target.dataset.itemId;
-    if (!itemId) return;
-    const talent = this.actor.items.get(itemId);
-    if (!talent || (talent.type as string) !== "talent") return;
-    const confirmed = await foundry.applications.api.DialogV2.confirm({
-      window: { title: game.i18n.localize("KEDOM.Sheet.Action.deleteOwnedItem") },
-      content: `<p>${game.i18n.format("KEDOM.Sheet.DeleteOwnedItemConfirm", {
-        name: talent.name,
-      })}</p>`,
-    });
-    if (!confirmed) return;
-    await talent.delete();
-  }
-
-  static async #onUseArt(
-    this: CharacterSheet,
-    event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    const itemId = target.dataset.itemId;
-    if (!itemId || this.#artBusy.has(itemId)) return;
-    this.#artBusy.add(itemId);
-    try {
-      await CharacterSheet.#onUseArtImpl.call(this, event, target);
-    } finally {
-      this.#artBusy.delete(itemId);
-    }
-  }
-
-  static async #onUseArtImpl(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.isEditable || !this.actor) return;
-    const itemId = target.dataset.itemId;
-    if (!itemId) return;
-    const art = this.actor.items.get(itemId);
-    if (!art || (art.type as string) !== "art") return;
-    const system = art.system as unknown as ArtDataFields;
-    // Concentration arts use Concentrate only.
-    if (system.commitment === "concentration") return;
-    if (system.commitment === "free") {
-      await postArtUseChat(art);
-      return;
-    }
-    const effort = summarizeActorEffort(this.actor);
-    if (effort.value < 1) {
-      ui.notifications?.warn(game.i18n.localize("KEDOM.Art.NoEffort"));
-      return;
-    }
-    const uses = Math.max(0, Math.floor(Number(system.activeUses) || 0));
-    await setArtUses(art, uses + 1);
-    await postArtUseChat(art);
-  }
-
-  static async #onToggleArtConcentration(
-    this: CharacterSheet,
-    event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    const itemId = target.dataset.itemId;
-    if (!itemId || this.#artBusy.has(itemId)) return;
-    this.#artBusy.add(itemId);
-    try {
-      await CharacterSheet.#onToggleArtConcentrationImpl.call(this, event, target);
-    } finally {
-      this.#artBusy.delete(itemId);
-    }
-  }
-
-  static async #onToggleArtConcentrationImpl(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.isEditable || !this.actor) return;
-    const itemId = target.dataset.itemId;
-    if (!itemId) return;
-    const art = this.actor.items.get(itemId);
-    if (!art || (art.type as string) !== "art") return;
-    const system = art.system as unknown as ArtDataFields;
-    if (system.commitment !== "concentration") return;
-    const effort = summarizeActorEffort(this.actor);
-    if (effort.value < 1) {
-      ui.notifications?.warn(game.i18n.localize("KEDOM.Art.NoEffort"));
-      return;
-    }
-    const uses = Math.max(0, Math.floor(Number(system.activeUses) || 0));
-    await setArtUses(art, uses + 1);
-    await postArtUseChat(art);
-  }
-
-  static async #onReleaseArtEffort(
-    this: CharacterSheet,
-    event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    const itemId = target.dataset.itemId;
-    if (!itemId || this.#artBusy.has(itemId)) return;
-    this.#artBusy.add(itemId);
-    try {
-      await CharacterSheet.#onReleaseArtEffortImpl.call(this, event, target);
-    } finally {
-      this.#artBusy.delete(itemId);
-    }
-  }
-
-  static async #onReleaseArtEffortImpl(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.isEditable || !this.actor) return;
-    const itemId = target.dataset.itemId;
-    if (!itemId) return;
-    const art = this.actor.items.get(itemId);
-    if (!art || (art.type as string) !== "art") return;
-    const system = art.system as unknown as ArtDataFields;
-    if (system.commitment === "free") return;
-    const uses = Math.max(0, Math.floor(Number(system.activeUses) || 0));
-    if (uses < 1) return;
-    await setArtUses(art, uses - 1);
-  }
-
-  static async #onEditArt(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.actor) return;
-    const itemId = target.dataset.itemId;
-    if (!itemId) return;
-    const art = this.actor.items.get(itemId);
-    if (!art || (art.type as string) !== "art") return;
-    await art.sheet?.render(true);
-  }
-
-  static async #onDeleteArt(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.isEditable || !this.actor) return;
-    const itemId = target.dataset.itemId;
-    if (!itemId) return;
-    const art = this.actor.items.get(itemId);
-    if (!art || (art.type as string) !== "art") return;
-    const confirmed = await foundry.applications.api.DialogV2.confirm({
-      window: { title: game.i18n.localize("KEDOM.Sheet.Action.deleteOwnedItem") },
-      content: `<p>${game.i18n.format("KEDOM.Sheet.DeleteOwnedItemConfirm", {
-        name: art.name,
-      })}</p>`,
-    });
-    if (!confirmed) return;
-    await art.delete();
-  }
-
-  static async #onEndArtScene(this: CharacterSheet): Promise<void> {
-    if (!this.isEditable || !this.actor?.isOwner) return;
-    const updates = this.actor.items
-      .filter((item) => (item.type as string) === "art")
-      .filter((item) => {
-        const s = item.system as unknown as ArtDataFields;
-        return s.commitment === "scene" && (Number(s.activeUses) || 0) > 0;
-      })
-      .map((item) => ({ _id: item.id, "system.activeUses": 0 }));
-    if (updates.length) await this.actor.updateEmbeddedDocuments("Item", updates);
-  }
-
-  static async #onEndArtDay(this: CharacterSheet): Promise<void> {
-    if (!this.isEditable || !this.actor?.isOwner) return;
-    const updates = this.actor.items
-      .filter((item) => (item.type as string) === "art")
-      .filter((item) => {
-        const s = item.system as unknown as ArtDataFields;
-        return (
-          (s.commitment === "scene" || s.commitment === "day") &&
-          (Number(s.activeUses) || 0) > 0
-        );
-      })
-      .map((item) => ({ _id: item.id, "system.activeUses": 0 }));
-    if (updates.length) await this.actor.updateEmbeddedDocuments("Item", updates);
-  }
-
-  static async #onCreateActorEffect(this: CharacterSheet): Promise<void> {
-    if (!this.isEditable || !this.actor) return;
-    const created = await this.actor.createEmbeddedDocuments("ActiveEffect", [
-      {
-        name: game.i18n.localize("KEDOM.Sheet.NewEffect"),
-        img: "icons/svg/aura.svg",
-        transfer: false,
-        origin: this.actor.uuid,
-        disabled: false,
-        changes: [],
-      },
-    ]);
-    const effect = Array.isArray(created) ? created[0] : created;
-    if (effect) await effect.sheet?.render(true);
-  }
-
-  static #findApplicableEffect(
-    this: CharacterSheet,
-    effectId: string,
-  ): ActiveEffect.Implementation | undefined {
-    for (const effect of this.actor.allApplicableEffects()) {
-      if (effect.id === effectId) return effect;
-    }
-    return undefined;
-  }
-
-  static async #onEditEffect(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    const effectId = target.dataset.effectId;
-    if (!effectId) return;
-    const effect = CharacterSheet.#findApplicableEffect.call(this, effectId);
-    if (!effect) return;
-    const parent = effect.parent;
-    if (parent && parent !== this.actor && "sheet" in parent) {
-      await (parent as Item.Implementation).sheet?.render(true);
-      return;
-    }
-    await effect.sheet?.render(true);
-  }
-
-  static async #onDeleteEffect(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.isEditable || !this.actor) return;
-    const effectId = target.dataset.effectId;
-    if (!effectId) return;
-    const effect = this.actor.effects.get(effectId);
-    if (!effect) {
-      ui.notifications.warn(game.i18n.localize("KEDOM.Sheet.EffectDeleteFromItem"));
-      return;
-    }
-    const confirmed = await foundry.applications.api.DialogV2.confirm({
-      window: { title: game.i18n.localize("KEDOM.Sheet.Action.deleteEffect") },
-      content: `<p>${game.i18n.format("KEDOM.Sheet.DeleteEffectConfirm", {
-        name: effect.name,
-      })}</p>`,
-    });
-    if (!confirmed) return;
-    await effect.delete();
-  }
-
-  static async #onToggleEffect(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.isEditable) return;
-    const effectId = target.dataset.effectId;
-    if (!effectId) return;
-    const effect = CharacterSheet.#findApplicableEffect.call(this, effectId);
-    if (!effect) return;
-    await effect.update({ disabled: !effect.disabled });
-  }
-
-  static async #onOpenEffectSource(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    const itemId = target.dataset.itemId;
-    if (!itemId || !this.actor) return;
-    const item = this.actor.items.get(itemId);
-    if (!item) return;
-    await item.sheet?.render(true);
-  }
-
-  static async #onOpenIdentityItem(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    const itemId = target.dataset.itemId;
-    if (!itemId || !this.actor) return;
-    const item = this.actor.items.get(itemId);
-    if (!item || (item.type as string) !== "origin") return;
-    await item.sheet?.render(true);
-  }
-
-  static async #onTakeWound(this: CharacterSheet): Promise<void> {
-    if (this.isEditMode || !this.actor) return;
-    await takeWound(this.actor);
-  }
-
-  static async #onRollAttack(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (this.isEditMode || !this.actor) return;
-    const itemId = target.dataset.itemId;
-    if (!itemId) return;
-    const weapon = this.actor.items.get(itemId);
-    if (!weapon || (weapon.type as string) !== "weapon") return;
-    await rollAttack(this.actor, weapon);
-  }
-
-  static async #onRollDamage(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (this.isEditMode || !this.actor) return;
-    const itemId = target.dataset.itemId;
-    if (!itemId) return;
-    const weapon = this.actor.items.get(itemId);
-    if (!weapon || (weapon.type as string) !== "weapon") return;
-    await rollDamage(this.actor, weapon);
-  }
-
-  static async #onEditWeapon(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.actor) return;
-    const itemId = target.dataset.itemId;
-    if (!itemId) return;
-    const weapon = this.actor.items.get(itemId);
-    if (!weapon || (weapon.type as string) !== "weapon") return;
-    await weapon.sheet?.render(true);
-  }
-
-  static async #onDeleteWeapon(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.isEditable || !this.actor) return;
-    const itemId = target.dataset.itemId;
-    if (!itemId) return;
-    const weapon = this.actor.items.get(itemId);
-    if (!weapon || (weapon.type as string) !== "weapon") return;
-
-    const confirmed = await foundry.applications.api.DialogV2.confirm({
-      window: { title: game.i18n.localize("KEDOM.Sheet.Action.deleteWeapon") },
-      content: `<p>${game.i18n.format("KEDOM.Sheet.DeleteWeaponConfirm", {
-        name: weapon.name,
-      })}</p>`,
-    });
-    if (!confirmed) return;
-    await weapon.delete();
-  }
-
-  static async #onEditArmor(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.actor) return;
-    const itemId = target.dataset.itemId;
-    if (!itemId) return;
-    const armorItem = this.actor.items.get(itemId);
-    if (!armorItem || (armorItem.type as string) !== "armor") return;
-    await armorItem.sheet?.render(true);
-  }
-
-  static async #onDeleteArmor(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.isEditable || !this.actor) return;
-    const itemId = target.dataset.itemId;
-    if (!itemId) return;
-    const armorItem = this.actor.items.get(itemId);
-    if (!armorItem || (armorItem.type as string) !== "armor") return;
-
-    const confirmed = await foundry.applications.api.DialogV2.confirm({
-      window: { title: game.i18n.localize("KEDOM.Sheet.Action.deleteArmor") },
-      content: `<p>${game.i18n.format("KEDOM.Sheet.DeleteArmorConfirm", {
-        name: armorItem.name,
-      })}</p>`,
-    });
-    if (!confirmed) return;
-    await armorItem.delete();
-  }
-
-  static async #onRollSkill(
-    this: CharacterSheet,
-    event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (this.isEditMode) return;
-    const skillKey = target.dataset.skillKey;
-    if (!isSkillKey(skillKey) || !this.actor) return;
-    await rollSkillCheck(this.actor, skillKey, {
-      configure: event.ctrlKey || event.metaKey,
-    });
-  }
-
-  static async #onRollSave(
-    this: CharacterSheet,
-    event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (this.isEditMode) return;
-    const saveKey = target.dataset.saveKey as SaveKey | undefined;
-    if (!saveKey || !this.actor) return;
-    await rollSaveCheck(this.actor, saveKey, {
-      configure: event.ctrlKey || event.metaKey,
-    });
-  }
-
-  static async #onRollLuckSave(this: CharacterSheet, event: PointerEvent): Promise<void> {
-    if (this.isEditMode || !this.actor) return;
-    await rollLuckSave(this.actor, {
-      configure: event.ctrlKey || event.metaKey,
-    });
-  }
-
-  static async #onRollStrainSave(this: CharacterSheet): Promise<void> {
-    if (this.isEditMode || !this.actor) return;
-    await rollStrainSave(this.actor);
-  }
-
   static #onEditResource(this: CharacterSheet, event: PointerEvent, target: HTMLElement): void {
     if (!this.isEditable) return;
     if (event.target instanceof HTMLInputElement) return;
@@ -1496,169 +489,5 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     meter.classList.add("is-editing");
     input.focus();
     input.select();
-  }
-
-  static async #onRollSpecialization(
-    this: CharacterSheet,
-    event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (this.isEditMode) return;
-    const skillKey = target.dataset.skillKey;
-    const specializationSlug = target.dataset.specializationSlug;
-    if (!isSkillKey(skillKey) || !specializationSlug || !this.actor) return;
-    await rollSkillCheck(this.actor, skillKey, {
-      specializationSlug,
-      configure: event.ctrlKey || event.metaKey,
-    });
-  }
-
-  static async #onToggleSpecialization(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    if (!this.isEditMode || !this.actor) return;
-    const skillKey = target.dataset.skillKey as SkillKey | undefined;
-    const slug = target.dataset.specializationSlug;
-    if (!skillKey || !slug) return;
-
-    const system = this.actor.system as CharacterData;
-    const skill = (system.skills as Record<SkillKey, SkillFields>)[skillKey];
-    if (!skill) return;
-
-    const kind = SKILL_SPECIALIZATION_KIND[skillKey] ?? "none";
-    const isFreeForm = target.dataset.free === "1";
-    const existing = skill.specializations.find((s) => s.slug === slug);
-    const currentlySelected = existing !== undefined && isSpecializationSelected(existing);
-
-    if (currentlySelected) {
-      if (kind === "fixed" || (kind === "parameterized" && !isFreeForm)) {
-        await this.actor.update({
-          [`system.skills.${skillKey}.specializations`]: skill.specializations.filter(
-            (s) => s.slug !== slug,
-          ),
-        });
-        return;
-      }
-      const specializations = skill.specializations.map((s) =>
-        s.slug === slug ? { ...s, selected: false } : s,
-      );
-      await this.actor.update({ [`system.skills.${skillKey}.specializations`]: specializations });
-      return;
-    }
-
-    const slots = specializationSlots(skill.proficiency);
-    if (countSelectedSpecializations(skill) >= slots) {
-      ui.notifications.warn(
-        game.i18n.format("KEDOM.Sheet.SpecializationSelectBlocked", {
-          slots: String(slots),
-          proficiency: game.i18n.localize(`KEDOM.Proficiency.${skill.proficiency}`),
-        }),
-      );
-      return;
-    }
-
-    if (kind === "fixed" || (kind === "parameterized" && !isFreeForm)) {
-      const leaf = target.dataset.specializationLeaf;
-      if (!leaf) return;
-      const label = localizeSpecLabel(skillKey, leaf);
-      await CharacterSheet.#appendSpecialization(this.actor, skillKey, slug, label, true);
-      return;
-    }
-
-    if (!existing) return;
-    const specializations = skill.specializations.map((s) =>
-      s.slug === slug ? { ...s, selected: true } : s,
-    );
-    await this.actor.update({ [`system.skills.${skillKey}.specializations`]: specializations });
-  }
-
-  static async #onAddSpecialization(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    const skillKey = target.dataset.skillKey as SkillKey | undefined;
-    if (!skillKey || !this.actor || !this.isEditMode) return;
-    const kind = SKILL_SPECIALIZATION_KIND[skillKey] ?? "none";
-    if (!allowsFreeSpecialization(kind)) return;
-
-    const label = await CharacterSheet.#promptFreeLabel(skillKey);
-    if (label === null) return;
-    const parameter = SKILL_FREE_PARAMETER[skillKey];
-    const slug =
-      parameter !== undefined
-        ? freeParameterSpecializationSlug(skillKey, parameter, label)
-        : freeSpecializationSlug(skillKey, label);
-    const system = this.actor.system as CharacterData;
-    const skill = (system.skills as Record<SkillKey, SkillFields>)[skillKey];
-    if (!skill) return;
-    if (skill.specializations.some((s) => s.slug === slug)) return;
-
-    const slots = specializationSlots(skill.proficiency);
-    const selected = countSelectedSpecializations(skill) < slots;
-    await CharacterSheet.#appendSpecialization(this.actor, skillKey, slug, label, selected);
-  }
-
-  static async #onRemoveSpecialization(
-    this: CharacterSheet,
-    _event: PointerEvent,
-    target: HTMLElement,
-  ): Promise<void> {
-    const skillKey = target.dataset.skillKey as SkillKey | undefined;
-    const slug = target.dataset.specializationSlug;
-    if (!skillKey || !slug || !this.actor) return;
-    if (!allowsFreeSpecialization(SKILL_SPECIALIZATION_KIND[skillKey] ?? "none")) return;
-    const system = this.actor.system as CharacterData;
-    const skill = (system.skills as Record<SkillKey, SkillFields>)[skillKey];
-    if (!skill) return;
-    const specializations = skill.specializations.filter((s) => s.slug !== slug);
-    await this.actor.update({ [`system.skills.${skillKey}.specializations`]: specializations });
-  }
-
-  static async #appendSpecialization(
-    actor: Actor.Implementation,
-    skillKey: SkillKey,
-    slug: string,
-    label: string,
-    selected: boolean,
-  ): Promise<void> {
-    const system = actor.system as CharacterData;
-    const skill = (system.skills as Record<SkillKey, SkillFields>)[skillKey];
-    if (!skill) return;
-    if (skill.specializations.some((s) => s.slug === slug)) return;
-    await actor.update({
-      [`system.skills.${skillKey}.specializations`]: [
-        ...skill.specializations,
-        { slug, label, selected },
-      ],
-    });
-  }
-
-  static async #promptFreeLabel(skillKey: SkillKey): Promise<string | null> {
-    const skillLabel = game.i18n.localize(`KEDOM.Skill.${skillKey}`);
-    try {
-      const result: unknown = await foundry.applications.api.DialogV2.prompt({
-        window: {
-          title: game.i18n.format("KEDOM.Sheet.Action.addSpecialization", { skill: skillLabel }),
-        },
-        content: `<p><label>${game.i18n.localize("KEDOM.Sheet.SpecializationLabel")}
-          <input type="text" name="label" autofocus /></label></p>`,
-        ok: {
-          label: game.i18n.localize("KEDOM.Sheet.Action.create"),
-          callback: (_event: Event, button: HTMLButtonElement) => {
-            const form = button.form;
-            if (!form) return "";
-            const data = new FormData(form);
-            return String(data.get("label") ?? "").trim();
-          },
-        },
-      });
-      if (typeof result !== "string" || result === "") return null;
-      return result;
-    } catch {
-      return null;
-    }
   }
 }

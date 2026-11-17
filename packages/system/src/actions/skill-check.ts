@@ -1,3 +1,5 @@
+import { characterData } from "../types/accessors.ts";
+import { localize } from "../i18n/localize.ts";
 import {
   PROFICIENCY_BONUS,
   SKILL_ABILITY,
@@ -5,32 +7,27 @@ import {
   type SkillKey,
 } from "../config/kedom.ts";
 import { appliedProficiencyBonus } from "../derivations/skill-proficiency.ts";
-import { effectDeltaModifiers } from "./effect-modifier.ts";
+import { effectDeltaModifiers } from "../rolls/effect-modifier.ts";
 import { SKILL_SPECIALIZATION_KIND } from "../config/specializations.ts";
-import type { CharacterData, SkillFields } from "../data/actor/character.ts";
-import { buildSkillCheck, skillCheckIsSpecialized, sumModifiers } from "./build-skill-check.ts";
-import type { CheckConfigureOptions } from "./check-configure.ts";
+import type { SkillFields } from "../data/actor/character.ts";
+import { buildSkillCheck, skillCheckIsSpecialized, sumModifiers } from "../rolls/build-skill-check.ts";
+import type { CheckConfigureOptions } from "../rolls/check-configure.ts";
 import { renderGradedCheckContent } from "./check-card.ts";
-import { labeledCheckFormula } from "./labeled-formula.ts";
+import { labeledCheckFormula } from "../rolls/labeled-formula.ts";
 import {
   advantageFlavorSuffix,
   checkDiceExpression,
   resolveCheckConfigure,
   withSituationalModifier,
 } from "./resolve-check-configure.ts";
-import { resolveOutcome } from "./resolve-outcome.ts";
+import { resolveOutcome } from "../rolls/resolve-outcome.ts";
 
-export { modifierTooltipParts, styleCheckRollHTML } from "./check-card.ts";
+export { styleCheckRollHTML } from "./check-card.ts";
 
 export type SkillCheckOptions = CheckConfigureOptions & {
   /** When set, full proficiency; otherwise half (unless the skill has no specialisations). */
   specializationSlug?: string;
 };
-
-function localize(path: string, fallback: string): string {
-  const v = game.i18n.localize(path);
-  return !v || v === path ? fallback : v;
-}
 
 function proficiencyLabels(input: {
   specialized: boolean;
@@ -68,7 +65,7 @@ export function prepareSkillCheck(
   const abilityKey = SKILL_ABILITY[skillKey];
   if (abilityKey === undefined) return null;
 
-  const system = actor.system as CharacterData;
+  const system = characterData(actor);
   const ability = (system.abilities as Record<string, { mod?: number }>)[abilityKey];
   const skill = (system.skills as Record<SkillKey, SkillFields>)[skillKey];
   if (!ability || !skill) return null;
@@ -158,7 +155,7 @@ export async function rollSkillCheck(
   }
 
   const { modifiers: baseModifiers, formulaLabel } = prepared;
-  const system = actor.system as CharacterData;
+  const system = characterData(actor);
   const skill = (system.skills as Record<SkillKey, SkillFields>)[key];
   const skillBaseDice = Math.max(1, Math.floor(skill?.baseDice ?? 2));
   const skillDefaultAdv = Math.floor(skill?.defaultAdvantage ?? 0);
@@ -193,6 +190,7 @@ export async function rollSkillCheck(
     outcome,
     modifiers,
     effectiveTotal: total,
+    difficulty,
   });
 
   const messageData = {

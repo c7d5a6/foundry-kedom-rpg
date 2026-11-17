@@ -1,3 +1,4 @@
+import { systemOf } from "../types/accessors.ts";
 import { enrichHTML } from "../applications/enrich.ts";
 import type { ArtDataFields } from "../data/item/art.ts";
 
@@ -5,7 +6,7 @@ import type { ArtDataFields } from "../data/item/art.ts";
 export async function postArtUseChat(item: Item.Implementation): Promise<void> {
   const actor = item.actor;
   if (!actor) return;
-  const system = item.system as unknown as ArtDataFields;
+  const system = systemOf<ArtDataFields>(item);
   const description = await enrichHTML(system.description ?? "", {
     secrets: false,
     relativeTo: item,

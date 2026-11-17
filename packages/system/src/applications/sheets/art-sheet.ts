@@ -1,3 +1,4 @@
+import { systemOf } from "../../types/accessors.ts";
 import { enrichHTML } from "../enrich.ts";
 import type { ArtDataFields } from "../../data/item/art.ts";
 import { effectListRows } from "../../active-effects/skill-advantage.ts";
@@ -38,7 +39,7 @@ export class ArtSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     options: foundry.applications.api.ApplicationV2.RenderOptions,
   ) {
     const context = await super._prepareContext(options);
-    const system = this.item.system as unknown as ArtDataFields;
+    const system = systemOf<ArtDataFields>(this.item);
     const enrichedDescription = await enrichHTML(system.description ?? "", {
       secrets: this.item.isOwner,
       relativeTo: this.item,

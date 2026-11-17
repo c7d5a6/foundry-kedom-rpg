@@ -1,3 +1,5 @@
+import { isValidDiceFormula } from "../../actions/dice-formula.ts";
+import { systemOf } from "../../types/accessors.ts";
 import {
   WEAPON_SKILL_KEYS,
   normalizeWeaponSkill,
@@ -33,7 +35,7 @@ export class WeaponSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     options: foundry.applications.api.ApplicationV2.RenderOptions,
   ) {
     const context = await super._prepareContext(options);
-    const system = this.item.system as unknown as WeaponDataFields;
+    const system = systemOf<WeaponDataFields>(this.item);
     const skill = normalizeWeaponSkill(system.skill);
 
     const skillOptions = WEAPON_SKILL_KEYS.map((value) => ({
@@ -47,6 +49,7 @@ export class WeaponSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       system: { ...system, skill },
       skillLabel: game.i18n.localize(`KEDOM.Skill.${skill}`),
       skillOptions,
+      damageFormulaInvalid: !isValidDiceFormula(system.damageFormula || "1d6"),
       editable: this.isEditable,
     });
   }

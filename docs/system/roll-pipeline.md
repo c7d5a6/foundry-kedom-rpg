@@ -55,6 +55,11 @@ type Modifier = {
 type ModifierCollector = (ctx: RollContext) => Modifier[]
 ```
 
+Layering today: `src/rolls/` holds the pure parts (modifier algebra, advantage, outcome
+resolution, label formatting) and is lint-enforced to never touch `game`/`ui`. Code that
+rolls dice, localises, notifies or posts chat messages (`rollSkillCheck`, `rollAttack`,
+`takeWound`, …) lives in `src/actions/`.
+
 ```
 src/rolls/collectors/
   ability.ts          the governing attribute's modifier

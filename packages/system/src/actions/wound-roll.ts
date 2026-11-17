@@ -1,3 +1,5 @@
+import { characterData } from "../types/accessors.ts";
+import { localize } from "../i18n/localize.ts";
 import { PROFICIENCY_BONUS, type ProficiencyTier } from "../config/kedom.ts";
 import { ownedArmorWoundBonus } from "../data/item/armor.ts";
 import {
@@ -6,18 +8,13 @@ import {
   lookupWoundEffectIndex,
   type BodyPartKey,
 } from "../config/wound-table.ts";
-import type { CharacterData, SaveFields } from "../data/actor/character.ts";
-import { formatSignedBonus } from "./build-skill-check.ts";
-import { effectDeltaModifiers } from "./effect-modifier.ts";
-import { labeledCheckFormula } from "./labeled-formula.ts";
-import type { Modifier } from "./collectors.ts";
+import type { SaveFields } from "../data/actor/character.ts";
+import { formatSignedBonus } from "../rolls/build-skill-check.ts";
+import { effectDeltaModifiers } from "../rolls/effect-modifier.ts";
+import { labeledCheckFormula } from "../rolls/labeled-formula.ts";
+import type { Modifier } from "../rolls/collectors.ts";
 
 const WOUND_TEMPLATE = "systems/kedom/templates/chat/wound.hbs";
-
-function localize(path: string, fallback: string): string {
-  const v = game.i18n.localize(path);
-  return !v || v === path ? fallback : v;
-}
 
 export type KedomWoundFlags = {
   actorUuid: string;
@@ -41,7 +38,7 @@ export function previewWoundLuckBonus(actor: Actor.Implementation): number {
 }
 
 function buildWoundLuckModifiers(actor: Actor.Implementation): Modifier[] {
-  const system = actor.system as CharacterData;
+  const system = characterData(actor);
   const save = system.saves.luck as SaveFields | undefined;
   const lck = (system.abilities as { lck?: { mod?: number } }).lck;
   const luckMod = lck?.mod ?? 0;
@@ -91,7 +88,7 @@ function buildWoundLuckModifiers(actor: Actor.Implementation): Modifier[] {
  * owned armor wound bonuses) for the wound table, plus body part (`d8`).
  */
 export async function takeWound(actor: Actor.Implementation): Promise<void> {
-  const system = actor.system as CharacterData;
+  const system = characterData(actor);
   const attrs = system.attributes as {
     wounds?: { value?: number };
   };

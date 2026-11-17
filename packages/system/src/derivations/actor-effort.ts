@@ -1,3 +1,4 @@
+import { systemOf } from "../types/accessors.ts";
 /**
  * Collect Effort inputs from a character actor's class origins + art items.
  * Thin adapter over pure effort.ts maths.
@@ -31,7 +32,7 @@ export type ActorEffortSummary = {
 function classOrigins(actor: Actor.Implementation): OriginDataFields[] {
   return actor.items
     .filter((item) => (item.type as string) === "origin")
-    .map((item) => item.system as unknown as OriginDataFields)
+    .map((item) => systemOf<OriginDataFields>(item))
     .filter((sys) => sys.subType === "class");
 }
 
@@ -39,7 +40,7 @@ function artCommits(actor: Actor.Implementation): EffortArtCommit[] {
   return actor.items
     .filter((item) => (item.type as string) === "art")
     .map((item) => {
-      const sys = item.system as unknown as ArtDataFields;
+      const sys = systemOf<ArtDataFields>(item);
       return {
         commitment: sys.commitment,
         activeUses: Number(sys.activeUses) || 0,

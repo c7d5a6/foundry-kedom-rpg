@@ -57,6 +57,17 @@
         <section class="kedom-weapons-panel">
           <header class="kedom-weapons-panel__header">
             <h2 class="kedom-weapons-panel__title">{{localize "KEDOM.Sheet.Weapons"}}</h2>
+            {{#if isEdit}}
+              <button
+                type="button"
+                class="kedom-weapons-list__btn"
+                data-action="createWeapon"
+                title="{{localize "KEDOM.Sheet.Action.createWeapon"}}"
+                aria-label="{{localize "KEDOM.Sheet.Action.createWeapon"}}"
+              >
+                {{localize "KEDOM.Sheet.Action.createWeapon"}}
+              </button>
+            {{/if}}
           </header>
           {{#if weapons.length}}
             <ul class="kedom-weapons-list">
@@ -74,8 +85,9 @@
                       class="kedom-weapons-list__btn"
                       data-action="rollAttack"
                       data-item-id="{{id}}"
-                      {{#unless @root.isPlay}}disabled{{/unless}}
+                      {{#unless @root.canRoll}}disabled{{/unless}}
                       title="{{localize "KEDOM.Sheet.Action.rollAttack"}} {{attackTotalSigned}}"
+                      aria-label="{{localize "KEDOM.Sheet.Action.rollAttack"}} {{attackTotalSigned}}"
                     >
                       {{localize "KEDOM.Sheet.Action.rollAttack"}}
                       <span class="kedom-roll-bonus">{{attackTotalSigned}}</span>
@@ -85,8 +97,9 @@
                       class="kedom-weapons-list__btn"
                       data-action="rollDamage"
                       data-item-id="{{id}}"
-                      {{#unless @root.isPlay}}disabled{{/unless}}
+                      {{#unless @root.canRoll}}disabled{{/unless}}
                       title="{{localize "KEDOM.Sheet.Action.rollDamage"}} {{damageTotalSigned}}"
+                      aria-label="{{localize "KEDOM.Sheet.Action.rollDamage"}} {{damageTotalSigned}}"
                     >
                       {{localize "KEDOM.Sheet.Action.rollDamage"}}
                       <span class="kedom-roll-bonus">{{damageTotalSigned}}</span>
@@ -126,6 +139,17 @@
         <section class="kedom-weapons-panel">
           <header class="kedom-weapons-panel__header">
             <h2 class="kedom-weapons-panel__title">{{localize "KEDOM.Sheet.Armor"}}</h2>
+            {{#if isEdit}}
+              <button
+                type="button"
+                class="kedom-weapons-list__btn"
+                data-action="createArmor"
+                title="{{localize "KEDOM.Sheet.Action.createArmor"}}"
+                aria-label="{{localize "KEDOM.Sheet.Action.createArmor"}}"
+              >
+                {{localize "KEDOM.Sheet.Action.createArmor"}}
+              </button>
+            {{/if}}
           </header>
           {{#if armor.length}}
             <ul class="kedom-weapons-list">
@@ -204,8 +228,9 @@
               type="button"
               class="kedom-wounds-panel__take"
               data-action="takeWound"
-              {{#unless @root.isPlay}}disabled{{/unless}}
+              {{#unless @root.canRoll}}disabled{{/unless}}
               title="{{localize "KEDOM.Sheet.Action.takeWound"}} {{combat.woundLuckSigned}}"
+              aria-label="{{localize "KEDOM.Sheet.Action.takeWound"}} {{combat.woundLuckSigned}}"
             >
               {{localize "KEDOM.Sheet.Action.takeWound"}}
               <span class="kedom-roll-bonus">{{combat.woundLuckSigned}}</span>
@@ -237,6 +262,7 @@
               class="kedom-talents-panel__create"
               data-action="createTalent"
               title="{{localize "KEDOM.Sheet.Action.createTalent"}}"
+              aria-label="{{localize "KEDOM.Sheet.Action.createTalent"}}"
             >
               {{localize "KEDOM.Sheet.Action.createTalent"}}
             </button>
@@ -302,6 +328,17 @@
           </div>
           {{#if isArtOwner}}
             <div class="kedom-arts-panel__owner-actions">
+              {{#if isEdit}}
+                <button
+                  type="button"
+                  class="kedom-arts-panel__btn"
+                  data-action="createArt"
+                  title="{{localize "KEDOM.Sheet.Action.createArt"}}"
+                  aria-label="{{localize "KEDOM.Sheet.Action.createArt"}}"
+                >
+                  {{localize "KEDOM.Sheet.Action.createArt"}}
+                </button>
+              {{/if}}
               <button type="button" class="kedom-arts-panel__btn" data-action="endArtScene">
                 {{localize "KEDOM.Art.EndScene"}}
               </button>
@@ -360,6 +397,7 @@
                       data-action="editArt"
                       data-item-id="{{id}}"
                       title="{{localize "KEDOM.Sheet.Action.edit"}}"
+                      aria-label="{{localize "KEDOM.Sheet.Action.edit"}}"
                     >
                       <i class="fa-solid fa-pen" inert></i>
                     </button>
@@ -370,6 +408,7 @@
                       data-item-id="{{id}}"
                       {{#unless @root.editable}}disabled{{/unless}}
                       title="{{localize "KEDOM.Sheet.Action.deleteOwnedItem"}}"
+                      aria-label="{{localize "KEDOM.Sheet.Action.deleteOwnedItem"}}"
                     >
                       <i class="fa-solid fa-trash" inert></i>
                     </button>
@@ -398,6 +437,7 @@
                       data-item-id="{{id}}"
                       {{#unless @root.editable}}disabled{{/unless}}
                       title="{{localize "KEDOM.Art.Release"}}"
+                      aria-label="{{localize "KEDOM.Art.Release"}}"
                     >
                       <i class="fa-solid fa-xmark" inert></i>
                     </button>
@@ -422,6 +462,7 @@
                       data-item-id="{{id}}"
                       {{#unless @root.editable}}disabled{{/unless}}
                       title="{{localize "KEDOM.Art.Release"}}"
+                      aria-label="{{localize "KEDOM.Art.Release"}}"
                     >
                       <i class="fa-solid fa-xmark" inert></i>
                     </button>
@@ -446,6 +487,7 @@
                       data-item-id="{{id}}"
                       {{#unless @root.editable}}disabled{{/unless}}
                       title="{{localize "KEDOM.Art.Release"}}"
+                      aria-label="{{localize "KEDOM.Art.Release"}}"
                     >
                       <i class="fa-solid fa-xmark" inert></i>
                     </button>
@@ -482,6 +524,7 @@
                 class="kedom-effects-panel__btn"
                 data-action="createActorEffect"
                 title="{{localize "KEDOM.Sheet.Action.createEffect"}}"
+                aria-label="{{localize "KEDOM.Sheet.Action.createEffect"}}"
               >
                 {{localize "KEDOM.Sheet.Action.createEffect"}}
               </button>
@@ -507,6 +550,7 @@
                         data-effect-id="{{id}}"
                         {{#unless @root.editable}}disabled{{/unless}}
                         title="{{localize "KEDOM.Sheet.Action.toggleEffect"}}"
+                        aria-label="{{localize "KEDOM.Sheet.Action.toggleEffect"}}"
                       >
                         <i class="fa-solid {{#if disabled}}fa-toggle-off{{else}}fa-toggle-on{{/if}}" inert></i>
                       </button>
@@ -516,6 +560,7 @@
                         data-action="editEffect"
                         data-effect-id="{{id}}"
                         title="{{localize "KEDOM.Sheet.Action.editEffect"}}"
+                        aria-label="{{localize "KEDOM.Sheet.Action.editEffect"}}"
                       >
                         <i class="fa-solid fa-pen" inert></i>
                       </button>
@@ -526,6 +571,7 @@
                         data-effect-id="{{id}}"
                         {{#unless @root.editable}}disabled{{/unless}}
                         title="{{localize "KEDOM.Sheet.Action.deleteEffect"}}"
+                        aria-label="{{localize "KEDOM.Sheet.Action.deleteEffect"}}"
                       >
                         <i class="fa-solid fa-trash" inert></i>
                       </button>
@@ -564,6 +610,7 @@
                         data-effect-id="{{id}}"
                         {{#unless @root.editable}}disabled{{/unless}}
                         title="{{localize "KEDOM.Sheet.Action.toggleEffect"}}"
+                        aria-label="{{localize "KEDOM.Sheet.Action.toggleEffect"}}"
                       >
                         <i class="fa-solid {{#if disabled}}fa-toggle-off{{else}}fa-toggle-on{{/if}}" inert></i>
                       </button>
@@ -574,6 +621,7 @@
                           data-action="openEffectSource"
                           data-item-id="{{parentItemId}}"
                           title="{{localize "KEDOM.Sheet.Action.openEffectSource"}}"
+                          aria-label="{{localize "KEDOM.Sheet.Action.openEffectSource"}}"
                         >
                           <i class="fa-solid fa-box" inert></i>
                         </button>
@@ -584,6 +632,7 @@
                         data-action="editEffect"
                         data-effect-id="{{id}}"
                         title="{{localize "KEDOM.Sheet.Action.editEffect"}}"
+                        aria-label="{{localize "KEDOM.Sheet.Action.editEffect"}}"
                       >
                         <i class="fa-solid fa-pen" inert></i>
                       </button>

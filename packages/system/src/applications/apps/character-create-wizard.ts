@@ -1,3 +1,6 @@
+import { systemOf } from "../../types/accessors.ts";
+import { localize } from "../../i18n/localize.ts";
+import { repickLoss } from "../../creation/repick.ts";
 import { enrichHTML } from "../enrich.ts";
 import { ABILITY_KEYS, SKILL_KEYS, type SkillKey } from "../../config/kedom.ts";
 import {
@@ -62,6 +65,26 @@ const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 const STEPS = ["abilities", "region", "culture", "background", "className", "confirm"] as const;
 type StepId = (typeof STEPS)[number];
 
+/** Step names for the breadcrumb. Literal keys so the lang-key test can see them. */
+const STEP_TITLE_KEYS: Record<StepId, string> = {
+  abilities: "KEDOM.Creation.Step.abilities",
+  region: "KEDOM.Creation.Step.region",
+  culture: "KEDOM.Creation.Step.culture",
+  background: "KEDOM.Creation.Step.background",
+  className: "KEDOM.Creation.Step.className",
+  confirm: "KEDOM.Creation.Step.confirm",
+};
+
+/** Why Next is disabled, per step. Literal keys so the lang-key test can see them. */
+const STEP_HINT_KEYS: Record<StepId, string> = {
+  abilities: "KEDOM.Creation.Wizard.Hint.abilities",
+  region: "KEDOM.Creation.Wizard.Hint.region",
+  culture: "KEDOM.Creation.Wizard.Hint.culture",
+  background: "KEDOM.Creation.Wizard.Hint.background",
+  className: "KEDOM.Creation.Wizard.Hint.className",
+  confirm: "KEDOM.Creation.Wizard.IncompleteStep",
+};
+
 type Draft = {
   stepIndex: number;
   name: string;
@@ -97,12 +120,6 @@ function emptyPick(): ResolvePick {
   return { skillKey: null, specLabel: null };
 }
 
-function localize(path: string, fallback?: string): string {
-  const v = game.i18n.localize(path);
-  if (!v || v === path) return fallback ?? path;
-  return v;
-}
-
 async function enrichHtml(html: string): Promise<string> {
   if (!html.trim()) return "";
   return enrichHTML(html, {});
@@ -113,6 +130,8 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   #nameAbort: AbortController | null = null;
   #catalog: OriginsCatalog | null = null;
   #creating = false;
+  /** Set when the wizard closes on purpose (character created), skipping the discard prompt. */
+  #closeConfirmed = false;
 
   constructor() {
     super();
@@ -157,6 +176,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     actions: {
       next: CharacterCreateWizard.#onNext,
       back: CharacterCreateWizard.#onBack,
+      goToStep: CharacterCreateWizard.#onGoToStep,
       rollAbilities: CharacterCreateWizard.#onRollAbilities,
       setFourteen: CharacterCreateWizard.#onSetFourteen,
       pickRegion: CharacterCreateWizard.#onPickRegion,
@@ -189,6 +209,27 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     return app;
   }
 
+  /** Anything the player would lose by closing the window. */
+  #hasProgress(): boolean {
+    const d = this.#draft;
+    return d.name.trim() !== "" || d.abilitiesRolled || d.regionKey !== null;
+  }
+
+  override async close(
+    options: foundry.applications.api.ApplicationV2.ClosingOptions = {},
+  ): Promise<this> {
+    if (!this.#closeConfirmed && this.#hasProgress()) {
+      this.#readNameFromForm();
+      const discard = await foundry.applications.api.DialogV2.confirm({
+        window: { title: game.i18n.localize("KEDOM.Creation.Wizard.Title") },
+        content: `<p>${game.i18n.localize("KEDOM.Creation.Wizard.DiscardConfirm")}</p>`,
+      });
+      if (discard !== true) return this;
+    }
+    await super.close(options);
+    return this;
+  }
+
   get stepId(): StepId {
     return STEPS[this.#draft.stepIndex] ?? "abilities";
   }
@@ -207,6 +248,16 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     await super._onRender(context, options);
     this.#bindNameInput();
     this.#bindSpecInputs();
+    this.#revealNewSpecBlock();
+  }
+
+  /** Specialization pickers open below the fold; bring a newly shown one into view. */
+  #specBlockCount = 0;
+  #revealNewSpecBlock(): void {
+    const blocks = this.element?.querySelectorAll<HTMLElement>(".kedom-create-wizard__spec");
+    const count = blocks?.length ?? 0;
+    if (count > this.#specBlockCount) blocks?.item(count - 1).scrollIntoView({ block: "nearest" });
+    this.#specBlockCount = count;
   }
 
   #bindNameInput(): void {
@@ -252,7 +303,10 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   #refreshNextButton(): void {
     const btn = this.element?.querySelector<HTMLButtonElement>('[data-action="next"]');
     if (!btn) return;
-    btn.disabled = !this.#canAdvance();
+    const canAdvance = this.#canAdvance();
+    btn.disabled = !canAdvance;
+    const hint = this.element.querySelector<HTMLElement>(".kedom-create-wizard__hint");
+    if (hint) hint.hidden = canAdvance;
   }
 
   #selectedCulture(catalog: OriginsCatalog): CatalogCulture | undefined {
@@ -293,7 +347,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   #originFields(catalog: OriginsCatalog, slug: string): OriginDataFields | null {
     const payload = catalog.originBySlug.get(slug);
     if (!payload?.system) return null;
-    const sys = payload.system as unknown as OriginDataFields;
+    const sys = systemOf<OriginDataFields>(payload);
     if (sys.subType !== "class") return null;
     return sys;
   }
@@ -362,6 +416,19 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     options: foundry.applications.api.ApplicationV2.RenderOptions,
   ): Promise<object> {
     await super._prepareContext(options);
+    // First open can wait on pack loading; show a placeholder instead of an empty window.
+    const ready = await Promise.race([
+      this.#ensureCatalog().then(() => true),
+      new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 200)),
+    ]);
+    if (!ready) {
+      void this.#ensureCatalog()
+        .then(() => this.render())
+        .catch((err: unknown) => {
+          console.error("Kedom | origins catalog failed to load", err);
+        });
+      return { loading: true, stepTitle: localize(STEP_TITLE_KEYS[this.stepId]), stepNav: [] };
+    }
     const catalog = await this.#ensureCatalog();
     const d = this.#draft;
     const stepId = this.stepId;
@@ -518,9 +585,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
 
     const cultureTalent = culture ? getCatalogTalent(catalog, culture.talentSlug) : undefined;
     const detailClasses = selectedClass ? [selectedClass] : selectedPartials;
-    const classTalentSlugs = [
-      ...new Set(detailClasses.flatMap((c) => c.talentSlugs)),
-    ];
+    const classTalentSlugs = [...new Set(detailClasses.flatMap((c) => c.talentSlugs))];
     const classTalents = classTalentSlugs
       .map((slug) => getCatalogTalent(catalog, slug))
       .filter((t): t is NonNullable<typeof t> => Boolean(t));
@@ -545,6 +610,16 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       stepId,
       stepCurrent: d.stepIndex + 1,
       stepCount: STEPS.length,
+      stepNav: STEPS.map((id, index) => ({
+        index,
+        number: index + 1,
+        label: localize(STEP_TITLE_KEYS[id]),
+        current: index === d.stepIndex,
+        done: index < d.stepIndex,
+      })),
+      freeDone: Boolean(freeResolved),
+      rollsDone: (roll1State?.grant ? 1 : 0) + (roll2State?.grant ? 1 : 0),
+      bonusDone: Boolean(bonusResolved),
       stepTitle: localize(`KEDOM.Creation.Step.${stepId}`),
       name: d.name,
       abilitiesRolled: d.abilitiesRolled,
@@ -621,6 +696,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       showClassDetail: detailClasses.length > 0,
       confirmLines: this.#confirmLines(catalog),
       canNext: this.#canAdvance(catalog),
+      stepHint: localize(STEP_HINT_KEYS[this.stepId], ""),
       isFirst: d.stepIndex === 0,
       isLast: d.stepIndex === STEPS.length - 1,
     };
@@ -688,10 +764,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
    * Keep the any-skill grid visible for wild/substitute picks — including after a
    * specialization is chosen — so the player can change their mind.
    */
-  #showAnySkillChooser(
-    state: RolledResolveState | null,
-    entry: GrowthEntry | null,
-  ): boolean {
+  #showAnySkillChooser(state: RolledResolveState | null, entry: GrowthEntry | null): boolean {
     if (!state) return false;
     if (state.needsCombatPick) return false;
     if (state.needsAnySkill) return true;
@@ -869,6 +942,29 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     }
   }
 
+  /** Breadcrumb: jump back to a finished step (forward still goes through Next). */
+  static async #onGoToStep(
+    this: CharacterCreateWizard,
+    _event: PointerEvent,
+    target: HTMLElement,
+  ): Promise<void> {
+    const index = Number(target.dataset.stepIndex);
+    if (!Number.isInteger(index) || index < 0 || index >= this.#draft.stepIndex) return;
+    this.#readNameFromForm();
+    this.#draft.stepIndex = index;
+    await this.render();
+  }
+
+  /** Ask before a re-pick throws away later choices. */
+  async #confirmRepick(level: "region" | "culture"): Promise<boolean> {
+    if (!repickLoss(this.#draft, level)) return true;
+    const ok = await foundry.applications.api.DialogV2.confirm({
+      window: { title: localize("KEDOM.Creation.Wizard.Title") },
+      content: `<p>${localize("KEDOM.Creation.Wizard.RepickConfirm")}</p>`,
+    });
+    return ok === true;
+  }
+
   static async #onBack(this: CharacterCreateWizard): Promise<void> {
     this.#readNameFromForm();
     if (this.#draft.stepIndex > 0) {
@@ -926,6 +1022,8 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const catalog = await this.#ensureCatalog();
     const key = target.dataset.regionKey;
     if (!key || !getCatalogRegion(catalog, key)) return;
+    if (key === this.#draft.regionKey) return;
+    if (!(await this.#confirmRepick("region"))) return;
     this.#draft.regionKey = key;
     this.#draft.cultureKey = null;
     this.#draft.backgroundKey = null;
@@ -946,6 +1044,8 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     if (!key || !this.#draft.regionKey) return;
     const culture = getCatalogCulture(catalog, this.#draft.regionKey, key);
     if (!culture || culture.disabled) return;
+    if (key === this.#draft.cultureKey) return;
+    if (!(await this.#confirmRepick("culture"))) return;
     this.#draft.cultureKey = key;
     this.#draft.backgroundKey = null;
     this.#draft.classKey = null;
@@ -961,6 +1061,8 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const region = getCatalogRegion(catalog, this.#draft.regionKey);
     const available = region?.cultures.filter((c) => !c.disabled) ?? [];
     if (!available.length) return;
+    // Ask before the roll is posted to chat, not after.
+    if (!(await this.#confirmRepick("culture"))) return;
 
     const pcts = culturePercents(available.map((c) => c.weight));
     const { total } = await postCreationRoll(
@@ -1228,11 +1330,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     items.push(payload);
   }
 
-  #pushClassOrigin(
-    items: CatalogItemPayload[],
-    catalog: OriginsCatalog,
-    cls: CatalogClass,
-  ): void {
+  #pushClassOrigin(items: CatalogItemPayload[], catalog: OriginsCatalog, cls: CatalogClass): void {
     const payload = catalog.originBySlug.get(cls.slug);
     if (payload) {
       items.push(payload);
@@ -1292,9 +1390,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const cultureLabel = culture.name;
     const backgroundLabel = background.name;
     const classLabel = this.#effectiveClassLabel(catalog);
-    const talentSlugs = fullClass
-      ? fullClass.talentSlugs
-      : [...(combined?.talentSlugs ?? [])];
+    const talentSlugs = fullClass ? fullClass.talentSlugs : [...(combined?.talentSlugs ?? [])];
 
     const draftCulture = getCulture(d.regionKey as RegionKey, d.cultureKey) ?? undefined;
     const talentPicks = resolveTalentPickBudget(draftCulture, classDef);
@@ -1424,6 +1520,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       ui.notifications.info(
         game.i18n.format("KEDOM.Creation.Wizard.Created", { name: actor.name }),
       );
+      this.#closeConfirmed = true;
       await this.close();
     }
   }

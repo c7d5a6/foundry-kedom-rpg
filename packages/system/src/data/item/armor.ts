@@ -1,3 +1,4 @@
+import { systemOf } from "../../types/accessors.ts";
 const { NumberField } = foundry.data.fields;
 
 function armorSchema() {
@@ -32,7 +33,7 @@ export function ownedArmorWoundBonus(actor: Actor.Implementation): number {
   let total = 0;
   for (const item of actor.items) {
     if ((item.type as string) !== "armor") continue;
-    const bonus = (item.system as unknown as ArmorDataFields)?.woundBonus;
+    const bonus = (systemOf<ArmorDataFields>(item))?.woundBonus;
     total += Math.floor(bonus ?? 0);
   }
   return total;

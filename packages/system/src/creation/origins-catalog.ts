@@ -1,3 +1,4 @@
+import { systemOf } from "../types/accessors.ts";
 /**
  * Origins / talents catalog for the create wizard.
  * Prefer Foundry packs (`kedom.origins`, `kedom.talents`); fall back to draft config.
@@ -136,12 +137,12 @@ function itemType(doc: Item.Implementation): string {
 
 function originSystem(doc: Item.Implementation): OriginDataFields | null {
   if (itemType(doc) !== "origin") return null;
-  return doc.system as unknown as OriginDataFields;
+  return systemOf<OriginDataFields>(doc);
 }
 
 function talentSystem(doc: Item.Implementation): TalentDataFields | null {
   if (itemType(doc) !== "talent") return null;
-  return doc.system as unknown as TalentDataFields;
+  return systemOf<TalentDataFields>(doc);
 }
 
 function slugOf(doc: Item.Implementation, system: { slug?: string }): string {

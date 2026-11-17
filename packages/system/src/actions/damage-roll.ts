@@ -1,6 +1,7 @@
+import { ensureDamageFormula } from "./dice-formula.ts";
 import { buildWeaponDamageModifiers, readWeaponSystem } from "./attack-roll.ts";
 import { styleCheckRollHTML } from "./check-card.ts";
-import { labeledCheckFormula } from "./labeled-formula.ts";
+import { labeledCheckFormula } from "../rolls/labeled-formula.ts";
 import type { WeaponSkillKey } from "../data/item/weapon.ts";
 
 const DAMAGE_TEMPLATE = "systems/kedom/templates/chat/damage.hbs";
@@ -28,6 +29,8 @@ export async function rollDamage(
     ui.notifications.warn(game.i18n.localize("KEDOM.Error.NotAWeapon"));
     return;
   }
+
+  if (!ensureDamageFormula(wsys.damageFormula, weapon.name)) return;
 
   const modifiers = buildWeaponDamageModifiers(actor, wsys);
   const formula = labeledCheckFormula(

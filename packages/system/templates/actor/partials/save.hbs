@@ -41,10 +41,12 @@
             class="kedom-skill__roll"
             data-action="{{rollAction}}"
             data-save-key="{{key}}"
-            title="{{proficiencyLabel}} — {{localize "KEDOM.Sheet.Action.rollSave" save=label}}"
+            {{#unless @root.canRoll}}disabled{{/unless}}
+            title="{{proficiencyLabel}} — {{localize "KEDOM.Sheet.Action.rollSave" save=label}} ({{#if @root.canRoll}}{{localize "KEDOM.Sheet.CtrlClickHint"}}{{else}}{{localize "KEDOM.Sheet.NeedOwnership"}}{{/if}})"
             aria-label="{{localize "KEDOM.Sheet.Action.rollSave" save=label}}"
           >
             <span class="kedom-skill__rank-mark" aria-hidden="true">
+              <span class="kedom-skill__rank-letter">{{proficiencyLetter}}</span>
               <i class="fa-solid fa-dice-d20" inert></i>
             </span>
           </button>

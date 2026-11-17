@@ -53,8 +53,7 @@
                 name="system.attributes.hp.max"
                 value="{{resources.hp.max}}"
                 min="0"
-                data-action=""
-                aria-label="{{localize "KEDOM.Attributes.hp"}} max"
+                aria-label="{{localize "KEDOM.Sheet.MaxLabel" label=(localize "KEDOM.Attributes.hp")}}"
               />
             {{else}}
               <span class="kedom-meter__max">{{resources.hp.max}}</span>
@@ -117,6 +116,7 @@
           type="button"
           class="kedom-strain-roll"
           data-action="rollStrainSave"
+          {{#unless canRoll}}disabled{{/unless}}
           title="{{localize "KEDOM.Sheet.Action.rollStrainSave"}}"
           aria-label="{{localize "KEDOM.Sheet.Action.rollStrainSave"}}"
         >
@@ -130,6 +130,7 @@
     <h1 class="document-name">
       {{#if isEdit}}
         {{formInput fields.name value=source.name placeholder=(localize "DOCUMENT.FIELDS.name.label")}}
+        <span class="kedom-edit-badge">{{localize "KEDOM.Sheet.Mode.editingBadge"}}</span>
       {{else}}
         {{actor.name}}
       {{/if}}

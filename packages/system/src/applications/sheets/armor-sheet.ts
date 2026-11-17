@@ -1,3 +1,4 @@
+import { systemOf } from "../../types/accessors.ts";
 import type { ArmorDataFields } from "../../data/item/armor.ts";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -30,7 +31,7 @@ export class ArmorSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     options: foundry.applications.api.ApplicationV2.RenderOptions,
   ) {
     const context = await super._prepareContext(options);
-    const system = this.item.system as unknown as ArmorDataFields;
+    const system = systemOf<ArmorDataFields>(this.item);
 
     return Object.assign(context, {
       item: this.item,

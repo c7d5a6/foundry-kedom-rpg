@@ -1,17 +1,13 @@
+import { characterData } from "../types/accessors.ts";
+import { localize } from "../i18n/localize.ts";
 import { resolveFromFocus, strainSaveBand } from "../derivations/strain.ts";
-import type { CharacterData } from "../data/actor/character.ts";
 import { styleCheckRollHTML } from "./check-card.ts";
 
 const CHECK_TEMPLATE = "systems/kedom/templates/chat/check.hbs";
 
-function localize(path: string, fallback: string): string {
-  const v = game.i18n.localize(path);
-  return !v || v === path ? fallback : v;
-}
-
 /** Strain Save: d20 vs Resolve and current Strain (Harm / Failure / Success). */
 export async function rollStrainSave(actor: Actor.Implementation): Promise<void> {
-  const system = actor.system as CharacterData;
+  const system = characterData(actor);
   const foc = (system.abilities as { foc?: { value?: number; mod?: number } }).foc;
   const focusMod = foc?.mod ?? 0;
   const attrs = system.attributes as {

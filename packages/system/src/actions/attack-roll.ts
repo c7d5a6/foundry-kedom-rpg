@@ -1,4 +1,7 @@
-import type { CharacterData, SkillFields } from "../data/actor/character.ts";
+import { ensureDamageFormula } from "./dice-formula.ts";
+import { characterData } from "../types/accessors.ts";
+import { localize } from "../i18n/localize.ts";
+import type { SkillFields } from "../data/actor/character.ts";
 import {
   normalizeWeaponSkill,
   weaponSkillAsSkillKey,
@@ -11,17 +14,12 @@ import {
   attackHits,
   buildAttackModifiers,
   buildDamageModifiers,
-} from "./attack-helpers.ts";
-import { formatSignedBonus } from "./build-skill-check.ts";
+} from "../rolls/attack-helpers.ts";
+import { formatSignedBonus } from "../rolls/build-skill-check.ts";
 import { styleCheckRollHTML } from "./check-card.ts";
-import { labeledCheckFormula } from "./labeled-formula.ts";
+import { labeledCheckFormula } from "../rolls/labeled-formula.ts";
 
 const ATTACK_TEMPLATE = "systems/kedom/templates/chat/attack.hbs";
-
-function localize(path: string, fallback: string): string {
-  const v = game.i18n.localize(path);
-  return !v || v === path ? fallback : v;
-}
 
 export type KedomAttackFlags = {
   actorUuid: string;
@@ -40,6 +38,8 @@ export type KedomAttackFlags = {
   isCrit: boolean;
   /** Set once the critical wound has been applied to the target. */
   critWoundApplied?: boolean;
+  /** Set once this card has been superseded by a reroll. */
+  rerolled?: boolean;
   damageTotal: number | null;
   modifiers: { label: string; value: number }[];
   damageModifiers: { label: string; value: number }[];
@@ -62,9 +62,7 @@ function resolveTargetAc(): { targetActorUuid: string | null; targetAc: number |
   const token = targets[0];
   const actor = token?.actor;
   if (!(actor instanceof Actor)) return { targetActorUuid: null, targetAc: null };
-  const combat = (actor.system as CharacterData | undefined)?.combat as
-    | { ac?: number }
-    | undefined;
+  const combat = characterData(actor).combat as { ac?: number } | undefined;
   if (typeof combat?.ac !== "number") return { targetActorUuid: null, targetAc: null };
   return { targetActorUuid: actor.uuid ?? null, targetAc: combat.ac };
 }
@@ -77,7 +75,7 @@ function buildAttackMods(
   const abilityKey = SKILL_ABILITY[skillKey];
   if (abilityKey === undefined) return null;
 
-  const system = actor.system as CharacterData;
+  const system = characterData(actor);
   const ability = (system.abilities as Record<string, { mod?: number }>)[abilityKey];
   const skill = (system.skills as Record<string, SkillFields>)[skillKey];
   if (!ability || !skill) return null;
@@ -111,7 +109,7 @@ export function buildWeaponDamageModifiers(
 ): ReturnType<typeof buildDamageModifiers> {
   const skillKey = weaponSkillAsSkillKey(wsys.skill);
   const abilityKey = SKILL_ABILITY[skillKey] ?? "mgh";
-  const system = actor.system as CharacterData;
+  const system = characterData(actor);
   const mightMod = (system.abilities as { mgh?: { mod?: number } }).mgh?.mod ?? 0;
   const meleeDamageBonus = Math.floor(
     ((system.combat as { meleeDamageBonus?: number } | undefined)?.meleeDamageBonus ?? 0),
@@ -226,6 +224,8 @@ export async function rollAttack(
     ui.notifications.warn(game.i18n.localize("KEDOM.Error.NotAWeapon"));
     return;
   }
+
+  if (!ensureDamageFormula(wsys.damageFormula, weapon.name)) return;
 
   const modifiers = buildAttackMods(actor, wsys);
   if (!modifiers) {

@@ -45,10 +45,12 @@
             class="kedom-skill__roll"
             data-action="rollSkill"
             data-skill-key="{{key}}"
-            title="{{proficiencyLabel}} — {{localize "KEDOM.Sheet.Action.rollSkill" skill=label}}"
+            {{#unless @root.canRoll}}disabled{{/unless}}
+            title="{{proficiencyLabel}} — {{localize "KEDOM.Sheet.Action.rollSkill" skill=label}} ({{#if @root.canRoll}}{{localize "KEDOM.Sheet.CtrlClickHint"}}{{else}}{{localize "KEDOM.Sheet.NeedOwnership"}}{{/if}})"
             aria-label="{{localize "KEDOM.Sheet.Action.rollSkill" skill=label}}"
           >
             <span class="kedom-skill__rank-mark" aria-hidden="true">
+              <span class="kedom-skill__rank-letter">{{proficiencyLetter}}</span>
               <i class="fa-solid fa-dice-d20" inert></i>
             </span>
           </button>
@@ -129,6 +131,7 @@
                     data-action="rollSpecialization"
                     data-skill-key="{{skillKey}}"
                     data-specialization-slug="{{slug}}"
+                    {{#unless @root.canRoll}}disabled{{/unless}}
                   >
                     <i class="fa-solid fa-diamond kedom-skill__tag-mark" inert></i>
                     <span class="kedom-skill__tag-label">{{label}}</span>

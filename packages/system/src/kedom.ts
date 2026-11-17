@@ -20,21 +20,30 @@ import { loadOriginsCatalog } from "./creation/origins-catalog.ts";
 import { registerMessageSocket } from "./chat/message-update.ts";
 import { registerSettings } from "./settings.ts";
 
+const ITEM_MODELS: [string, unknown][] = [
+  ["weapon", WeaponData],
+  ["armor", ArmorData],
+  ["origin", OriginData],
+  ["talent", TalentData],
+  ["art", ArtData],
+];
+
+const ITEM_SHEETS: [string, unknown, string][] = [
+  ["weapon", WeaponSheet, "KEDOM.Sheet.Weapon"],
+  ["armor", ArmorSheet, "KEDOM.Sheet.Armor"],
+  ["origin", OriginSheet, "KEDOM.Sheet.Origin"],
+  ["talent", TalentSheet, "KEDOM.Sheet.Talent"],
+  ["art", ArtSheet, "KEDOM.Sheet.Art"],
+];
+
 Hooks.once("init", () => {
   // Keep transfer effects on Items; apply via allApplicableEffects (Foundry v11+).
   CONFIG.ActiveEffect.legacyTransferral = false;
 
   CONFIG.Actor.dataModels.character = CharacterData;
-  // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
-  CONFIG.Item.dataModels.weapon = WeaponData;
-  // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
-  CONFIG.Item.dataModels.armor = ArmorData;
-  // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
-  CONFIG.Item.dataModels.origin = OriginData;
-  // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
-  CONFIG.Item.dataModels.talent = TalentData;
-  // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
-  CONFIG.Item.dataModels.art = ArtData;
+  // fvtt-types: Item subtypes from system.json are not augmented yet, so go through a loose view.
+  const itemModels = CONFIG.Item.dataModels as unknown as Record<string, unknown>;
+  for (const [type, model] of ITEM_MODELS) itemModels[type] = model;
 
   foundry.documents.collections.Actors.registerSheet("kedom", CharacterSheet, {
     types: ["character"],
@@ -42,40 +51,16 @@ Hooks.once("init", () => {
     label: "KEDOM.Sheet.Character",
   });
 
-  foundry.documents.collections.Items.registerSheet("kedom", WeaponSheet, {
-    // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
-    types: ["weapon"],
-    makeDefault: true,
-    label: "KEDOM.Sheet.Weapon",
-  });
-
-  foundry.documents.collections.Items.registerSheet("kedom", ArmorSheet, {
-    // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
-    types: ["armor"],
-    makeDefault: true,
-    label: "KEDOM.Sheet.Armor",
-  });
-
-  foundry.documents.collections.Items.registerSheet("kedom", OriginSheet, {
-    // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
-    types: ["origin"],
-    makeDefault: true,
-    label: "KEDOM.Sheet.Origin",
-  });
-
-  foundry.documents.collections.Items.registerSheet("kedom", TalentSheet, {
-    // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
-    types: ["talent"],
-    makeDefault: true,
-    label: "KEDOM.Sheet.Talent",
-  });
-
-  foundry.documents.collections.Items.registerSheet("kedom", ArtSheet, {
-    // @ts-expect-error fvtt-types: Item subtypes from system.json are not augmented yet
-    types: ["art"],
-    makeDefault: true,
-    label: "KEDOM.Sheet.Art",
-  });
+  const itemSheets = foundry.documents.collections.Items as unknown as {
+    registerSheet(
+      scope: string,
+      sheet: unknown,
+      options: { types: string[]; makeDefault: boolean; label: string },
+    ): void;
+  };
+  for (const [type, sheet, label] of ITEM_SHEETS) {
+    itemSheets.registerSheet("kedom", sheet, { types: [type], makeDefault: true, label });
+  }
 
   registerSettings();
 
@@ -100,6 +85,15 @@ Hooks.once("init", () => {
 
 Hooks.on("renderActorDirectory", registerCharacterCreateDirectoryButton);
 
+/** The character actor owning `item`, or null (world items, other actor types). */
+function characterParent(item: Item.Implementation): Actor.Implementation | null {
+  const parent = item.parent;
+  if (!parent || parent.documentName !== "Actor") return null;
+  return (parent as Actor.Implementation).type === "character"
+    ? (parent as Actor.Implementation)
+    : null;
+}
+
 /** When a talent is added to a character, apply skill/ability grants (with level-gate overflow). */
 function onCreateItem(
   item: Item.Implementation,
@@ -109,10 +103,8 @@ function onCreateItem(
 ): void {
   if (game.userId !== userId) return;
   if ((item.type as string) !== "talent") return;
-  const parent = item.parent;
-  if (!parent || parent.documentName !== "Actor") return;
-  if ((parent as Actor.Implementation).type !== "character") return;
-  void applyTalentAbilityGrants(parent as Actor.Implementation, item);
+  const actor = characterParent(item);
+  if (actor) void applyTalentAbilityGrants(actor, item);
 }
 
 // fvtt-types: Hooks.on overload resolution is excessively deep for Item hooks.
@@ -125,10 +117,9 @@ Hooks.on(
     if (game.userId !== userId) return;
     const type = item.type as string;
     if (type !== "talent" && type !== "origin") return;
-    const parent = item.parent;
-    if (!parent || parent.documentName !== "Actor") return;
-    if ((parent as Actor.Implementation).type !== "character") return;
-    revertItemAbilityGrants(parent as Actor.Implementation, item).catch((err: unknown) => {
+    const actor = characterParent(item);
+    if (!actor) return;
+    revertItemAbilityGrants(actor, item).catch((err: unknown) => {
       console.error("Kedom | grant revert failed", err);
     });
   },

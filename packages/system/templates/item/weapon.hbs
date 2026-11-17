@@ -39,7 +39,13 @@
           type="text"
           name="system.damageFormula"
           value="{{system.damageFormula}}"
+          {{#if damageFormulaInvalid}}aria-invalid="true" aria-describedby="weapon-damage-error"{{/if}}
         />
+        {{#if damageFormulaInvalid}}
+          <p id="weapon-damage-error" class="kedom-weapon-sheet__error" role="alert">
+            {{localize "KEDOM.Weapon.damageFormulaInvalid"}}
+          </p>
+        {{/if}}
       {{else}}
         <span>{{system.damageFormula}}</span>
       {{/if}}

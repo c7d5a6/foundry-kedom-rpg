@@ -1,3 +1,4 @@
+import { systemOf } from "../../types/accessors.ts";
 import { enrichHTML } from "../enrich.ts";
 import {
   CLASS_SAVE_TRACKS,
@@ -102,7 +103,7 @@ export class OriginSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     options: foundry.applications.api.ApplicationV2.RenderOptions,
   ) {
     const context = await super._prepareContext(options);
-    const system = this.item.system as unknown as OriginDataFields;
+    const system = systemOf<OriginDataFields>(this.item);
     const subType = normalizeOriginSubtype(system.subType);
 
     return Object.assign(context, {

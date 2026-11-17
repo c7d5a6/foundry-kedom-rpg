@@ -1,22 +1,15 @@
-import type { CharacterData } from "../data/actor/character.ts";
+import { canControlActor, confirmReroll, luckPool, rerolledNote } from "./card-common.ts";
 import { attackHits, luckCostToHit } from "../rolls/attack-helpers.ts";
-import { renderAttackCardContent, rollAttack, type KedomAttackFlags } from "../rolls/attack-roll.ts";
-import { rollDamage } from "../rolls/damage-roll.ts";
-import { takeWound } from "../rolls/wound-roll.ts";
+import {
+  renderAttackCardContent,
+  rollAttack,
+  type KedomAttackFlags,
+} from "../actions/attack-roll.ts";
+import { takeWound } from "../actions/wound-roll.ts";
 import { updateKedomMessage } from "./message-update.ts";
 import { getKedomAttackFlags } from "./attack-flags.ts";
 
-function canControlActor(actor: Actor.Implementation): boolean {
-  return Boolean(game.user?.isGM || actor.isOwner);
-}
-
-function luckPool(actor: Actor.Implementation): number {
-  const system = actor.system as CharacterData;
-  const lck = (system.abilities as { lck?: { value?: number } }).lck;
-  return Math.max(0, Math.floor(lck?.value ?? 0));
-}
-
-/** Append Spend Luck / Roll Damage / Reroll / Critical wound on attack cards. */
+/** Append Spend Luck / Reroll / Critical wound on attack cards. */
 export function decorateAttackCardActions(
   message: ChatMessage.Implementation,
   html: HTMLElement,
@@ -31,6 +24,11 @@ export function decorateAttackCardActions(
   const actor = fromUuidSync(flags.actorUuid);
   if (!(actor instanceof Actor)) return;
   if (!canControlActor(actor)) return;
+
+  if (flags.rerolled) {
+    root.append(rerolledNote("kedom-chat-check__actions kedom-chat-attack__actions"));
+    return;
+  }
 
   const actions = document.createElement("div");
   actions.className = "kedom-chat-check__actions kedom-chat-attack__actions";
@@ -52,27 +50,21 @@ export function decorateAttackCardActions(
           cost: String(spendCost),
           available: String(pool),
         })
-      : (spendBtn.textContent ?? "");
+      : `${spendBtn.textContent ?? ""} — ${game.i18n.format("KEDOM.Chat.LuckLeft", { available: String(pool) })}`;
   spendBtn.addEventListener("click", () => {
     void onSpendLuck(message, spendCost);
   });
   actions.append(spendBtn);
-
-  const damageBtn = document.createElement("button");
-  damageBtn.type = "button";
-  damageBtn.className = "kedom-chat-check__action kedom-chat-attack__action--damage";
-  damageBtn.textContent = game.i18n.localize("KEDOM.Chat.RollDamage");
-  damageBtn.addEventListener("click", () => {
-    void onRollDamage(flags);
-  });
-  actions.append(damageBtn);
 
   const rerollBtn = document.createElement("button");
   rerollBtn.type = "button";
   rerollBtn.className = "kedom-chat-check__action kedom-chat-check__action--reroll";
   rerollBtn.textContent = game.i18n.localize("KEDOM.Chat.Reroll");
   rerollBtn.addEventListener("click", () => {
-    void onReroll(flags);
+    rerollBtn.disabled = true;
+    void onReroll(message).finally(() => {
+      rerollBtn.disabled = false;
+    });
   });
   actions.append(rerollBtn);
 
@@ -93,7 +85,7 @@ export function decorateAttackCardActions(
 
 async function onSpendLuck(message: ChatMessage.Implementation, cost: number): Promise<void> {
   const flags = getKedomAttackFlags(message);
-  if (!flags) return;
+  if (!flags || flags.rerolled) return;
 
   const actor = await fromUuid(flags.actorUuid);
   if (!(actor instanceof Actor) || !canControlActor(actor)) return;
@@ -138,20 +130,17 @@ async function onSpendLuck(message: ChatMessage.Implementation, cost: number): P
   });
 }
 
-async function onRollDamage(flags: KedomAttackFlags): Promise<void> {
+async function onReroll(message: ChatMessage.Implementation): Promise<void> {
+  const flags = getKedomAttackFlags(message);
+  if (!flags || flags.rerolled) return;
   const actor = await fromUuid(flags.actorUuid);
   const weapon = await fromUuid(flags.weaponUuid);
   if (!(actor instanceof Actor) || !canControlActor(actor)) return;
   if (!(weapon instanceof Item)) return;
-  await rollDamage(actor, weapon, { maximize: flags.isCrit });
-}
-
-async function onReroll(flags: KedomAttackFlags): Promise<void> {
-  const actor = await fromUuid(flags.actorUuid);
-  const weapon = await fromUuid(flags.weaponUuid);
-  if (!(actor instanceof Actor) || !canControlActor(actor)) return;
-  if (!(weapon instanceof Item)) return;
+  if (!(await confirmReroll(flags.luckSpent))) return;
   await rollAttack(actor, weapon);
+  // Roll first, then retire the old card, so a failed roll does not strand it.
+  await updateKedomMessage(message, { flags: { kedom: { attack: { ...flags, rerolled: true } } } });
 }
 
 async function onCriticalWound(message: ChatMessage.Implementation): Promise<void> {

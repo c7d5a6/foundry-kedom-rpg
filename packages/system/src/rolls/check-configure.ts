@@ -32,14 +32,3 @@ export function defaultCheckConfigure(): CheckConfigureResult {
     baseDice: DEFAULT_SKILL_BASE_DICE,
   };
 }
-
-/** True when the world setting or Ctrl/Meta click requests the dialog. */
-export function shouldPromptCheckDialog(configure?: boolean): boolean {
-  if (configure === true) return true;
-  try {
-    // @ts-expect-error fvtt-types: system settings namespace is not in the core union yet
-    return game.settings.get("kedom", CHECK_DIALOG_SETTING) === true;
-  } catch {
-    return false;
-  }
-}

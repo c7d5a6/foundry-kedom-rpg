@@ -439,7 +439,7 @@
 /* -------------------------------------------------------------------------- */
 
 .kedom.sheet.actor {
-  min-width: 42rem;
+  min-width: 28rem;
   min-height: 28rem;
 }
 
@@ -3023,8 +3023,15 @@ button.kedom-skill__tag.is-blocked:hover {
 .kedom-create-wizard__footer {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 0.5rem;
   margin-top: auto;
+}
+
+.kedom-create-wizard__hint {
+  margin: 0 auto 0 0;
+  font-size: var(--font-size-12, 0.75rem);
+  opacity: 0.75;
 }
 
 .kedom-create-character-btn {
@@ -3479,4 +3486,194 @@ button.kedom-skill__tag.is-blocked:hover {
 
 .kedom-item-sheet__prose {
   min-height: 2rem;
+}
+
+.kedom-weapon-sheet__error {
+  margin: 0.25rem 0 0;
+  font-size: var(--font-size-12, 0.75rem);
+  color: var(--color-level-error, #c0392b);
+}
+
+/* —— Wizard: breadcrumb, ticks, loading —— */
+.kedom-create-wizard__crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--font-size-12, 0.75rem);
+}
+
+.kedom-create-wizard__crumb button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.kedom-create-wizard__crumb:not(.is-done):not(.is-current) {
+  opacity: 0.55;
+}
+
+.kedom-create-wizard__crumb.is-current {
+  font-weight: 700;
+}
+
+.kedom-create-wizard__crumb-mark {
+  display: inline-block;
+  min-width: 1.1em;
+  margin-right: 0.25em;
+  text-align: center;
+}
+
+.kedom-create-wizard__tick {
+  margin-left: 0.5rem;
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+.kedom-create-wizard__tick.is-done {
+  opacity: 1;
+  color: var(--color-level-success, #2e8b57);
+}
+
+.kedom-create-wizard__loading {
+  margin: 2rem 0;
+  text-align: center;
+  opacity: 0.75;
+}
+
+/* —— Play mode: rank letter in the roll hex (dice appears on hover/focus) —— */
+.kedom-skill__roll .kedom-skill__rank-mark > * {
+  grid-area: 1 / 1;
+}
+
+.kedom-skill__roll .kedom-skill__rank-letter {
+  font-size: 0.68rem;
+  transition: opacity 0.12s ease;
+}
+
+.kedom-skill__roll i {
+  opacity: 0;
+}
+
+.kedom-skill__roll:hover i,
+.kedom-skill__roll:focus-visible i {
+  opacity: 1;
+}
+
+.kedom-skill__roll:hover .kedom-skill__rank-letter,
+.kedom-skill__roll:focus-visible .kedom-skill__rank-letter {
+  opacity: 0;
+}
+
+/* —— Edit-mode badge beside the character name —— */
+.kedom.sheet .kedom-identity .document-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.kedom-edit-badge {
+  flex: none;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--kedom-color-gold-100, #faf591);
+  border-radius: 999px;
+  font-family: var(--font-body, inherit);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--kedom-color-gold-100, #faf591);
+}
+
+.kedom-chat-check .dice-formula .kedom-chat-check__subtitle {
+  flex-basis: 100%;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* —— Check dialog: outcome bands + dice line —— */
+.kedom-check-dialog__bands {
+  width: 100%;
+  margin-top: 0.5rem;
+  border-collapse: collapse;
+  font-size: 0.68rem;
+  text-align: center;
+}
+
+.kedom-check-dialog__bands th,
+.kedom-check-dialog__bands td {
+  padding: 0.15rem 0.2rem;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.kedom-check-dialog__bands td[data-col],
+.kedom-check-dialog__bands th[data-col] {
+  opacity: 0.55;
+}
+
+.kedom-check-dialog__bands[data-selected="easy"] [data-col="easy"],
+.kedom-check-dialog__bands[data-selected="trained"] [data-col="trained"],
+.kedom-check-dialog__bands[data-selected="hard"] [data-col="hard"],
+.kedom-check-dialog__bands[data-selected="legendary"] [data-col="legendary"] {
+  opacity: 1;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--kedom-color-gold-100, #faf591) 14%, transparent);
+}
+
+.kedom-check-dialog__bands .is-failure {
+  color: var(--kedom-tier-failure, #e0707a);
+}
+
+.kedom-check-dialog__bands .is-cost {
+  color: var(--kedom-tier-cost, #e8c36a);
+}
+
+.kedom-check-dialog__bands .is-success {
+  color: var(--kedom-tier-success, #7fd6a0);
+}
+
+.kedom-check-dialog__dice {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+}
+
+/* —— Responsive sheet: react to the window's width, not the viewport's —— */
+.application.kedom.sheet .window-content {
+  container: kedom-sheet / inline-size;
+}
+
+@container kedom-sheet (max-width: 620px) {
+  .application.kedom.sheet .window-content > .kedom-sheet-body.kedom-sheet-panels,
+  .application.kedom.sheet .window-content > .kedom-sheet-panels {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: max-content;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* Stacked: the whole panel scrolls instead of aside and main separately. */
+  .kedom.sheet .kedom-sheet-aside,
+  .kedom.sheet .kedom-sheet-main {
+    overflow: visible;
+  }
+
+  .kedom.sheet .ability-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@container kedom-sheet (max-width: 480px) {
+  .kedom.sheet .skill-list {
+    column-count: 1;
+  }
 }

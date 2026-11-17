@@ -1,23 +1,20 @@
-import { skillCheckDiceTerm } from "./advantage.ts";
+import { localize } from "../i18n/localize.ts";
+import { skillCheckDiceTerm } from "../rolls/advantage.ts";
 import { promptCheckDialog } from "../applications/dialogs/check-dialog.ts";
 import {
   defaultCheckConfigure,
-  shouldPromptCheckDialog,
   type CheckConfigureOptions,
+  CHECK_DIALOG_SETTING,
   type CheckConfigureResult,
-} from "./check-configure.ts";
-import type { Modifier } from "./collectors.ts";
-
-function localize(path: string, fallback: string): string {
-  const v = game.i18n.localize(path);
-  return !v || v === path ? fallback : v;
-}
+} from "../rolls/check-configure.ts";
+import type { Modifier } from "../rolls/collectors.ts";
 
 /** Prompt when needed; otherwise defaults (or explicit options). */
 export async function resolveCheckConfigure(
   title: string,
   modifiers: Modifier[],
   options: CheckConfigureOptions = {},
+  diceTerm?: (net: number) => string,
 ): Promise<CheckConfigureResult | null> {
   const base = {
     ...defaultCheckConfigure(),
@@ -31,7 +28,12 @@ export async function resolveCheckConfigure(
     return base;
   }
 
-  return promptCheckDialog({ title, modifiers, defaults: base });
+  return promptCheckDialog({
+    title,
+    modifiers,
+    defaults: base,
+    ...(diceTerm ? { diceTerm } : {}),
+  });
 }
 
 export function withSituationalModifier(
@@ -62,4 +64,15 @@ export function advantageFlavorSuffix(advantageNet: number): string {
     return ` · ${game.i18n.format("KEDOM.Roll.Dialog.advantageFlavor", { n: `+${String(n)}` })}`;
   }
   return ` · ${game.i18n.format("KEDOM.Roll.Dialog.disadvantageFlavor", { n: String(n) })}`;
+}
+
+/** True when the world setting or Ctrl/Meta click requests the dialog. */
+export function shouldPromptCheckDialog(configure?: boolean): boolean {
+  if (configure === true) return true;
+  try {
+    // @ts-expect-error fvtt-types: system settings namespace is not in the core union yet
+    return game.settings.get("kedom", CHECK_DIALOG_SETTING) === true;
+  } catch {
+    return false;
+  }
 }

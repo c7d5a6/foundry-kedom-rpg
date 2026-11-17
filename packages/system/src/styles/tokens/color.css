@@ -63,17 +63,7 @@
   --kedom-proficiency-legendary-disabled: var(--kedom-color-proficiency-legendary-disabled);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --kedom-surface-sheet: var(--kedom-color-primary-50);
-    --kedom-surface-raised: var(--kedom-color-gold-50);
-    --kedom-surface-sunken: var(--kedom-color-gold-100);
-    --kedom-text-primary: var(--kedom-color-primary-600);
-    --kedom-text-muted: var(--kedom-color-primary-400);
-    --kedom-text-inverse: var(--kedom-color-primary-50);
-    --kedom-border-subtle: var(--kedom-color-gold-400);
-    --kedom-border-strong: var(--kedom-color-primary-400);
-    --kedom-accent: var(--kedom-color-primary-300);
-    --kedom-accent-hover: var(--kedom-color-primary-400);
-  }
-}
+/*
+ * Kedom surfaces are always dark. The old prefers-color-scheme: light override followed the
+ * OS, not Foundry's interface theme, so a light OS gave a half-light sheet over dark art.
+ */

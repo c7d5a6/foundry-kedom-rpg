@@ -1,3 +1,4 @@
+import { getKedomFlag } from "../types/accessors.ts";
 import type { DifficultyColumn, SkillKey, SaveKey } from "../config/kedom.ts";
 
 /** Flags on graded check chat cards for spend Luck and free reroll. */
@@ -17,6 +18,8 @@ export type KedomGradedCheckFlags = {
   /** Original dice+mods total before any Luck spend. */
   diceTotal: number;
   luckSpent: number;
+  /** Set once this card has been superseded by a reroll. */
+  rerolled?: boolean;
   /** Base modifiers shown in the tooltip (before Luck spend line). */
   modifiers: { label: string; value: number }[];
 };
@@ -28,8 +31,7 @@ export type KedomMessageFlags = {
 export function getKedomCheckFlags(
   message: ChatMessage.Implementation,
 ): KedomGradedCheckFlags | null {
-  const flags = message.flags as { kedom?: KedomMessageFlags } | undefined;
-  const check = flags?.kedom?.check;
+  const check = getKedomFlag<KedomGradedCheckFlags>(message, "check");
   if (!check || (check.kind !== "skill" && check.kind !== "save" && check.kind !== "luck-save")) {
     return null;
   }

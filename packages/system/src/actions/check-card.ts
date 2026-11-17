@@ -1,11 +1,9 @@
-import type { GradedOutcome } from "../config/kedom.ts";
+import { localize } from "../i18n/localize.ts";
+import { degreeIcons, modifierTooltipParts } from "../rolls/tooltip-parts.ts";
+import type { DifficultyColumn, GradedOutcome } from "../config/kedom.ts";
+import { checkSubtitle } from "../rolls/check-subtitle.ts";
 
 const CHECK_TEMPLATE = "systems/kedom/templates/chat/check.hbs";
-
-function localize(path: string, fallback: string): string {
-  const v = game.i18n.localize(path);
-  return !v || v === path ? fallback : v;
-}
 
 export function verdictFor(outcome: GradedOutcome): {
   verdictKind: "success" | "failure" | "cost";
@@ -37,29 +35,6 @@ export function verdictFor(outcome: GradedOutcome): {
   };
 }
 
-export function degreeIcons(
-  degree: number,
-  iconKind: "success" | "failure",
-): { cssClass: string; kind: string }[] {
-  const cssClass = iconKind === "success" ? "fa-dice-d20" : "fa-skull";
-  return Array.from({ length: degree }, () => ({ cssClass, kind: iconKind }));
-}
-
-/**
- * Foundry's default tooltip only lists DiceTerms (`Roll#getTooltip` → `this.dice`).
- * Numeric modifiers (`+2[Focus]`) are parsed as NumericTerms and omitted — same gap
- * dnd5e fills via a custom breakdown template. We append matching tooltip-part rows.
- */
-export function modifierTooltipParts(
-  modifiers: ReadonlyArray<{ label: string; value: number }>,
-): { formula: string; flavor: string; total: number }[] {
-  return modifiers.map((mod) => ({
-    formula: mod.value >= 0 ? `+${String(mod.value)}` : String(mod.value),
-    flavor: mod.label,
-    total: mod.value,
-  }));
-}
-
 /**
  * Restyle Foundry's default roll HTML into a CoC-like card:
  * clickable success/fail panel → expand for dice + modifiers → total below.
@@ -71,6 +46,8 @@ export function styleCheckRollHTML(
     verdictLabel: string;
     degreeIcons: { cssClass: string; kind: string }[];
     outcomeSummary: string;
+    /** One muted line under the verdict, e.g. how close the roll was to the next outcome. */
+    subtitle?: string;
     modifiers?: ReadonlyArray<{ label: string; value: number }>;
   },
 ): string {
@@ -105,6 +82,13 @@ export function styleCheckRollHTML(
         iconsWrap.append(el);
       }
       formula.append(iconsWrap);
+    }
+
+    if (opts.subtitle !== undefined) {
+      const sub = doc.createElement("span");
+      sub.className = "kedom-chat-check__subtitle";
+      sub.textContent = opts.subtitle;
+      formula.append(sub);
     }
   }
 
@@ -181,6 +165,19 @@ function setDiceTotalText(rollHTML: string, total: number): string {
   return root instanceof HTMLElement ? root.outerHTML : rollHTML;
 }
 
+function subtitleText(total: number, difficulty: DifficultyColumn): string {
+  const { next } = checkSubtitle(total, difficulty);
+  const difficultyLabel = localize(`KEDOM.DifficultyColumn.${difficulty}`, difficulty);
+  if (!next) {
+    return game.i18n.format("KEDOM.Roll.subtitleBest", { difficulty: difficultyLabel });
+  }
+  return game.i18n.format("KEDOM.Roll.subtitle", {
+    difficulty: difficultyLabel,
+    outcome: verdictFor({ kind: next.kind, degree: 1 }).verdictLabel,
+    at: String(next.at),
+  });
+}
+
 /** Build graded check HTML; optional Luck spend adjusts displayed total and tooltip. */
 export async function renderGradedCheckContent(input: {
   roll: Roll;
@@ -188,6 +185,8 @@ export async function renderGradedCheckContent(input: {
   modifiers: ReadonlyArray<{ label: string; value: number }>;
   effectiveTotal: number;
   luckSpent?: number;
+  /** When given, the card says what the next outcome needs on this difficulty. */
+  difficulty?: DifficultyColumn;
 }): Promise<string> {
   const verdict = verdictFor(input.outcome);
   const icons = degreeIcons(input.outcome.degree, verdict.iconKind);
@@ -198,11 +197,18 @@ export async function renderGradedCheckContent(input: {
       ? [...input.modifiers, { label: luckLabel, value: luckSpent }]
       : [...input.modifiers];
 
+  const subtitle =
+    input.difficulty !== undefined
+      ? subtitleText(input.effectiveTotal, input.difficulty)
+      : undefined;
+
   let rollHTML = styleCheckRollHTML(await input.roll.render(), {
     panelClass: verdict.panelClass,
     verdictLabel: verdict.verdictLabel,
     degreeIcons: icons,
-    outcomeSummary: verdict.verdictLabel,
+    // The tooltip summary only repeated the verdict; the subtitle replaces it when present.
+    outcomeSummary: subtitle !== undefined ? "" : verdict.verdictLabel,
+    ...(subtitle !== undefined ? { subtitle } : {}),
     modifiers,
   });
 
