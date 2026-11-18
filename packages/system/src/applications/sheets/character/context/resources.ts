@@ -11,16 +11,19 @@ import {
 import type { CharacterData, SaveFields } from "../../../../data/actor/character.ts";
 import { proficiencyLetterFromLabel, type TierOption } from "./shared.ts";
 
-type AbilityView = { value: number; mod?: number };
+interface AbilityView {
+  value: number;
+  mod?: number;
+}
 
-type Attributes = {
+interface Attributes {
   hp: { value: number; max: number };
   strain: { value: number };
   wounds: { value: number; notes?: string };
   strainLimit?: number;
   resolve?: number;
   wounded?: boolean;
-};
+}
 
 export function buildAbilities(system: CharacterData) {
   const abilitiesData = system.abilities as Record<string, AbilityView>;
@@ -74,7 +77,7 @@ export function buildResources(system: CharacterData) {
 export function buildSaves(system: CharacterData, tierOptions: TierOption[]) {
   const savesData = system.saves as Record<SaveKey | "luck", SaveFields>;
   const saveView = (key: SaveKey | "luck", abilityKey: (typeof SAVE_ABILITY)[SaveKey] | "lck") => {
-    const save = savesData[key]!;
+    const save = savesData[key];
     const proficiency = save.proficiency as ProficiencyTier;
     const mod = save.mod ?? 0;
     return {

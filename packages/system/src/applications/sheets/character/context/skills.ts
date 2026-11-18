@@ -63,7 +63,7 @@ export function buildSkills(
       }
       const rollHint = rollHintParts.join(" ");
 
-      type SpecTag = {
+      interface SpecTag {
         slug: string;
         leaf?: string;
         label: string;
@@ -72,7 +72,7 @@ export function buildSkills(
         isFree: boolean;
         bonusSigned: string | null;
         canSelect: boolean;
-      };
+      }
 
       let specializationTags: SpecTag[] = [];
       if (hasFixedSpecializationCatalog(kind)) {

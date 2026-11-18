@@ -15,9 +15,9 @@ function armorSchema() {
 
 export type ArmorSchema = ReturnType<typeof armorSchema>;
 
-export type ArmorDataFields = {
+export interface ArmorDataFields {
   woundBonus: number;
-};
+}
 
 export class ArmorData extends foundry.abstract.TypeDataModel<ArmorSchema, Item.Implementation> {
   static override defineSchema(): ArmorSchema {

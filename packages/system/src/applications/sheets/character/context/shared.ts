@@ -19,12 +19,12 @@ export function proficiencyLetterFromLabel(tier: ProficiencyTier): string {
   return first.toLocaleUpperCase(game.i18n.lang);
 }
 
-export type TierOption = {
+export interface TierOption {
   value: ProficiencyTier;
   label: string;
   letter: string;
   rankClass: string;
-};
+}
 
 /** Localised proficiency options, built once per render and shared by every skill and save. */
 export function buildTierOptions(): TierOption[] {

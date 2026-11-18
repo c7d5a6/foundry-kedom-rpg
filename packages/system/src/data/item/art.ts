@@ -44,13 +44,13 @@ function artSchema() {
 
 export type ArtSchema = ReturnType<typeof artSchema>;
 
-export type ArtDataFields = {
+export interface ArtDataFields {
   slug: string;
   description: string;
   classSlug: string;
   commitment: ArtCommitment;
   activeUses: number;
-};
+}
 
 export class ArtData extends foundry.abstract.TypeDataModel<ArtSchema, Item.Implementation> {
   static override defineSchema(): ArtSchema {
@@ -64,7 +64,7 @@ export class ArtData extends foundry.abstract.TypeDataModel<ArtSchema, Item.Impl
       const legacy = data.effortCommitted === true || data.concentrating === true ? 1 : 0;
       data.activeUses = legacy;
     } else {
-      data.activeUses = Math.max(0, Math.floor(data.activeUses as number));
+      data.activeUses = Math.max(0, Math.floor(data.activeUses));
     }
     delete data.effortCommitted;
     delete data.concentrating;

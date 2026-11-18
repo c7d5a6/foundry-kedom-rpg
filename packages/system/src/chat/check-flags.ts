@@ -2,7 +2,7 @@ import { getKedomFlag } from "../types/accessors.ts";
 import type { DifficultyColumn, SkillKey, SaveKey } from "../config/kedom.ts";
 
 /** Flags on graded check chat cards for spend Luck and free reroll. */
-export type KedomGradedCheckFlags = {
+export interface KedomGradedCheckFlags {
   kind: "skill" | "save" | "luck-save";
   actorUuid: string;
   skillKey?: SkillKey;
@@ -22,11 +22,11 @@ export type KedomGradedCheckFlags = {
   rerolled?: boolean;
   /** Base modifiers shown in the tooltip (before Luck spend line). */
   modifiers: { label: string; value: number }[];
-};
+}
 
-export type KedomMessageFlags = {
+export interface KedomMessageFlags {
   check?: KedomGradedCheckFlags;
-};
+}
 
 export function getKedomCheckFlags(
   message: ChatMessage.Implementation,

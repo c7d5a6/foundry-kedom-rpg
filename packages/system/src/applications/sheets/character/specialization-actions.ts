@@ -41,7 +41,7 @@ export async function onToggleSpecialization(
   target: HTMLElement,
 ): Promise<void> {
   if (!this.isEditMode || !this.actor) return;
-  const skillKey = target.dataset.skillKey as SkillKey | undefined;
+  const skillKey = target.dataset.skillKey;
   const slug = target.dataset.specializationSlug;
   if (!skillKey || !slug) return;
 
@@ -101,7 +101,7 @@ export async function onAddSpecialization(
   _event: PointerEvent,
   target: HTMLElement,
 ): Promise<void> {
-  const skillKey = target.dataset.skillKey as SkillKey | undefined;
+  const skillKey = target.dataset.skillKey;
   if (!skillKey || !this.actor || !this.isEditMode) return;
   const kind = SKILL_SPECIALIZATION_KIND[skillKey] ?? "none";
   if (!allowsFreeSpecialization(kind)) return;
@@ -128,7 +128,7 @@ export async function onRemoveSpecialization(
   _event: PointerEvent,
   target: HTMLElement,
 ): Promise<void> {
-  const skillKey = target.dataset.skillKey as SkillKey | undefined;
+  const skillKey = target.dataset.skillKey;
   const slug = target.dataset.specializationSlug;
   if (!skillKey || !slug || !this.actor) return;
   if (!allowsFreeSpecialization(SKILL_SPECIALIZATION_KIND[skillKey] ?? "none")) return;

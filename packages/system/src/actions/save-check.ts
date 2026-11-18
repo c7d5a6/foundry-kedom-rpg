@@ -131,4 +131,4 @@ export async function rollSaveCheck(
 }
 
 // Keep CHECK_TEMPLATE referenced for loadTemplates parity if needed elsewhere
-void CHECK_TEMPLATE;
+CHECK_TEMPLATE;

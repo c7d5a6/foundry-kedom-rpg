@@ -32,11 +32,11 @@ function weaponSchema() {
 
 export type WeaponSchema = ReturnType<typeof weaponSchema>;
 
-export type WeaponDataFields = {
+export interface WeaponDataFields {
   skill: WeaponSkillKey;
   damageFormula: string;
   attackBonus: number;
-};
+}
 
 export function normalizeWeaponSkill(raw: string | undefined): WeaponSkillKey {
   if (WEAPON_SKILL_KEYS.includes(raw as WeaponSkillKey)) return raw as WeaponSkillKey;
@@ -48,7 +48,7 @@ export function normalizeWeaponSkill(raw: string | undefined): WeaponSkillKey {
 
 /** Narrow SkillKey for weapon combat skills. */
 export function weaponSkillAsSkillKey(skill: WeaponSkillKey): SkillKey {
-  return skill as SkillKey;
+  return skill;
 }
 
 export class WeaponData extends foundry.abstract.TypeDataModel<WeaponSchema, Item.Implementation> {

@@ -1,5 +1,4 @@
 import { canControlActor, confirmReroll, luckPool, rerolledNote } from "./card-common.ts";
-import type { SaveKey, SkillKey } from "../config/kedom.ts";
 import { renderGradedCheckContent } from "../actions/check-card.ts";
 import { luckCostToNextOutcome } from "../rolls/luck-spend.ts";
 import { rollLuckSave } from "../actions/luck-save.ts";
@@ -166,12 +165,12 @@ async function rerollCheck(
       flags.specializationSlug !== undefined
         ? { ...opts, specializationSlug: flags.specializationSlug }
         : opts;
-    await rollSkillCheck(actor, flags.skillKey as SkillKey, skillOpts);
+    await rollSkillCheck(actor, flags.skillKey, skillOpts);
     return;
   }
 
   if (flags.kind === "save" && flags.saveKey) {
-    await rollSaveCheck(actor, flags.saveKey as SaveKey, opts);
+    await rollSaveCheck(actor, flags.saveKey, opts);
     return;
   }
 

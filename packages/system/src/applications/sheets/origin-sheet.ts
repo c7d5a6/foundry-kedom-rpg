@@ -11,10 +11,10 @@ import type { GrantsFields } from "../../data/item/grants.ts";
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
 
-type ClassJsonBlock = {
+interface ClassJsonBlock {
   talentPicks: OriginDataFields["talentPicks"];
   arts: OriginDataFields["arts"];
-};
+}
 
 function formatGrantsJson(grants: GrantsFields | undefined): string {
   const g = grants ?? { skills: [], specializations: [], abilities: [] };

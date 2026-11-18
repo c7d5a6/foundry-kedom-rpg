@@ -6,14 +6,14 @@ import type { WeaponSkillKey } from "../data/item/weapon.ts";
 
 const DAMAGE_TEMPLATE = "systems/kedom/templates/chat/damage.hbs";
 
-export type KedomDamageFlags = {
+export interface KedomDamageFlags {
   actorUuid: string;
   weaponUuid: string;
   skillKey: WeaponSkillKey;
   total: number;
   isCrit: boolean;
   modifiers: { label: string; value: number }[];
-};
+}
 
 /**
  * Standalone damage roll (Combat tab Damage button).

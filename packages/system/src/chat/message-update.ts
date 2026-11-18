@@ -7,7 +7,10 @@
 const CHANNEL = "system.kedom";
 const REQUEST_TIMEOUT_MS = 5000;
 
-type MessagePatch = { content?: string; flags?: { kedom?: Record<string, unknown> } };
+interface MessagePatch {
+  content?: string;
+  flags?: { kedom?: Record<string, unknown> };
+}
 
 type SocketPayload =
   | {

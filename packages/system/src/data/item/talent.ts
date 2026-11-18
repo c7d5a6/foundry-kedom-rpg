@@ -35,12 +35,12 @@ function talentSchema() {
 
 export type TalentSchema = ReturnType<typeof talentSchema>;
 
-export type TalentDataFields = {
+export interface TalentDataFields {
   slug: string;
   description: string;
   category: TalentCategory;
   grants: GrantsFields;
-};
+}
 
 export class TalentData extends foundry.abstract.TypeDataModel<TalentSchema, Item.Implementation> {
   static override defineSchema(): TalentSchema {

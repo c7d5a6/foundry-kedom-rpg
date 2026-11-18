@@ -17,7 +17,7 @@ export function buildEffects(actor: Actor.Implementation, enabled: boolean) {
     const parentIsActor = parent === actor;
     const parentItem =
       !parentIsActor && parent && "documentName" in parent && parent.documentName === "Item"
-        ? (parent as Item.Implementation)
+        ? parent
         : null;
     const row = {
       id: effect.id ?? "",

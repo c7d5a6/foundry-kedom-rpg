@@ -10,20 +10,20 @@
 
 export type EffortCommitment = "scene" | "day" | "concentration" | "free";
 
-export type EffortArtCommit = {
+export interface EffortArtCommit {
   commitment: EffortCommitment | string;
   /** How many separate uses currently hold Effort (0 for free). */
   activeUses: number;
-};
+}
 
-export type DeriveEffortMaxInput = {
+export interface DeriveEffortMaxInput {
   /** Ability mods for Effort ability keys (empty → treat as 0). */
   abilityMods: readonly number[];
   /** Skill proficiency *tier* bonuses for Effort skills (trained=2; empty → 0). */
   skillProficiencyBonuses: readonly number[];
   /** Adventurer: +1 only when both partials have a non-empty Effort skill. */
   bothPartialsHaveEffort?: boolean;
-};
+}
 
 export function deriveEffortMax(input: DeriveEffortMaxInput): number {
   const abilityMods = input.abilityMods;

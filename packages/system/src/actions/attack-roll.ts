@@ -21,7 +21,7 @@ import { labeledCheckFormula } from "../rolls/labeled-formula.ts";
 
 const ATTACK_TEMPLATE = "systems/kedom/templates/chat/attack.hbs";
 
-export type KedomAttackFlags = {
+export interface KedomAttackFlags {
   actorUuid: string;
   weaponUuid: string;
   skillKey: WeaponSkillKey;
@@ -43,7 +43,7 @@ export type KedomAttackFlags = {
   damageTotal: number | null;
   modifiers: { label: string; value: number }[];
   damageModifiers: { label: string; value: number }[];
-};
+}
 
 export function readWeaponSystem(item: Item.Implementation): WeaponDataFields | null {
   // fvtt-types: Item subtypes from system.json are not in the core union yet
@@ -152,7 +152,7 @@ async function styleAttackRollHTML(
     isCrit: boolean;
     effectiveTotal: number;
     luckSpent: number;
-    modifiers: ReadonlyArray<{ label: string; value: number }>;
+    modifiers: readonly { label: string; value: number }[];
   },
 ): Promise<string> {
   const luckLabel = localize("KEDOM.Roll.modifier.luckSpend", "Luck");
@@ -196,7 +196,7 @@ async function styleDamageRollHTML(
   roll: Roll,
   opts: {
     isCrit: boolean;
-    modifiers: ReadonlyArray<{ label: string; value: number }>;
+    modifiers: readonly { label: string; value: number }[];
   },
 ): Promise<string> {
   const verdictLabel = opts.isCrit

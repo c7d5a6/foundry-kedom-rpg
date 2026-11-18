@@ -5,34 +5,34 @@ import type { OriginSubtype } from "../../config/origin.ts";
 export const CLASS_SAVE_TRACKS = ["reflex", "fortitude", "will", "luck"] as const;
 export type ClassSaveTrack = (typeof CLASS_SAVE_TRACKS)[number];
 
-export type PrioritizedSaveFields = {
+export interface PrioritizedSaveFields {
   save: ClassSaveTrack;
   priority: number;
-};
+}
 
-export type ClassArtsFields = {
+export interface ClassArtsFields {
   skillKey: string;
   abilityKeys: string[];
   /** Levels 1–10: arts that may be known at that level (budget display). */
   slotsByLevel: number[];
   receiveTableKey: string;
   artKeys: string[];
-};
+}
 
 /** Culture entry nested on a region origin. */
-export type RegionCultureFields = {
+export interface RegionCultureFields {
   slug: string;
   weight: number;
   backgroundSlugs: string[];
-};
+}
 
-export type BackgroundSkillPickFields = {
+export interface BackgroundSkillPickFields {
   skillKey: string;
   specSlug: string;
-};
+}
 
 /** Plain origin system fields (no Foundry dependency — safe for unit tests). */
-export type OriginDataFields = {
+export interface OriginDataFields {
   subType: OriginSubtype;
   slug: string;
   description: string;
@@ -62,7 +62,7 @@ export type OriginDataFields = {
    * Empty → sheet uses the system default banner art.
    */
   bannerImg: string;
-};
+}
 
 /** Class granted talents: prefer talentSlugs[]; fall back to legacy talentSlug. */
 export function classTalentSlugs(system: {

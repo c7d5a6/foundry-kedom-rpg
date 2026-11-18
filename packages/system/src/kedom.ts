@@ -88,9 +88,7 @@ Hooks.on("renderActorDirectory", registerCharacterCreateDirectoryButton);
 function characterParent(item: Item.Implementation): Actor.Implementation | null {
   const parent = item.parent;
   if (!parent || parent.documentName !== "Actor") return null;
-  return (parent as Actor.Implementation).type === "character"
-    ? (parent as Actor.Implementation)
-    : null;
+  return parent.type === "character" ? parent : null;
 }
 
 /** When a talent is added to a character, apply skill/ability grants (with level-gate overflow). */

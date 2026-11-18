@@ -1,7 +1,7 @@
 import type { Modifier } from "./collectors.ts";
 import { sumModifiers } from "./build-skill-check.ts";
 
-export type AttackModInput = {
+export interface AttackModInput {
   abilityKey: string;
   abilityLabel: string;
   abilityMod: number;
@@ -13,7 +13,7 @@ export type AttackModInput = {
   attackModLabel: string;
   weaponBonus: number;
   weaponBonusLabel: string;
-};
+}
 
 /** Build attack flat modifiers (ability + skill proficiency + skill attack mod + weapon AB). */
 export function buildAttackModifiers(input: AttackModInput): Modifier[] {

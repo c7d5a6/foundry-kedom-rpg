@@ -8,11 +8,11 @@ import {
 import type { SkillFields, SkillSpecialization } from "../../../data/actor/character.ts";
 
 /** The slice of the character sheet that action handlers rely on. */
-export type SheetHost = {
+export interface SheetHost {
   actor: Actor.Implementation;
   isEditable: boolean;
   isEditMode: boolean;
-};
+}
 
 export function isSkillKey(value: string | undefined): value is SkillKey {
   return value !== undefined && Object.hasOwn(SKILL_ABILITY, value);
@@ -25,7 +25,7 @@ export function localizeSpecLabel(skillKey: SkillKey, leaf: string): string {
 }
 
 export function isSpecializationSelected(spec: SkillSpecialization): boolean {
-  return spec.selected !== false;
+  return spec.selected;
 }
 
 export function countSelectedSpecializations(skill: SkillFields): number {

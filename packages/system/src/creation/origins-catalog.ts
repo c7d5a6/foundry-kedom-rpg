@@ -22,7 +22,7 @@ import { getCulture as getDraftCulture } from "../config/creation.ts";
 import { SKILL_KEYS, type SkillKey } from "../config/kedom.ts";
 import { localizeContentDescription, localizeContentLabel } from "../i18n/content-labels.ts";
 
-export type CatalogCulture = {
+export interface CatalogCulture {
   slug: string;
   name: string;
   weight: number;
@@ -33,24 +33,24 @@ export type CatalogCulture = {
   classSlugs: string[];
   backgroundSlugs: string[];
   disabled: boolean;
-};
+}
 
-export type CatalogRegion = {
+export interface CatalogRegion {
   slug: string;
   name: string;
   description: string;
   cultures: CatalogCulture[];
-};
+}
 
-export type CatalogBackground = {
+export interface CatalogBackground {
   slug: string;
   name: string;
   description: string;
   free: GrowthEntry;
   growth: GrowthEntry[];
-};
+}
 
-export type CatalogClass = {
+export interface CatalogClass {
   slug: string;
   name: string;
   description: string;
@@ -58,24 +58,24 @@ export type CatalogClass = {
   talentSlugs: string[];
   isFull: boolean;
   def: ClassDef | null;
-};
+}
 
-export type CatalogTalent = {
+export interface CatalogTalent {
   slug: string;
   name: string;
   description: string;
-};
+}
 
 /** Plain item payload for Actor.create embeds (no item `_id`). Effects are copied through. */
-export type CatalogItemPayload = {
+export interface CatalogItemPayload {
   name: string;
   type: string;
   img: string;
   system: Record<string, unknown>;
   effects?: Record<string, unknown>[];
-};
+}
 
-export type OriginsCatalog = {
+export interface OriginsCatalog {
   fromPacks: boolean;
   regions: CatalogRegion[];
   backgrounds: Map<string, CatalogBackground>;
@@ -83,7 +83,7 @@ export type OriginsCatalog = {
   talents: Map<string, CatalogTalent>;
   originBySlug: Map<string, CatalogItemPayload>;
   talentBySlug: Map<string, CatalogItemPayload>;
-};
+}
 
 /**
  * Floor percentages so they sum to 100; remainder goes to the last positive-weight entry.
@@ -174,7 +174,7 @@ function pickToGrowth(pick: { skillKey?: string; specSlug?: string }): GrowthEnt
   const raw = (pick.skillKey ?? "").trim();
   if (raw === "anyCombat") return { kind: "anyCombat" };
   if (raw === "anySkill") return { kind: "anySkill" };
-  const skillKey = raw as SkillKey;
+  const skillKey = raw;
   const valid = SKILL_KEYS.includes(skillKey);
   const key = valid ? skillKey : ("lore" as SkillKey);
   const spec = pick.specSlug?.trim();
@@ -304,7 +304,7 @@ function buildFromPacks(
       description: localizeContentDescription("Class", slug, packDesc),
       hitDie: def.hitDie,
       talentSlugs: classTalentSlugs(sys),
-      isFull: sys.isFull !== false,
+      isFull: sys.isFull,
       def,
     };
   });

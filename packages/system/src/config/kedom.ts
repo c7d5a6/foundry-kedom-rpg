@@ -7,7 +7,7 @@ export type AbilityKey = (typeof ABILITY_KEYS)[number];
  * Inclusive max score → modifier. Core bands over 3–18; Luck extends 0–2 (−3) and
  * 19–20 (+3) per docs.
  */
-export const ABILITY_MOD_BANDS: ReadonlyArray<{ max: number; mod: number }> = [
+export const ABILITY_MOD_BANDS: readonly { max: number; mod: number }[] = [
   { max: 2, mod: -3 },
   { max: 3, mod: -3 },
   { max: 5, mod: -2 },
@@ -75,7 +75,7 @@ export const SKILL_ABILITY: Record<string, AbilityKey> = {
   worship: "pre",
 };
 
-export const SKILL_KEYS = Object.keys(SKILL_ABILITY) as Array<keyof typeof SKILL_ABILITY>;
+export const SKILL_KEYS = Object.keys(SKILL_ABILITY);
 export type SkillKey = (typeof SKILL_KEYS)[number];
 
 /** Save key → governing ability. */

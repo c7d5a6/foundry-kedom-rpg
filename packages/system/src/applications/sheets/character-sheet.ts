@@ -406,8 +406,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         '<span class="kedom-mode-toggle__track" aria-hidden="true">' +
         '<span class="kedom-mode-toggle__thumb"><i class="fa-solid fa-lock"></i></span>' +
         "</span>";
-      toggle.addEventListener("dblclick", (event) => event.stopPropagation());
-      toggle.addEventListener("pointerdown", (event) => event.stopPropagation());
+      toggle.addEventListener("dblclick", (event) => {
+        event.stopPropagation();
+      });
+      toggle.addEventListener("pointerdown", (event) => {
+        event.stopPropagation();
+      });
       // Remount: start at previous side so left can transition both directions.
       const startEdit = this.#modeToggleWasEdit ?? wantEdit;
       toggle.classList.toggle("is-edit", startEdit);

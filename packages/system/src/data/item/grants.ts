@@ -9,27 +9,27 @@ import {
 
 const { ArrayField, NumberField, SchemaField, StringField } = foundry.data.fields;
 
-export type SkillGrant = {
+export interface SkillGrant {
   skillKey: SkillKey;
   proficiency: ProficiencyTier;
-};
+}
 
-export type SpecializationGrant = {
+export interface SpecializationGrant {
   skillKey: SkillKey;
   slug: string;
   label: string;
-};
+}
 
-export type AbilityGrant = {
+export interface AbilityGrant {
   key: AbilityKey;
   delta: number;
-};
+}
 
-export type GrantsFields = {
+export interface GrantsFields {
   skills: SkillGrant[];
   specializations: SpecializationGrant[];
   abilities: AbilityGrant[];
-};
+}
 
 export function emptyGrants(): GrantsFields {
   return { skills: [], specializations: [], abilities: [] };

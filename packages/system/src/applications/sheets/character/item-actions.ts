@@ -186,7 +186,7 @@ async function withArtLock(
 
 /** Typed escape hatch: `system.activeUses` is not in the fvtt-types Item update union. */
 function setArtUses(art: Item.Implementation, uses: number): Promise<unknown> {
-  return art.update({ system: { activeUses: uses } } as never);
+  return art.update({ system: { activeUses: uses } });
 }
 
 function activeUsesOf(art: Item.Implementation): number {

@@ -12,7 +12,7 @@ import { classTalentSlugs } from "../data/item/origin-fields.ts";
 import type { ProficiencyTier } from "../config/kedom.ts";
 import { normalizeSlotsByLevel, sumSlotsByLevel } from "../derivations/effort.ts";
 
-export type CombinedClassOrigin = {
+export interface CombinedClassOrigin {
   partialSlugs: readonly [string, string];
   names: readonly [string, string];
   hitDie: string;
@@ -34,7 +34,7 @@ export type CombinedClassOrigin = {
     }[];
   };
   saves: OriginDataFields["saves"];
-};
+}
 
 function mergeTalentPicks(
   a: OriginDataFields["talentPicks"],

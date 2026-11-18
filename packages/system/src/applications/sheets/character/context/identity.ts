@@ -4,16 +4,20 @@ import {
 } from "../../../../i18n/content-labels.ts";
 import { enrichHTML } from "../../../enrich.ts";
 
-export type IdentityPart = { label: string; tooltipHtml: string; itemId: string | null };
+export interface IdentityPart {
+  label: string;
+  tooltipHtml: string;
+  itemId: string | null;
+}
 
-export type CharacterDetails = {
+export interface CharacterDetails {
   level?: number;
   culture?: string;
   background?: string;
   class?: string;
   region?: string;
   notes?: string;
-};
+}
 
 /** Origin tooltips are enriched HTML; cache them across renders (keyed by content). */
 export type TipCache = Map<string, string>;

@@ -17,14 +17,14 @@ import {
   type EffortArtCommit,
 } from "./effort.ts";
 
-export type ActorEffortSummary = {
+export interface ActorEffortSummary {
   value: number;
   max: number;
   artsOwned: number;
   artsBudget: number;
   showArtsTab: boolean;
   bothPartialsHaveEffort: boolean;
-};
+}
 
 function classOrigins(actor: Actor.Implementation): OriginDataFields[] {
   return actor.items

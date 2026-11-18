@@ -18,7 +18,7 @@ export async function postCreationRoll(
 }
 
 export async function postCreationRolls(
-  items: ReadonlyArray<{ formula: string; label: string }>,
+  items: readonly { formula: string; label: string }[],
   flavor: string,
 ): Promise<number[]> {
   const rolls: Roll[] = [];

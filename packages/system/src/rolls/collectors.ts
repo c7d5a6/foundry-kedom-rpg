@@ -1,16 +1,16 @@
-export type ModifierSource = {
+export interface ModifierSource {
   id: string;
   label: string;
-};
+}
 
-export type Modifier = {
+export interface Modifier {
   label: string;
   value: number;
   source: ModifierSource;
   kind: "ability" | "skill" | "specialization" | "armor" | "effect" | "situational";
-};
+}
 
-export type SkillCheckContext = {
+export interface SkillCheckContext {
   skillKey: string;
   skillLabel: string;
   abilityKey: string;
@@ -22,7 +22,7 @@ export type SkillCheckContext = {
   specialized: boolean;
   specializationSlug: string | null;
   specializationLabel: string | null;
-};
+}
 
 export function collectAbilityModifier(ctx: SkillCheckContext): Modifier[] {
   return [

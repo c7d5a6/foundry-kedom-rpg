@@ -11,16 +11,16 @@ export const CREATION_REPLACEABLE_ABILITY_KEYS = ["mgh", "dex", "kno", "foc", "p
 
 export type RegionKey = "nerland";
 
-export type TalentPickBudget = {
+export interface TalentPickBudget {
   warrior?: number;
   expert?: number;
   any?: number;
-};
+}
 
 /** Starting save proficiency for reflex / fortitude / will / luck. */
 export type ClassSaveProficiencies = Record<SaveKey | "luck", ProficiencyTier>;
 
-export type CultureDef = {
+export interface CultureDef {
   key: string;
   /** i18n path under KEDOM.Creation.Culture.{key} */
   labelKey: string;
@@ -28,26 +28,26 @@ export type CultureDef = {
   /** When false, shown disabled in the wizard (POC lock). */
   available?: boolean;
   talentPicks?: TalentPickBudget;
-};
+}
 
-export type ClassDef = {
+export interface ClassDef {
   key: string;
   labelKey: string;
   hitDie: string;
   talentPicks: TalentPickBudget;
   saveProficiencies: ClassSaveProficiencies;
-};
+}
 
-export type SkillGrantSpec = {
+export interface SkillGrantSpec {
   skillKey: SkillKey;
   /** Optional specialization display label (free-form or fixed leaf). */
   specLabel?: string;
-};
+}
 
 export type GrowthEntry =
   ({ kind: "skill" } & SkillGrantSpec) | { kind: "anyCombat" } | { kind: "anySkill" };
 
-export type BackgroundDef = {
+export interface BackgroundDef {
   key: string;
   labelKey: string;
   free: GrowthEntry;
@@ -62,9 +62,9 @@ export type BackgroundDef = {
     GrowthEntry,
     GrowthEntry,
   ];
-};
+}
 
-export const REGIONS: ReadonlyArray<{ key: RegionKey; labelKey: string }> = [
+export const REGIONS: readonly { key: RegionKey; labelKey: string }[] = [
   { key: "nerland", labelKey: "KEDOM.Creation.Region.nerland" },
 ];
 

@@ -48,7 +48,7 @@ export function styleCheckRollHTML(
     outcomeSummary: string;
     /** One muted line under the verdict, e.g. how close the roll was to the next outcome. */
     subtitle?: string;
-    modifiers?: ReadonlyArray<{ label: string; value: number }>;
+    modifiers?: readonly { label: string; value: number }[];
   },
 ): string {
   const doc = new DOMParser().parseFromString(rollHTML, "text/html");
@@ -182,7 +182,7 @@ function subtitleText(total: number, difficulty: DifficultyColumn): string {
 export async function renderGradedCheckContent(input: {
   roll: Roll;
   outcome: GradedOutcome;
-  modifiers: ReadonlyArray<{ label: string; value: number }>;
+  modifiers: readonly { label: string; value: number }[];
   effectiveTotal: number;
   luckSpent?: number;
   /** When given, the card says what the next outcome needs on this difficulty. */

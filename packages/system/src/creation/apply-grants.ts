@@ -1,10 +1,5 @@
 import { systemOf, characterData } from "../types/accessors.ts";
-import {
-  PROFICIENCY_TIERS,
-  type AbilityKey,
-  type ProficiencyTier,
-  type SkillKey,
-} from "../config/kedom.ts";
+import { PROFICIENCY_TIERS, type ProficiencyTier, type SkillKey } from "../config/kedom.ts";
 import { clampProficiencyToLevel, proficiencyRank } from "../config/proficiency-gates.ts";
 import type { CharacterData, SkillFields, SkillSpecialization } from "../data/actor/character.ts";
 import type { GrantsFields } from "../data/item/grants.ts";
@@ -172,7 +167,7 @@ export async function applyTalentAbilityGrants(
   const system = characterData(actor);
 
   for (const ag of grants.abilities ?? []) {
-    const key = ag.key as AbilityKey;
+    const key = ag.key;
     const delta = Math.floor(ag.delta ?? 0);
     if (delta === 0) continue;
     const flagKey = abilityDeltaKey(talent.id, key);
@@ -244,15 +239,12 @@ export async function applyGrants(actor: Actor.Implementation): Promise<{
     const grants = readItemGrants(item);
     if (!grants || !item.id) continue;
     for (const sg of grants.skills ?? []) {
-      const key = sg.skillKey as SkillKey;
+      const key = sg.skillKey;
       const prev = skillGrantsByKey.get(key);
-      skillGrantsByKey.set(
-        key,
-        prev ? maxProficiencyTier(prev, sg.proficiency) : (sg.proficiency as ProficiencyTier),
-      );
+      skillGrantsByKey.set(key, prev ? maxProficiencyTier(prev, sg.proficiency) : sg.proficiency);
     }
     for (const spec of grants.specializations ?? []) {
-      const key = spec.skillKey as SkillKey;
+      const key = spec.skillKey;
       const list = specGrantsByKey.get(key) ?? [];
       list.push({ slug: spec.slug, label: spec.label });
       specGrantsByKey.set(key, list);
@@ -296,7 +288,7 @@ export async function applyGrants(actor: Actor.Implementation): Promise<{
     const grants = readItemGrants(item);
     if (!grants || !item.id) continue;
     for (const ag of grants.abilities ?? []) {
-      const key = ag.key as AbilityKey;
+      const key = ag.key;
       const delta = Math.floor(ag.delta ?? 0);
       if (delta === 0) continue;
       const flagKey = abilityDeltaKey(item.id, key);

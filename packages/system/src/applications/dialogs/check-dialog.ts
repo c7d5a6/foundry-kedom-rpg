@@ -148,7 +148,7 @@ export async function promptCheckDialog(options: {
     });
     if (result === "cancel" || result == null) return null;
     if (typeof result === "object" && "difficulty" in result) {
-      return result as CheckConfigureResult;
+      return result;
     }
     return null;
   } catch {

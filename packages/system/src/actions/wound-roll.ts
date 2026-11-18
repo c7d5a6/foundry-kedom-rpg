@@ -16,7 +16,7 @@ import type { Modifier } from "../rolls/collectors.ts";
 
 const WOUND_TEMPLATE = "systems/kedom/templates/chat/wound.hbs";
 
-export type KedomWoundFlags = {
+export interface KedomWoundFlags {
   actorUuid: string;
   woundCount: number;
   effectIndex: number;
@@ -29,7 +29,7 @@ export type KedomWoundFlags = {
   armorBonus: number;
   modifiers: { label: string; value: number }[];
   ignored: boolean;
-};
+}
 
 /** Flat Luck-save modifiers used by the wound table roll (sheet button preview). */
 export function previewWoundLuckBonus(actor: Actor.Implementation): number {

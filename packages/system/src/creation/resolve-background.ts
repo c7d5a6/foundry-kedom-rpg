@@ -10,16 +10,16 @@ import {
   specializationSlug,
 } from "../config/specializations.ts";
 
-export type ResolvedSkillGrant = {
+export interface ResolvedSkillGrant {
   skillKey: SkillKey;
   specialization: { slug: string; label: string } | null;
-};
+}
 
-export type ResolvePick = {
+export interface ResolvePick {
   skillKey: SkillKey | null;
   /** Label for free/parameterized, or fixed leaf key / display label. */
   specLabel: string | null;
-};
+}
 
 const COMBAT_SKILLS: readonly SkillKey[] = ["punch", "shoot", "stab"];
 const MAX_SAME_SKILL = 2;
@@ -196,7 +196,7 @@ function finalizeWildGrant(
   };
 }
 
-export type RolledResolveState = {
+export interface RolledResolveState {
   grant: ResolvedSkillGrant | null;
   /** Table entry as it would grant before substitution. */
   rolledGrant: ResolvedSkillGrant | null;
@@ -204,7 +204,7 @@ export type RolledResolveState = {
   needsAnySkill: boolean;
   needsSpecialization: boolean;
   substituted: boolean;
-};
+}
 
 /**
  * Resolve a rolled (or chosen-as-roll) background table entry against already
@@ -455,7 +455,7 @@ export function mergeSkillGrants(grants: readonly ResolvedSkillGrant[]): {
     }
   }
 
-  for (const key of Object.keys(counts) as SkillKey[]) {
+  for (const key of Object.keys(counts)) {
     const n = counts[key] ?? 0;
     proficiency[key] = n >= 2 ? "trained" : "apprentice";
   }

@@ -12,7 +12,7 @@ export function degreeIcons(
  * dnd5e fills via a custom breakdown template. We append matching tooltip-part rows.
  */
 export function modifierTooltipParts(
-  modifiers: ReadonlyArray<{ label: string; value: number }>,
+  modifiers: readonly { label: string; value: number }[],
 ): { formula: string; flavor: string; total: number }[] {
   return modifiers.map((mod) => ({
     formula: mod.value >= 0 ? `+${String(mod.value)}` : String(mod.value),

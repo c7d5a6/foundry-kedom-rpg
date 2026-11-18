@@ -5,13 +5,13 @@ export function skillAdvantageChangeKey(skillKey: SkillKey): string {
   return `system.skills.${skillKey}.defaultAdvantage`;
 }
 
-export type EffectListRow = {
+export interface EffectListRow {
   id: string;
   name: string;
   disabled: boolean;
   transfer: boolean;
   img: string;
-};
+}
 
 export function effectListRows(effects: Iterable<ActiveEffect.Implementation>): EffectListRow[] {
   return [...effects]
@@ -51,7 +51,7 @@ export async function createSkillAdvantageEffect(
     },
   ]);
   const effect = Array.isArray(created) ? created[0] : created;
-  return effect as ActiveEffect.Implementation | undefined;
+  return effect;
 }
 
 export async function promptSkillKeyForAdvantage(): Promise<SkillKey | null> {
@@ -73,8 +73,8 @@ export async function promptSkillKeyForAdvantage(): Promise<SkillKey | null> {
         },
       },
     });
-    if (typeof result !== "string" || !SKILL_KEYS.includes(result as SkillKey)) return null;
-    return result as SkillKey;
+    if (typeof result !== "string" || !SKILL_KEYS.includes(result)) return null;
+    return result;
   } catch {
     return null;
   }

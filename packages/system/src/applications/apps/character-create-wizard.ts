@@ -2,7 +2,7 @@ import { systemOf } from "../../types/accessors.ts";
 import { localize } from "../../i18n/localize.ts";
 import { repickLoss } from "../../creation/repick.ts";
 import { enrichHTML } from "../enrich.ts";
-import { ABILITY_KEYS, SKILL_KEYS, type SkillKey } from "../../config/kedom.ts";
+import { ABILITY_KEYS, SKILL_KEYS } from "../../config/kedom.ts";
 import {
   CREATION_ABILITY_KEYS,
   CREATION_REPLACEABLE_ABILITY_KEYS,
@@ -85,7 +85,7 @@ const STEP_HINT_KEYS: Record<StepId, string> = {
   confirm: "KEDOM.Creation.Wizard.IncompleteStep",
 };
 
-type Draft = {
+interface Draft {
   stepIndex: number;
   name: string;
   abilitiesRolled: boolean;
@@ -110,7 +110,7 @@ type Draft = {
   partialKeys: string[];
   /** Raw hit-die roll total (before Might mod); set via Roll HP. */
   hitDieTotal: number | null;
-};
+}
 
 function emptyAbilities(): Record<CreationAbilityKey, number | null> {
   return { mgh: null, dex: null, kno: null, foc: null, pre: null, lck: null };
@@ -419,7 +419,11 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     // First open can wait on pack loading; show a placeholder instead of an empty window.
     const ready = await Promise.race([
       this.#ensureCatalog().then(() => true),
-      new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 200)),
+      new Promise<boolean>((resolve) =>
+        setTimeout(() => {
+          resolve(false);
+        }, 200),
+      ),
     ]);
     if (!ready) {
       void this.#ensureCatalog()
@@ -1141,7 +1145,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       await this.render();
       return;
     }
-    const key = target.dataset.skillKey as SkillKey | undefined;
+    const key = target.dataset.skillKey;
     if (!key || !SKILL_KEYS.includes(key)) return;
     this.#draft.freeWild = { skillKey: key, specLabel: null };
     await this.render();
@@ -1180,7 +1184,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       await this.render();
       return;
     }
-    const key = target.dataset.skillKey as SkillKey | undefined;
+    const key = target.dataset.skillKey;
     if (!key || !SKILL_KEYS.includes(key)) return;
     this.#draft.roll1Wild = { skillKey: key, specLabel: null };
     await this.render();
@@ -1219,7 +1223,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       await this.render();
       return;
     }
-    const key = target.dataset.skillKey as SkillKey | undefined;
+    const key = target.dataset.skillKey;
     if (!key || !SKILL_KEYS.includes(key)) return;
     this.#draft.roll2Wild = { skillKey: key, specLabel: null };
     await this.render();
@@ -1247,7 +1251,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       await this.render();
       return;
     }
-    const key = target.dataset.skillKey as SkillKey | undefined;
+    const key = target.dataset.skillKey;
     if (!key || !SKILL_KEYS.includes(key)) return;
     if (countSkill(prior, key) >= 2) return;
     this.#draft.bonusWild = { skillKey: key, specLabel: null };
@@ -1372,7 +1376,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
 
     const abilities: Record<string, { value: number }> = {};
     for (const key of ABILITY_KEYS) {
-      const v = d.abilities[key as CreationAbilityKey] ?? 10;
+      const v = d.abilities[key] ?? 10;
       abilities[key] = { value: v };
     }
 
@@ -1406,11 +1410,11 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const items: CatalogItemPayload[] = [];
     const seenTalents = new Set<string>();
 
-    const region = getCatalogRegion(catalog, d.regionKey!);
+    const region = getCatalogRegion(catalog, d.regionKey);
     const regionLabel = region?.name ?? d.regionKey ?? "";
 
     if (catalog.fromPacks) {
-      const regionPayload = catalog.originBySlug.get(d.regionKey!);
+      const regionPayload = catalog.originBySlug.get(d.regionKey);
       const racePayload = catalog.originBySlug.get(d.cultureKey);
       const bgPayload = catalog.originBySlug.get(d.backgroundKey);
       if (regionPayload) items.push(regionPayload);
@@ -1531,10 +1535,7 @@ export function registerCharacterCreateDirectoryButton(
   _app: unknown,
   element: HTMLElement | JQuery,
 ): void {
-  const root =
-    element instanceof HTMLElement
-      ? element
-      : ((element as JQuery).get?.(0) as HTMLElement | undefined);
+  const root = element instanceof HTMLElement ? element : element.get?.(0);
   if (!root) return;
   if (!game.user.can("ACTOR_CREATE")) return;
   if (root.querySelector("[data-action='kedomCreateCharacter']")) return;

@@ -224,11 +224,19 @@ function characterSchema() {
 
 export type CharacterSchema = ReturnType<typeof characterSchema>;
 
-type AbilityFields = { value: number; baseMod: number; mod?: number };
+interface AbilityFields {
+  value: number;
+  baseMod: number;
+  mod?: number;
+}
 
-export type SkillSpecialization = { slug: string; label: string; selected: boolean };
+export interface SkillSpecialization {
+  slug: string;
+  label: string;
+  selected: boolean;
+}
 
-export type SkillFields = {
+export interface SkillFields {
   proficiency: string;
   specializations: SkillSpecialization[];
   baseDice: number;
@@ -236,21 +244,21 @@ export type SkillFields = {
   proficiencyBonus?: number;
   attackMod?: number;
   damageMod?: number;
-};
+}
 
-export type SaveFields = {
+export interface SaveFields {
   proficiency: string;
   mod?: number;
-};
+}
 
-type AttributesDerived = {
+interface AttributesDerived {
   hp: { value: number; max: number };
   strain: { value: number };
   wounds: { value: number; notes: string };
   strainLimit?: number;
   resolve?: number;
   wounded?: boolean;
-};
+}
 
 export class CharacterData extends foundry.abstract.TypeDataModel<
   CharacterSchema,
@@ -266,10 +274,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
     attrs.resolve = 0;
     attrs.wounded = false;
     // AE-first: zero-init paths Active Effects may ADD onto before prepareDerivedData.
-    const combat = this.combat as {
-      ac: number;
-      meleeDamageBonus: number;
-    };
+    const combat = this.combat;
     combat.ac = 0;
     combat.meleeDamageBonus = Math.floor(combat.meleeDamageBonus ?? 0);
     const skills = this.skills as Record<SkillKey, SkillFields>;

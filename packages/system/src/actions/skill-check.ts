@@ -80,7 +80,7 @@ export function prepareSkillCheck(
 
   if (options.specializationSlug !== undefined) {
     const found = skill.specializations.find((s) => s.slug === options.specializationSlug);
-    if (!found || found.selected === false) return null;
+    if (!found?.selected) return null;
     specializationSlug = found.slug;
     specializationLabel = found.label;
   }
@@ -143,7 +143,7 @@ export async function rollSkillCheck(
     return;
   }
 
-  const key = skillKey as SkillKey;
+  const key = skillKey;
   const prepared = prepareSkillCheck(actor, key, options);
   if (!prepared) {
     if (options.specializationSlug !== undefined) {

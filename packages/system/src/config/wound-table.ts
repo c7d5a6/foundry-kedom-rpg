@@ -13,7 +13,7 @@ export const WOUND_TABLE_TOTAL_MAX = 30;
 /**
  * Rows from worst total (−3) to best (30). Each row is 11 effect indices for columns 1…11+.
  */
-export const WOUND_EFFECT_TABLE: ReadonlyArray<ReadonlyArray<number>> = [
+export const WOUND_EFFECT_TABLE: readonly (readonly number[])[] = [
   /* -3 */ [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20],
   /* -2 */ [19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20],
   /* -1 */ [17, 19, 20, 20, 20, 20, 20, 20, 20, 20, 20],
