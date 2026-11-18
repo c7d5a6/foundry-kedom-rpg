@@ -95,6 +95,13 @@ export default tseslint.config(
           format: ["camelCase", "UPPER_CASE"],
           leadingUnderscore: "allow",
         },
+        // Classes pulled off a Foundry namespace keep the platform's name
+        // (`const { StringField } = foundry.data.fields`). Style.md: names a platform API dictates.
+        {
+          selector: "variable",
+          modifiers: ["destructured"],
+          format: ["PascalCase", "camelCase", "UPPER_CASE"],
+        },
         { selector: "parameter", format: ["camelCase"], leadingUnderscore: "allow" },
         { selector: "typeLike", format: ["PascalCase"] },
         { selector: "enumMember", format: ["PascalCase"] },
@@ -102,6 +109,13 @@ export default tseslint.config(
           selector: "classProperty",
           modifiers: ["static", "readonly"],
           format: ["UPPER_CASE", "camelCase"],
+        },
+        // Statics that Foundry reads by name on every Application subclass.
+        {
+          selector: "classProperty",
+          modifiers: ["static"],
+          filter: { regex: "^(DEFAULT_OPTIONS|PARTS)$", match: true },
+          format: null,
         },
         { selector: "classMethod", format: ["camelCase"], leadingUnderscore: "allow" },
         // Object literal keys are data -- localisation keys, Foundry schemas,

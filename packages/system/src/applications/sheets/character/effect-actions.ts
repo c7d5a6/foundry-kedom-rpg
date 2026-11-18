@@ -1,3 +1,4 @@
+import { openSheet } from "../../open-sheet.ts";
 import type { SheetHost } from "./helpers.ts";
 
 export async function onCreateActorEffect(this: SheetHost): Promise<void> {
@@ -13,7 +14,7 @@ export async function onCreateActorEffect(this: SheetHost): Promise<void> {
     },
   ]);
   const effect = Array.isArray(created) ? created[0] : created;
-  if (effect) await effect.sheet?.render(true);
+  if (effect) await openSheet(effect);
 }
 
 function findApplicableEffect(
@@ -37,10 +38,10 @@ export async function onEditEffect(
   if (!effect) return;
   const parent = effect.parent;
   if (parent && parent !== this.actor && "sheet" in parent) {
-    await (parent as Item.Implementation).sheet?.render(true);
+    await openSheet(parent as Item.Implementation);
     return;
   }
-  await effect.sheet?.render(true);
+  await openSheet(effect);
 }
 
 export async function onDeleteEffect(
@@ -88,5 +89,5 @@ export async function onOpenEffectSource(
   if (!itemId || !this.actor) return;
   const item = this.actor.items.get(itemId);
   if (!item) return;
-  await item.sheet?.render(true);
+  await openSheet(item);
 }

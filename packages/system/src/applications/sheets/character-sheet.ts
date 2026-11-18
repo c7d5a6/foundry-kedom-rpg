@@ -86,7 +86,7 @@ function isSheetTab(value: string | undefined): value is SheetTab {
 }
 
 export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
-  static MODES = SHEET_MODES;
+  static readonly MODES = SHEET_MODES;
 
   /** Play vs edit — instance UI state, not persisted on the actor. */
   #mode: SheetMode = SHEET_MODES.PLAY;
@@ -452,7 +452,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   protected override _processFormData(
     event: SubmitEvent | null,
     form: HTMLFormElement,
-    formData: FormDataExtended,
+    formData: foundry.applications.ux.FormDataExtended,
   ) {
     const data = super._processFormData(event, form, formData) as Record<string, unknown>;
     if (typeof data.name !== "string" || data.name.trim() === "") {

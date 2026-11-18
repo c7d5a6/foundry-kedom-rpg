@@ -37,9 +37,6 @@ const ITEM_SHEETS: [string, unknown, string][] = [
 ];
 
 Hooks.once("init", () => {
-  // Keep transfer effects on Items; apply via allApplicableEffects (Foundry v11+).
-  CONFIG.ActiveEffect.legacyTransferral = false;
-
   CONFIG.Actor.dataModels.character = CharacterData;
   // fvtt-types: Item subtypes from system.json are not augmented yet, so go through a loose view.
   const itemModels = CONFIG.Item.dataModels as unknown as Record<string, unknown>;

@@ -1,3 +1,4 @@
+import { openSheet } from "../open-sheet.ts";
 import { systemOf } from "../../types/accessors.ts";
 import { enrichHTML } from "../enrich.ts";
 import type { TalentDataFields } from "../../data/item/talent.ts";
@@ -74,7 +75,7 @@ export class TalentSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       },
     ]);
     const effect = Array.isArray(created) ? created[0] : created;
-    if (effect) await effect.sheet?.render(true);
+    if (effect) await openSheet(effect);
   }
 
   static async #onAddSkillAdvantage(this: TalentSheet): Promise<void> {
@@ -94,7 +95,7 @@ export class TalentSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     if (!effectId) return;
     const effect = this.item.effects.get(effectId);
     if (!effect) return;
-    await effect.sheet?.render(true);
+    await openSheet(effect);
   }
 
   static async #onDeleteEffect(

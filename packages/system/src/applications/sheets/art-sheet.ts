@@ -1,3 +1,4 @@
+import { openSheet } from "../open-sheet.ts";
 import { systemOf } from "../../types/accessors.ts";
 import { enrichHTML } from "../enrich.ts";
 import type { ArtDataFields } from "../../data/item/art.ts";
@@ -69,7 +70,7 @@ export class ArtSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       },
     ]);
     const effect = Array.isArray(created) ? created[0] : created;
-    if (effect) await effect.sheet?.render(true);
+    if (effect) await openSheet(effect);
   }
 
   static async #onEditEffect(
@@ -80,7 +81,7 @@ export class ArtSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     const id = target.dataset.effectId;
     if (!id) return;
     const effect = this.item.effects.get(id);
-    if (effect) await effect.sheet?.render(true);
+    if (effect) await openSheet(effect);
   }
 
   static async #onDeleteEffect(

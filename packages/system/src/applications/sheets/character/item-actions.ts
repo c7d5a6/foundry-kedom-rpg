@@ -1,3 +1,4 @@
+import { openSheet } from "../../open-sheet.ts";
 import { postArtUseChat } from "../../../chat/art-card.ts";
 import type { ArtDataFields } from "../../../data/item/art.ts";
 import { summarizeActorEffort } from "../../../derivations/actor-effort.ts";
@@ -19,7 +20,7 @@ export async function onCreateTalent(this: SheetHost): Promise<void> {
     },
   ]);
   const item = Array.isArray(created) ? created[0] : created;
-  if (item) await item.sheet?.render(true);
+  if (item) await openSheet(item);
 }
 
 async function createOwnedItem(
@@ -33,7 +34,7 @@ async function createOwnedItem(
     { name: game.i18n.localize(nameKey), type },
   ]);
   const item = Array.isArray(created) ? created[0] : created;
-  if (item) await item.sheet?.render(true);
+  if (item) await openSheet(item);
 }
 
 export async function onCreateWeapon(this: SheetHost): Promise<void> {
@@ -58,7 +59,7 @@ export async function onEditTalent(
   if (!itemId) return;
   const talent = this.actor.items.get(itemId);
   if (!talent || (talent.type as string) !== "talent") return;
-  await talent.sheet?.render(true);
+  await openSheet(talent);
 }
 
 export async function onDeleteTalent(
@@ -90,7 +91,7 @@ export async function onOpenIdentityItem(
   if (!itemId || !this.actor) return;
   const item = this.actor.items.get(itemId);
   if (!item || (item.type as string) !== "origin") return;
-  await item.sheet?.render(true);
+  await openSheet(item);
 }
 
 export async function onEditWeapon(
@@ -103,7 +104,7 @@ export async function onEditWeapon(
   if (!itemId) return;
   const weapon = this.actor.items.get(itemId);
   if (!weapon || (weapon.type as string) !== "weapon") return;
-  await weapon.sheet?.render(true);
+  await openSheet(weapon);
 }
 
 export async function onDeleteWeapon(
@@ -137,7 +138,7 @@ export async function onEditArmor(
   if (!itemId) return;
   const armorItem = this.actor.items.get(itemId);
   if (!armorItem || (armorItem.type as string) !== "armor") return;
-  await armorItem.sheet?.render(true);
+  await openSheet(armorItem);
 }
 
 export async function onDeleteArmor(
@@ -253,7 +254,7 @@ export async function onEditArt(
   if (!itemId) return;
   const art = this.actor.items.get(itemId);
   if (!art || (art.type as string) !== "art") return;
-  await art.sheet?.render(true);
+  await openSheet(art);
 }
 
 export async function onDeleteArt(
