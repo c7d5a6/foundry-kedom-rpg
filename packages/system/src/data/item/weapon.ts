@@ -51,10 +51,7 @@ export function weaponSkillAsSkillKey(skill: WeaponSkillKey): SkillKey {
   return skill as SkillKey;
 }
 
-export class WeaponData extends foundry.abstract.TypeDataModel<
-  WeaponSchema,
-  Item.Implementation
-> {
+export class WeaponData extends foundry.abstract.TypeDataModel<WeaponSchema, Item.Implementation> {
   static override defineSchema(): WeaponSchema {
     return weaponSchema();
   }

@@ -10,7 +10,11 @@ import { appliedProficiencyBonus } from "../derivations/skill-proficiency.ts";
 import { effectDeltaModifiers } from "../rolls/effect-modifier.ts";
 import { SKILL_SPECIALIZATION_KIND } from "../config/specializations.ts";
 import type { SkillFields } from "../data/actor/character.ts";
-import { buildSkillCheck, skillCheckIsSpecialized, sumModifiers } from "../rolls/build-skill-check.ts";
+import {
+  buildSkillCheck,
+  skillCheckIsSpecialized,
+  sumModifiers,
+} from "../rolls/build-skill-check.ts";
 import type { CheckConfigureOptions } from "../rolls/check-configure.ts";
 import { renderGradedCheckContent } from "./check-card.ts";
 import { labeledCheckFormula } from "../rolls/labeled-formula.ts";

@@ -80,7 +80,6 @@ Hooks.once("init", () => {
     "systems/kedom/templates/item/talent.hbs",
     "systems/kedom/templates/item/art.hbs",
   ]);
-
 });
 
 Hooks.on("renderActorDirectory", registerCharacterCreateDirectoryButton);
@@ -111,19 +110,16 @@ function onCreateItem(
 Hooks.on("createItem", onCreateItem as never);
 
 /** When a talent/origin leaves a character, undo the ability bumps it granted. */
-Hooks.on(
-  "deleteItem",
-  (item: Item.Implementation, _options: unknown, userId: string) => {
-    if (game.userId !== userId) return;
-    const type = item.type as string;
-    if (type !== "talent" && type !== "origin") return;
-    const actor = characterParent(item);
-    if (!actor) return;
-    revertItemAbilityGrants(actor, item).catch((err: unknown) => {
-      console.error("Kedom | grant revert failed", err);
-    });
-  },
-);
+Hooks.on("deleteItem", (item: Item.Implementation, _options: unknown, userId: string) => {
+  if (game.userId !== userId) return;
+  const type = item.type as string;
+  if (type !== "talent" && type !== "origin") return;
+  const actor = characterParent(item);
+  if (!actor) return;
+  revertItemAbilityGrants(actor, item).catch((err: unknown) => {
+    console.error("Kedom | grant revert failed", err);
+  });
+});
 
 Hooks.once("ready", () => {
   registerMessageSocket();

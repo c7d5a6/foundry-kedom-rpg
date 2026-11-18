@@ -112,7 +112,7 @@ export function buildWeaponDamageModifiers(
   const system = characterData(actor);
   const mightMod = (system.abilities as { mgh?: { mod?: number } }).mgh?.mod ?? 0;
   const meleeDamageBonus = Math.floor(
-    ((system.combat as { meleeDamageBonus?: number } | undefined)?.meleeDamageBonus ?? 0),
+    (system.combat as { meleeDamageBonus?: number } | undefined)?.meleeDamageBonus ?? 0,
   );
   const skill = (system.skills as Record<string, SkillFields>)[skillKey];
   const damageMod = Math.trunc(skill?.damageMod ?? 0);

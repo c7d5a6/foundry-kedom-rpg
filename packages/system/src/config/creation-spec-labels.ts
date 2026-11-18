@@ -57,9 +57,7 @@ function i18nProp(root: unknown, path: string): unknown {
 
 function freeSpecLeafForLabel(label: string): string | undefined {
   const direct =
-    CREATION_FREE_SPEC_I18N[label] ??
-    SLUG_TO_I18N[slugifyLabel(label)] ??
-    SLUG_TO_I18N[label];
+    CREATION_FREE_SPEC_I18N[label] ?? SLUG_TO_I18N[slugifyLabel(label)] ?? SLUG_TO_I18N[label];
   if (direct) return direct;
   if (typeof game === "undefined" || !game.i18n) return undefined;
 
@@ -101,9 +99,7 @@ export function localizePersistedSpecLabel(
   if (fromCreation !== fallbackLabel) return fromCreation;
 
   // Slug may be `worship.old.gods` or `survive.environment.taiga`
-  const withoutSkill = slug.startsWith(`${skillKey}.`)
-    ? slug.slice(skillKey.length + 1)
-    : slug;
+  const withoutSkill = slug.startsWith(`${skillKey}.`) ? slug.slice(skillKey.length + 1) : slug;
   const fromSlug = localizeCreationSpecLabel(withoutSkill);
   if (fromSlug !== withoutSkill) return fromSlug;
   const tail = withoutSkill.includes(".")

@@ -49,10 +49,7 @@ export function countCommittedEffort(arts: readonly EffortArtCommit[]): number {
   return n;
 }
 
-export function deriveEffortCurrent(
-  max: number,
-  arts: readonly EffortArtCommit[],
-): number {
+export function deriveEffortCurrent(max: number, arts: readonly EffortArtCommit[]): number {
   return Math.max(0, max - countCommittedEffort(arts));
 }
 
@@ -68,10 +65,7 @@ export function artSlotBudget(slotsByLevel: readonly number[], level: number): n
 }
 
 /** Per-index sum of two 10-entry slot progressions (Adventurer). */
-export function sumSlotsByLevel(
-  a: readonly number[],
-  b: readonly number[],
-): number[] {
+export function sumSlotsByLevel(a: readonly number[], b: readonly number[]): number[] {
   const out = Array.from({ length: 10 }, () => 0);
   for (let i = 0; i < 10; i++) {
     const av = a[i] ?? 0;

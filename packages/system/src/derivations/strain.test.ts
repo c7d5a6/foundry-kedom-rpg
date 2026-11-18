@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  resolveFromFocus,
-  strainLimitFromFocus,
-  strainSaveBand,
-} from "./strain.ts";
+import { resolveFromFocus, strainLimitFromFocus, strainSaveBand } from "./strain.ts";
 
 describe("strainLimitFromFocus / resolveFromFocus", () => {
   it("uses Focus modifier, not score", () => {

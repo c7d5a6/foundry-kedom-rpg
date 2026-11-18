@@ -19,10 +19,7 @@ export type ArmorDataFields = {
   woundBonus: number;
 };
 
-export class ArmorData extends foundry.abstract.TypeDataModel<
-  ArmorSchema,
-  Item.Implementation
-> {
+export class ArmorData extends foundry.abstract.TypeDataModel<ArmorSchema, Item.Implementation> {
   static override defineSchema(): ArmorSchema {
     return armorSchema();
   }
@@ -33,7 +30,7 @@ export function ownedArmorWoundBonus(actor: Actor.Implementation): number {
   let total = 0;
   for (const item of actor.items) {
     if ((item.type as string) !== "armor") continue;
-    const bonus = (systemOf<ArmorDataFields>(item))?.woundBonus;
+    const bonus = systemOf<ArmorDataFields>(item)?.woundBonus;
     total += Math.floor(bonus ?? 0);
   }
   return total;

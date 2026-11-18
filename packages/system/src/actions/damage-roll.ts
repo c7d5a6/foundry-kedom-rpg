@@ -33,11 +33,7 @@ export async function rollDamage(
   if (!ensureDamageFormula(wsys.damageFormula, weapon.name)) return;
 
   const modifiers = buildWeaponDamageModifiers(actor, wsys);
-  const formula = labeledCheckFormula(
-    wsys.damageFormula,
-    weapon.name || "Damage",
-    modifiers,
-  );
+  const formula = labeledCheckFormula(wsys.damageFormula, weapon.name || "Damage", modifiers);
   const roll = options.maximize
     ? await new Roll(formula).evaluate({ maximize: true })
     : await new Roll(formula).evaluate();

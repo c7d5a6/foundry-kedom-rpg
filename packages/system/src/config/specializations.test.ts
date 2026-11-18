@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  freeParameterSpecializationSlug,
-  freeSpecializationSlug,
-} from "./specializations.ts";
+import { freeParameterSpecializationSlug, freeSpecializationSlug } from "./specializations.ts";
 
 describe("freeSpecializationSlug", () => {
   it("keeps ASCII labels", () => {

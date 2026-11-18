@@ -48,8 +48,7 @@ export class ArtSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     return Object.assign(context, {
       item: this.item,
       system,
-      systemFields: (this.item.system as unknown as { schema: { fields: unknown } }).schema
-        .fields,
+      systemFields: (this.item.system as unknown as { schema: { fields: unknown } }).schema.fields,
       enrichedDescription,
       commitmentLabel: game.i18n.localize(`KEDOM.Art.Commitment.${system.commitment}`),
       effects: effectListRows(this.item.effects),

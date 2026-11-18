@@ -67,13 +67,15 @@ export function specializationSlug(skillKey: SkillKey, leaf: string): string {
 }
 
 function slugifyLeaf(label: string): string {
-  return label
-    .trim()
-    .toLowerCase()
-    .normalize("NFC")
-    // Letters/digits from any script (Cyrillic, etc.); other runs → "."
-    .replaceAll(/[^\p{L}\p{N}]+/gu, ".")
-    .replaceAll(/^\.+|\.+$/g, "");
+  return (
+    label
+      .trim()
+      .toLowerCase()
+      .normalize("NFC")
+      // Letters/digits from any script (Cyrillic, etc.); other runs → "."
+      .replaceAll(/[^\p{L}\p{N}]+/gu, ".")
+      .replaceAll(/^\.+|\.+$/g, "")
+  );
 }
 
 /** Stable fallback when a label has no letters/digits (e.g. emoji-only). */

@@ -85,11 +85,7 @@ export async function rollSaveCheck(
     `KEDOM.DifficultyColumn.${difficulty}`,
     difficulty.charAt(0).toUpperCase() + difficulty.slice(1),
   );
-  const formula = labeledCheckFormula(
-    checkDiceExpression(advantageNet),
-    saveLabel,
-    modifiers,
-  );
+  const formula = labeledCheckFormula(checkDiceExpression(advantageNet), saveLabel, modifiers);
   const roll = await new Roll(formula).evaluate();
   const total = roll.total ?? 0;
   const outcome = resolveOutcome({ total, difficulty });

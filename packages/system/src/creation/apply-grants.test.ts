@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { maxProficiencyTier, mergeSpecializationGrants, planAbilityGrantRevert } from "./apply-grants.ts";
+import {
+  maxProficiencyTier,
+  mergeSpecializationGrants,
+  planAbilityGrantRevert,
+} from "./apply-grants.ts";
 
 describe("maxProficiencyTier", () => {
   it("picks the higher tier", () => {

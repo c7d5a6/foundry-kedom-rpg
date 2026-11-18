@@ -90,8 +90,6 @@ describe("art slot budget", () => {
   });
 
   it("sums two progressions per index for Adventurer", () => {
-    expect(sumSlotsByLevel([1, 0, 1], [0, 1, 1])).toEqual([
-      1, 1, 2, 0, 0, 0, 0, 0, 0, 0,
-    ]);
+    expect(sumSlotsByLevel([1, 0, 1], [0, 1, 1])).toEqual([1, 1, 2, 0, 0, 0, 0, 0, 0, 0]);
   });
 });

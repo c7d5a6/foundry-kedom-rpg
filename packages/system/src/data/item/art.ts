@@ -61,8 +61,7 @@ export class ArtData extends foundry.abstract.TypeDataModel<ArtSchema, Item.Impl
   static override migrateData(source: Record<string, unknown>): Record<string, unknown> {
     const data = super.migrateData(source) as Record<string, unknown>;
     if (typeof data.activeUses !== "number" || !Number.isFinite(data.activeUses)) {
-      const legacy =
-        data.effortCommitted === true || data.concentrating === true ? 1 : 0;
+      const legacy = data.effortCommitted === true || data.concentrating === true ? 1 : 0;
       data.activeUses = legacy;
     } else {
       data.activeUses = Math.max(0, Math.floor(data.activeUses as number));

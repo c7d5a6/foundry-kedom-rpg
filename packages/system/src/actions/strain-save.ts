@@ -34,7 +34,9 @@ export async function rollStrainSave(actor: Actor.Implementation): Promise<void>
     iconKind = "failure";
   }
 
-  const degreeIcons = [{ cssClass: iconKind === "success" ? "fa-dice-d20" : "fa-skull", kind: iconKind }];
+  const degreeIcons = [
+    { cssClass: iconKind === "success" ? "fa-dice-d20" : "fa-skull", kind: iconKind },
+  ];
 
   const rollHTML = styleCheckRollHTML(await roll.render(), {
     panelClass,

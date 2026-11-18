@@ -16,11 +16,7 @@ export type StrainSaveBand = "harm" | "failure" | "success";
  * Strain Save (d20) vs Resolve and current Strain.
  * Harm: d20 <= min(Resolve, Strain); Success: d20 > max(...); else Failure.
  */
-export function strainSaveBand(
-  d20: number,
-  resolve: number,
-  strain: number,
-): StrainSaveBand {
+export function strainSaveBand(d20: number, resolve: number, strain: number): StrainSaveBand {
   const lo = Math.min(resolve, strain);
   const hi = Math.max(resolve, strain);
   if (d20 <= lo) return "harm";

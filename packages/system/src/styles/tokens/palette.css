@@ -38,16 +38,14 @@
   /* Gold chrome gradient (stops / angle are tunable) */
   --kedom-gradient-gold: linear-gradient(
     135deg,
-    /* Lead-in: 400 → 50 = reverse of post-50→400, half width */
-    var(--kedom-color-gold-400) 0%,
+    /* Lead-in: 400 → 50 = reverse of post-50→400, half width */ var(--kedom-color-gold-400) 0%,
     var(--kedom-color-gold-600) 4%,
     var(--kedom-color-gold-300) 9%,
     var(--kedom-color-gold-200) 13%,
     var(--kedom-color-gold-100) 18%,
     var(--kedom-color-gold-100) 26%,
     var(--kedom-color-gold-50) 27%,
-    /* After 50 — same relative proportions, remaining 73% */
-    var(--kedom-color-gold-100) 28.5%,
+    /* After 50 — same relative proportions, remaining 73% */ var(--kedom-color-gold-100) 28.5%,
     var(--kedom-color-gold-100) 40%,
     var(--kedom-color-gold-200) 47.5%,
     var(--kedom-color-gold-300) 53%,

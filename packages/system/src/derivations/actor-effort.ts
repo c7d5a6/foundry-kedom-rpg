@@ -4,10 +4,7 @@ import { systemOf } from "../types/accessors.ts";
  * Thin adapter over pure effort.ts maths.
  */
 
-import {
-  PROFICIENCY_BONUS,
-  type ProficiencyTier,
-} from "../config/kedom.ts";
+import { PROFICIENCY_BONUS, type ProficiencyTier } from "../config/kedom.ts";
 import type { ArtDataFields } from "../data/item/art.ts";
 import type { OriginDataFields } from "../data/item/origin-fields.ts";
 import { abilityModifier } from "./ability-mod.ts";

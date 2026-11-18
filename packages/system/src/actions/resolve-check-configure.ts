@@ -36,10 +36,7 @@ export async function resolveCheckConfigure(
   });
 }
 
-export function withSituationalModifier(
-  modifiers: Modifier[],
-  situational: number,
-): Modifier[] {
+export function withSituationalModifier(modifiers: Modifier[], situational: number): Modifier[] {
   if (situational === 0) return modifiers;
   const label = localize("KEDOM.Roll.modifier.situational", "Situational");
   return [

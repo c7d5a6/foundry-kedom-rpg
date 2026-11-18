@@ -47,9 +47,9 @@ export function canRaiseTo(current: string, granted: string, level: number): boo
 
 /** Clamp a desired tier down to what the character level allows. */
 export function clampProficiencyToLevel(tier: string, level: number): ProficiencyTier {
-  const desired = (PROFICIENCY_TIERS.includes(tier as ProficiencyTier)
-    ? tier
-    : "untrained") as ProficiencyTier;
+  const desired = (
+    PROFICIENCY_TIERS.includes(tier as ProficiencyTier) ? tier : "untrained"
+  ) as ProficiencyTier;
   const maxAllowed = maxProficiencyForLevel(level);
   return proficiencyRank(desired) <= proficiencyRank(maxAllowed) ? desired : maxAllowed;
 }

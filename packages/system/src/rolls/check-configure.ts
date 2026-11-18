@@ -1,7 +1,4 @@
-import {
-  DEFAULT_DIFFICULTY,
-  type DifficultyColumn,
-} from "../config/kedom.ts";
+import { DEFAULT_DIFFICULTY, type DifficultyColumn } from "../config/kedom.ts";
 
 export type CheckConfigureOptions = {
   /** Open the configure dialog even if the world setting is off. */
