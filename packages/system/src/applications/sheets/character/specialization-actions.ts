@@ -28,7 +28,8 @@ export async function onRollSpecialization(
   if (!requireOwnership(this)) return;
   const skillKey = target.dataset.skillKey;
   const specializationSlug = target.dataset.specializationSlug;
-  if (!isSkillKey(skillKey) || !specializationSlug || !this.actor) return;
+  if (!isSkillKey(skillKey) || specializationSlug === undefined || specializationSlug === "")
+    return;
   await rollSkillCheck(this.actor, skillKey, {
     specializationSlug,
     configure: event.ctrlKey || event.metaKey,
@@ -40,10 +41,10 @@ export async function onToggleSpecialization(
   _event: PointerEvent,
   target: HTMLElement,
 ): Promise<void> {
-  if (!this.isEditMode || !this.actor) return;
+  if (!this.isEditMode) return;
   const skillKey = target.dataset.skillKey;
   const slug = target.dataset.specializationSlug;
-  if (!skillKey || !slug) return;
+  if (skillKey === undefined || skillKey === "" || slug === undefined || slug === "") return;
 
   const system = characterData(this.actor);
   const skill = (system.skills as Record<SkillKey, SkillFields>)[skillKey];
@@ -83,7 +84,7 @@ export async function onToggleSpecialization(
 
   if (kind === "fixed" || (kind === "parameterized" && !isFreeForm)) {
     const leaf = target.dataset.specializationLeaf;
-    if (!leaf) return;
+    if (leaf === undefined || leaf === "") return;
     const label = localizeSpecLabel(skillKey, leaf);
     await appendSpecialization(this.actor, skillKey, slug, label, true);
     return;
@@ -102,7 +103,7 @@ export async function onAddSpecialization(
   target: HTMLElement,
 ): Promise<void> {
   const skillKey = target.dataset.skillKey;
-  if (!skillKey || !this.actor || !this.isEditMode) return;
+  if (skillKey === undefined || skillKey === "" || !this.isEditMode) return;
   const kind = SKILL_SPECIALIZATION_KIND[skillKey] ?? "none";
   if (!allowsFreeSpecialization(kind)) return;
 
@@ -130,7 +131,7 @@ export async function onRemoveSpecialization(
 ): Promise<void> {
   const skillKey = target.dataset.skillKey;
   const slug = target.dataset.specializationSlug;
-  if (!skillKey || !slug || !this.actor) return;
+  if (skillKey === undefined || skillKey === "" || slug === undefined || slug === "") return;
   if (!allowsFreeSpecialization(SKILL_SPECIALIZATION_KIND[skillKey] ?? "none")) return;
   const system = characterData(this.actor);
   const skill = (system.skills as Record<SkillKey, SkillFields>)[skillKey];
@@ -173,7 +174,8 @@ async function promptFreeLabel(skillKey: SkillKey): Promise<string | null> {
           const form = button.form;
           if (!form) return "";
           const data = new FormData(form);
-          return String(data.get("label") ?? "").trim();
+          const label = data.get("label");
+          return (typeof label === "string" ? label : "").trim();
         },
       },
     });

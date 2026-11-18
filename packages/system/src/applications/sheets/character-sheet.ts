@@ -13,7 +13,6 @@ import {
 import { buildTierOptions } from "./character/context/shared.ts";
 import { buildSkills } from "./character/context/skills.ts";
 import { summarizeActorEffort } from "../../derivations/actor-effort.ts";
-import type { CharacterData } from "../../data/actor/character.ts";
 
 import {
   onCreateArmor,
@@ -83,6 +82,66 @@ function isSheetTab(value: string | undefined): value is SheetTab {
     value === SHEET_TABS.NOTES ||
     value === SHEET_TABS.EFFECTS
   );
+}
+
+interface TabView {
+  id: SheetTab;
+  label: string;
+  icon: string;
+  active: boolean;
+}
+
+/** Tab strip for the current tab; falls back to Skills when the Arts tab is hidden. */
+function buildTabs(
+  currentTab: SheetTab,
+  showArtsTab: boolean,
+): { tabs: TabView[]; primaryTab: SheetTab } {
+  let primaryTab = currentTab;
+  const tabs: TabView[] = [
+    {
+      id: SHEET_TABS.SKILLS,
+      label: game.i18n.localize("KEDOM.Sheet.Tab.skills"),
+      icon: "fa-solid fa-book",
+      active: primaryTab === SHEET_TABS.SKILLS,
+    },
+    {
+      id: SHEET_TABS.COMBAT,
+      label: game.i18n.localize("KEDOM.Sheet.Tab.combat"),
+      icon: "fa-solid fa-shield-halved",
+      active: primaryTab === SHEET_TABS.COMBAT,
+    },
+    {
+      id: SHEET_TABS.TALENTS,
+      label: game.i18n.localize("KEDOM.Sheet.Tab.talents"),
+      icon: "fa-solid fa-star",
+      active: primaryTab === SHEET_TABS.TALENTS,
+    },
+    {
+      id: SHEET_TABS.NOTES,
+      label: game.i18n.localize("KEDOM.Sheet.Tab.notes"),
+      icon: "fa-solid fa-scroll",
+      active: primaryTab === SHEET_TABS.NOTES,
+    },
+    {
+      id: SHEET_TABS.EFFECTS,
+      label: game.i18n.localize("KEDOM.Sheet.Tab.effects"),
+      icon: "fa-solid fa-bolt",
+      active: primaryTab === SHEET_TABS.EFFECTS,
+    },
+  ];
+
+  if (showArtsTab) {
+    tabs.splice(3, 0, {
+      id: SHEET_TABS.ARTS,
+      label: game.i18n.localize("KEDOM.Sheet.Tab.arts"),
+      icon: "fa-solid fa-wand-magic-sparkles",
+      active: primaryTab === SHEET_TABS.ARTS,
+    });
+  } else if (primaryTab === SHEET_TABS.ARTS) {
+    primaryTab = SHEET_TABS.SKILLS;
+    for (const tab of tabs) tab.active = tab.id === SHEET_TABS.SKILLS;
+  }
+  return { tabs, primaryTab };
 }
 
 export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
@@ -185,15 +244,18 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     position: foundry.applications.api.ApplicationV2.Position,
   ): foundry.applications.api.ApplicationV2.Position {
     const pos = super._updatePosition(position);
+    // `element` is null before the first render; fvtt-types claims it is always set.
+    const element = this.element as HTMLElement | undefined;
     const rightOverhang =
-      this.element?.querySelector<HTMLElement>(".kedom-sheet-tabs-part.tabs-right")?.offsetWidth ??
-      0;
-    if (!rightOverhang) return pos;
-    const { clientWidth } = this.element.ownerDocument.documentElement;
-    const sheetWidth = typeof pos.width === "number" ? pos.width : (this.element?.offsetWidth ?? 0);
-    pos.left = Math.clamp(pos.left ?? 0, 0, Math.max(clientWidth - sheetWidth - rightOverhang, 0));
+      element?.querySelector<HTMLElement>(".kedom-sheet-tabs-part.tabs-right")?.offsetWidth ?? 0;
+    if (element === undefined || !rightOverhang) return pos;
+    const { clientWidth } = element.ownerDocument.documentElement;
+    const sheetWidth = typeof pos.width === "number" ? pos.width : element.offsetWidth;
+    // `left` is unset for auto-positioned windows; fvtt-types claims it is a number.
+    const left = pos.left as number | null | undefined;
+    pos.left = Math.clamp(left ?? 0, 0, Math.max(clientWidth - sheetWidth - rightOverhang, 0));
     if (typeof pos.width === "number") {
-      pos.width = Math.min(pos.width, Math.max(clientWidth - (pos.left ?? 0) - rightOverhang, 0));
+      pos.width = Math.min(pos.width, Math.max(clientWidth - pos.left - rightOverhang, 0));
     }
     return pos;
   }
@@ -209,57 +271,16 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const onCombat = tab === SHEET_TABS.COMBAT;
     const onNotes = tab === SHEET_TABS.NOTES;
     const tierOptions = buildTierOptions();
-    const details = (system as CharacterData & { details?: CharacterDetails }).details ?? {};
+    // Older actors may lack `details`; CharacterData declares it as always present.
+    const details = (system as { details?: CharacterDetails }).details ?? {};
     const richText = { secrets: actor.isOwner, relativeTo: actor };
 
     const enrichedWoundsNotes = onCombat ? await enrichHTML(woundsNotesOf(system), richText) : "";
     const enrichedNotes = onNotes ? await enrichHTML(details.notes ?? "", richText) : "";
 
-    const tabs: { id: SheetTab; label: string; icon: string; active: boolean }[] = [
-      {
-        id: SHEET_TABS.SKILLS,
-        label: game.i18n.localize("KEDOM.Sheet.Tab.skills"),
-        icon: "fa-solid fa-book",
-        active: this.#primaryTab === SHEET_TABS.SKILLS,
-      },
-      {
-        id: SHEET_TABS.COMBAT,
-        label: game.i18n.localize("KEDOM.Sheet.Tab.combat"),
-        icon: "fa-solid fa-shield-halved",
-        active: this.#primaryTab === SHEET_TABS.COMBAT,
-      },
-      {
-        id: SHEET_TABS.TALENTS,
-        label: game.i18n.localize("KEDOM.Sheet.Tab.talents"),
-        icon: "fa-solid fa-star",
-        active: this.#primaryTab === SHEET_TABS.TALENTS,
-      },
-      {
-        id: SHEET_TABS.NOTES,
-        label: game.i18n.localize("KEDOM.Sheet.Tab.notes"),
-        icon: "fa-solid fa-scroll",
-        active: this.#primaryTab === SHEET_TABS.NOTES,
-      },
-      {
-        id: SHEET_TABS.EFFECTS,
-        label: game.i18n.localize("KEDOM.Sheet.Tab.effects"),
-        icon: "fa-solid fa-bolt",
-        active: this.#primaryTab === SHEET_TABS.EFFECTS,
-      },
-    ];
-
     const effortSummary = summarizeActorEffort(this.actor);
-    if (effortSummary.showArtsTab) {
-      tabs.splice(3, 0, {
-        id: SHEET_TABS.ARTS,
-        label: game.i18n.localize("KEDOM.Sheet.Tab.arts"),
-        icon: "fa-solid fa-wand-magic-sparkles",
-        active: this.#primaryTab === SHEET_TABS.ARTS,
-      });
-    } else if (this.#primaryTab === SHEET_TABS.ARTS) {
-      this.#primaryTab = SHEET_TABS.SKILLS;
-      for (const tab of tabs) tab.active = tab.id === SHEET_TABS.SKILLS;
-    }
+    const { tabs, primaryTab } = buildTabs(this.#primaryTab, effortSummary.showArtsTab);
+    this.#primaryTab = primaryTab;
 
     const [identity, talents, artsView, effects] = await Promise.all([
       buildIdentity(actor, details, this.#tipCache),
@@ -432,7 +453,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     const applySide = (): void => {
-      toggle?.classList.toggle("is-edit", wantEdit);
+      toggle.classList.toggle("is-edit", wantEdit);
       this.#modeToggleWasEdit = wantEdit;
     };
 

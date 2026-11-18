@@ -2,7 +2,6 @@ import { localize } from "../../../i18n/localize.ts";
 import {
   PROFICIENCY_SPECIALIZATION_SLOTS,
   SKILL_ABILITY,
-  type ProficiencyTier,
   type SkillKey,
 } from "../../../config/kedom.ts";
 import type { SkillFields, SkillSpecialization } from "../../../data/actor/character.ts";
@@ -33,7 +32,9 @@ export function countSelectedSpecializations(skill: SkillFields): number {
 }
 
 export function specializationSlots(proficiency: string): number {
-  return PROFICIENCY_SPECIALIZATION_SLOTS[proficiency as ProficiencyTier] ?? 0;
+  // Persisted proficiency strings may be unknown tiers.
+  const slots = PROFICIENCY_SPECIALIZATION_SLOTS as Partial<Record<string, number>>;
+  return slots[proficiency] ?? 0;
 }
 
 /**

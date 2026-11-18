@@ -17,18 +17,20 @@ interface AbilityView {
 }
 
 interface Attributes {
-  hp: { value: number; max: number };
-  strain: { value: number };
-  wounds: { value: number; notes?: string };
+  // Older actors may lack these numbers; the declared shape is looser than the schema.
+  hp: { value?: number | null; max?: number | null };
+  strain: { value?: number | null };
+  wounds: { value?: number | null; notes?: string };
   strainLimit?: number;
   resolve?: number;
   wounded?: boolean;
 }
 
 export function buildAbilities(system: CharacterData) {
-  const abilitiesData = system.abilities as Record<string, AbilityView>;
+  const abilitiesData = system.abilities as Record<string, AbilityView | undefined>;
   return ABILITY_KEYS.map((key) => {
-    const ability = abilitiesData[key]!;
+    const ability = abilitiesData[key];
+    if (ability === undefined) throw new Error(`Character has no ability data for "${key}"`);
     const mod = ability.mod ?? 0;
     return {
       key,
@@ -38,7 +40,7 @@ export function buildAbilities(system: CharacterData) {
       min: key === "lck" ? LUCK_SCORE_MIN : 3,
       max: key === "lck" ? LUCK_SCORE_MAX : 18,
       mod,
-      modSigned: mod >= 0 ? `+${mod}` : String(mod),
+      modSigned: mod >= 0 ? `+${String(mod)}` : String(mod),
     };
   });
 }

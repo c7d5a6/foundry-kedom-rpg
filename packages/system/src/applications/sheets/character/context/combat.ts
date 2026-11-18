@@ -9,8 +9,9 @@ import { collate } from "./shared.ts";
 
 /** AC, wound preview, weapons and armor rows. Item lists are empty off the combat tab. */
 export function buildCombat(actor: Actor.Implementation, system: CharacterData, onCombat: boolean) {
+  // Actors created before `ac` existed may lack it; the declared type is looser than the schema.
   const combatData = system.combat as {
-    ac: number;
+    ac?: number | null;
   };
   const combat = {
     ac: combatData.ac ?? 0,
@@ -23,7 +24,7 @@ export function buildCombat(actor: Actor.Implementation, system: CharacterData, 
       const wsys = systemOf<WeaponDataFields>(item);
       const skill = normalizeWeaponSkill(wsys.skill);
       const preview = previewWeaponRollBonuses(actor, item);
-      const attackTotal = preview?.attackBonus ?? Math.floor(wsys.attackBonus ?? 0);
+      const attackTotal = preview?.attackBonus ?? Math.floor(wsys.attackBonus);
       const damageTotal = preview?.damageBonus ?? 0;
       return {
         id: item.id,
@@ -41,7 +42,7 @@ export function buildCombat(actor: Actor.Implementation, system: CharacterData, 
     .filter((item) => onCombat && (item.type as string) === "armor")
     .map((item) => {
       const asys = systemOf<ArmorDataFields>(item);
-      const woundBonus = Math.floor(asys.woundBonus ?? 0);
+      const woundBonus = Math.floor(asys.woundBonus);
       return {
         id: item.id,
         name: item.name,

@@ -11,6 +11,18 @@ import type { GrantsFields } from "../../data/item/grants.ts";
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
 
+/** User-edited JSON: any part may be missing or malformed, so every field is optional here. */
+interface RawClassJson {
+  talentPicks?: { warrior?: unknown; expert?: unknown; any?: unknown } | null;
+  arts?: {
+    skillKey?: string | null;
+    abilityKeys?: string[];
+    slotsByLevel?: unknown;
+    receiveTableKey?: string | null;
+    artKeys?: string[];
+  } | null;
+}
+
 interface ClassJsonBlock {
   talentPicks: OriginDataFields["talentPicks"];
   arts: OriginDataFields["arts"];
@@ -23,8 +35,9 @@ function formatGrantsJson(grants: GrantsFields | undefined): string {
 
 function parseGrantsJson(raw: string): GrantsFields | null {
   try {
-    const parsed = JSON.parse(raw) as GrantsFields;
-    if (!parsed || typeof parsed !== "object") return null;
+    const json: unknown = JSON.parse(raw);
+    if (json === null || typeof json !== "object") return null;
+    const parsed = json as Partial<GrantsFields>;
     return {
       skills: Array.isArray(parsed.skills) ? parsed.skills : [],
       specializations: Array.isArray(parsed.specializations) ? parsed.specializations : [],
@@ -37,23 +50,19 @@ function parseGrantsJson(raw: string): GrantsFields | null {
 
 function formatClassJson(system: OriginDataFields): string {
   const block: ClassJsonBlock = {
-    talentPicks: system.talentPicks ?? { warrior: 0, expert: 0, any: 0 },
-    arts: system.arts ?? {
-      skillKey: "",
-      abilityKeys: [],
-      slotsByLevel: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      receiveTableKey: "",
-      artKeys: [],
-    },
+    talentPicks: system.talentPicks,
+    arts: system.arts,
   };
   return JSON.stringify(block, null, 2);
 }
 
 function parseClassJson(raw: string): ClassJsonBlock | null {
   try {
-    const parsed = JSON.parse(raw) as ClassJsonBlock;
-    if (!parsed || typeof parsed !== "object") return null;
-    const slotsRaw = Array.isArray(parsed.arts?.slotsByLevel) ? parsed.arts.slotsByLevel : [];
+    const json: unknown = JSON.parse(raw);
+    if (json === null || typeof json !== "object") return null;
+    const parsed = json as RawClassJson;
+    const rawSlots = parsed.arts?.slotsByLevel;
+    const slotsRaw: unknown[] = Array.isArray(rawSlots) ? (rawSlots as unknown[]) : [];
     const slotsByLevel = Array.from({ length: 10 }, (_, i) => {
       const n = Number(slotsRaw[i]);
       return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
@@ -110,7 +119,7 @@ export class OriginSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       item: this.item,
       system: { ...system, subType },
       systemFields: (this.item.system as unknown as { schema: { fields: unknown } }).schema.fields,
-      enrichedDescription: await enrichHTML(system.description ?? "", {
+      enrichedDescription: await enrichHTML(system.description, {
         secrets: this.item.isOwner,
         relativeTo: this.item,
       }),
@@ -123,12 +132,12 @@ export class OriginSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       saveTrackOptionsPrimary: CLASS_SAVE_TRACKS.map((value) => ({
         value,
         label: game.i18n.localize(`KEDOM.Save.${value}`),
-        selected: system.saves?.primary?.save === value,
+        selected: system.saves.primary.save === value,
       })),
       saveTrackOptionsSecondary: CLASS_SAVE_TRACKS.map((value) => ({
         value,
         label: game.i18n.localize(`KEDOM.Save.${value}`),
-        selected: system.saves?.secondary?.save === value,
+        selected: system.saves.secondary.save === value,
       })),
       isClass: subType === "class",
       isRegion: subType === "region",

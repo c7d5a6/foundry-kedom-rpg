@@ -6,7 +6,7 @@ import { systemOf } from "../../../types/accessors.ts";
 import type { SheetHost } from "./helpers.ts";
 
 export async function onCreateTalent(this: SheetHost): Promise<void> {
-  if (!this.isEditable || !this.actor) return;
+  if (!this.isEditable) return;
   const created = await this.actor.createEmbeddedDocuments("Item", [
     {
       name: game.i18n.localize("KEDOM.Talent.NewTalent"),
@@ -54,9 +54,8 @@ export async function onEditTalent(
   _event: PointerEvent,
   target: HTMLElement,
 ): Promise<void> {
-  if (!this.actor) return;
   const itemId = target.dataset.itemId;
-  if (!itemId) return;
+  if (itemId === undefined || itemId === "") return;
   const talent = this.actor.items.get(itemId);
   if (!talent || (talent.type as string) !== "talent") return;
   await openSheet(talent);
@@ -67,9 +66,9 @@ export async function onDeleteTalent(
   _event: PointerEvent,
   target: HTMLElement,
 ): Promise<void> {
-  if (!this.isEditable || !this.actor) return;
+  if (!this.isEditable) return;
   const itemId = target.dataset.itemId;
-  if (!itemId) return;
+  if (itemId === undefined || itemId === "") return;
   const talent = this.actor.items.get(itemId);
   if (!talent || (talent.type as string) !== "talent") return;
   const confirmed = await foundry.applications.api.DialogV2.confirm({
@@ -78,7 +77,7 @@ export async function onDeleteTalent(
       name: talent.name,
     })}</p>`,
   });
-  if (!confirmed) return;
+  if (confirmed !== true) return;
   await talent.delete();
 }
 
@@ -88,7 +87,7 @@ export async function onOpenIdentityItem(
   target: HTMLElement,
 ): Promise<void> {
   const itemId = target.dataset.itemId;
-  if (!itemId || !this.actor) return;
+  if (itemId === undefined || itemId === "") return;
   const item = this.actor.items.get(itemId);
   if (!item || (item.type as string) !== "origin") return;
   await openSheet(item);
@@ -99,9 +98,8 @@ export async function onEditWeapon(
   _event: PointerEvent,
   target: HTMLElement,
 ): Promise<void> {
-  if (!this.actor) return;
   const itemId = target.dataset.itemId;
-  if (!itemId) return;
+  if (itemId === undefined || itemId === "") return;
   const weapon = this.actor.items.get(itemId);
   if (!weapon || (weapon.type as string) !== "weapon") return;
   await openSheet(weapon);
@@ -112,9 +110,9 @@ export async function onDeleteWeapon(
   _event: PointerEvent,
   target: HTMLElement,
 ): Promise<void> {
-  if (!this.isEditable || !this.actor) return;
+  if (!this.isEditable) return;
   const itemId = target.dataset.itemId;
-  if (!itemId) return;
+  if (itemId === undefined || itemId === "") return;
   const weapon = this.actor.items.get(itemId);
   if (!weapon || (weapon.type as string) !== "weapon") return;
 
@@ -124,7 +122,7 @@ export async function onDeleteWeapon(
       name: weapon.name,
     })}</p>`,
   });
-  if (!confirmed) return;
+  if (confirmed !== true) return;
   await weapon.delete();
 }
 
@@ -133,9 +131,8 @@ export async function onEditArmor(
   _event: PointerEvent,
   target: HTMLElement,
 ): Promise<void> {
-  if (!this.actor) return;
   const itemId = target.dataset.itemId;
-  if (!itemId) return;
+  if (itemId === undefined || itemId === "") return;
   const armorItem = this.actor.items.get(itemId);
   if (!armorItem || (armorItem.type as string) !== "armor") return;
   await openSheet(armorItem);
@@ -146,9 +143,9 @@ export async function onDeleteArmor(
   _event: PointerEvent,
   target: HTMLElement,
 ): Promise<void> {
-  if (!this.isEditable || !this.actor) return;
+  if (!this.isEditable) return;
   const itemId = target.dataset.itemId;
-  if (!itemId) return;
+  if (itemId === undefined || itemId === "") return;
   const armorItem = this.actor.items.get(itemId);
   if (!armorItem || (armorItem.type as string) !== "armor") return;
 
@@ -158,7 +155,7 @@ export async function onDeleteArmor(
       name: armorItem.name,
     })}</p>`,
   });
-  if (!confirmed) return;
+  if (confirmed !== true) return;
   await armorItem.delete();
 }
 
@@ -171,8 +168,8 @@ async function withArtLock(
   run: (art: Item.Implementation) => Promise<void>,
 ): Promise<void> {
   const itemId = target.dataset.itemId;
-  if (!itemId) return;
-  const key = `${sheet.actor.uuid}:${itemId}`;
+  if (itemId === undefined || itemId === "") return;
+  const key = `${String(sheet.actor.uuid)}:${itemId}`;
   if (busyArts.has(key)) return;
   busyArts.add(key);
   try {
@@ -191,12 +188,12 @@ function setArtUses(art: Item.Implementation, uses: number): Promise<unknown> {
 }
 
 function activeUsesOf(art: Item.Implementation): number {
-  return Math.max(0, Math.floor(Number(systemOf<ArtDataFields>(art).activeUses) || 0));
+  return Math.max(0, Math.floor(systemOf<ArtDataFields>(art).activeUses || 0));
 }
 
 async function spendArtEffort(sheet: SheetHost, art: Item.Implementation): Promise<void> {
   if (summarizeActorEffort(sheet.actor).value < 1) {
-    ui.notifications?.warn(game.i18n.localize("KEDOM.Art.NoEffort"));
+    ui.notifications.warn(game.i18n.localize("KEDOM.Art.NoEffort"));
     return;
   }
   await setArtUses(art, activeUsesOf(art) + 1);
@@ -249,9 +246,8 @@ export async function onEditArt(
   _event: PointerEvent,
   target: HTMLElement,
 ): Promise<void> {
-  if (!this.actor) return;
   const itemId = target.dataset.itemId;
-  if (!itemId) return;
+  if (itemId === undefined || itemId === "") return;
   const art = this.actor.items.get(itemId);
   if (!art || (art.type as string) !== "art") return;
   await openSheet(art);
@@ -262,9 +258,9 @@ export async function onDeleteArt(
   _event: PointerEvent,
   target: HTMLElement,
 ): Promise<void> {
-  if (!this.isEditable || !this.actor) return;
+  if (!this.isEditable) return;
   const itemId = target.dataset.itemId;
-  if (!itemId) return;
+  if (itemId === undefined || itemId === "") return;
   const art = this.actor.items.get(itemId);
   if (!art || (art.type as string) !== "art") return;
   const confirmed = await foundry.applications.api.DialogV2.confirm({
@@ -273,7 +269,7 @@ export async function onDeleteArt(
       name: art.name,
     })}</p>`,
   });
-  if (!confirmed) return;
+  if (confirmed !== true) return;
   await art.delete();
 }
 
@@ -286,7 +282,7 @@ async function endArtPeriod(sheet: SheetHost, period: "scene" | "day"): Promise<
   for (const item of sheet.actor.items) {
     if ((item.type as string) !== "art") continue;
     const s = systemOf<ArtDataFields>(item);
-    const active = Math.max(0, Math.floor(Number(s.activeUses) || 0));
+    const active = Math.max(0, Math.floor(s.activeUses || 0));
     if (active < 1 || !ends.includes(s.commitment)) continue;
     uses += active;
     released.push({ _id: item.id, "system.activeUses": 0 });

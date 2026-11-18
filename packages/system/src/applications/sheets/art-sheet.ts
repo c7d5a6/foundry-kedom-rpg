@@ -41,7 +41,7 @@ export class ArtSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   ) {
     const context = await super._prepareContext(options);
     const system = systemOf<ArtDataFields>(this.item);
-    const enrichedDescription = await enrichHTML(system.description ?? "", {
+    const enrichedDescription = await enrichHTML(system.description, {
       secrets: this.item.isOwner,
       relativeTo: this.item,
     });
@@ -79,7 +79,7 @@ export class ArtSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     target: HTMLElement,
   ): Promise<void> {
     const id = target.dataset.effectId;
-    if (!id) return;
+    if (id === undefined || id === "") return;
     const effect = this.item.effects.get(id);
     if (effect) await openSheet(effect);
   }
@@ -91,14 +91,14 @@ export class ArtSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   ): Promise<void> {
     if (!this.isEditable) return;
     const id = target.dataset.effectId;
-    if (!id) return;
+    if (id === undefined || id === "") return;
     const effect = this.item.effects.get(id);
     if (!effect) return;
     const confirmed = await foundry.applications.api.DialogV2.confirm({
       window: { title: game.i18n.localize("KEDOM.Sheet.Action.deleteEffect") },
       content: `<p>${game.i18n.format("KEDOM.Sheet.DeleteEffectConfirm", { name: effect.name })}</p>`,
     });
-    if (!confirmed) return;
+    if (confirmed !== true) return;
     await effect.delete();
   }
 
@@ -109,7 +109,7 @@ export class ArtSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   ): Promise<void> {
     if (!this.isEditable) return;
     const id = target.dataset.effectId;
-    if (!id) return;
+    if (id === undefined || id === "") return;
     const effect = this.item.effects.get(id);
     if (!effect) return;
     await effect.update({ disabled: !effect.disabled });

@@ -22,6 +22,111 @@ export interface CharacterDetails {
 /** Origin tooltips are enriched HTML; cache them across renders (keyed by content). */
 export type TipCache = Map<string, string>;
 
+type OriginKind = "Region" | "Culture" | "Background" | "Class";
+interface IdentityPartData {
+  label: string;
+  tooltipHtml: string;
+  itemId: string | null;
+}
+
+interface OriginSystemSlice {
+  subType?: string;
+  slug?: string;
+}
+
+function originSlug(item: Item.Implementation): string {
+  return ((item.system as unknown as OriginSystemSlice).slug ?? "").trim();
+}
+
+function findOriginItem(
+  originItems: Item.Implementation[],
+  subType: string,
+  label: string,
+  slugHint = "",
+  contentKind?: OriginKind,
+): Item.Implementation | undefined {
+  const bySlug =
+    slugHint !== ""
+      ? originItems.find((item) => {
+          const sys = item.system as unknown as OriginSystemSlice;
+          return sys.subType === subType && (sys.slug ?? "") === slugHint;
+        })
+      : undefined;
+  if (bySlug) return bySlug;
+  return originItems.find((item) => {
+    const sys = item.system as unknown as OriginSystemSlice;
+    if (sys.subType !== subType) return false;
+    if (label === "") return true;
+    if (item.name === label) return true;
+    // Pack item names may differ from localized details labels.
+    if (contentKind) {
+      const slug = (sys.slug ?? "").trim();
+      if (slug !== "" && localizeContentLabel(contentKind, slug, item.name) === label) {
+        return true;
+      }
+    }
+    return false;
+  });
+}
+
+async function buildIdentityTip(
+  actor: Actor.Implementation,
+  tipCache: TipCache,
+  kind: OriginKind,
+  displayLabel: string,
+  item: Item.Implementation | undefined,
+  slugHint = "",
+): Promise<IdentityPartData | null> {
+  if (displayLabel === "" && slugHint === "") return null;
+  const sys = item?.system as unknown as { slug?: string; description?: string } | undefined;
+  const slug = (slugHint !== "" ? slugHint : (sys?.slug ?? "")).trim();
+  const fallbackName = item?.name !== undefined && item.name !== "" ? item.name : slug;
+  const label =
+    slug !== ""
+      ? localizeContentLabel(kind, slug, displayLabel !== "" ? displayLabel : fallbackName)
+      : displayLabel;
+  if (label === "") return null;
+  const itemId = item?.id ?? null;
+  const packDesc = sys?.description ?? "";
+  const raw = slug !== "" ? localizeContentDescription(kind, slug, packDesc) : packDesc;
+  const plain = raw.replace(/<[^>]*>/g, "").trim();
+  if (plain === "") return { label, tooltipHtml: "", itemId };
+  const cacheKey = `${game.i18n.lang}|${String(actor.isOwner)}|${item?.uuid ?? ""}|${raw}`;
+  let tooltipHtml = tipCache.get(cacheKey);
+  if (tooltipHtml === undefined) {
+    tooltipHtml = await enrichHTML(raw, {
+      secrets: actor.isOwner,
+      relativeTo: item,
+    });
+    if (tipCache.size >= 50) tipCache.clear();
+    tipCache.set(cacheKey, tooltipHtml);
+  }
+  return { label, tooltipHtml, itemId };
+}
+
+/** Full class: one origin. Adventurer: two partial origins (details.class is "A / B"). */
+function orderClassItems(
+  classOriginItems: Item.Implementation[],
+  classLabelParts: string[],
+): Item.Implementation[] {
+  if (classOriginItems.length <= 1) return classOriginItems;
+  if (classLabelParts.length === 0) return classOriginItems;
+  const remaining = [...classOriginItems];
+  const ordered: Item.Implementation[] = [];
+  for (const part of classLabelParts) {
+    const idx = remaining.findIndex((item) => {
+      if (item.name === part) return true;
+      const slug = originSlug(item);
+      return slug !== "" && localizeContentLabel("Class", slug, item.name) === part;
+    });
+    if (idx >= 0) {
+      const [found] = remaining.splice(idx, 1);
+      if (found !== undefined) ordered.push(found);
+    }
+  }
+  return [...ordered, ...remaining];
+}
+
 /** Header identity chips (region, culture, background, class) and the region banner. */
 export async function buildIdentity(
   actor: Actor.Implementation,
@@ -35,69 +140,16 @@ export async function buildIdentity(
   const regionSlug = (detailsRaw.region ?? "").trim();
 
   const originItems = actor.items.filter((item) => (item.type as string) === "origin");
-  const findOrigin = (
-    subType: string,
-    label: string,
-    slugHint = "",
-    contentKind?: "Region" | "Culture" | "Background" | "Class",
-  ) => {
-    const bySlug = slugHint
-      ? originItems.find((item) => {
-          const sys = item.system as unknown as { subType?: string; slug?: string };
-          return sys.subType === subType && (sys.slug ?? "") === slugHint;
-        })
-      : undefined;
-    if (bySlug) return bySlug;
-    return originItems.find((item) => {
-      const sys = item.system as unknown as { subType?: string; slug?: string };
-      if (sys.subType !== subType) return false;
-      if (!label) return true;
-      if (item.name === label) return true;
-      // Pack item names may differ from localized details labels.
-      if (contentKind) {
-        const slug = (sys.slug ?? "").trim();
-        if (slug && localizeContentLabel(contentKind, slug, item.name ?? slug) === label) {
-          return true;
-        }
-      }
-      return false;
-    });
-  };
-
-  const identityTip = async (
-    kind: "Region" | "Culture" | "Background" | "Class",
+  const tip = (
+    kind: OriginKind,
     displayLabel: string,
     item: Item.Implementation | undefined,
     slugHint = "",
-  ): Promise<{ label: string; tooltipHtml: string; itemId: string | null } | null> => {
-    if (!displayLabel && !slugHint) return null;
-    const sys = item?.system as unknown as { slug?: string; description?: string } | undefined;
-    const slug = (slugHint || sys?.slug || "").trim();
-    const label = slug
-      ? localizeContentLabel(kind, slug, displayLabel || item?.name || slug)
-      : displayLabel;
-    if (!label) return null;
-    const itemId = item?.id ?? null;
-    const packDesc = sys?.description ?? "";
-    const raw = slug ? localizeContentDescription(kind, slug, packDesc) : packDesc;
-    const plain = raw.replace(/<[^>]*>/g, "").trim();
-    if (!plain) return { label, tooltipHtml: "", itemId };
-    const cacheKey = `${game.i18n.lang}|${String(actor.isOwner)}|${item?.uuid ?? ""}|${raw}`;
-    let tooltipHtml = tipCache.get(cacheKey);
-    if (tooltipHtml === undefined) {
-      tooltipHtml = await enrichHTML(raw, {
-        secrets: actor.isOwner,
-        relativeTo: item,
-      });
-      if (tipCache.size >= 50) tipCache.clear();
-      tipCache.set(cacheKey, tooltipHtml);
-    }
-    return { label, tooltipHtml, itemId };
-  };
+  ) => buildIdentityTip(actor, tipCache, kind, displayLabel, item, slugHint);
 
-  const regionItem = findOrigin("region", "", regionSlug, "Region");
-  const raceItem = findOrigin("race", culture, "", "Culture");
-  const backgroundItem = findOrigin("background", background, "", "Background");
+  const regionItem = findOriginItem(originItems, "region", "", regionSlug, "Region");
+  const raceItem = findOriginItem(originItems, "race", culture, "", "Culture");
+  const backgroundItem = findOriginItem(originItems, "background", background, "", "Background");
   const raceSlug = (
     (raceItem?.system as unknown as { slug?: string } | undefined)?.slug ?? ""
   ).trim();
@@ -105,7 +157,6 @@ export async function buildIdentity(
     (backgroundItem?.system as unknown as { slug?: string } | undefined)?.slug ?? ""
   ).trim();
 
-  // Full class: one origin. Adventurer: two partial origins (details.class is "A / B").
   const classOriginItems = originItems.filter((item) => {
     const sys = item.system as unknown as { subType?: string };
     return sys.subType === "class";
@@ -114,42 +165,23 @@ export async function buildIdentity(
     .split(/\s*\/\s*/)
     .map((s) => s.trim())
     .filter(Boolean);
-  const orderedClassItems = (() => {
-    if (classOriginItems.length <= 1) return classOriginItems;
-    if (!classLabelParts.length) return classOriginItems;
-    const remaining = [...classOriginItems];
-    const ordered: Item.Implementation[] = [];
-    for (const part of classLabelParts) {
-      const idx = remaining.findIndex((item) => {
-        const sys = item.system as unknown as { slug?: string };
-        if (item.name === part) return true;
-        const slug = (sys.slug ?? "").trim();
-        return Boolean(slug && localizeContentLabel("Class", slug, item.name ?? slug) === part);
-      });
-      if (idx >= 0) ordered.push(remaining.splice(idx, 1)[0]!);
-    }
-    return [...ordered, ...remaining];
-  })();
+  const orderedClassItems = orderClassItems(classOriginItems, classLabelParts);
 
   const classTips =
     orderedClassItems.length > 0
       ? await Promise.all(
-          orderedClassItems.map((item) => {
-            const sys = item.system as unknown as { slug?: string };
-            const slug = (sys.slug ?? "").trim();
-            return identityTip("Class", item.name ?? "", item, slug);
-          }),
+          orderedClassItems.map((item) => tip("Class", item.name, item, originSlug(item))),
         )
-      : [await identityTip("Class", className, undefined, "")];
+      : [await tip("Class", className, undefined, "")];
 
-  const identityParts = (
-    await Promise.all([
-      identityTip("Region", regionItem?.name ?? regionSlug, regionItem, regionSlug),
-      identityTip("Culture", culture, raceItem, raceSlug),
-      identityTip("Background", background, backgroundItem, backgroundSlug),
-      ...classTips,
-    ])
-  ).filter((p): p is { label: string; tooltipHtml: string; itemId: string | null } => p !== null);
+  const headTips = await Promise.all([
+    tip("Region", regionItem?.name ?? regionSlug, regionItem, regionSlug),
+    tip("Culture", culture, raceItem, raceSlug),
+    tip("Background", background, backgroundItem, backgroundSlug),
+  ]);
+  const identityParts = [...headTips, ...classTips].filter(
+    (p): p is IdentityPartData => p !== null,
+  );
 
   const regionSys = regionItem?.system as unknown as { bannerImg?: string } | undefined;
   const sheetBannerImg = (regionSys?.bannerImg ?? "").trim();

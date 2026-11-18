@@ -35,13 +35,13 @@ export async function buildArts(actor: Actor.Implementation, enabled: boolean) {
   const arts = await Promise.all(
     artItems.map(async (item) => {
       const system = systemOf<ArtDataFields>(item);
-      const enrichedDescription = await enrichHTML(system.description ?? "", {
+      const enrichedDescription = await enrichHTML(system.description, {
         secrets: actor.isOwner,
         relativeTo: item,
       });
       const activeUses = artActiveUses({
         commitment: system.commitment,
-        activeUses: Number(system.activeUses) || 0,
+        activeUses: system.activeUses || 0,
       });
       const holding = artHoldsEffort({
         commitment: system.commitment,
@@ -58,7 +58,7 @@ export async function buildArts(actor: Actor.Implementation, enabled: boolean) {
         activeUses,
         holding,
         enrichedDescription,
-        hasDescription: Boolean((system.description ?? "").replace(/<[^>]*>/g, "").trim()),
+        hasDescription: Boolean(system.description.replace(/<[^>]*>/g, "").trim()),
       };
     }),
   );

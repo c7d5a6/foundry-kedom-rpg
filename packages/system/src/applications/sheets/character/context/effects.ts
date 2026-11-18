@@ -1,5 +1,10 @@
 import { collate } from "./shared.ts";
 
+/** Effect icons may be null or blank at runtime; fall back to the default aura icon. */
+function effectImage(img: string | null | undefined): string {
+  return img !== undefined && img !== null && img !== "" ? img : "icons/svg/aura.svg";
+}
+
 /** Actor-owned vs item-sourced effects. Empty off the effects tab. */
 export function buildEffects(actor: Actor.Implementation, enabled: boolean) {
   const actorEffects: {
@@ -20,9 +25,10 @@ export function buildEffects(actor: Actor.Implementation, enabled: boolean) {
         ? parent
         : null;
     const row = {
-      id: effect.id ?? "",
+      // Unsaved effects have no id at runtime; the declared type says string.
+      id: (effect.id as string | null | undefined) ?? "",
       name: effect.name,
-      img: effect.img || "icons/svg/aura.svg",
+      img: effectImage(effect.img),
       disabled: effect.disabled,
       sourceName: parentItem?.name ?? (effect as { sourceName?: string }).sourceName ?? "",
       parentIsActor,

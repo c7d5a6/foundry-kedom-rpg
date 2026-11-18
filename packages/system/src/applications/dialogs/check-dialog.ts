@@ -15,14 +15,20 @@ function formatSigned(value: number): string {
   return value >= 0 ? `+${String(value)}` : String(value);
 }
 
+/** A form entry as text; absent or file entries fall back (as `String(x ?? fallback)` did for non-text). */
+function formText(data: FormData, name: string, fallback: string): string {
+  const value = data.get(name);
+  return typeof value === "string" ? value : fallback;
+}
+
 function parseForm(form: HTMLFormElement, defaults: CheckConfigureResult): CheckConfigureResult {
   const data = new FormData(form);
-  const difficultyRaw = String(data.get("difficulty") ?? "trained");
+  const difficultyRaw = formText(data, "difficulty", "trained");
   const difficulty = (
     DIFFICULTY_COLUMNS.includes(difficultyRaw as DifficultyColumn) ? difficultyRaw : "trained"
   ) as DifficultyColumn;
-  const situational = Number.parseInt(String(data.get("situational") ?? "0"), 10) || 0;
-  const advantageNet = Number.parseInt(String(data.get("advantageNet") ?? "0"), 10) || 0;
+  const situational = Number.parseInt(formText(data, "situational", "0"), 10) || 0;
+  const advantageNet = Number.parseInt(formText(data, "advantageNet", "0"), 10) || 0;
   return { difficulty, situational, advantageNet, baseDice: defaults.baseDice };
 }
 
@@ -61,6 +67,34 @@ function wireBandTable(root: HTMLElement): void {
   sync();
 }
 
+function outcomeLabel(o: { kind: string; degree: number }): string {
+  if (o.kind === "cost") return localize("KEDOM.Roll.Dialog.bandCost", "Cost");
+  const word =
+    o.kind === "failure"
+      ? localize("KEDOM.Outcome.failure", "Failure")
+      : localize("KEDOM.Outcome.success", "Success");
+  return `${word} ${String(o.degree)}`;
+}
+
+function bandRowsContext(): object[] {
+  return bandRows().map((row) => ({
+    range: row.range,
+    cells: DIFFICULTY_COLUMNS.map((key) => ({
+      key,
+      kind: row.outcomes[key].kind,
+      label: outcomeLabel(row.outcomes[key]),
+    })),
+  }));
+}
+
+function difficultiesContext(selectedKey: DifficultyColumn): object[] {
+  return DIFFICULTY_COLUMNS.map((key) => ({
+    key,
+    label: localize(`KEDOM.DifficultyColumn.${key}`, key.charAt(0).toUpperCase() + key.slice(1)),
+    selected: key === selectedKey,
+  }));
+}
+
 /**
  * Opt-in pre-roll dialog: difficulty button-radios, advantage net, situational mod.
  * Resolves with the chosen values, or `null` if cancelled.
@@ -75,27 +109,8 @@ export async function promptCheckDialog(options: {
   const defaults = { ...defaultCheckConfigure(), ...options.defaults };
   const diceTerm =
     options.diceTerm ?? ((net: number) => skillCheckDiceTerm(net, defaults.baseDice));
-  const outcomeLabel = (o: { kind: string; degree: number }): string => {
-    if (o.kind === "cost") return localize("KEDOM.Roll.Dialog.bandCost", "Cost");
-    const word =
-      o.kind === "failure"
-        ? localize("KEDOM.Outcome.failure", "Failure")
-        : localize("KEDOM.Outcome.success", "Success");
-    return `${word} ${String(o.degree)}`;
-  };
-  const rows = bandRows().map((row) => ({
-    range: row.range,
-    cells: DIFFICULTY_COLUMNS.map((key) => ({
-      key,
-      kind: row.outcomes[key].kind,
-      label: outcomeLabel(row.outcomes[key]),
-    })),
-  }));
-  const difficulties = DIFFICULTY_COLUMNS.map((key) => ({
-    key,
-    label: localize(`KEDOM.DifficultyColumn.${key}`, key.charAt(0).toUpperCase() + key.slice(1)),
-    selected: key === defaults.difficulty,
-  }));
+  const rows = bandRowsContext();
+  const difficulties = difficultiesContext(defaults.difficulty);
 
   const content = await foundry.applications.handlebars.renderTemplate(TEMPLATE, {
     title: options.title,
@@ -125,7 +140,9 @@ export async function promptCheckDialog(options: {
           icon: "fa-solid fa-dice-d20",
           default: true,
           callback: (_event, button, dialog) => {
-            const root = dialog?.element ?? button.closest("dialog") ?? button.closest(".app");
+            // Runtime may omit the dialog or its element; fvtt-types claims both are present.
+            const dialogElement = (dialog as { element?: Element | null } | undefined)?.element;
+            const root = dialogElement ?? button.closest("dialog") ?? button.closest(".app");
             const form =
               button.form ?? (root instanceof HTMLElement ? root.querySelector("form") : null);
             if (!(form instanceof HTMLFormElement)) return defaultCheckConfigure();

@@ -2,7 +2,7 @@ import { openSheet } from "../../open-sheet.ts";
 import type { SheetHost } from "./helpers.ts";
 
 export async function onCreateActorEffect(this: SheetHost): Promise<void> {
-  if (!this.isEditable || !this.actor) return;
+  if (!this.isEditable) return;
   const created = await this.actor.createEmbeddedDocuments("ActiveEffect", [
     {
       name: game.i18n.localize("KEDOM.Sheet.NewEffect"),
@@ -33,12 +33,12 @@ export async function onEditEffect(
   target: HTMLElement,
 ): Promise<void> {
   const effectId = target.dataset.effectId;
-  if (!effectId) return;
+  if (effectId === undefined || effectId === "") return;
   const effect = findApplicableEffect(this, effectId);
   if (!effect) return;
   const parent = effect.parent;
   if (parent && parent !== this.actor && "sheet" in parent) {
-    await openSheet(parent as Item.Implementation);
+    await openSheet(parent);
     return;
   }
   await openSheet(effect);
@@ -49,9 +49,9 @@ export async function onDeleteEffect(
   _event: PointerEvent,
   target: HTMLElement,
 ): Promise<void> {
-  if (!this.isEditable || !this.actor) return;
+  if (!this.isEditable) return;
   const effectId = target.dataset.effectId;
-  if (!effectId) return;
+  if (effectId === undefined || effectId === "") return;
   const effect = this.actor.effects.get(effectId);
   if (!effect) {
     ui.notifications.warn(game.i18n.localize("KEDOM.Sheet.EffectDeleteFromItem"));
@@ -63,7 +63,7 @@ export async function onDeleteEffect(
       name: effect.name,
     })}</p>`,
   });
-  if (!confirmed) return;
+  if (confirmed !== true) return;
   await effect.delete();
 }
 
@@ -74,7 +74,7 @@ export async function onToggleEffect(
 ): Promise<void> {
   if (!this.isEditable) return;
   const effectId = target.dataset.effectId;
-  if (!effectId) return;
+  if (effectId === undefined || effectId === "") return;
   const effect = findApplicableEffect(this, effectId);
   if (!effect) return;
   await effect.update({ disabled: !effect.disabled });
@@ -86,7 +86,7 @@ export async function onOpenEffectSource(
   target: HTMLElement,
 ): Promise<void> {
   const itemId = target.dataset.itemId;
-  if (!itemId || !this.actor) return;
+  if (itemId === undefined || itemId === "") return;
   const item = this.actor.items.get(itemId);
   if (!item) return;
   await openSheet(item);

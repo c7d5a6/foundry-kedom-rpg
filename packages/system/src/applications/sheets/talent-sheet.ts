@@ -46,7 +46,7 @@ export class TalentSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   ) {
     const context = await super._prepareContext(options);
     const system = systemOf<TalentDataFields>(this.item);
-    const enrichedDescription = await enrichHTML(system.description ?? "", {
+    const enrichedDescription = await enrichHTML(system.description, {
       secrets: this.item.isOwner,
       relativeTo: this.item,
     });
@@ -81,7 +81,7 @@ export class TalentSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static async #onAddSkillAdvantage(this: TalentSheet): Promise<void> {
     if (!this.isEditable) return;
     const skillKey = await promptSkillKeyForAdvantage();
-    if (!skillKey) return;
+    if (skillKey === null) return;
     const effect = await createSkillAdvantageEffect(this.item, skillKey);
     if (effect) await this.render();
   }
@@ -92,7 +92,7 @@ export class TalentSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     target: HTMLElement,
   ): Promise<void> {
     const effectId = target.dataset.effectId;
-    if (!effectId) return;
+    if (effectId === undefined || effectId === "") return;
     const effect = this.item.effects.get(effectId);
     if (!effect) return;
     await openSheet(effect);
@@ -105,7 +105,7 @@ export class TalentSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   ): Promise<void> {
     if (!this.isEditable) return;
     const effectId = target.dataset.effectId;
-    if (!effectId) return;
+    if (effectId === undefined || effectId === "") return;
     const effect = this.item.effects.get(effectId);
     if (!effect) return;
     const confirmed = await foundry.applications.api.DialogV2.confirm({
@@ -114,7 +114,7 @@ export class TalentSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         name: effect.name,
       })}</p>`,
     });
-    if (!confirmed) return;
+    if (confirmed !== true) return;
     await effect.delete();
   }
 
@@ -125,7 +125,7 @@ export class TalentSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   ): Promise<void> {
     if (!this.isEditable) return;
     const effectId = target.dataset.effectId;
-    if (!effectId) return;
+    if (effectId === undefined || effectId === "") return;
     const effect = this.item.effects.get(effectId);
     if (!effect) return;
     await effect.update({ disabled: !effect.disabled });
