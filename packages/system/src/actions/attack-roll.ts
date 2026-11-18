@@ -41,23 +41,31 @@ export interface KedomAttackFlags {
   /** Set once this card has been superseded by a reroll. */
   rerolled?: boolean;
   damageTotal: number | null;
-  modifiers: { label: string; value: number }[];
-  damageModifiers: { label: string; value: number }[];
+  /** Absent on cards written before modifiers were recorded. */
+  modifiers?: { label: string; value: number }[];
+  /** Absent on cards written before modifiers were recorded. */
+  damageModifiers?: { label: string; value: number }[];
 }
 
 export function readWeaponSystem(item: Item.Implementation): WeaponDataFields | null {
   // fvtt-types: Item subtypes from system.json are not in the core union yet
   if ((item.type as string) !== "weapon") return null;
-  const system = item.system as unknown as WeaponDataFields & { ability?: string };
+  // Items saved by older versions may lack any of these fields, hence Partial.
+  const system = item.system as unknown as Partial<WeaponDataFields> & { ability?: string };
   return {
     skill: normalizeWeaponSkill(system.skill ?? system.ability),
-    damageFormula: system.damageFormula || "1d6",
+    damageFormula:
+      typeof system.damageFormula === "string" && system.damageFormula !== ""
+        ? system.damageFormula
+        : "1d6",
     attackBonus: Math.floor(system.attackBonus ?? 0),
   };
 }
 
 function resolveTargetAc(): { targetActorUuid: string | null; targetAc: number | null } {
-  const targets = [...(game.user?.targets ?? [])];
+  // game.user is unset until Foundry finishes loading the session; the types claim otherwise.
+  const user = game.user as User.Implementation | null | undefined;
+  const targets = [...(user?.targets ?? [])];
   if (targets.length !== 1) return { targetActorUuid: null, targetAc: null };
   const token = targets[0];
   const actor = token?.actor;
@@ -211,6 +219,35 @@ async function styleDamageRollHTML(
   });
 }
 
+function attackFlavor(opts: {
+  weaponName: string;
+  bonus: number;
+  hit: boolean | null;
+  targetAc: number | null;
+  isCrit: boolean;
+}): string {
+  const flavorParts = [
+    game.i18n.format("KEDOM.Chat.AttackFlavor", {
+      weapon: opts.weaponName,
+      bonus: formatSignedBonus(opts.bonus),
+    }),
+  ];
+  if (opts.hit !== null && opts.targetAc !== null) {
+    flavorParts.push(
+      game.i18n.format("KEDOM.Chat.AttackVsAc", {
+        ac: String(opts.targetAc),
+        result: opts.hit
+          ? game.i18n.localize("KEDOM.Chat.AttackHit")
+          : game.i18n.localize("KEDOM.Chat.AttackMiss"),
+      }),
+    );
+  }
+  if (opts.isCrit) {
+    flavorParts.push(game.i18n.localize("KEDOM.Chat.AttackCrit"));
+  }
+  return flavorParts.join(" — ");
+}
+
 /**
  * Attack: `1d20 + ability + skill proficiency + skill attack mod + weapon AB`, then damage
  * (maximized on natural 20). Inspectable dice like skill/Luck cards.
@@ -236,9 +273,9 @@ export async function rollAttack(
   const bonus = attackBonusTotal(modifiers);
   const attackFormula = labeledCheckFormula("1d20", weapon.name || "Attack", modifiers);
   const attackRoll = await new Roll(attackFormula).evaluate();
-  const diceTotal = attackRoll.total ?? 0;
+  const diceTotal = attackRoll.total;
   const d20Term = attackRoll.dice.find((d) => d.faces === 20);
-  const d20 = d20Term?.results?.[0]?.result ?? d20Term?.total ?? 0;
+  const d20 = d20Term?.results[0]?.result ?? d20Term?.total ?? 0;
   const isCrit = d20 === 20;
 
   const { targetActorUuid, targetAc } = resolveTargetAc();
@@ -253,7 +290,7 @@ export async function rollAttack(
   const damageRoll = isCrit
     ? await new Roll(damageFormula).evaluate({ maximize: true })
     : await new Roll(damageFormula).evaluate();
-  const damageTotal = damageRoll.total ?? 0;
+  const damageTotal = damageRoll.total;
 
   const flags: KedomAttackFlags = {
     actorUuid: actor.uuid ?? "",
@@ -274,29 +311,11 @@ export async function rollAttack(
 
   const content = await renderAttackCardContent(flags, [attackRoll, damageRoll]);
 
-  const flavorParts = [
-    game.i18n.format("KEDOM.Chat.AttackFlavor", {
-      weapon: weapon.name,
-      bonus: formatSignedBonus(bonus),
-    }),
-  ];
-  if (hit !== null && targetAc !== null) {
-    flavorParts.push(
-      game.i18n.format("KEDOM.Chat.AttackVsAc", {
-        ac: String(targetAc),
-        result: hit
-          ? game.i18n.localize("KEDOM.Chat.AttackHit")
-          : game.i18n.localize("KEDOM.Chat.AttackMiss"),
-      }),
-    );
-  }
-  if (isCrit) {
-    flavorParts.push(game.i18n.localize("KEDOM.Chat.AttackCrit"));
-  }
+  const flavor = attackFlavor({ weaponName: weapon.name, bonus, hit, targetAc, isCrit });
 
   const messageData = {
     speaker: ChatMessage.getSpeaker({ actor: actor as Actor.Stored }),
-    flavor: flavorParts.join(" — "),
+    flavor,
     content,
     rolls: [attackRoll, damageRoll],
     sound: CONFIG.sounds.dice,

@@ -54,6 +54,14 @@ export function checkDiceExpression(advantageNet: number, baseDice = 2): string 
   return skillCheckDiceTerm(advantageNet, baseDice);
 }
 
+/** Localised difficulty-column name for card flavor, capitalised when no translation exists. */
+export function difficultyFlavorLabel(difficulty: string): string {
+  return localize(
+    `KEDOM.DifficultyColumn.${difficulty}`,
+    difficulty.charAt(0).toUpperCase() + difficulty.slice(1),
+  );
+}
+
 export function advantageFlavorSuffix(advantageNet: number): string {
   const n = Math.trunc(advantageNet);
   if (n === 0) return "";

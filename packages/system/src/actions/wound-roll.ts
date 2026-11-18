@@ -23,11 +23,13 @@ export interface KedomWoundFlags {
   bodyPart: BodyPartKey;
   /** Raw luck-save total before table clamp. */
   tableTotal: number;
-  /** Total used for the wound table (−3…30). */
-  tableRow: number;
+  /** Total used for the wound table (−3…30). Absent on cards written before the clamp existed. */
+  tableRow?: number;
   luckMod: number;
-  armorBonus: number;
-  modifiers: { label: string; value: number }[];
+  /** Absent on cards written before armor bonuses existed. */
+  armorBonus?: number;
+  /** Absent on cards written before modifiers were recorded. */
+  modifiers?: { label: string; value: number }[];
   ignored: boolean;
 }
 
@@ -43,7 +45,7 @@ function buildWoundLuckModifiers(actor: Actor.Implementation): Modifier[] {
   const lck = (system.abilities as { lck?: { mod?: number } }).lck;
   const luckMod = lck?.mod ?? 0;
   const tier = (save?.proficiency ?? "untrained") as ProficiencyTier;
-  const profBonus = PROFICIENCY_BONUS[tier] ?? 0;
+  const profBonus = (PROFICIENCY_BONUS as Partial<Record<string, number>>)[tier] ?? 0;
   const armorBonus = ownedArmorWoundBonus(actor);
 
   const abilityLabel = localize("KEDOM.Ability.lck.label", "Luck");
@@ -107,9 +109,9 @@ export async function takeWound(actor: Actor.Implementation): Promise<void> {
   const formula = labeledCheckFormula("1d20", saveLabel, modifiers);
   const tableRoll = await new Roll(formula).evaluate();
   const bodyRoll = await new Roll("1d8").evaluate();
-  const tableTotal = tableRoll.total ?? 0;
+  const tableTotal = tableRoll.total;
   const tableRow = clampWoundTableTotal(tableTotal);
-  const bodyDie = bodyRoll.total ?? 1;
+  const bodyDie = bodyRoll.total;
   const effectIndex = lookupWoundEffectIndex(tableRow, woundCount);
   const bodyPart = bodyPartFromRoll(bodyDie);
   const bodyPartLabel = localize(`KEDOM.Wound.BodyPart.${bodyPart}`, bodyPart);

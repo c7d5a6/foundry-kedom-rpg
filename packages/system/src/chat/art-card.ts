@@ -6,12 +6,16 @@ import type { ArtDataFields } from "../data/item/art.ts";
 export async function postArtUseChat(item: Item.Implementation): Promise<void> {
   const actor = item.actor;
   if (!actor) return;
-  const system = systemOf<ArtDataFields>(item);
+  // game.user is unset until Foundry finishes loading the session; the types claim otherwise.
+  const user = game.user as User.Implementation | null | undefined;
+  const system = systemOf<Partial<ArtDataFields>>(item);
   const description = await enrichHTML(system.description ?? "", {
     secrets: false,
     relativeTo: item,
   });
-  const commitment = system.commitment || "scene";
+  // Items created before `commitment` existed may lack it (or hold an empty string).
+  const stored: string | undefined = system.commitment;
+  const commitment = stored === undefined || stored === "" ? "scene" : stored;
   const free = commitment === "free";
   const content = await foundry.applications.handlebars.renderTemplate(
     "systems/kedom/templates/chat/art.hbs",
@@ -25,7 +29,7 @@ export async function postArtUseChat(item: Item.Implementation): Promise<void> {
     },
   );
   await ChatMessage.implementation.create({
-    author: game.user?.id,
+    author: user?.id,
     speaker: ChatMessage.implementation.getSpeaker({ actor: actor as Actor.Stored }),
     content,
     style: CONST.CHAT_MESSAGE_STYLES.OTHER,

@@ -75,7 +75,7 @@ async function handleUpdateRequest(
   try {
     const message = game.messages.get(payload.messageId);
     const uuid = message ? flagActorUuid(message) : null;
-    const actor = uuid ? await fromUuid(uuid) : null;
+    const actor = uuid !== null && uuid !== "" ? await fromUuid(uuid) : null;
     const sender = game.users.get(payload.userId);
     if (message && sender && actor instanceof Actor && actor.testUserPermission(sender, "OWNER")) {
       // Only content and Kedom flags may be patched through the relay.
@@ -99,6 +99,6 @@ export function registerMessageSocket(): void {
       pending.delete(payload.requestId);
       return;
     }
-    if (game.users.activeGM?.isSelf) void handleUpdateRequest(payload);
+    if (game.users.activeGM?.isSelf === true) void handleUpdateRequest(payload);
   });
 }

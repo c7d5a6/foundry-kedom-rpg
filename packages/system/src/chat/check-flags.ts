@@ -21,7 +21,8 @@ export interface KedomGradedCheckFlags {
   /** Set once this card has been superseded by a reroll. */
   rerolled?: boolean;
   /** Base modifiers shown in the tooltip (before Luck spend line). */
-  modifiers: { label: string; value: number }[];
+  /** Absent on cards written before modifiers were recorded. */
+  modifiers?: { label: string; value: number }[];
 }
 
 export interface KedomMessageFlags {
@@ -32,8 +33,9 @@ export function getKedomCheckFlags(
   message: ChatMessage.Implementation,
 ): KedomGradedCheckFlags | null {
   const check = getKedomFlag<KedomGradedCheckFlags>(message, "check");
-  if (!check || (check.kind !== "skill" && check.kind !== "save" && check.kind !== "luck-save")) {
-    return null;
-  }
+  if (!check) return null;
+  // Stored flags may hold a kind this version does not know, so do not trust the union.
+  const kind: string = check.kind;
+  if (kind !== "skill" && kind !== "save" && kind !== "luck-save") return null;
   return check;
 }

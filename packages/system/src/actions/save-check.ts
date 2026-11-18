@@ -3,6 +3,7 @@ import { localize } from "../i18n/localize.ts";
 import {
   PROFICIENCY_BONUS,
   SAVE_ABILITY,
+  type AbilityKey,
   type ProficiencyTier,
   type SaveKey,
 } from "../config/kedom.ts";
@@ -15,37 +16,21 @@ import { renderGradedCheckContent } from "./check-card.ts";
 import { labeledCheckFormula } from "../rolls/labeled-formula.ts";
 import {
   advantageFlavorSuffix,
+  difficultyFlavorLabel,
   checkDiceExpression,
   resolveCheckConfigure,
   withSituationalModifier,
 } from "./resolve-check-configure.ts";
 import { resolveOutcome } from "../rolls/resolve-outcome.ts";
 
-const CHECK_TEMPLATE = "systems/kedom/templates/chat/check.hbs";
-
-/**
- * Saves use the skill die and full proficiency bonus (no specialisations).
- */
-export async function rollSaveCheck(
-  actor: Actor.Implementation,
+function saveBaseModifiers(
+  save: SaveFields,
   saveKey: SaveKey,
-  options: CheckConfigureOptions = {},
-): Promise<void> {
-  const system = characterData(actor);
-  const save = system.saves[saveKey] as SaveFields | undefined;
-  const abilityKey = SAVE_ABILITY[saveKey];
-  if (!save || !abilityKey) {
-    ui.notifications.error(game.i18n.localize("KEDOM.Chat.MissingSkillData"));
-    return;
-  }
-
-  const ability = (system.abilities as Record<string, { mod?: number }>)[abilityKey];
-  const abilityMod = ability?.mod ?? 0;
-  const tier = save.proficiency as ProficiencyTier;
-  const profBonus = PROFICIENCY_BONUS[tier] ?? 0;
-  const bonus = save.mod ?? abilityMod + profBonus;
-
-  const saveLabel = localize(`KEDOM.Save.${saveKey}`, saveKey);
+  abilityKey: AbilityKey,
+  tier: ProficiencyTier,
+  abilityMod: number,
+  profBonus: number,
+): Modifier[] {
   const abilityLabel = localize(`KEDOM.Ability.${abilityKey}.label`, abilityKey);
   const tierLabel = localize(`KEDOM.Proficiency.${tier}`, tier);
 
@@ -71,6 +56,34 @@ export async function rollSaveCheck(
       label: localize("KEDOM.Roll.modifier.effects", "Effects"),
     }),
   );
+  return baseModifiers;
+}
+
+/**
+ * Saves use the skill die and full proficiency bonus (no specialisations).
+ */
+export async function rollSaveCheck(
+  actor: Actor.Implementation,
+  saveKey: SaveKey,
+  options: CheckConfigureOptions = {},
+): Promise<void> {
+  const system = characterData(actor);
+  const save = system.saves[saveKey] as SaveFields | undefined;
+  // saveKey can come from stored chat flags, so it may be a key this version no longer knows.
+  const abilityKey = SAVE_ABILITY[saveKey] as AbilityKey | undefined;
+  if (!save || !abilityKey) {
+    ui.notifications.error(game.i18n.localize("KEDOM.Chat.MissingSkillData"));
+    return;
+  }
+
+  const ability = (system.abilities as Record<string, { mod?: number }>)[abilityKey];
+  const abilityMod = ability?.mod ?? 0;
+  const tier = save.proficiency as ProficiencyTier;
+  const profBonus = (PROFICIENCY_BONUS as Partial<Record<string, number>>)[tier] ?? 0;
+  const bonus = save.mod ?? abilityMod + profBonus;
+
+  const saveLabel = localize(`KEDOM.Save.${saveKey}`, saveKey);
+  const baseModifiers = saveBaseModifiers(save, saveKey, abilityKey, tier, abilityMod, profBonus);
 
   const configured = await resolveCheckConfigure(
     game.i18n.format("KEDOM.Roll.Dialog.titleSave", { save: saveLabel }),
@@ -81,13 +94,10 @@ export async function rollSaveCheck(
 
   const modifiers = withSituationalModifier(baseModifiers, configured.situational);
   const { difficulty, advantageNet } = configured;
-  const difficultyLabel = localize(
-    `KEDOM.DifficultyColumn.${difficulty}`,
-    difficulty.charAt(0).toUpperCase() + difficulty.slice(1),
-  );
+  const difficultyLabel = difficultyFlavorLabel(difficulty);
   const formula = labeledCheckFormula(checkDiceExpression(advantageNet), saveLabel, modifiers);
   const roll = await new Roll(formula).evaluate();
-  const total = roll.total ?? 0;
+  const total = roll.total;
   const outcome = resolveOutcome({ total, difficulty });
 
   const content = await renderGradedCheckContent({
@@ -98,6 +108,35 @@ export async function rollSaveCheck(
     difficulty,
   });
 
+  await postSaveCard({
+    actor,
+    saveKey,
+    roll,
+    content,
+    modifiers,
+    configured,
+    saveLabel,
+    difficultyLabel,
+    bonus,
+    total,
+  });
+}
+
+async function postSaveCard(args: {
+  actor: Actor.Implementation;
+  saveKey: SaveKey;
+  roll: Roll;
+  content: string;
+  modifiers: readonly Modifier[];
+  configured: NonNullable<Awaited<ReturnType<typeof resolveCheckConfigure>>>;
+  saveLabel: string;
+  difficultyLabel: string;
+  bonus: number;
+  total: number;
+}): Promise<void> {
+  const { actor, saveKey, roll, content, modifiers, configured } = args;
+  const { saveLabel, difficultyLabel, bonus, total } = args;
+  const { difficulty, advantageNet } = configured;
   const messageData = {
     speaker: ChatMessage.getSpeaker({ actor: actor as Actor.Stored }),
     flavor:
@@ -129,6 +168,3 @@ export async function rollSaveCheck(
   // @ts-expect-error fvtt-types: kedom system flags are not in the core ChatMessage flag union yet
   await ChatMessage.create(messageData);
 }
-
-// Keep CHECK_TEMPLATE referenced for loadTemplates parity if needed elsewhere
-CHECK_TEMPLATE;

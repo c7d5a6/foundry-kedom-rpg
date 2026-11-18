@@ -35,22 +35,90 @@ export function verdictFor(outcome: GradedOutcome): {
   };
 }
 
+interface CheckRollStyleOptions {
+  panelClass: "success" | "failure" | "cost";
+  verdictLabel: string;
+  degreeIcons: { cssClass: string; kind: string }[];
+  outcomeSummary: string;
+  /** One muted line under the verdict, e.g. how close the roll was to the next outcome. */
+  subtitle?: string;
+  modifiers?: readonly { label: string; value: number }[];
+}
+
+function restyleFormula(doc: Document, formula: HTMLElement, opts: CheckRollStyleOptions): void {
+  formula.classList.remove("success", "failure", "cost");
+  formula.classList.add(opts.panelClass);
+  formula.replaceChildren();
+
+  const text = doc.createElement("span");
+  text.className = "kedom-chat-check__verdict-text";
+  text.textContent = opts.verdictLabel;
+  formula.append(text);
+
+  if (opts.degreeIcons.length > 0) {
+    formula.append(doc.createTextNode(" "));
+    const iconsWrap = doc.createElement("span");
+    iconsWrap.className = "kedom-chat-check__roll-icons";
+    iconsWrap.setAttribute("aria-hidden", "true");
+    for (const icon of opts.degreeIcons) {
+      const el = doc.createElement("i");
+      el.className = `fas ${icon.cssClass} kedom-chat-check__degree kedom-chat-check__degree--${icon.kind}`;
+      iconsWrap.append(el);
+    }
+    formula.append(iconsWrap);
+  }
+
+  if (opts.subtitle !== undefined) {
+    const sub = doc.createElement("span");
+    sub.className = "kedom-chat-check__subtitle";
+    sub.textContent = opts.subtitle;
+    formula.append(sub);
+  }
+}
+
+function appendModifierSections(
+  doc: Document,
+  tooltip: HTMLElement,
+  modifiers: readonly { label: string; value: number }[],
+): void {
+  for (const part of modifierTooltipParts(modifiers)) {
+    const section = doc.createElement("section");
+    section.className = "tooltip-part kedom-chat-check__modifier";
+
+    const dice = doc.createElement("div");
+    dice.className = "dice";
+
+    const header = doc.createElement("header");
+    header.className = "part-header flexrow";
+
+    const partFormula = doc.createElement("span");
+    partFormula.className = "part-formula";
+    partFormula.textContent = part.formula;
+    header.append(partFormula);
+
+    if (part.flavor) {
+      const partFlavor = doc.createElement("span");
+      partFlavor.className = "part-flavor";
+      partFlavor.textContent = part.flavor;
+      header.append(partFlavor);
+    }
+
+    const partTotal = doc.createElement("span");
+    partTotal.className = "part-total";
+    partTotal.textContent = String(part.total);
+    header.append(partTotal);
+
+    dice.append(header);
+    section.append(dice);
+    tooltip.append(section);
+  }
+}
+
 /**
  * Restyle Foundry's default roll HTML into a CoC-like card:
  * clickable success/fail panel → expand for dice + modifiers → total below.
  */
-export function styleCheckRollHTML(
-  rollHTML: string,
-  opts: {
-    panelClass: "success" | "failure" | "cost";
-    verdictLabel: string;
-    degreeIcons: { cssClass: string; kind: string }[];
-    outcomeSummary: string;
-    /** One muted line under the verdict, e.g. how close the roll was to the next outcome. */
-    subtitle?: string;
-    modifiers?: readonly { label: string; value: number }[];
-  },
-): string {
+export function styleCheckRollHTML(rollHTML: string, opts: CheckRollStyleOptions): string {
   const doc = new DOMParser().parseFromString(rollHTML, "text/html");
   const root = doc.body.firstElementChild;
   if (!(root instanceof HTMLElement)) return rollHTML;
@@ -61,36 +129,7 @@ export function styleCheckRollHTML(
   }
 
   const formula = root.querySelector(".dice-formula");
-  if (formula instanceof HTMLElement) {
-    formula.classList.remove("success", "failure", "cost");
-    formula.classList.add(opts.panelClass);
-    formula.replaceChildren();
-
-    const text = doc.createElement("span");
-    text.className = "kedom-chat-check__verdict-text";
-    text.textContent = opts.verdictLabel;
-    formula.append(text);
-
-    if (opts.degreeIcons.length > 0) {
-      formula.append(doc.createTextNode(" "));
-      const iconsWrap = doc.createElement("span");
-      iconsWrap.className = "kedom-chat-check__roll-icons";
-      iconsWrap.setAttribute("aria-hidden", "true");
-      for (const icon of opts.degreeIcons) {
-        const el = doc.createElement("i");
-        el.className = `fas ${icon.cssClass} kedom-chat-check__degree kedom-chat-check__degree--${icon.kind}`;
-        iconsWrap.append(el);
-      }
-      formula.append(iconsWrap);
-    }
-
-    if (opts.subtitle !== undefined) {
-      const sub = doc.createElement("span");
-      sub.className = "kedom-chat-check__subtitle";
-      sub.textContent = opts.subtitle;
-      formula.append(sub);
-    }
-  }
+  if (formula instanceof HTMLElement) restyleFormula(doc, formula, opts);
 
   const total = root.querySelector(".dice-total");
   if (total instanceof HTMLElement) {
@@ -101,37 +140,7 @@ export function styleCheckRollHTML(
   const tooltip =
     root.querySelector(".dice-tooltip .wrapper") ?? root.querySelector(".dice-tooltip");
   if (tooltip instanceof HTMLElement) {
-    for (const part of modifierTooltipParts(opts.modifiers ?? [])) {
-      const section = doc.createElement("section");
-      section.className = "tooltip-part kedom-chat-check__modifier";
-
-      const dice = doc.createElement("div");
-      dice.className = "dice";
-
-      const header = doc.createElement("header");
-      header.className = "part-header flexrow";
-
-      const partFormula = doc.createElement("span");
-      partFormula.className = "part-formula";
-      partFormula.textContent = part.formula;
-      header.append(partFormula);
-
-      if (part.flavor) {
-        const partFlavor = doc.createElement("span");
-        partFlavor.className = "part-flavor";
-        partFlavor.textContent = part.flavor;
-        header.append(partFlavor);
-      }
-
-      const partTotal = doc.createElement("span");
-      partTotal.className = "part-total";
-      partTotal.textContent = String(part.total);
-      header.append(partTotal);
-
-      dice.append(header);
-      section.append(dice);
-      tooltip.append(section);
-    }
+    appendModifierSections(doc, tooltip, opts.modifiers ?? []);
 
     if (opts.outcomeSummary) {
       const summary = doc.createElement("div");

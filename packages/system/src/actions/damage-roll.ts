@@ -34,11 +34,12 @@ export async function rollDamage(
 
   const modifiers = buildWeaponDamageModifiers(actor, wsys);
   const formula = labeledCheckFormula(wsys.damageFormula, weapon.name || "Damage", modifiers);
-  const roll = options.maximize
-    ? await new Roll(formula).evaluate({ maximize: true })
-    : await new Roll(formula).evaluate();
-  const total = roll.total ?? 0;
-  const isCrit = Boolean(options.maximize);
+  const roll =
+    options.maximize === true
+      ? await new Roll(formula).evaluate({ maximize: true })
+      : await new Roll(formula).evaluate();
+  const total = roll.total;
+  const isCrit = options.maximize === true;
 
   const rollHTML = styleCheckRollHTML(await roll.render(), {
     panelClass: isCrit ? "success" : "cost",

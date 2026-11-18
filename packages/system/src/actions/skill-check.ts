@@ -15,11 +15,13 @@ import {
   skillCheckIsSpecialized,
   sumModifiers,
 } from "../rolls/build-skill-check.ts";
+import type { Modifier } from "../rolls/collectors.ts";
 import type { CheckConfigureOptions } from "../rolls/check-configure.ts";
 import { renderGradedCheckContent } from "./check-card.ts";
 import { labeledCheckFormula } from "../rolls/labeled-formula.ts";
 import {
   advantageFlavorSuffix,
+  difficultyFlavorLabel,
   checkDiceExpression,
   resolveCheckConfigure,
   withSituationalModifier,
@@ -80,7 +82,7 @@ export function prepareSkillCheck(
 
   if (options.specializationSlug !== undefined) {
     const found = skill.specializations.find((s) => s.slug === options.specializationSlug);
-    if (!found?.selected) return null;
+    if (found?.selected !== true) return null;
     specializationSlug = found.slug;
     specializationLabel = found.label;
   }
@@ -112,8 +114,8 @@ export function prepareSkillCheck(
   const effectMods = effectDeltaModifiers({
     derived: skill.proficiencyBonus,
     expected: appliedProficiencyBonus({
-      tierBonus: PROFICIENCY_BONUS[proficiency] ?? 0,
-      specialized: (kind ?? "none") === "none",
+      tierBonus: (PROFICIENCY_BONUS as Partial<Record<string, number>>)[proficiency] ?? 0,
+      specialized: kind === "none",
     }),
     id: `skill.${skillKey}.effects`,
     label: localize("KEDOM.Roll.modifier.effects", "Effects"),
@@ -176,17 +178,14 @@ export async function rollSkillCheck(
 
   const modifiers = withSituationalModifier(baseModifiers, configured.situational);
   const { difficulty, advantageNet, baseDice } = configured;
-  const difficultyLabel = localize(
-    `KEDOM.DifficultyColumn.${difficulty}`,
-    difficulty.charAt(0).toUpperCase() + difficulty.slice(1),
-  );
+  const difficultyLabel = difficultyFlavorLabel(difficulty);
   const formula = labeledCheckFormula(
     checkDiceExpression(advantageNet, baseDice),
     formulaLabel,
     modifiers,
   );
   const roll = await new Roll(formula).evaluate();
-  const total = roll.total ?? 0;
+  const total = roll.total;
   const outcome = resolveOutcome({ total, difficulty });
 
   const content = await renderGradedCheckContent({
@@ -197,6 +196,35 @@ export async function rollSkillCheck(
     difficulty,
   });
 
+  await postSkillCheckCard({
+    actor,
+    skillKey: key,
+    specializationSlug: options.specializationSlug,
+    roll,
+    content,
+    modifiers,
+    configured,
+    formulaLabel,
+    difficultyLabel,
+    total,
+  });
+}
+
+async function postSkillCheckCard(args: {
+  actor: Actor.Implementation;
+  skillKey: string;
+  specializationSlug: string | undefined;
+  roll: Roll;
+  content: string;
+  modifiers: readonly Modifier[];
+  configured: NonNullable<Awaited<ReturnType<typeof resolveCheckConfigure>>>;
+  formulaLabel: string;
+  difficultyLabel: string;
+  total: number;
+}): Promise<void> {
+  const { actor, skillKey, specializationSlug, roll, content, modifiers, configured } = args;
+  const { formulaLabel, difficultyLabel, total } = args;
+  const { difficulty, advantageNet, baseDice } = configured;
   const messageData = {
     speaker: ChatMessage.getSpeaker({ actor: actor as Actor.Stored }),
     flavor:
@@ -212,8 +240,8 @@ export async function rollSkillCheck(
         check: {
           kind: "skill" as const,
           actorUuid: actor.uuid,
-          skillKey: key,
-          specializationSlug: options.specializationSlug,
+          skillKey,
+          specializationSlug,
           difficulty,
           advantageNet,
           baseDice,

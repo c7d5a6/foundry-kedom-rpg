@@ -18,7 +18,7 @@ export async function rollStrainSave(actor: Actor.Implementation): Promise<void>
   const strain = attrs.strain?.value ?? 0;
 
   const roll = await new Roll("1d20").evaluate();
-  const total = roll.total ?? 0;
+  const total = roll.total;
   const band = strainSaveBand(total, resolve, strain);
 
   let panelClass: "success" | "failure" | "cost" = "success";

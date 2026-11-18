@@ -1,4 +1,4 @@
-import { canControlActor, luckPool } from "./card-common.ts";
+import { asActor, canControlActor, luckPool } from "./card-common.ts";
 import { getKedomWoundFlags } from "./wound-flags.ts";
 import { updateKedomMessage } from "./message-update.ts";
 import type { KedomWoundFlags } from "../actions/wound-roll.ts";
@@ -15,8 +15,8 @@ export function decorateWoundCardActions(
   if (!(root instanceof HTMLElement)) return;
   if (root.querySelector(".kedom-chat-wound__actions")) return;
 
-  const actor = fromUuidSync(flags.actorUuid);
-  if (!(actor instanceof Actor)) return;
+  const actor = asActor(fromUuidSync(flags.actorUuid));
+  if (!actor) return;
   if (!canControlActor(actor)) return;
 
   const actions = document.createElement("div");
@@ -34,7 +34,7 @@ export function decorateWoundCardActions(
   } else if (pool <= 0) {
     ignoreBtn.title = game.i18n.localize("KEDOM.Chat.IgnoreWoundNoLuck");
   } else {
-    ignoreBtn.title = `${ignoreBtn.textContent ?? ""} — ${game.i18n.format("KEDOM.Chat.LuckLeft", { available: String(pool) })}`;
+    ignoreBtn.title = `${ignoreBtn.textContent} — ${game.i18n.format("KEDOM.Chat.LuckLeft", { available: String(pool) })}`;
   }
   ignoreBtn.addEventListener("click", () => {
     void onIgnoreWound(message);
@@ -47,8 +47,8 @@ async function onIgnoreWound(message: ChatMessage.Implementation): Promise<void>
   const flags = getKedomWoundFlags(message);
   if (!flags || flags.ignored) return;
 
-  const actor = await fromUuid(flags.actorUuid);
-  if (!(actor instanceof Actor) || !canControlActor(actor)) return;
+  const actor = asActor(await fromUuid(flags.actorUuid));
+  if (!actor || !canControlActor(actor)) return;
 
   const pool = luckPool(actor);
   if (pool <= 0) {
@@ -58,6 +58,7 @@ async function onIgnoreWound(message: ChatMessage.Implementation): Promise<void>
 
   const bodyPartLabel = game.i18n.localize(`KEDOM.Wound.BodyPart.${flags.bodyPart}`);
   const tableRow = flags.tableRow ?? flags.tableTotal;
+  const armorBonus = flags.armorBonus ?? 0;
   const content = await foundry.applications.handlebars.renderTemplate(
     "systems/kedom/templates/chat/wound.hbs",
     {
@@ -70,11 +71,7 @@ async function onIgnoreWound(message: ChatMessage.Implementation): Promise<void>
       tableClamped: tableRow !== flags.tableTotal,
       luckModSigned: flags.luckMod >= 0 ? `+${String(flags.luckMod)}` : String(flags.luckMod),
       armorBonusSigned:
-        (flags.armorBonus ?? 0) !== 0
-          ? flags.armorBonus >= 0
-            ? `+${String(flags.armorBonus)}`
-            : String(flags.armorBonus)
-          : "",
+        armorBonus !== 0 ? (armorBonus >= 0 ? `+${String(armorBonus)}` : String(armorBonus)) : "",
       modifiers: flags.modifiers ?? [],
       ignored: true,
     },

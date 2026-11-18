@@ -1,4 +1,4 @@
-import { canControlActor, confirmReroll, luckPool, rerolledNote } from "./card-common.ts";
+import { asActor, canControlActor, confirmReroll, luckPool, rerolledNote } from "./card-common.ts";
 import { renderGradedCheckContent } from "../actions/check-card.ts";
 import { luckCostToNextOutcome } from "../rolls/luck-spend.ts";
 import { rollLuckSave } from "../actions/luck-save.ts";
@@ -26,11 +26,11 @@ export function decorateCheckCardActions(
   if (!(root instanceof HTMLElement)) return;
   if (root.querySelector(".kedom-chat-check__actions")) return;
 
-  const actor = fromUuidSync(flags.actorUuid);
-  if (!(actor instanceof Actor)) return;
+  const actor = asActor(fromUuidSync(flags.actorUuid));
+  if (!actor) return;
   if (!canControlActor(actor)) return;
 
-  if (flags.rerolled) {
+  if (flags.rerolled === true) {
     root.append(rerolledNote("kedom-chat-check__actions"));
     return;
   }
@@ -56,7 +56,7 @@ export function decorateCheckCardActions(
             cost: String(next.cost),
             available: String(pool),
           })
-        : `${spendBtn.textContent ?? ""} — ${game.i18n.format("KEDOM.Chat.LuckLeft", { available: String(pool) })}`;
+        : `${spendBtn.textContent} — ${game.i18n.format("KEDOM.Chat.LuckLeft", { available: String(pool) })}`;
     spendBtn.addEventListener("click", () => {
       void onSpendLuck(message, next.cost);
     });
@@ -80,10 +80,10 @@ export function decorateCheckCardActions(
 
 async function onSpendLuck(message: ChatMessage.Implementation, cost: number): Promise<void> {
   const flags = getKedomCheckFlags(message);
-  if (!flags || flags.rerolled || flags.kind === "luck-save") return;
+  if (!flags || flags.rerolled === true || flags.kind === "luck-save") return;
 
-  const actor = await fromUuid(flags.actorUuid);
-  if (!(actor instanceof Actor) || !canControlActor(actor)) return;
+  const actor = asActor(await fromUuid(flags.actorUuid));
+  if (!actor || !canControlActor(actor)) return;
 
   const pool = luckPool(actor);
   if (pool < cost) {
@@ -97,7 +97,7 @@ async function onSpendLuck(message: ChatMessage.Implementation, cost: number): P
   }
 
   const expected = luckCostToNextOutcome(flags.total, flags.difficulty);
-  if (!expected || expected.cost !== cost) {
+  if (expected?.cost !== cost) {
     ui.notifications.warn(game.i18n.localize("KEDOM.Chat.SpendLuckStale"));
     return;
   }
@@ -139,9 +139,9 @@ async function onSpendLuck(message: ChatMessage.Implementation, cost: number): P
 
 async function onReroll(message: ChatMessage.Implementation): Promise<void> {
   const flags = getKedomCheckFlags(message);
-  if (!flags || flags.rerolled) return;
-  const actor = await fromUuid(flags.actorUuid);
-  if (!(actor instanceof Actor) || !canControlActor(actor)) return;
+  if (!flags || flags.rerolled === true) return;
+  const actor = asActor(await fromUuid(flags.actorUuid));
+  if (!actor || !canControlActor(actor)) return;
   if (!(await confirmReroll(flags.luckSpent))) return;
   await rerollCheck(actor, flags);
   // Roll first, then retire the old card, so a failed roll does not strand it.
@@ -160,7 +160,7 @@ async function rerollCheck(
     ...(flags.baseDice !== undefined ? { baseDice: flags.baseDice } : {}),
   };
 
-  if (flags.kind === "skill" && flags.skillKey) {
+  if (flags.kind === "skill" && flags.skillKey !== undefined && flags.skillKey !== "") {
     const skillOpts =
       flags.specializationSlug !== undefined
         ? { ...opts, specializationSlug: flags.specializationSlug }

@@ -2,13 +2,25 @@ import { characterData } from "../types/accessors.ts";
 
 /** GMs and the actor's owners may use the buttons on that actor's cards. */
 export function canControlActor(actor: Actor.Implementation): boolean {
-  return Boolean(game.user?.isGM || actor.isOwner);
+  // game.user is unset until Foundry finishes loading the session; the types claim otherwise.
+  const user = game.user as User.Implementation | null | undefined;
+  return user?.isGM === true || actor.isOwner;
 }
 
 /** Whole Luck points the actor can currently spend (Luck current value, never negative). */
 export function luckPool(actor: Actor.Implementation): number {
   const lck = (characterData(actor).abilities as { lck?: { value?: number } }).lck;
   return Math.max(0, Math.floor(lck?.value ?? 0));
+}
+
+/** Narrow a looked-up document to an Actor.Implementation (`instanceof Actor` yields `Actor<any>`). */
+export function asActor(doc: unknown): Actor.Implementation | undefined {
+  return doc instanceof Actor ? (doc as Actor.Implementation) : undefined;
+}
+
+/** Narrow a looked-up document to an Item.Implementation (`instanceof Item` yields `Item<any>`). */
+export function asItem(doc: unknown): Item.Implementation | undefined {
+  return doc instanceof Item ? (doc as Item.Implementation) : undefined;
 }
 
 /** Muted "Rerolled" marker shown in place of the action buttons on a superseded card. */
