@@ -156,7 +156,9 @@ describe("resolveRolledEntry", () => {
     expect(result.needsAnySkill).toBe(false);
     expect(result.grant?.specialization?.label).toBe("Armorer");
   });
+});
 
+describe("resolveRolledEntry substitutes", () => {
   it("accepts a substitute skill when blocked", () => {
     const owned = [grantFromSpec({ skillKey: "shoot" })];
     const result = resolveRolledEntry({ kind: "skill", skillKey: "shoot" }, owned, {

@@ -15,7 +15,9 @@ const TIER_RANK = Object.fromEntries(
 ) as Record<ProficiencyTier, number>;
 
 export function minLevelForProficiency(tier: string): number {
-  return PROFICIENCY_MIN_LEVEL[tier as ProficiencyTier] ?? 1;
+  // `tier` is an arbitrary string from persisted data, so the lookup can miss.
+  const minLevels: Partial<Record<string, number>> = PROFICIENCY_MIN_LEVEL;
+  return minLevels[tier] ?? 1;
 }
 
 /** Highest proficiency tier allowed at the given character level. */
@@ -29,7 +31,8 @@ export function maxProficiencyForLevel(level: number): ProficiencyTier {
 }
 
 export function proficiencyRank(tier: string): number {
-  return TIER_RANK[tier as ProficiencyTier] ?? 0;
+  const ranks: Partial<Record<string, number>> = TIER_RANK;
+  return ranks[tier] ?? 0;
 }
 
 /**

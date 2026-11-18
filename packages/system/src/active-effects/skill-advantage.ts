@@ -20,9 +20,9 @@ export function effectListRows(effects: Iterable<ActiveEffect.Implementation>): 
       name: effect.name,
       disabled: effect.disabled,
       transfer: effect.transfer,
-      img: effect.img || "icons/svg/aura.svg",
+      img: (effect.img ?? "") === "" ? "icons/svg/aura.svg" : (effect.img ?? ""),
     }))
-    .filter((row) => row.id)
+    .filter((row) => row.id !== "")
     .sort((a, b) => Number(a.disabled) - Number(b.disabled) || a.name.localeCompare(b.name));
 }
 
@@ -69,7 +69,8 @@ export async function promptSkillKeyForAdvantage(): Promise<SkillKey | null> {
         callback: (_event: Event, button: HTMLButtonElement) => {
           const form = button.form;
           if (!form) return "";
-          return String(new FormData(form).get("skillKey") ?? "").trim();
+          const value = new FormData(form).get("skillKey");
+          return typeof value === "string" ? value.trim() : "";
         },
       },
     });

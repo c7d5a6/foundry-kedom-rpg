@@ -30,11 +30,11 @@ describe("loadOriginsCatalog", () => {
     expect(catalog.classes).toEqual([]);
 
     const nerland = catalog.regions.find((r) => r.slug === "nerland");
-    expect(nerland).toBeDefined();
-    const pctSum = nerland!.cultures.reduce((a, c) => a + c.percent, 0);
+    if (nerland === undefined) throw new Error("nerland region missing from the draft catalog");
+    const pctSum = nerland.cultures.reduce((a, c) => a + c.percent, 0);
     expect(pctSum).toBe(100);
 
-    const human = nerland!.cultures.find((c) => c.slug === "human_nerlander");
+    const human = nerland.cultures.find((c) => c.slug === "human_nerlander");
     expect(human?.backgroundSlugs.length).toBeGreaterThan(0);
     expect(human?.classSlugs).toContain("warrior");
   });

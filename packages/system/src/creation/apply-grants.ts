@@ -2,18 +2,20 @@ import { systemOf, characterData } from "../types/accessors.ts";
 import { PROFICIENCY_TIERS, type ProficiencyTier, type SkillKey } from "../config/kedom.ts";
 import { clampProficiencyToLevel, proficiencyRank } from "../config/proficiency-gates.ts";
 import type { CharacterData, SkillFields, SkillSpecialization } from "../data/actor/character.ts";
-import type { GrantsFields } from "../data/item/grants.ts";
+import type { AbilityGrant, SkillGrant, SpecializationGrant } from "../data/item/grants.ts";
+import { isNonEmpty } from "../types/guards.ts";
 import type { TalentDataFields } from "../data/item/talent.ts";
 import type { OriginDataFields } from "../data/item/origin.ts";
 
-const TIER_RANK = Object.fromEntries(
+// Tiers arrive as arbitrary strings from persisted data, so lookups can miss.
+const TIER_RANK: Partial<Record<string, number>> = Object.fromEntries(
   PROFICIENCY_TIERS.map((tier, index) => [tier, index]),
-) as Record<ProficiencyTier, number>;
+);
 
 /** Higher proficiency wins; unknown tiers treated as untrained. */
 export function maxProficiencyTier(a: string, b: string): ProficiencyTier {
-  const ra = TIER_RANK[a as ProficiencyTier] ?? 0;
-  const rb = TIER_RANK[b as ProficiencyTier] ?? 0;
+  const ra = TIER_RANK[a] ?? 0;
+  const rb = TIER_RANK[b] ?? 0;
   return PROFICIENCY_TIERS[Math.max(ra, rb)] ?? "untrained";
 }
 
@@ -53,21 +55,31 @@ function abilityDeltaKey(itemId: string, abilityKey: string): string {
   return `${itemId}:${abilityKey}`;
 }
 
-function readItemGrants(item: Item.Implementation): GrantsFields | null {
+/**
+ * Grants as they may exist on a persisted item: the schema supplies defaults, but items written
+ * by older versions or imported from packs can lack any of these parts.
+ */
+interface LooseGrants {
+  skills?: SkillGrant[];
+  specializations?: SpecializationGrant[];
+  abilities?: (Omit<AbilityGrant, "delta"> & { delta?: number })[];
+}
+
+function readItemGrants(item: Item.Implementation): LooseGrants | null {
   const type = item.type as string;
   if (type === "origin") {
-    const system = systemOf<OriginDataFields>(item);
+    const system = systemOf<Partial<Pick<OriginDataFields, "grants">>>(item);
     return system.grants ?? { skills: [], specializations: [], abilities: [] };
   }
   if (type === "talent") {
-    const system = systemOf<TalentDataFields>(item);
+    const system = systemOf<Partial<Pick<TalentDataFields, "grants">>>(item);
     return system.grants ?? { skills: [], specializations: [], abilities: [] };
   }
   return null;
 }
 
 function characterLevel(actor: Actor.Implementation): number {
-  const details = (actor.system as CharacterData & { details?: { level?: number } }).details;
+  const details = (actor.system as { details?: { level?: number } }).details;
   return Math.max(1, Math.floor(details?.level ?? 1));
 }
 
@@ -123,7 +135,7 @@ export async function revertItemAbilityGrants(
   actor: Actor.Implementation,
   item: Item.Implementation,
 ): Promise<void> {
-  if (!item.id) return;
+  if (!isNonEmpty(item.id)) return;
   const flags = kedomFlags(actor);
   const { baseModDeltas, remaining } = planAbilityGrantRevert(
     flags.appliedAbilityDeltas ?? {},
@@ -147,6 +159,105 @@ export async function revertItemAbilityGrants(
 }
 
 /**
+ * Work out the `baseMod` updates for the ability deltas the items grant, skipping deltas that are
+ * already recorded in `applied`. Returns the updated record of applied deltas alongside.
+ */
+function planAbilityGrants(
+  items: Item.Implementation[],
+  system: CharacterData,
+  applied: AppliedAbilityDeltas,
+): {
+  abilityUpdate: Record<string, unknown>;
+  abilitiesUpdated: number;
+  appliedDeltas: AppliedAbilityDeltas;
+} {
+  const appliedDeltas: AppliedAbilityDeltas = { ...applied };
+  const abilityUpdate: Record<string, unknown> = {};
+  let abilitiesUpdated = 0;
+  for (const item of items) {
+    const grants = readItemGrants(item);
+    if (!grants || !isNonEmpty(item.id)) continue;
+    for (const ag of grants.abilities ?? []) {
+      const key = ag.key;
+      const delta = Math.floor(ag.delta ?? 0);
+      if (delta === 0) continue;
+      const flagKey = abilityDeltaKey(item.id, key);
+      const already = appliedDeltas[flagKey] ?? 0;
+      const add = delta - already;
+      if (add === 0) continue;
+      const ability = (system.abilities as Record<string, { baseMod?: number }>)[key];
+      const baseMod = Math.floor(ability?.baseMod ?? 0) + add;
+      abilityUpdate[`system.abilities.${key}.baseMod`] = baseMod;
+      appliedDeltas[flagKey] = delta;
+      abilitiesUpdated += 1;
+    }
+  }
+  return { abilityUpdate, abilitiesUpdated, appliedDeltas };
+}
+
+/** Skill proficiency and specialization updates implied by the origin items' grants. */
+function planSkillGrants(
+  grantItems: Item.Implementation[],
+  system: CharacterData,
+  level: number,
+): { skillsUpdate: Record<string, unknown>; skillsUpdated: number; specsAdded: number } {
+  const skillsUpdate: Record<string, unknown> = {};
+  let skillsUpdated = 0;
+  let specsAdded = 0;
+
+  const skillGrantsByKey = new Map<SkillKey, ProficiencyTier>();
+  const specGrantsByKey = new Map<SkillKey, { slug: string; label: string }[]>();
+
+  for (const item of grantItems) {
+    // Talents do not grant skill proficiency or specializations.
+    if ((item.type as string) === "talent") continue;
+    const grants = readItemGrants(item);
+    if (!grants || !isNonEmpty(item.id)) continue;
+    for (const sg of grants.skills ?? []) {
+      const key = sg.skillKey;
+      const prev = skillGrantsByKey.get(key);
+      skillGrantsByKey.set(key, prev ? maxProficiencyTier(prev, sg.proficiency) : sg.proficiency);
+    }
+    for (const spec of grants.specializations ?? []) {
+      const key = spec.skillKey;
+      const list = specGrantsByKey.get(key) ?? [];
+      list.push({ slug: spec.slug, label: spec.label });
+      specGrantsByKey.set(key, list);
+    }
+  }
+
+  const skills = system.skills as Record<SkillKey, SkillFields>;
+  for (const [key, grantedTier] of skillGrantsByKey) {
+    const current = skills[key];
+    if (!current) continue;
+    const desired = maxProficiencyTier(current.proficiency, grantedTier);
+    const next = clampProficiencyToLevel(desired, level);
+    if (
+      next !== current.proficiency &&
+      proficiencyRank(next) > proficiencyRank(current.proficiency)
+    ) {
+      skillsUpdate[`system.skills.${key}.proficiency`] = next;
+      skillsUpdated += 1;
+    }
+  }
+
+  for (const [key, grantedSpecs] of specGrantsByKey) {
+    const current = skills[key];
+    if (!current) continue;
+    const beforeCount = current.specializations.length;
+    const merged = mergeSpecializationGrants(current.specializations, grantedSpecs);
+    const changed =
+      merged.length !== beforeCount ||
+      JSON.stringify(merged) !== JSON.stringify(current.specializations);
+    if (changed) {
+      skillsUpdate[`system.skills.${key}.specializations`] = merged;
+      specsAdded += Math.max(0, merged.length - beforeCount);
+    }
+  }
+  return { skillsUpdate, skillsUpdated, specsAdded };
+}
+
+/**
  * Apply ability deltas from a newly-added talent.
  * Talents do not grant skill proficiency — use Active Effects for advantage/etc.
  */
@@ -154,32 +265,18 @@ export async function applyTalentAbilityGrants(
   actor: Actor.Implementation,
   talent: Item.Implementation,
 ): Promise<{ skillsUpdated: number; specsAdded: number; abilitiesUpdated: number }> {
-  if ((talent.type as string) !== "talent" || !talent.id) {
+  if ((talent.type as string) !== "talent" || !isNonEmpty(talent.id)) {
     return { skillsUpdated: 0, specsAdded: 0, abilitiesUpdated: 0 };
   }
   const grants = readItemGrants(talent);
   if (!grants) return { skillsUpdated: 0, specsAdded: 0, abilitiesUpdated: 0 };
 
   const flags = kedomFlags(actor);
-  const appliedDeltas: AppliedAbilityDeltas = { ...(flags.appliedAbilityDeltas ?? {}) };
-  let abilitiesUpdated = 0;
-  const abilityUpdate: Record<string, unknown> = {};
-  const system = characterData(actor);
-
-  for (const ag of grants.abilities ?? []) {
-    const key = ag.key;
-    const delta = Math.floor(ag.delta ?? 0);
-    if (delta === 0) continue;
-    const flagKey = abilityDeltaKey(talent.id, key);
-    const already = appliedDeltas[flagKey] ?? 0;
-    const add = delta - already;
-    if (add === 0) continue;
-    const ability = (system.abilities as Record<string, { baseMod?: number }>)[key];
-    const baseMod = Math.floor(ability?.baseMod ?? 0) + add;
-    abilityUpdate[`system.abilities.${key}.baseMod`] = baseMod;
-    appliedDeltas[flagKey] = delta;
-    abilitiesUpdated += 1;
-  }
+  const { abilityUpdate, abilitiesUpdated, appliedDeltas } = planAbilityGrants(
+    [talent],
+    characterData(actor),
+    flags.appliedAbilityDeltas ?? {},
+  );
 
   if (abilitiesUpdated === 0) {
     return { skillsUpdated: 0, specsAdded: 0, abilitiesUpdated: 0 };
@@ -224,84 +321,17 @@ export async function applyGrants(actor: Actor.Implementation): Promise<{
     return { applied: false, skillsUpdated: 0, specsAdded: 0, abilitiesUpdated: 0 };
   }
 
-  const level = characterLevel(actor);
   const system = characterData(actor);
-  const skillsUpdate: Record<string, unknown> = {};
-  let skillsUpdated = 0;
-  let specsAdded = 0;
-
-  const skillGrantsByKey = new Map<SkillKey, ProficiencyTier>();
-  const specGrantsByKey = new Map<SkillKey, { slug: string; label: string }[]>();
-
-  for (const item of grantItems) {
-    // Talents do not grant skill proficiency or specializations.
-    if ((item.type as string) === "talent") continue;
-    const grants = readItemGrants(item);
-    if (!grants || !item.id) continue;
-    for (const sg of grants.skills ?? []) {
-      const key = sg.skillKey;
-      const prev = skillGrantsByKey.get(key);
-      skillGrantsByKey.set(key, prev ? maxProficiencyTier(prev, sg.proficiency) : sg.proficiency);
-    }
-    for (const spec of grants.specializations ?? []) {
-      const key = spec.skillKey;
-      const list = specGrantsByKey.get(key) ?? [];
-      list.push({ slug: spec.slug, label: spec.label });
-      specGrantsByKey.set(key, list);
-    }
-  }
-
-  const skills = system.skills as Record<SkillKey, SkillFields>;
-  for (const [key, grantedTier] of skillGrantsByKey) {
-    const current = skills[key];
-    if (!current) continue;
-    const desired = maxProficiencyTier(current.proficiency, grantedTier);
-    const next = clampProficiencyToLevel(desired, level);
-    if (
-      next !== current.proficiency &&
-      proficiencyRank(next) > proficiencyRank(current.proficiency)
-    ) {
-      skillsUpdate[`system.skills.${key}.proficiency`] = next;
-      skillsUpdated += 1;
-    }
-  }
-
-  for (const [key, grantedSpecs] of specGrantsByKey) {
-    const current = skills[key];
-    if (!current) continue;
-    const beforeCount = current.specializations.length;
-    const merged = mergeSpecializationGrants(current.specializations, grantedSpecs);
-    const changed =
-      merged.length !== beforeCount ||
-      JSON.stringify(merged) !== JSON.stringify(current.specializations);
-    if (changed) {
-      skillsUpdate[`system.skills.${key}.specializations`] = merged;
-      specsAdded += Math.max(0, merged.length - beforeCount);
-    }
-  }
-
-  const appliedDeltas: AppliedAbilityDeltas = { ...(flags.appliedAbilityDeltas ?? {}) };
-  let abilitiesUpdated = 0;
-  const abilityUpdate: Record<string, unknown> = {};
-
-  for (const item of grantItems) {
-    const grants = readItemGrants(item);
-    if (!grants || !item.id) continue;
-    for (const ag of grants.abilities ?? []) {
-      const key = ag.key;
-      const delta = Math.floor(ag.delta ?? 0);
-      if (delta === 0) continue;
-      const flagKey = abilityDeltaKey(item.id, key);
-      const already = appliedDeltas[flagKey] ?? 0;
-      const add = delta - already;
-      if (add === 0) continue;
-      const ability = (system.abilities as Record<string, { baseMod?: number }>)[key];
-      const baseMod = Math.floor(ability?.baseMod ?? 0) + add;
-      abilityUpdate[`system.abilities.${key}.baseMod`] = baseMod;
-      appliedDeltas[flagKey] = delta;
-      abilitiesUpdated += 1;
-    }
-  }
+  const { skillsUpdate, skillsUpdated, specsAdded } = planSkillGrants(
+    grantItems,
+    system,
+    characterLevel(actor),
+  );
+  const { abilityUpdate, abilitiesUpdated, appliedDeltas } = planAbilityGrants(
+    grantItems,
+    system,
+    flags.appliedAbilityDeltas ?? {},
+  );
 
   await actor.update({
     ...skillsUpdate,

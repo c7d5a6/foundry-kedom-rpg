@@ -14,7 +14,7 @@ export async function postCreationRoll(
     rolls: [roll],
     sound: CONFIG.sounds.dice,
   });
-  return { total: roll.total ?? 0, roll };
+  return { total: roll.total, roll };
 }
 
 export async function postCreationRolls(
@@ -27,8 +27,10 @@ export async function postCreationRolls(
   for (const item of items) {
     const roll = await new Roll(item.formula).evaluate();
     rolls.push(roll);
-    totals.push(roll.total ?? 0);
-    lines.push(`<p><strong>${item.label}:</strong> ${roll.total ?? 0}</p>${await roll.render()}`);
+    totals.push(roll.total);
+    lines.push(
+      `<p><strong>${item.label}:</strong> ${String(roll.total)}</p>${await roll.render()}`,
+    );
   }
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker(),

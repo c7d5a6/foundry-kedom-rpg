@@ -11,7 +11,8 @@ export interface PrioritizedSaveFields {
 }
 
 export interface ClassArtsFields {
-  skillKey: string;
+  /** Optional: class origins authored before the arts block gained a skill key lack it. */
+  skillKey?: string;
   abilityKeys: string[];
   /** Levels 1–10: arts that may be known at that level (budget display). */
   slotsByLevel: number[];
@@ -63,6 +64,18 @@ export interface OriginDataFields {
    */
   bannerImg: string;
 }
+
+/**
+ * An origin as read from a compendium pack. Pack YAML is authored by hand and by Forge exports,
+ * so the descriptive and catalog fields below can be absent even though the schema declares them.
+ */
+export type PackOriginFields = Omit<
+  OriginDataFields,
+  "description" | "free" | "growth" | "cultures"
+> &
+  Partial<Pick<OriginDataFields, "description" | "free" | "growth">> & {
+    cultures?: (Omit<RegionCultureFields, "backgroundSlugs"> & { backgroundSlugs?: string[] })[];
+  };
 
 /** Class granted talents: prefer talentSlugs[]; fall back to legacy talentSlug. */
 export function classTalentSlugs(system: {

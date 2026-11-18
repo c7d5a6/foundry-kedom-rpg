@@ -69,7 +69,10 @@ export const REGIONS: readonly { key: RegionKey; labelKey: string }[] = [
 ];
 
 /** Hit die, talent picks, and starting saves from a pack class origin. */
-export function classDefFromOriginFields(system: OriginDataFields, slug = system.slug): ClassDef {
+export function classDefFromOriginFields(
+  system: Pick<OriginDataFields, "slug" | "talentPicks" | "hitDie" | "saves">,
+  slug = system.slug,
+): ClassDef {
   const picks = system.talentPicks;
   const talentPicks: TalentPickBudget = {};
   if (picks.warrior) talentPicks.warrior = picks.warrior;
@@ -82,6 +85,11 @@ export function classDefFromOriginFields(system: OriginDataFields, slug = system
     talentPicks,
     saveProficiencies: originSaveProficiencies(system),
   };
+}
+
+/** Region keys come from persisted data, so a lookup may miss even though the type says it cannot. */
+export function optionalRegions<T>(byRegion: Record<RegionKey, T>): Partial<Record<RegionKey, T>> {
+  return byRegion;
 }
 
 export const CULTURES_BY_REGION: Record<RegionKey, readonly CultureDef[]> = {
@@ -110,7 +118,7 @@ export const CULTURES_BY_REGION: Record<RegionKey, readonly CultureDef[]> = {
 };
 
 export function getCulture(regionKey: RegionKey, cultureKey: string): CultureDef | undefined {
-  return CULTURES_BY_REGION[regionKey]?.find((c) => c.key === cultureKey);
+  return optionalRegions(CULTURES_BY_REGION)[regionKey]?.find((c) => c.key === cultureKey);
 }
 
 /** Actor `system.saves` payload from class starting proficiencies. */

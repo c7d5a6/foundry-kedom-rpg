@@ -42,6 +42,11 @@ export const PROFICIENCY_BONUS: Record<ProficiencyTier, number> = {
   legendary: 8,
 };
 
+/** Proficiency bonus for a tier name from persisted data; unknown tiers have no bonus. */
+export function proficiencyBonusFor(tier: string): number {
+  return (PROFICIENCY_BONUS as Partial<Record<string, number>>)[tier] ?? 0;
+}
+
 /** How many specializations may be selected at each proficiency tier. */
 export const PROFICIENCY_SPECIALIZATION_SLOTS: Record<ProficiencyTier, number> = {
   untrained: 0,

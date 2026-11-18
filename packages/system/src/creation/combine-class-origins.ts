@@ -134,7 +134,7 @@ function emptySaveProficiencies(): Record<ClassSaveTrack, ProficiencyTier> {
 }
 
 export function originSaveProficiencies(
-  system: OriginDataFields,
+  system: Pick<OriginDataFields, "saves">,
 ): Record<ClassSaveTrack, ProficiencyTier> {
   const out = emptySaveProficiencies();
   out[system.saves.primary.save] = "trained";

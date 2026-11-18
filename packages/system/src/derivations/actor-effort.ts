@@ -6,7 +6,7 @@ import { systemOf } from "../types/accessors.ts";
 
 import { PROFICIENCY_BONUS, type ProficiencyTier } from "../config/kedom.ts";
 import type { ArtDataFields } from "../data/item/art.ts";
-import type { OriginDataFields } from "../data/item/origin-fields.ts";
+import type { ClassArtsFields, OriginDataFields } from "../data/item/origin-fields.ts";
 import { abilityModifier } from "./ability-mod.ts";
 import {
   artSlotBudget,
@@ -26,10 +26,13 @@ export interface ActorEffortSummary {
   bothPartialsHaveEffort: boolean;
 }
 
-function classOrigins(actor: Actor.Implementation): OriginDataFields[] {
+/** A class origin as persisted: items from before the arts block existed can lack `arts`. */
+type ClassOriginView = Omit<OriginDataFields, "arts"> & { arts?: Partial<ClassArtsFields> };
+
+function classOrigins(actor: Actor.Implementation): ClassOriginView[] {
   return actor.items
     .filter((item) => (item.type as string) === "origin")
-    .map((item) => systemOf<OriginDataFields>(item))
+    .map((item) => systemOf<ClassOriginView>(item))
     .filter((sys) => sys.subType === "class");
 }
 
@@ -40,7 +43,7 @@ function artCommits(actor: Actor.Implementation): EffortArtCommit[] {
       const sys = systemOf<ArtDataFields>(item);
       return {
         commitment: sys.commitment,
-        activeUses: Number(sys.activeUses) || 0,
+        activeUses: sys.activeUses || 0,
       };
     });
 }

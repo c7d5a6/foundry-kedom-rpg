@@ -1,4 +1,5 @@
 import type { SkillKey } from "./kedom.ts";
+import { readyI18n } from "../i18n/localize.ts";
 import { freeSpecializationSlug } from "./specializations.ts";
 
 /**
@@ -27,8 +28,8 @@ export const CREATION_FREE_SPEC_I18N: Readonly<Record<string, string>> = {
   Taiga: "taiga",
 };
 
-const SLUG_TO_I18N: Readonly<Record<string, string>> = (() => {
-  const out: Record<string, string> = {};
+const SLUG_TO_I18N: Readonly<Partial<Record<string, string>>> = (() => {
+  const out: Partial<Record<string, string>> = {};
   for (const [label, leaf] of Object.entries(CREATION_FREE_SPEC_I18N)) {
     out[label] = leaf;
     // Match persisted freeSpecializationSlug fragments (skill-agnostic leaf).
@@ -49,25 +50,27 @@ function slugifyLabel(label: string): string {
 function i18nProp(root: unknown, path: string): unknown {
   let cur: unknown = root;
   for (const part of path.split(".")) {
-    if (!cur || typeof cur !== "object") return undefined;
+    if (cur === null || typeof cur !== "object") return undefined;
     cur = (cur as Record<string, unknown>)[part];
   }
   return cur;
 }
 
 function freeSpecLeafForLabel(label: string): string | undefined {
-  const direct =
-    CREATION_FREE_SPEC_I18N[label] ?? SLUG_TO_I18N[slugifyLabel(label)] ?? SLUG_TO_I18N[label];
-  if (direct) return direct;
-  if (typeof game === "undefined" || !game.i18n) return undefined;
+  // Labels come from persisted data, so these lookups can miss.
+  const freeSpecLeaves: Readonly<Partial<Record<string, string>>> = CREATION_FREE_SPEC_I18N;
+  const direct = freeSpecLeaves[label] ?? SLUG_TO_I18N[slugifyLabel(label)] ?? SLUG_TO_I18N[label];
+  if (direct !== undefined && direct !== "") return direct;
+  const i18n = readyI18n();
+  if (i18n === undefined) return undefined;
 
   // Build path without a static `KEDOM.…` literal (FreeSpec is an object, not a leaf key).
   const freeSpecPath = ["KEDOM", "Creation", "FreeSpec"].join(".");
-  const tables: unknown[] = [i18nProp(game.i18n.translations, freeSpecPath)];
-  const fallback = (game.i18n as unknown as { _fallback?: unknown })._fallback;
-  if (fallback) tables.push(i18nProp(fallback, freeSpecPath));
+  const tables: unknown[] = [i18nProp(i18n.translations, freeSpecPath)];
+  const fallback = (i18n as { _fallback?: unknown })._fallback;
+  if (fallback !== undefined && fallback !== null) tables.push(i18nProp(fallback, freeSpecPath));
   for (const table of tables) {
-    if (!table || typeof table !== "object") continue;
+    if (table === null || typeof table !== "object") continue;
     for (const [leaf, value] of Object.entries(table as Record<string, unknown>)) {
       if (value === label) return leaf;
     }
@@ -78,10 +81,11 @@ function freeSpecLeafForLabel(label: string): string | undefined {
 /** Localize a creation-table free-form specialization label (English canonical). */
 export function localizeCreationSpecLabel(label: string): string {
   const leaf = freeSpecLeafForLabel(label);
-  if (!leaf) return label;
+  if (leaf === undefined || leaf === "") return label;
   const path = `KEDOM.Creation.FreeSpec.${leaf}`;
-  if (typeof game === "undefined" || !game.i18n?.localize) return label;
-  const v = game.i18n.localize(path);
+  const i18n = readyI18n();
+  if (i18n?.localize === undefined) return label;
+  const v = i18n.localize(path);
   return !v || v === path ? label : v;
 }
 
@@ -109,15 +113,16 @@ export function localizePersistedSpecLabel(
   if (fromTail !== tail) return fromTail;
 
   // Fixed catalog leaf (`skill.leaf` pack slug or bare leaf).
-  if (typeof game !== "undefined" && game.i18n?.localize) {
+  const i18n = readyI18n();
+  if (i18n?.localize !== undefined) {
     const candidates = [
       `KEDOM.Specialization.${skillKey}.${withoutSkill}`,
       `KEDOM.Specialization.${skillKey}.${tail}`,
       slug.includes(".") ? `KEDOM.Specialization.${slug}` : "",
     ];
     for (const path of candidates) {
-      if (!path) continue;
-      const v = game.i18n.localize(path);
+      if (path === "") continue;
+      const v = i18n.localize(path);
       if (v && v !== path) return v;
     }
   }

@@ -2,13 +2,12 @@ import {
   ABILITY_KEYS,
   LUCK_SCORE_MAX,
   LUCK_SCORE_MIN,
-  PROFICIENCY_BONUS,
   PROFICIENCY_TIERS,
   SAVE_ABILITY,
   SAVE_KEYS,
   SKILL_KEYS,
+  proficiencyBonusFor,
   type AbilityKey,
-  type ProficiencyTier,
   type SaveKey,
   type SkillKey,
 } from "../../config/kedom.ts";
@@ -115,6 +114,83 @@ function saveSchema() {
   });
 }
 
+function attributesSchema() {
+  return new SchemaField({
+    hp: new SchemaField({
+      value: new NumberField({
+        required: true,
+        nullable: false,
+        integer: true,
+        min: 0,
+        initial: 0,
+      }),
+      max: new NumberField({
+        required: true,
+        nullable: false,
+        integer: true,
+        min: 0,
+        initial: 0,
+      }),
+    }),
+    strain: new SchemaField({
+      value: new NumberField({
+        required: true,
+        nullable: false,
+        integer: true,
+        min: 0,
+        initial: 0,
+      }),
+    }),
+    wounds: new SchemaField({
+      value: new NumberField({
+        required: true,
+        nullable: false,
+        integer: true,
+        min: 0,
+        initial: 0,
+      }),
+      notes: new HTMLField({ required: true, nullable: false, blank: true, initial: "" }),
+    }),
+  });
+}
+
+function detailsSchema() {
+  return new SchemaField({
+    level: new NumberField({
+      required: true,
+      nullable: false,
+      integer: true,
+      min: 1,
+      initial: 1,
+    }),
+    region: new StringField({
+      required: true,
+      nullable: false,
+      blank: true,
+      initial: "",
+    }),
+    culture: new StringField({
+      required: true,
+      nullable: false,
+      blank: true,
+      initial: "",
+    }),
+    background: new StringField({
+      required: true,
+      nullable: false,
+      blank: true,
+      initial: "",
+    }),
+    class: new StringField({
+      required: true,
+      nullable: false,
+      blank: true,
+      initial: "",
+    }),
+    notes: new HTMLField({ required: true, nullable: false, blank: true, initial: "" }),
+  });
+}
+
 function characterSchema() {
   const abilities = {} as Record<AbilityKey, ReturnType<typeof abilitySchema>>;
   for (const key of ABILITY_KEYS) {
@@ -138,43 +214,7 @@ function characterSchema() {
   return {
     abilities: new SchemaField(abilities),
     skills: new SchemaField(skills),
-    attributes: new SchemaField({
-      hp: new SchemaField({
-        value: new NumberField({
-          required: true,
-          nullable: false,
-          integer: true,
-          min: 0,
-          initial: 0,
-        }),
-        max: new NumberField({
-          required: true,
-          nullable: false,
-          integer: true,
-          min: 0,
-          initial: 0,
-        }),
-      }),
-      strain: new SchemaField({
-        value: new NumberField({
-          required: true,
-          nullable: false,
-          integer: true,
-          min: 0,
-          initial: 0,
-        }),
-      }),
-      wounds: new SchemaField({
-        value: new NumberField({
-          required: true,
-          nullable: false,
-          integer: true,
-          min: 0,
-          initial: 0,
-        }),
-        notes: new HTMLField({ required: true, nullable: false, blank: true, initial: "" }),
-      }),
-    }),
+    attributes: attributesSchema(),
     combat: new SchemaField({
       ac: new NumberField({ required: true, nullable: false, integer: true, initial: 0 }),
       meleeDamageBonus: new NumberField({
@@ -184,45 +224,22 @@ function characterSchema() {
         initial: 0,
       }),
     }),
-    details: new SchemaField({
-      level: new NumberField({
-        required: true,
-        nullable: false,
-        integer: true,
-        min: 1,
-        initial: 1,
-      }),
-      region: new StringField({
-        required: true,
-        nullable: false,
-        blank: true,
-        initial: "",
-      }),
-      culture: new StringField({
-        required: true,
-        nullable: false,
-        blank: true,
-        initial: "",
-      }),
-      background: new StringField({
-        required: true,
-        nullable: false,
-        blank: true,
-        initial: "",
-      }),
-      class: new StringField({
-        required: true,
-        nullable: false,
-        blank: true,
-        initial: "",
-      }),
-      notes: new HTMLField({ required: true, nullable: false, blank: true, initial: "" }),
-    }),
+    details: detailsSchema(),
     saves: new SchemaField(saves),
   };
 }
 
 export type CharacterSchema = ReturnType<typeof characterSchema>;
+
+/** Skill as read during preparation; older actors can lack the dice fields. */
+type PreparedSkill = Omit<SkillFields, "baseDice" | "defaultAdvantage"> &
+  Partial<Pick<SkillFields, "baseDice" | "defaultAdvantage">>;
+
+/** Combat group as read during preparation; older actors can lack the damage bonus. */
+interface CombatFields {
+  ac: number;
+  meleeDamageBonus?: number;
+}
 
 interface AbilityFields {
   value: number;
@@ -254,7 +271,8 @@ export interface SaveFields {
 interface AttributesDerived {
   hp: { value: number; max: number };
   strain: { value: number };
-  wounds: { value: number; notes: string };
+  // Optional: actors saved before wounds existed may lack the group.
+  wounds?: { value: number; notes: string };
   strainLimit?: number;
   resolve?: number;
   wounded?: boolean;
@@ -274,22 +292,21 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
     attrs.resolve = 0;
     attrs.wounded = false;
     // AE-first: zero-init paths Active Effects may ADD onto before prepareDerivedData.
-    const combat = this.combat;
+    const combat = this.combat as CombatFields;
     combat.ac = 0;
     combat.meleeDamageBonus = Math.floor(combat.meleeDamageBonus ?? 0);
-    const skills = this.skills as Record<SkillKey, SkillFields>;
+    const skills = this.skills as Record<SkillKey, PreparedSkill>;
     for (const key of SKILL_KEYS) {
       const skill = skills[key];
       if (!skill) continue;
       // Ensure AE change paths exist; keep persisted base (ADD stacks on top).
       skill.baseDice = Math.max(1, Math.floor(skill.baseDice ?? 2));
       skill.defaultAdvantage = Math.floor(skill.defaultAdvantage ?? 0);
-      const tier = skill.proficiency as ProficiencyTier;
-      const tierBonus = PROFICIENCY_BONUS[tier] ?? 0;
+      const tierBonus = proficiencyBonusFor(skill.proficiency);
       const kind = SKILL_SPECIALIZATION_KIND[key];
       skill.proficiencyBonus = appliedProficiencyBonus({
         tierBonus,
-        specialized: (kind ?? "none") === "none",
+        specialized: kind === "none",
       });
       skill.attackMod = Math.floor(skill.attackMod ?? 0);
       skill.damageMod = Math.floor(skill.damageMod ?? 0);
@@ -319,19 +336,17 @@ export class CharacterData extends foundry.abstract.TypeDataModel<
       const s = this.saves[key] as SaveFields;
       const abilityKey = SAVE_ABILITY[key];
       const ability = this.abilities[abilityKey] as AbilityFields;
-      const tier = s.proficiency as ProficiencyTier;
-      const tierBonus = PROFICIENCY_BONUS[tier] ?? 0;
+      const tierBonus = proficiencyBonusFor(s.proficiency);
       s.mod = (s.mod ?? 0) + (ability.mod ?? 0) + tierBonus;
     }
 
     const luckSave = this.saves.luck as SaveFields;
     const lck = this.abilities.lck as AbilityFields;
-    const luckTier = luckSave.proficiency as ProficiencyTier;
-    luckSave.mod = (luckSave.mod ?? 0) + (lck.mod ?? 0) + (PROFICIENCY_BONUS[luckTier] ?? 0);
+    luckSave.mod = (luckSave.mod ?? 0) + (lck.mod ?? 0) + proficiencyBonusFor(luckSave.proficiency);
 
     // Defense = 10 + Reflex save modifier (armor does not affect Defense for now).
     const reflex = this.saves.reflex as SaveFields;
-    const combat = this.combat as { ac: number };
+    const combat = this.combat as Partial<CombatFields>;
     combat.ac = (combat.ac ?? 0) + 10 + (reflex.mod ?? 0);
   }
 }

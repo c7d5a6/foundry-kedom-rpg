@@ -2,7 +2,9 @@ import { systemOf } from "../../types/accessors.ts";
 import { localize } from "../../i18n/localize.ts";
 import { repickLoss } from "../../creation/repick.ts";
 import { enrichHTML } from "../enrich.ts";
-import { ABILITY_KEYS, SKILL_KEYS } from "../../config/kedom.ts";
+import { buildAbilityData, buildOriginItems, buildSkillData } from "./wizard/actor-data.ts";
+import { isFilled, prefixKeys } from "./wizard/text.ts";
+import { SKILL_KEYS } from "../../config/kedom.ts";
 import {
   CREATION_ABILITY_KEYS,
   CREATION_REPLACEABLE_ABILITY_KEYS,
@@ -26,7 +28,7 @@ import {
   type CatalogBackground,
   type CatalogClass,
   type CatalogCulture,
-  type CatalogItemPayload,
+  type CatalogRegion,
   type OriginsCatalog,
   culturePercents,
   getCatalogBackground,
@@ -230,6 +232,15 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     return this;
   }
 
+  /**
+   * The window element. Foundry types it as always present, but it is undefined until the
+   * first render, and handlers can run before that.
+   */
+  get #root(): HTMLElement | undefined {
+    const element: HTMLElement | undefined = this.element;
+    return element;
+  }
+
   get stepId(): StepId {
     return STEPS[this.#draft.stepIndex] ?? "abilities";
   }
@@ -254,7 +265,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   /** Specialization pickers open below the fold; bring a newly shown one into view. */
   #specBlockCount = 0;
   #revealNewSpecBlock(): void {
-    const blocks = this.element?.querySelectorAll<HTMLElement>(".kedom-create-wizard__spec");
+    const blocks = this.#root?.querySelectorAll<HTMLElement>(".kedom-create-wizard__spec");
     const count = blocks?.length ?? 0;
     if (count > this.#specBlockCount) blocks?.item(count - 1).scrollIntoView({ block: "nearest" });
     this.#specBlockCount = count;
@@ -263,7 +274,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   #bindNameInput(): void {
     this.#nameAbort?.abort();
     this.#nameAbort = new AbortController();
-    const input = this.element?.querySelector<HTMLInputElement>('input[name="characterName"]');
+    const input = this.#root?.querySelector<HTMLInputElement>('input[name="characterName"]');
     if (!input) return;
     const sync = (): void => {
       this.#draft.name = input.value;
@@ -275,9 +286,8 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   #bindSpecInputs(): void {
     const signal = this.#nameAbort?.signal;
     const opts = signal ? { signal } : undefined;
-    for (const input of this.element?.querySelectorAll<HTMLInputElement>(
-      "input[data-spec-target]",
-    ) ?? []) {
+    for (const input of this.#root?.querySelectorAll<HTMLInputElement>("input[data-spec-target]") ??
+      []) {
       const sync = () => {
         const target = input.dataset.specTarget;
         const value = input.value.trim();
@@ -301,29 +311,31 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   }
 
   #refreshNextButton(): void {
-    const btn = this.element?.querySelector<HTMLButtonElement>('[data-action="next"]');
+    const root = this.#root;
+    if (root === undefined) return;
+    const btn = root.querySelector<HTMLButtonElement>('[data-action="next"]');
     if (!btn) return;
     const canAdvance = this.#canAdvance();
     btn.disabled = !canAdvance;
-    const hint = this.element.querySelector<HTMLElement>(".kedom-create-wizard__hint");
+    const hint = root.querySelector<HTMLElement>(".kedom-create-wizard__hint");
     if (hint) hint.hidden = canAdvance;
   }
 
   #selectedCulture(catalog: OriginsCatalog): CatalogCulture | undefined {
     const d = this.#draft;
-    if (!d.regionKey || !d.cultureKey) return undefined;
+    if (!isFilled(d.regionKey) || !isFilled(d.cultureKey)) return undefined;
     return getCatalogCulture(catalog, d.regionKey, d.cultureKey);
   }
 
   #selectedBackground(catalog: OriginsCatalog): CatalogBackground | undefined {
     const d = this.#draft;
-    if (!d.backgroundKey) return undefined;
+    if (!isFilled(d.backgroundKey)) return undefined;
     return getCatalogBackground(catalog, d.backgroundKey);
   }
 
   #selectedClass(catalog: OriginsCatalog): CatalogClass | undefined {
     const d = this.#draft;
-    if (!d.classKey) return undefined;
+    if (!isFilled(d.classKey)) return undefined;
     return getCatalogClass(catalog, d.classKey);
   }
 
@@ -335,7 +347,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
 
   #hasValidClassSelection(catalog: OriginsCatalog): boolean {
     const d = this.#draft;
-    if (d.classKey) {
+    if (isFilled(d.classKey)) {
       const cls = getCatalogClass(catalog, d.classKey);
       return Boolean(cls?.isFull);
     }
@@ -356,14 +368,15 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const partials = this.#selectedPartials(catalog);
     if (partials.length !== 2) return null;
     const [a, b] = partials;
-    const sysA = this.#originFields(catalog, a!.slug);
-    const sysB = this.#originFields(catalog, b!.slug);
+    if (a === undefined || b === undefined) return null;
+    const sysA = this.#originFields(catalog, a.slug);
+    const sysB = this.#originFields(catalog, b.slug);
     if (!sysA || !sysB) return null;
-    return combineClassOrigins(sysA, a!.name, sysB, b!.name);
+    return combineClassOrigins(sysA, a.name, sysB, b.name);
   }
 
   #effectiveHitDie(catalog: OriginsCatalog): string {
-    if (this.#draft.classKey) {
+    if (isFilled(this.#draft.classKey)) {
       return this.#selectedClass(catalog)?.hitDie ?? "1d6";
     }
     return this.#combinedPartials(catalog)?.hitDie ?? "1d6";
@@ -373,7 +386,10 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const full = this.#selectedClass(catalog);
     if (full) return full.name;
     const partials = this.#selectedPartials(catalog);
-    if (partials.length === 2) return `${partials[0]!.name} / ${partials[1]!.name}`;
+    const [first, second] = partials;
+    if (partials.length === 2 && first !== undefined && second !== undefined) {
+      return `${first.name} / ${second.name}`;
+    }
     return "";
   }
 
@@ -435,8 +451,44 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     }
     const catalog = await this.#ensureCatalog();
     const d = this.#draft;
-    const stepId = this.stepId;
+    const region = isFilled(d.regionKey) ? getCatalogRegion(catalog, d.regionKey) : undefined;
+    const culture = this.#selectedCulture(catalog);
+    const background = this.#selectedBackground(catalog);
 
+    // Slice order matters: the background slice seeds draft picks that the confirm slice reads.
+    return {
+      ...this.#navContext(),
+      ...this.#abilitiesContext(),
+      ...(await this.#regionContext(catalog, region)),
+      ...(await this.#cultureContext(catalog, region, culture)),
+      ...(await this.#backgroundContext(catalog, culture, background)),
+      ...(await this.#classContext(catalog, culture)),
+      ...this.#confirmContext(catalog),
+    };
+  }
+
+  #navContext() {
+    const d = this.#draft;
+    return {
+      stepId: this.stepId,
+      stepCurrent: d.stepIndex + 1,
+      stepCount: STEPS.length,
+      stepNav: STEPS.map((id, index) => ({
+        index,
+        number: index + 1,
+        label: localize(STEP_TITLE_KEYS[id]),
+        current: index === d.stepIndex,
+        done: index < d.stepIndex,
+      })),
+      stepTitle: localize(`KEDOM.Creation.Step.${this.stepId}`),
+      name: d.name,
+      isFirst: d.stepIndex === 0,
+      isLast: d.stepIndex === STEPS.length - 1,
+    };
+  }
+
+  #abilitiesContext() {
+    const d = this.#draft;
     const abilityRows = CREATION_ABILITY_KEYS.map((key) => ({
       key,
       label: localize(`KEDOM.Ability.${key}.label`, key),
@@ -446,14 +498,29 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
         d.abilitiesRolled && (CREATION_REPLACEABLE_ABILITY_KEYS as readonly string[]).includes(key),
       isReplaced: d.replacedAbility === key,
     }));
+    return { abilitiesRolled: d.abilitiesRolled, abilityRows };
+  }
 
+  async #regionContext(catalog: OriginsCatalog, region: CatalogRegion | undefined) {
+    const d = this.#draft;
     const regions = catalog.regions.map((r) => ({
       key: r.slug,
       label: r.name,
       selected: d.regionKey === r.slug,
     }));
+    return {
+      regions,
+      regionDescriptionHtml: region ? await enrichHtml(region.description) : "",
+      showRegionDetail: Boolean(region),
+    };
+  }
 
-    const region = d.regionKey ? getCatalogRegion(catalog, d.regionKey) : undefined;
+  async #cultureContext(
+    catalog: OriginsCatalog,
+    region: CatalogRegion | undefined,
+    culture: CatalogCulture | undefined,
+  ) {
+    const d = this.#draft;
     const cultures =
       region?.cultures.map((c) => ({
         key: c.slug,
@@ -465,17 +532,43 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
         selected: d.cultureKey === c.slug,
         disabled: c.disabled,
       })) ?? [];
+    const cultureTalent = culture ? getCatalogTalent(catalog, culture.talentSlug) : undefined;
+    return {
+      cultures,
+      cultureDescriptionHtml: culture ? await enrichHtml(culture.description) : "",
+      cultureTalentName: cultureTalent?.name ?? "",
+      cultureTalentHtml: cultureTalent ? await enrichHtml(cultureTalent.description) : "",
+      showCultureDetail: Boolean(culture),
+    };
+  }
 
-    const culture = this.#selectedCulture(catalog);
-    const backgroundList = this.#backgroundsForCulture(catalog, culture);
-    const backgrounds = backgroundList.map((b, index) => ({
+  async #backgroundContext(
+    catalog: OriginsCatalog,
+    culture: CatalogCulture | undefined,
+    background: CatalogBackground | undefined,
+  ) {
+    const d = this.#draft;
+    const backgrounds = this.#backgroundsForCulture(catalog, culture).map((b, index) => ({
       key: b.slug,
       index: index + 1,
       label: b.name,
       selected: d.backgroundKey === b.slug,
     }));
+    return {
+      backgrounds,
+      backgroundKey: d.backgroundKey,
+      backgroundLabel: background?.name ?? "",
+      backgroundDescriptionHtml: background ? await enrichHtml(background.description) : "",
+      showBackgroundDetail: Boolean(background),
+      ...this.#freeContext(catalog, background),
+      ...this.#rollsContext(catalog, background),
+      combatOptions: COMBAT_SKILLS.map((key) => ({ key, label: localize(`KEDOM.Skill.${key}`) })),
+      skillOptions: SKILL_KEYS.map((key) => ({ key, label: localize(`KEDOM.Skill.${key}`) })),
+    };
+  }
 
-    const background = this.#selectedBackground(catalog);
+  #freeContext(catalog: OriginsCatalog, background: CatalogBackground | undefined) {
+    const d = this.#draft;
     const freeNeedsWild =
       background?.free.kind === "anyCombat" || background?.free.kind === "anySkill";
     const freeWildIsCombat = background?.free.kind === "anyCombat";
@@ -509,6 +602,21 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
         };
       }) ?? [];
 
+    return {
+      freeDone: Boolean(freeResolved),
+      freeLabel: background ? this.#entryLabel(background.free) : "",
+      freeNeedsWild,
+      freeWildIsCombat,
+      freeWildPick: d.freeWild.skillKey,
+      freeSpecUI: this.#specUI("free", d.freeWild, []),
+      freeResolvedLabel: freeResolved ? formatGrantLabel(freeResolved) : "",
+      tableRows,
+    };
+  }
+
+  /** Both background growth rolls plus the bonus pick, as the template's flat `roll1*`/`roll2*`/`bonus*` keys. */
+  #rollsContext(catalog: OriginsCatalog, background: CatalogBackground | undefined) {
+    const d = this.#draft;
     const ownedBeforeRoll1 = this.#ownedGrants(catalog, {
       includeRoll1: false,
       includeRoll2: false,
@@ -526,35 +634,77 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     });
     const bonusResolved = resolveBonusSkillPick(ownedBeforeBonus, d.bonusWild);
 
-    const roll1Entry =
-      background && d.roll1 !== null ? (background.growth[d.roll1 - 1] ?? null) : null;
-    const roll2Entry =
-      background && d.roll2 !== null ? (background.growth[d.roll2 - 1] ?? null) : null;
+    const roll1 = this.#rollView(1, background, ownedBeforeRoll1);
+    const roll2 = this.#rollView(2, background, ownedBeforeRoll2);
+
+    return {
+      roll1: d.roll1,
+      roll2: d.roll2,
+      ...prefixKeys("roll1", roll1.fields),
+      ...prefixKeys("roll2", roll2.fields),
+      rollsDone: (roll1.state?.grant ? 1 : 0) + (roll2.state?.grant ? 1 : 0),
+      bonusDone: Boolean(bonusResolved),
+      bonusWildPick: d.bonusWild.skillKey,
+      bonusSkillOptions: SKILL_KEYS.map((key) => ({
+        key,
+        label: localize(`KEDOM.Skill.${key}`),
+        selected: d.bonusWild.skillKey === key,
+        disabled: countSkill(ownedBeforeBonus, key) >= 2,
+      })),
+      bonusSpecUI: this.#specUI("bonus", d.bonusWild, ownedBeforeBonus, isBonusSkillPickBlocked),
+      bonusResolvedLabel: bonusResolved ? formatGrantLabel(bonusResolved) : "",
+    };
+  }
+
+  /** One growth roll: seeds the draft's wild pick and original label, then derives its template fields. */
+  #rollView(
+    n: 1 | 2,
+    background: CatalogBackground | undefined,
+    owned: readonly ResolvedSkillGrant[],
+  ): { state: RolledResolveState | null; fields: Record<string, unknown> } {
+    const d = this.#draft;
+    const rolled = n === 1 ? d.roll1 : d.roll2;
+    const entry = background && rolled !== null ? (background.growth[rolled - 1] ?? null) : null;
+    let wild = n === 1 ? d.roll1Wild : d.roll2Wild;
 
     // Seed fixed skill for Spec UI when a concrete growth row needs a player specialization.
-    if (roll1Entry && entryNeedsPlayerSpecialization(roll1Entry) && roll1Entry.kind === "skill") {
-      if (!d.roll1Wild.skillKey) {
-        d.roll1Wild = { skillKey: roll1Entry.skillKey, specLabel: d.roll1Wild.specLabel };
-      }
-    }
-    if (roll2Entry && entryNeedsPlayerSpecialization(roll2Entry) && roll2Entry.kind === "skill") {
-      if (!d.roll2Wild.skillKey) {
-        d.roll2Wild = { skillKey: roll2Entry.skillKey, specLabel: d.roll2Wild.specLabel };
+    if (entry && entryNeedsPlayerSpecialization(entry) && entry.kind === "skill") {
+      if (!isFilled(wild.skillKey)) {
+        wild = { skillKey: entry.skillKey, specLabel: wild.specLabel };
+        if (n === 1) d.roll1Wild = wild;
+        else d.roll2Wild = wild;
       }
     }
 
-    const roll1State =
-      roll1Entry != null ? resolveRolledEntry(roll1Entry, ownedBeforeRoll1, d.roll1Wild) : null;
-    const roll2State =
-      roll2Entry != null ? resolveRolledEntry(roll2Entry, ownedBeforeRoll2, d.roll2Wild) : null;
-
-    if (roll1State?.rolledGrant) {
-      d.roll1OriginalLabel = formatGrantLabel(roll1State.rolledGrant);
+    const state = entry !== null ? resolveRolledEntry(entry, owned, wild) : null;
+    if (state?.rolledGrant) {
+      const label = formatGrantLabel(state.rolledGrant);
+      if (n === 1) d.roll1OriginalLabel = label;
+      else d.roll2OriginalLabel = label;
     }
-    if (roll2State?.rolledGrant) {
-      d.roll2OriginalLabel = formatGrantLabel(roll2State.rolledGrant);
-    }
+    const originalLabel = n === 1 ? d.roll1OriginalLabel : d.roll2OriginalLabel;
 
+    return {
+      state,
+      fields: {
+        label: entry ? this.#entryLabel(entry) : "",
+        needsCombat: state?.needsCombatPick ?? false,
+        needsAny: state?.needsAnySkill ?? false,
+        // Keep skill chooser while wild/substitute pick is incomplete (incl. needing a specialization).
+        showAnySkills: this.#showAnySkillChooser(state, entry),
+        needsSpec: state?.needsSpecialization ?? false,
+        substituted: state?.substituted ?? false,
+        rolledLabel:
+          (state?.rolledGrant ? formatGrantLabel(state.rolledGrant) : "") || originalLabel,
+        finalLabel: state?.grant ? formatGrantLabel(state.grant) : "",
+        wildPick: wild.skillKey,
+        specUI: this.#specUI(n === 1 ? "roll1" : "roll2", wild, owned),
+      },
+    };
+  }
+
+  async #classContext(catalog: OriginsCatalog, culture: CatalogCulture | undefined) {
+    const d = this.#draft;
     const allowedClasses = this.#classesForCulture(catalog, culture);
     const mapClassOption = (c: CatalogClass) => ({
       key: c.slug,
@@ -562,120 +712,21 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       hitDie: c.hitDie,
       selected: d.classKey === c.slug || d.partialKeys.includes(c.slug),
     });
-    const fullClassOptions = allowedClasses.filter((c) => c.isFull).map(mapClassOption);
-    const partialClassOptions = allowedClasses.filter((c) => !c.isFull).map(mapClassOption);
-    const needSecondPartial = d.partialKeys.length === 1;
     const hasClassSelected = this.#hasValidClassSelection(catalog);
-
     const selectedClass = this.#selectedClass(catalog);
-    const selectedPartials = this.#selectedPartials(catalog);
     const effectiveHitDie = this.#effectiveHitDie(catalog);
     const startingHp = this.#startingHp();
 
-    const combatOptions = COMBAT_SKILLS.map((key) => ({
-      key,
-      label: localize(`KEDOM.Skill.${key}`),
-    }));
-    const skillOptions = SKILL_KEYS.map((key) => ({
-      key,
-      label: localize(`KEDOM.Skill.${key}`),
-    }));
-    const bonusSkillOptions = SKILL_KEYS.map((key) => ({
-      key,
-      label: localize(`KEDOM.Skill.${key}`),
-      selected: d.bonusWild.skillKey === key,
-      disabled: countSkill(ownedBeforeBonus, key) >= 2,
-    }));
-
-    const cultureTalent = culture ? getCatalogTalent(catalog, culture.talentSlug) : undefined;
-    const detailClasses = selectedClass ? [selectedClass] : selectedPartials;
+    const detailClasses = selectedClass ? [selectedClass] : this.#selectedPartials(catalog);
     const classTalentSlugs = [...new Set(detailClasses.flatMap((c) => c.talentSlugs))];
     const classTalents = classTalentSlugs
       .map((slug) => getCatalogTalent(catalog, slug))
       .filter((t): t is NonNullable<typeof t> => Boolean(t));
 
-    const regionDescriptionHtml = region ? await enrichHtml(region.description) : "";
-    const cultureDescriptionHtml = culture ? await enrichHtml(culture.description) : "";
-    const cultureTalentHtml = cultureTalent ? await enrichHtml(cultureTalent.description) : "";
-    const backgroundDescriptionHtml = background ? await enrichHtml(background.description) : "";
-    const classDescriptionHtml = (
-      await Promise.all(detailClasses.map((c) => enrichHtml(c.description)))
-    )
-      .filter(Boolean)
-      .join("");
-    const classTalentBlocks = await Promise.all(
-      classTalents.map(async (t) => ({
-        name: t.name,
-        html: await enrichHtml(t.description),
-      })),
-    );
-
     return {
-      stepId,
-      stepCurrent: d.stepIndex + 1,
-      stepCount: STEPS.length,
-      stepNav: STEPS.map((id, index) => ({
-        index,
-        number: index + 1,
-        label: localize(STEP_TITLE_KEYS[id]),
-        current: index === d.stepIndex,
-        done: index < d.stepIndex,
-      })),
-      freeDone: Boolean(freeResolved),
-      rollsDone: (roll1State?.grant ? 1 : 0) + (roll2State?.grant ? 1 : 0),
-      bonusDone: Boolean(bonusResolved),
-      stepTitle: localize(`KEDOM.Creation.Step.${stepId}`),
-      name: d.name,
-      abilitiesRolled: d.abilitiesRolled,
-      abilityRows,
-      regions,
-      regionDescriptionHtml,
-      showRegionDetail: Boolean(region),
-      cultures,
-      backgrounds,
-      backgroundKey: d.backgroundKey,
-      backgroundLabel: background?.name ?? "",
-      freeLabel: background ? this.#entryLabel(background.free) : "",
-      freeNeedsWild,
-      freeWildIsCombat,
-      freeWildPick: d.freeWild.skillKey,
-      freeSpecUI: this.#specUI("free", d.freeWild, []),
-      tableRows,
-      roll1: d.roll1,
-      roll2: d.roll2,
-      roll1Label: roll1Entry ? this.#entryLabel(roll1Entry) : "",
-      roll2Label: roll2Entry ? this.#entryLabel(roll2Entry) : "",
-      roll1NeedsCombat: roll1State?.needsCombatPick ?? false,
-      roll1NeedsAny: roll1State?.needsAnySkill ?? false,
-      // Keep skill chooser while wild/substitute pick is incomplete (incl. needing a specialization).
-      roll1ShowAnySkills: this.#showAnySkillChooser(roll1State, roll1Entry),
-      roll1NeedsSpec: roll1State?.needsSpecialization ?? false,
-      roll1Substituted: roll1State?.substituted ?? false,
-      roll1RolledLabel:
-        (roll1State?.rolledGrant ? formatGrantLabel(roll1State.rolledGrant) : "") ||
-        d.roll1OriginalLabel,
-      roll1FinalLabel: roll1State?.grant ? formatGrantLabel(roll1State.grant) : "",
-      roll1WildPick: d.roll1Wild.skillKey,
-      roll1SpecUI: this.#specUI("roll1", d.roll1Wild, ownedBeforeRoll1),
-      roll2NeedsCombat: roll2State?.needsCombatPick ?? false,
-      roll2NeedsAny: roll2State?.needsAnySkill ?? false,
-      roll2ShowAnySkills: this.#showAnySkillChooser(roll2State, roll2Entry),
-      roll2NeedsSpec: roll2State?.needsSpecialization ?? false,
-      roll2Substituted: roll2State?.substituted ?? false,
-      roll2RolledLabel:
-        (roll2State?.rolledGrant ? formatGrantLabel(roll2State.rolledGrant) : "") ||
-        d.roll2OriginalLabel,
-      roll2FinalLabel: roll2State?.grant ? formatGrantLabel(roll2State.grant) : "",
-      roll2WildPick: d.roll2Wild.skillKey,
-      roll2SpecUI: this.#specUI("roll2", d.roll2Wild, ownedBeforeRoll2),
-      bonusWildPick: d.bonusWild.skillKey,
-      bonusSkillOptions,
-      bonusSpecUI: this.#specUI("bonus", d.bonusWild, ownedBeforeBonus, isBonusSkillPickBlocked),
-      bonusResolvedLabel: bonusResolved ? formatGrantLabel(bonusResolved) : "",
-      freeResolvedLabel: freeResolved ? formatGrantLabel(freeResolved) : "",
-      fullClassOptions,
-      partialClassOptions,
-      needSecondPartial,
+      fullClassOptions: allowedClasses.filter((c) => c.isFull).map(mapClassOption),
+      partialClassOptions: allowedClasses.filter((c) => !c.isFull).map(mapClassOption),
+      needSecondPartial: d.partialKeys.length === 1,
       selectedClassHitDie: effectiveHitDie,
       hasClassSelected,
       startingHp,
@@ -687,22 +738,24 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
               roll: String(d.hitDieTotal ?? 0),
             })
           : "",
-      combatOptions,
-      skillOptions,
-      cultureDescriptionHtml,
-      cultureTalentName: cultureTalent?.name ?? "",
-      cultureTalentHtml,
-      showCultureDetail: Boolean(culture),
-      backgroundDescriptionHtml,
-      showBackgroundDetail: Boolean(background),
-      classDescriptionHtml,
-      classTalentBlocks,
+      classDescriptionHtml: (await Promise.all(detailClasses.map((c) => enrichHtml(c.description))))
+        .filter(Boolean)
+        .join(""),
+      classTalentBlocks: await Promise.all(
+        classTalents.map(async (t) => ({
+          name: t.name,
+          html: await enrichHtml(t.description),
+        })),
+      ),
       showClassDetail: detailClasses.length > 0,
+    };
+  }
+
+  #confirmContext(catalog: OriginsCatalog) {
+    return {
       confirmLines: this.#confirmLines(catalog),
       canNext: this.#canAdvance(catalog),
       stepHint: localize(STEP_HINT_KEYS[this.stepId], ""),
-      isFirst: d.stepIndex === 0,
-      isLast: d.stepIndex === STEPS.length - 1,
     };
   }
 
@@ -728,7 +781,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     target: string;
   } {
     const skillKey = pick.skillKey;
-    if (!skillKey || !skillNeedsSpecialization(skillKey)) {
+    if (!isFilled(skillKey) || !skillNeedsSpecialization(skillKey)) {
       return { show: false, freeform: false, fixedOptions: [], value: "", target };
     }
     const kind = SKILL_SPECIALIZATION_KIND[skillKey] ?? "none";
@@ -759,7 +812,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     if (entry.kind === "anyCombat") return localize("KEDOM.Creation.AnyCombat");
     if (entry.kind === "anySkill") return localize("KEDOM.Creation.AnySkill");
     const skill = localize(`KEDOM.Skill.${entry.skillKey}`, entry.skillKey);
-    if (!entry.specLabel) return skill;
+    if (!isFilled(entry.specLabel)) return skill;
     const spec = localizePersistedSpecLabel(entry.skillKey, entry.specLabel, entry.specLabel);
     return `${skill} (${spec})`;
   }
@@ -789,7 +842,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const includeRoll2 = opts?.includeRoll2 ?? true;
     const includeBonus = opts?.includeBonus ?? true;
     const d = this.#draft;
-    if (!d.backgroundKey) return [];
+    if (!isFilled(d.backgroundKey)) return [];
     const bg = getCatalogBackground(catalog, d.backgroundKey);
     if (!bg) return [];
 
@@ -826,7 +879,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const d = this.#draft;
     const lines: string[] = [];
     if (d.name) lines.push(d.name);
-    if (d.regionKey) {
+    if (isFilled(d.regionKey)) {
       const r = getCatalogRegion(catalog, d.regionKey);
       if (r) lines.push(r.name);
     }
@@ -835,8 +888,8 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const background = this.#selectedBackground(catalog);
     if (background) lines.push(background.name);
     const classLabel = this.#effectiveClassLabel(catalog);
-    if (classLabel && this.#hasValidClassSelection(catalog)) {
-      const talentSlugs = d.classKey
+    if (classLabel !== "" && this.#hasValidClassSelection(catalog)) {
+      const talentSlugs = isFilled(d.classKey)
         ? (this.#selectedClass(catalog)?.talentSlugs ?? [])
         : (this.#combinedPartials(catalog)?.talentSlugs ?? []);
       const talentNames = [...talentSlugs]
@@ -873,7 +926,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       case "culture":
         return d.cultureKey !== null;
       case "background": {
-        if (!d.backgroundKey) return false;
+        if (!isFilled(d.backgroundKey)) return false;
         const bg = getCatalogBackground(cat, d.backgroundKey);
         if (!bg) return false;
         // Free grant must resolve (wild pick and/or required specialization).
@@ -923,7 +976,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   }
 
   #readNameFromForm(): void {
-    const input = this.element?.querySelector<HTMLInputElement>('input[name="characterName"]');
+    const input = this.#root?.querySelector<HTMLInputElement>('input[name="characterName"]');
     if (input) this.#draft.name = input.value.trim();
   }
 
@@ -932,7 +985,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     if (
       this.stepId === "abilities" &&
       this.#draft.abilitiesRolled &&
-      !this.#draft.replacedAbility
+      this.#draft.replacedAbility === null
     ) {
       ui.notifications.warn(localize("KEDOM.Creation.Wizard.NoFourteenWarning"));
     }
@@ -1002,11 +1055,11 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     target: HTMLElement,
   ): Promise<void> {
     const key = target.dataset.abilityKey as CreationAbilityKey | undefined;
-    if (!key || key === "lck" || !this.#draft.abilitiesRolled) return;
+    if (!isFilled(key) || key === "lck" || !this.#draft.abilitiesRolled) return;
     if (!(CREATION_REPLACEABLE_ABILITY_KEYS as readonly string[]).includes(key)) return;
 
     const prev = this.#draft.replacedAbility;
-    if (prev) {
+    if (prev !== null) {
       this.#draft.abilities[prev] = this.#draft.rolledAbilities[prev];
     }
     if (prev === key) {
@@ -1025,7 +1078,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   ): Promise<void> {
     const catalog = await this.#ensureCatalog();
     const key = target.dataset.regionKey;
-    if (!key || !getCatalogRegion(catalog, key)) return;
+    if (!isFilled(key) || !getCatalogRegion(catalog, key)) return;
     if (key === this.#draft.regionKey) return;
     if (!(await this.#confirmRepick("region"))) return;
     this.#draft.regionKey = key;
@@ -1045,7 +1098,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   ): Promise<void> {
     const catalog = await this.#ensureCatalog();
     const key = target.dataset.cultureKey;
-    if (!key || !this.#draft.regionKey) return;
+    if (!isFilled(key) || !isFilled(this.#draft.regionKey)) return;
     const culture = getCatalogCulture(catalog, this.#draft.regionKey, key);
     if (!culture || culture.disabled) return;
     if (key === this.#draft.cultureKey) return;
@@ -1061,10 +1114,11 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
 
   static async #onRollCulture(this: CharacterCreateWizard): Promise<void> {
     const catalog = await this.#ensureCatalog();
-    if (!this.#draft.regionKey) return;
+    if (!isFilled(this.#draft.regionKey)) return;
     const region = getCatalogRegion(catalog, this.#draft.regionKey);
     const available = region?.cultures.filter((c) => !c.disabled) ?? [];
-    if (!available.length) return;
+    const lastOption = available[available.length - 1];
+    if (lastOption === undefined) return;
     // Ask before the roll is posted to chat, not after.
     if (!(await this.#confirmRepick("culture"))) return;
 
@@ -1074,11 +1128,11 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       localize("KEDOM.Creation.Wizard.CultureRollFlavor"),
     );
     let acc = 0;
-    let pick = available[available.length - 1]!;
-    for (let i = 0; i < available.length; i++) {
+    let pick = lastOption;
+    for (const [i, option] of available.entries()) {
       acc += pcts[i] ?? 0;
       if (total <= acc) {
-        pick = available[i]!;
+        pick = option;
         break;
       }
     }
@@ -1098,9 +1152,9 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   ): Promise<void> {
     const catalog = await this.#ensureCatalog();
     const key = target.dataset.backgroundKey;
-    if (!key) return;
+    if (!isFilled(key)) return;
     const culture = this.#selectedCulture(catalog);
-    if (!culture?.backgroundSlugs.includes(key)) return;
+    if (culture?.backgroundSlugs.includes(key) !== true) return;
     if (!getCatalogBackground(catalog, key)) return;
     this.#draft.backgroundKey = key;
     this.#resetBackgroundPicks();
@@ -1113,7 +1167,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     const list = this.#backgroundsForCulture(catalog, culture);
     if (!list.length) return;
     const { total } = await postCreationRoll(
-      `1d${list.length}`,
+      `1d${String(list.length)}`,
       localize("KEDOM.Creation.Wizard.BackgroundRollFlavor"),
     );
     const pick = list[total - 1] ?? list[0];
@@ -1140,13 +1194,13 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     target: HTMLElement,
   ): Promise<void> {
     const leaf = target.dataset.specLeaf;
-    if (leaf) {
+    if (isFilled(leaf)) {
       this.#draft.freeWild.specLabel = leaf;
       await this.render();
       return;
     }
     const key = target.dataset.skillKey;
-    if (!key || !SKILL_KEYS.includes(key)) return;
+    if (!isFilled(key) || !SKILL_KEYS.includes(key)) return;
     this.#draft.freeWild = { skillKey: key, specLabel: null };
     await this.render();
   }
@@ -1169,9 +1223,9 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   ): Promise<void> {
     const catalog = await this.#ensureCatalog();
     const leaf = target.dataset.specLeaf;
-    if (leaf) {
+    if (isFilled(leaf)) {
       const skillKey = this.#draft.roll1Wild.skillKey;
-      if (skillKey) {
+      if (isFilled(skillKey)) {
         const prior = this.#ownedGrants(catalog, {
           includeRoll1: false,
           includeRoll2: false,
@@ -1185,7 +1239,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       return;
     }
     const key = target.dataset.skillKey;
-    if (!key || !SKILL_KEYS.includes(key)) return;
+    if (!isFilled(key) || !SKILL_KEYS.includes(key)) return;
     this.#draft.roll1Wild = { skillKey: key, specLabel: null };
     await this.render();
   }
@@ -1208,9 +1262,9 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   ): Promise<void> {
     const catalog = await this.#ensureCatalog();
     const leaf = target.dataset.specLeaf;
-    if (leaf) {
+    if (isFilled(leaf)) {
       const skillKey = this.#draft.roll2Wild.skillKey;
-      if (skillKey) {
+      if (isFilled(skillKey)) {
         const prior = this.#ownedGrants(catalog, {
           includeRoll1: true,
           includeRoll2: false,
@@ -1224,7 +1278,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       return;
     }
     const key = target.dataset.skillKey;
-    if (!key || !SKILL_KEYS.includes(key)) return;
+    if (!isFilled(key) || !SKILL_KEYS.includes(key)) return;
     this.#draft.roll2Wild = { skillKey: key, specLabel: null };
     await this.render();
   }
@@ -1241,9 +1295,9 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       includeBonus: false,
     });
     const leaf = target.dataset.specLeaf;
-    if (leaf) {
+    if (isFilled(leaf)) {
       const skillKey = this.#draft.bonusWild.skillKey;
-      if (skillKey) {
+      if (isFilled(skillKey)) {
         const candidate = resolveConcreteEntry({ kind: "anySkill" }, { skillKey, specLabel: leaf });
         if (candidate && isBonusSkillPickBlocked(prior, candidate)) return;
       }
@@ -1252,7 +1306,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       return;
     }
     const key = target.dataset.skillKey;
-    if (!key || !SKILL_KEYS.includes(key)) return;
+    if (!isFilled(key) || !SKILL_KEYS.includes(key)) return;
     if (countSkill(prior, key) >= 2) return;
     this.#draft.bonusWild = { skillKey: key, specLabel: null };
     await this.render();
@@ -1265,9 +1319,9 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
   ): Promise<void> {
     const catalog = await this.#ensureCatalog();
     const key = target.dataset.classKey;
-    if (!key) return;
+    if (!isFilled(key)) return;
     const culture = this.#selectedCulture(catalog);
-    if (!culture?.classSlugs.includes(key)) return;
+    if (culture?.classSlugs.includes(key) !== true) return;
     const cls = getCatalogClass(catalog, key);
     if (!cls) return;
     const d = this.#draft;
@@ -1285,7 +1339,10 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       } else if (d.partialKeys.length < 2) {
         d.partialKeys = [...d.partialKeys, key];
       } else {
-        d.partialKeys = [d.partialKeys[0]!, key];
+        const [first] = d.partialKeys;
+        if (first === undefined)
+          throw new Error("two partial classes are selected, so a first exists");
+        d.partialKeys = [first, key];
       }
     }
     d.hitDieTotal = null;
@@ -1321,42 +1378,10 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     }
   }
 
-  #pushTalentPayload(
-    items: CatalogItemPayload[],
-    catalog: OriginsCatalog,
-    talentSlug: string,
-    seen: Set<string>,
-  ): void {
-    if (!talentSlug || seen.has(talentSlug)) return;
-    const payload = catalog.talentBySlug.get(talentSlug);
-    if (!payload) return;
-    seen.add(talentSlug);
-    items.push(payload);
-  }
-
-  #pushClassOrigin(items: CatalogItemPayload[], catalog: OriginsCatalog, cls: CatalogClass): void {
-    const payload = catalog.originBySlug.get(cls.slug);
-    if (payload) {
-      items.push(payload);
-      return;
-    }
-    items.push({
-      name: cls.name,
-      type: "origin",
-      img: "icons/svg/combat.svg",
-      system: {
-        subType: "class",
-        slug: cls.slug,
-        description: cls.description,
-        isFull: cls.isFull,
-      },
-    });
-  }
-
   async #createActor(): Promise<void> {
     const catalog = await this.#ensureCatalog();
     const d = this.#draft;
-    if (!d.regionKey || !d.cultureKey || !d.backgroundKey) return;
+    if (!isFilled(d.regionKey) || !isFilled(d.cultureKey) || !isFilled(d.backgroundKey)) return;
     if (!this.#hasValidClassSelection(catalog)) return;
     if (!d.abilitiesRolled) return;
 
@@ -1371,29 +1396,7 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
     if (!classDef) return;
     if (!fullClass && (!combined || partials.length !== 2)) return;
 
-    const grants = this.#ownedGrants(catalog);
-    const merged = mergeSkillGrants(grants);
-
-    const abilities: Record<string, { value: number }> = {};
-    for (const key of ABILITY_KEYS) {
-      const v = d.abilities[key] ?? 10;
-      abilities[key] = { value: v };
-    }
-
-    const skills: Record<string, unknown> = {};
-    for (const key of SKILL_KEYS) {
-      const prof = merged.proficiency[key];
-      const specs = merged.specializations[key];
-      if (!prof && !specs) continue;
-      skills[key] = {
-        ...(prof ? { proficiency: prof } : {}),
-        ...(specs ? { specializations: specs } : {}),
-      };
-    }
-
-    const cultureLabel = culture.name;
-    const backgroundLabel = background.name;
-    const classLabel = this.#effectiveClassLabel(catalog);
+    const merged = mergeSkillGrants(this.#ownedGrants(catalog));
     const talentSlugs = fullClass ? fullClass.talentSlugs : [...(combined?.talentSlugs ?? [])];
 
     const draftCulture = getCulture(d.regionKey as RegionKey, d.cultureKey) ?? undefined;
@@ -1405,104 +1408,32 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       return;
     }
 
-    const saves = classSaveSystemData(classDef);
-
-    const items: CatalogItemPayload[] = [];
-    const seenTalents = new Set<string>();
-
     const region = getCatalogRegion(catalog, d.regionKey);
-    const regionLabel = region?.name ?? d.regionKey ?? "";
-
-    if (catalog.fromPacks) {
-      const regionPayload = catalog.originBySlug.get(d.regionKey);
-      const racePayload = catalog.originBySlug.get(d.cultureKey);
-      const bgPayload = catalog.originBySlug.get(d.backgroundKey);
-      if (regionPayload) items.push(regionPayload);
-      else if (region) {
-        items.push({
-          name: regionLabel,
-          type: "origin",
-          img: "icons/svg/village.svg",
-          system: { subType: "region", slug: d.regionKey, description: region.description },
-        });
-      }
-      if (racePayload) items.push(racePayload);
-      else {
-        items.push({
-          name: cultureLabel,
-          type: "origin",
-          img: "icons/svg/mystery-man.svg",
-          system: { subType: "race", slug: d.cultureKey, description: culture.description },
-        });
-      }
-      if (bgPayload) items.push(bgPayload);
-      else {
-        items.push({
-          name: backgroundLabel,
-          type: "origin",
-          img: "icons/svg/book.svg",
-          system: {
-            subType: "background",
-            slug: d.backgroundKey,
-            description: background.description,
-          },
-        });
-      }
-      if (fullClass) this.#pushClassOrigin(items, catalog, fullClass);
-      else {
-        for (const p of partials) this.#pushClassOrigin(items, catalog, p);
-      }
-      this.#pushTalentPayload(items, catalog, culture.talentSlug, seenTalents);
-      for (const slug of talentSlugs) {
-        this.#pushTalentPayload(items, catalog, slug, seenTalents);
-      }
-    } else {
-      items.push(
-        {
-          name: regionLabel,
-          type: "origin",
-          img: "icons/svg/village.svg",
-          system: {
-            subType: "region",
-            slug: d.regionKey,
-            description: region?.description ?? "",
-          },
-        },
-        {
-          name: cultureLabel,
-          type: "origin",
-          img: "icons/svg/mystery-man.svg",
-          system: { subType: "race", slug: d.cultureKey, description: culture.description },
-        },
-        {
-          name: backgroundLabel,
-          type: "origin",
-          img: "icons/svg/book.svg",
-          system: {
-            subType: "background",
-            slug: d.backgroundKey,
-            description: background.description,
-          },
-        },
-      );
-      if (fullClass) this.#pushClassOrigin(items, catalog, fullClass);
-      else {
-        for (const p of partials) this.#pushClassOrigin(items, catalog, p);
-      }
-    }
+    const items = buildOriginItems(catalog, {
+      regionKey: d.regionKey,
+      cultureKey: d.cultureKey,
+      backgroundKey: d.backgroundKey,
+      region,
+      regionLabel: region?.name ?? d.regionKey,
+      culture,
+      background,
+      fullClass,
+      partials,
+      talentSlugs,
+    });
 
     const actorData = {
       name: d.name.trim() || localize("KEDOM.Creation.Wizard.DefaultName"),
       type: "character",
       system: {
-        abilities,
-        skills,
-        saves,
+        abilities: buildAbilityData(d.abilities),
+        skills: buildSkillData(merged),
+        saves: classSaveSystemData(classDef),
         details: {
           level: 1,
-          culture: cultureLabel,
-          background: backgroundLabel,
-          class: classLabel,
+          culture: culture.name,
+          background: background.name,
+          class: this.#effectiveClassLabel(catalog),
           region: d.regionKey,
         },
         attributes: {
@@ -1517,6 +1448,10 @@ export class CharacterCreateWizard extends HandlebarsApplicationMixin(Applicatio
       items,
     };
 
+    await this.#submitActor(actorData);
+  }
+
+  async #submitActor(actorData: object): Promise<void> {
     // @ts-expect-error fvtt-types: character + origin subtypes
     const created = await Actor.create(actorData, { renderSheet: true });
     const actor = Array.isArray(created) ? created[0] : created;
@@ -1535,7 +1470,7 @@ export function registerCharacterCreateDirectoryButton(
   _app: unknown,
   element: HTMLElement | JQuery,
 ): void {
-  const root = element instanceof HTMLElement ? element : element.get?.(0);
+  const root = element instanceof HTMLElement ? element : element.get(0);
   if (!root) return;
   if (!game.user.can("ACTOR_CREATE")) return;
   if (root.querySelector("[data-action='kedomCreateCharacter']")) return;

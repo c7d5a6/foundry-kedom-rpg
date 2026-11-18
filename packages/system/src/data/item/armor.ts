@@ -30,7 +30,8 @@ export function ownedArmorWoundBonus(actor: Actor.Implementation): number {
   let total = 0;
   for (const item of actor.items) {
     if ((item.type as string) !== "armor") continue;
-    const bonus = systemOf<ArmorDataFields>(item)?.woundBonus;
+    // Armor created before `woundBonus` existed may lack the field, or even `system`.
+    const bonus = systemOf<Partial<ArmorDataFields> | undefined>(item)?.woundBonus;
     total += Math.floor(bonus ?? 0);
   }
   return total;

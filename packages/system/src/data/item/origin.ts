@@ -70,35 +70,9 @@ function classArtsSchema() {
   });
 }
 
-function originSchema() {
+/** Class only: full-class flag, hit die and talent pick budget. */
+function classCoreSchema() {
   return {
-    subType: new StringField({
-      required: true,
-      nullable: false,
-      blank: false,
-      choices: [...ORIGIN_SUBTYPES],
-      initial: "background",
-    }),
-    /** Identity slug (e.g. `warrior`, `warrior-partial`). Empty for unauthored races/backgrounds. */
-    slug: new StringField({
-      required: true,
-      nullable: false,
-      blank: true,
-      initial: "",
-    }),
-    description: new HTMLField({ required: true, nullable: false, blank: true, initial: "" }),
-    /**
-     * Region: character sheet banner image path. Blank keeps the system default art.
-     * Other subtypes ignore this field.
-     */
-    bannerImg: new StringField({
-      required: true,
-      nullable: false,
-      blank: true,
-      initial: "",
-    }),
-    grants: grantsSchema(),
-    /** Class only: true = full class; false = Adventurer partial. */
     isFull: new BooleanField({ required: true, nullable: false, initial: true }),
     hitDie: new StringField({
       required: true,
@@ -135,29 +109,83 @@ function originSchema() {
         initial: 0,
       }),
     }),
+  };
+}
+
+/** Region: weighted cultures with per-pair background slugs. */
+function culturesSchema() {
+  return new ArrayField(
+    new SchemaField({
+      slug: new StringField({ required: true, nullable: false, blank: false, initial: "" }),
+      weight: new NumberField({
+        required: true,
+        nullable: false,
+        integer: true,
+        positive: true,
+        initial: 1,
+      }),
+      backgroundSlugs: new ArrayField(
+        new StringField({ required: true, nullable: false, blank: false, initial: "" }),
+        { initial: [] },
+      ),
+    }),
+    { initial: [] },
+  );
+}
+
+function backgroundSchema() {
+  return {
+    /** Background: free grant + exactly eight growth rows (indexes 0–7 = rolls 1–8). */
+    free: new SchemaField({
+      skillKey: new StringField({ required: true, nullable: false, blank: true, initial: "" }),
+      specSlug: new StringField({ required: true, nullable: false, blank: true, initial: "" }),
+    }),
+    growth: new ArrayField(
+      new SchemaField({
+        skillKey: new StringField({ required: true, nullable: false, blank: true, initial: "" }),
+        specSlug: new StringField({ required: true, nullable: false, blank: true, initial: "" }),
+      }),
+      { initial: () => Array.from({ length: 8 }, () => ({ skillKey: "", specSlug: "" })) },
+    ),
+  };
+}
+
+function originSchema() {
+  return {
+    subType: new StringField({
+      required: true,
+      nullable: false,
+      blank: false,
+      choices: [...ORIGIN_SUBTYPES],
+      initial: "background",
+    }),
+    /** Identity slug (e.g. `warrior`, `warrior-partial`). Empty for unauthored races/backgrounds. */
+    slug: new StringField({
+      required: true,
+      nullable: false,
+      blank: true,
+      initial: "",
+    }),
+    description: new HTMLField({ required: true, nullable: false, blank: true, initial: "" }),
+    /**
+     * Region: character sheet banner image path. Blank keeps the system default art.
+     * Other subtypes ignore this field.
+     */
+    bannerImg: new StringField({
+      required: true,
+      nullable: false,
+      blank: true,
+      initial: "",
+    }),
+    grants: grantsSchema(),
+    /** Class only: true = full class; false = Adventurer partial. */
+    ...classCoreSchema(),
     arts: classArtsSchema(),
     saves: new SchemaField({
       primary: prioritizedSaveSchema(),
       secondary: prioritizedSaveSchema(),
     }),
-    /** Region: weighted cultures with per-pair background slugs. */
-    cultures: new ArrayField(
-      new SchemaField({
-        slug: new StringField({ required: true, nullable: false, blank: false, initial: "" }),
-        weight: new NumberField({
-          required: true,
-          nullable: false,
-          integer: true,
-          positive: true,
-          initial: 1,
-        }),
-        backgroundSlugs: new ArrayField(
-          new StringField({ required: true, nullable: false, blank: false, initial: "" }),
-          { initial: [] },
-        ),
-      }),
-      { initial: [] },
-    ),
+    cultures: culturesSchema(),
     /** Race (culture): single talent + allowed class slugs. */
     talentSlug: new StringField({
       required: true,
@@ -174,18 +202,7 @@ function originSchema() {
       new StringField({ required: true, nullable: false, blank: false, initial: "" }),
       { initial: [] },
     ),
-    /** Background: free grant + exactly eight growth rows (indexes 0–7 = rolls 1–8). */
-    free: new SchemaField({
-      skillKey: new StringField({ required: true, nullable: false, blank: true, initial: "" }),
-      specSlug: new StringField({ required: true, nullable: false, blank: true, initial: "" }),
-    }),
-    growth: new ArrayField(
-      new SchemaField({
-        skillKey: new StringField({ required: true, nullable: false, blank: true, initial: "" }),
-        specSlug: new StringField({ required: true, nullable: false, blank: true, initial: "" }),
-      }),
-      { initial: () => Array.from({ length: 8 }, () => ({ skillKey: "", specSlug: "" })) },
-    ),
+    ...backgroundSchema(),
   };
 }
 

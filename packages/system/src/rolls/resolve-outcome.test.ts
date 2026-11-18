@@ -47,7 +47,9 @@ describe("resolveOutcome", () => {
       degree: 1,
     });
   });
+});
 
+describe("resolveOutcome across difficulties", () => {
   it("stacks success degrees on easy after the single failure band", () => {
     expect(resolveOutcome({ total: 9, difficulty: "easy" })).toEqual({
       kind: "failure",

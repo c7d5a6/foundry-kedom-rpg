@@ -1,4 +1,5 @@
 import type { BackgroundDef, GrowthEntry, RegionKey } from "./creation.ts";
+import { optionalRegions } from "./creation.ts";
 import type { SkillKey } from "./kedom.ts";
 
 function skill(skillKey: SkillKey, specLabel?: string): GrowthEntry {
@@ -322,9 +323,10 @@ export function getBackground(
   regionKey: RegionKey,
   backgroundKey: string,
 ): BackgroundDef | undefined {
-  return BACKGROUNDS_BY_REGION[regionKey]?.find((b) => b.key === backgroundKey);
+  return optionalRegions(BACKGROUNDS_BY_REGION)[regionKey]?.find((b) => b.key === backgroundKey);
 }
 
 export function backgroundsForRegion(regionKey: RegionKey): readonly BackgroundDef[] {
-  return BACKGROUNDS_BY_REGION[regionKey] ?? [];
+  // Region keys can arrive from persisted data, so an unknown region must yield no backgrounds.
+  return optionalRegions(BACKGROUNDS_BY_REGION)[regionKey] ?? [];
 }

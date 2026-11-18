@@ -84,7 +84,8 @@ Hooks.on("renderActorDirectory", registerCharacterCreateDirectoryButton);
 /** The character actor owning `item`, or null (world items, other actor types). */
 function characterParent(item: Item.Implementation): Actor.Implementation | null {
   const parent = item.parent;
-  if (!parent || parent.documentName !== "Actor") return null;
+  // Widened to `string`: fvtt-types says only Actors parent items, but the check is the contract.
+  if (!parent || (parent.documentName as string) !== "Actor") return null;
   return parent.type === "character" ? parent : null;
 }
 

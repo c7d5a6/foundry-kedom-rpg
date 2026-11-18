@@ -3,6 +3,8 @@
  * Packs stay English; UI localizes by slug at display time.
  */
 
+import { readyI18n } from "./localize.ts";
+
 export type ContentKind = "Region" | "Culture" | "Background" | "Class" | "Talent";
 
 /** Pack/forge slugs that differ from older Creation.* draft leaves. */
@@ -13,8 +15,9 @@ const CREATION_SLUG_ALIASES: Readonly<
 };
 
 function localizePath(path: string, fallback: string): string {
-  if (typeof game === "undefined" || !game.i18n?.localize) return fallback;
-  const v = game.i18n.localize(path);
+  const i18n = readyI18n();
+  if (i18n?.localize === undefined) return fallback;
+  const v = i18n.localize(path);
   if (!v || v === path) return fallback;
   return v;
 }

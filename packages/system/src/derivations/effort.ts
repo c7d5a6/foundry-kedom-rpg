@@ -11,7 +11,8 @@
 export type EffortCommitment = "scene" | "day" | "concentration" | "free";
 
 export interface EffortArtCommit {
-  commitment: EffortCommitment | string;
+  // Persisted art data may hold values beyond the known ones; `& {}` keeps the known ones suggested.
+  commitment: EffortCommitment | (string & Record<never, never>);
   /** How many separate uses currently hold Effort (0 for free). */
   activeUses: number;
 }
@@ -31,7 +32,7 @@ export function deriveEffortMax(input: DeriveEffortMaxInput): number {
   const maxAbility = abilityMods.length ? Math.max(...abilityMods) : 0;
   const maxSkill = skillBonuses.length ? Math.max(...skillBonuses) : 0;
   let max = maxAbility + Math.floor(maxSkill / 2);
-  if (input.bothPartialsHaveEffort) max += 1;
+  if (input.bothPartialsHaveEffort === true) max += 1;
   return Math.max(1, max);
 }
 

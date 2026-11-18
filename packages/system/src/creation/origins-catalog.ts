@@ -3,11 +3,13 @@ import { systemOf } from "../types/accessors.ts";
  * Origins / talents catalog for the create wizard.
  * Prefer Foundry packs (`kedom.origins`, `kedom.talents`); fall back to draft config.
  */
-import type { OriginDataFields } from "../data/item/origin-fields.ts";
+import type { PackOriginFields } from "../data/item/origin-fields.ts";
 import { classTalentSlugs } from "../data/item/origin-fields.ts";
 import type { TalentDataFields } from "../data/item/talent.ts";
+import { isNonEmpty } from "../types/guards.ts";
 import {
   CULTURES_BY_REGION,
+  optionalRegions,
   REGIONS,
   classDefFromOriginFields,
   type ClassDef,
@@ -21,6 +23,7 @@ import {
 import { getCulture as getDraftCulture } from "../config/creation.ts";
 import { SKILL_KEYS, type SkillKey } from "../config/kedom.ts";
 import { localizeContentDescription, localizeContentLabel } from "../i18n/content-labels.ts";
+import { readyI18n } from "../i18n/localize.ts";
 
 export interface CatalogCulture {
   slug: string;
@@ -95,8 +98,10 @@ export function culturePercents(weights: number[]): number[] {
   const floored = raw.map((x) => Math.floor(x));
   let rem = 100 - floored.reduce((a, b) => a + b, 0);
   for (let i = floored.length - 1; i >= 0 && rem > 0; i--) {
-    if (weights[i]! > 0) {
-      floored[i]! += rem;
+    const weight = weights[i];
+    const share = floored[i];
+    if (weight !== undefined && share !== undefined && weight > 0) {
+      floored[i] = share + rem;
       rem = 0;
     }
   }
@@ -112,15 +117,16 @@ export function clearOriginsCatalogCache(): void {
 
 /** Load catalog from packs when present; otherwise draft config. Cached after first call. */
 export function loadOriginsCatalog(): Promise<OriginsCatalog> {
-  if (!cache) {
-    cache = buildCatalog();
-  }
+  cache ??= buildCatalog();
   return cache;
 }
 
 async function packDocuments(packName: string): Promise<Item.Implementation[]> {
-  if (typeof game === "undefined" || !game.packs) return [];
-  const pack = game.packs.get(packName);
+  if (typeof game === "undefined") return [];
+  // `game.packs` is typed as always present but does not exist before Foundry has set up.
+  const packs = (game as Partial<foundry.Game>).packs;
+  if (packs === undefined) return [];
+  const pack = packs.get(packName);
   if (!pack) return [];
   try {
     const docs = await pack.getDocuments();
@@ -135,20 +141,47 @@ function itemType(doc: Item.Implementation): string {
   return String(doc.type);
 }
 
-function originSystem(doc: Item.Implementation): OriginDataFields | null {
+function originSystem(doc: Item.Implementation): PackOriginFields | null {
   if (itemType(doc) !== "origin") return null;
-  return systemOf<OriginDataFields>(doc);
+  return systemOf<PackOriginFields>(doc);
 }
 
-function talentSystem(doc: Item.Implementation): TalentDataFields | null {
+type PackTalentFields = Pick<TalentDataFields, "slug"> &
+  Partial<Pick<TalentDataFields, "description">>;
+
+function talentSystem(doc: Item.Implementation): PackTalentFields | null {
   if (itemType(doc) !== "talent") return null;
-  return systemOf<TalentDataFields>(doc);
+  return systemOf<PackTalentFields>(doc);
+}
+
+/** Pack documents can lack a name even though Foundry types it as always present. */
+function docName(doc: Item.Implementation): string | undefined {
+  return doc.name;
+}
+
+interface OriginEntry {
+  doc: Item.Implementation;
+  sys: PackOriginFields;
+}
+
+/** The pack's origin documents of one subtype, paired with their system data. */
+function originsOfSubtype(docs: Item.Implementation[], subType: string): OriginEntry[] {
+  const entries: OriginEntry[] = [];
+  for (const doc of docs) {
+    const sys = originSystem(doc);
+    if (sys?.subType === subType) entries.push({ doc, sys });
+  }
+  return entries;
 }
 
 function slugOf(doc: Item.Implementation, system: { slug?: string }): string {
-  if (system.slug?.trim()) return system.slug.trim();
-  const fromName = doc.name?.slugify?.({ strict: true });
-  if (fromName) return fromName;
+  const trimmed = system.slug?.trim();
+  if (isNonEmpty(trimmed)) return trimmed;
+  // `slugify` is a Foundry String extension and is absent outside Foundry.
+  const fromName = (
+    docName(doc) as { slugify?: (options: { strict: boolean }) => string } | undefined
+  )?.slugify?.({ strict: true });
+  if (isNonEmpty(fromName)) return fromName;
   return doc.id ?? "unknown";
 }
 
@@ -161,7 +194,7 @@ function toPayload(doc: Item.Implementation): CatalogItemPayload {
     effects?: Record<string, unknown>[];
   };
   const payload: CatalogItemPayload = {
-    name: raw.name ?? doc.name ?? "",
+    name: raw.name ?? docName(doc) ?? "",
     type: raw.type ?? itemType(doc),
     img: raw.img ?? doc.img ?? "icons/svg/item-bag.svg",
     system: { ...(raw.system ?? {}) },
@@ -180,7 +213,7 @@ function pickToGrowth(pick: { skillKey?: string; specSlug?: string }): GrowthEnt
   const spec = pick.specSlug?.trim();
   // Catalog packs may store full slugs (`notice.awareness`) or English freeform labels.
   // resolve-background.buildSpecialization normalizes both forms.
-  if (spec) return { kind: "skill", skillKey: key, specLabel: spec };
+  if (isNonEmpty(spec)) return { kind: "skill", skillKey: key, specLabel: spec };
   return { kind: "skill", skillKey: key };
 }
 
@@ -198,7 +231,7 @@ function indexTalents(talentDocs: Item.Implementation[]): {
     const packDesc = sys.description ?? "";
     const entry: CatalogTalent = {
       slug,
-      name: localizeContentLabel("Talent", slug, doc.name ?? slug),
+      name: localizeContentLabel("Talent", slug, docName(doc) ?? slug),
       description: localizeContentDescription("Talent", slug, packDesc),
     };
     talents.set(slug, entry);
@@ -224,52 +257,36 @@ async function buildCatalog(): Promise<OriginsCatalog> {
   return buildFromDraft(talents, talentBySlug);
 }
 
-function buildFromPacks(
-  originDocs: Item.Implementation[],
-  talents: Map<string, CatalogTalent>,
-  talentBySlug: Map<string, CatalogItemPayload>,
-): OriginsCatalog {
-  const bgDocs = originDocs.filter((d) => originSystem(d)?.subType === "background");
-  const raceDocs = originDocs.filter((d) => originSystem(d)?.subType === "race");
-  const classDocs = originDocs.filter((d) => originSystem(d)?.subType === "class");
-  const regionDocs = originDocs.filter((d) => originSystem(d)?.subType === "region");
-
-  const originBySlug = new Map<string, CatalogItemPayload>();
-  for (const doc of originDocs) {
-    const sys = originSystem(doc);
-    if (!sys) continue;
-    originBySlug.set(sys.slug || slugOf(doc, sys), toPayload(doc));
-  }
-
+function buildBackgrounds(bgEntries: OriginEntry[]): Map<string, CatalogBackground> {
   const backgrounds = new Map<string, CatalogBackground>();
-  for (const doc of bgDocs) {
-    const sys = originSystem(doc)!;
+  for (const { doc, sys } of bgEntries) {
     const slug = sys.slug || slugOf(doc, sys);
     const packDesc = sys.description ?? "";
     backgrounds.set(slug, {
       slug,
-      name: localizeContentLabel("Background", slug, doc.name ?? slug),
+      name: localizeContentLabel("Background", slug, docName(doc) ?? slug),
       description: localizeContentDescription("Background", slug, packDesc),
       free: pickToGrowth(sys.free ?? { skillKey: "", specSlug: "" }),
       growth: (sys.growth ?? []).map((g) => pickToGrowth(g)),
     });
   }
+  return backgrounds;
+}
 
+function buildRegions(regionEntries: OriginEntry[], raceEntries: OriginEntry[]): CatalogRegion[] {
   const raceBySlug = new Map<string, Item.Implementation>();
-  for (const doc of raceDocs) {
-    const sys = originSystem(doc)!;
+  for (const { doc, sys } of raceEntries) {
     raceBySlug.set(sys.slug || slugOf(doc, sys), doc);
   }
 
-  const regions: CatalogRegion[] = regionDocs.map((doc) => {
-    const sys = originSystem(doc)!;
+  return regionEntries.map(({ doc, sys }) => {
     const entries = sys.cultures ?? [];
     const weights = entries.map((c) => c.weight);
     const pcts = culturePercents(weights);
     const cultures: CatalogCulture[] = entries.map((c, i) => {
       const race = raceBySlug.get(c.slug);
       const raceSys = race ? originSystem(race) : null;
-      const raceSlug = raceSys?.slug || c.slug;
+      const raceSlug = isNonEmpty(raceSys?.slug) ? raceSys.slug : c.slug;
       const raceDesc = raceSys?.description ?? "";
       return {
         slug: c.slug,
@@ -287,20 +304,21 @@ function buildFromPacks(
     const regionDesc = sys.description ?? "";
     return {
       slug: regionSlug,
-      name: localizeContentLabel("Region", regionSlug, doc.name ?? regionSlug),
+      name: localizeContentLabel("Region", regionSlug, docName(doc) ?? regionSlug),
       description: localizeContentDescription("Region", regionSlug, regionDesc),
       cultures,
     };
   });
+}
 
-  const classes: CatalogClass[] = classDocs.map((doc) => {
-    const sys = originSystem(doc)!;
+function buildClasses(classEntries: OriginEntry[]): CatalogClass[] {
+  return classEntries.map(({ doc, sys }) => {
     const slug = sys.slug || slugOf(doc, sys);
     const def = classDefFromOriginFields(sys, slug);
     const packDesc = sys.description ?? "";
     return {
       slug,
-      name: localizeContentLabel("Class", slug, doc.name ?? slug),
+      name: localizeContentLabel("Class", slug, docName(doc) ?? slug),
       description: localizeContentDescription("Class", slug, packDesc),
       hitDie: def.hitDie,
       talentSlugs: classTalentSlugs(sys),
@@ -308,12 +326,28 @@ function buildFromPacks(
       def,
     };
   });
+}
+
+function buildFromPacks(
+  originDocs: Item.Implementation[],
+  talents: Map<string, CatalogTalent>,
+  talentBySlug: Map<string, CatalogItemPayload>,
+): OriginsCatalog {
+  const originBySlug = new Map<string, CatalogItemPayload>();
+  for (const doc of originDocs) {
+    const sys = originSystem(doc);
+    if (!sys) continue;
+    originBySlug.set(sys.slug || slugOf(doc, sys), toPayload(doc));
+  }
 
   return {
     fromPacks: true,
-    regions,
-    backgrounds,
-    classes,
+    regions: buildRegions(
+      originsOfSubtype(originDocs, "region"),
+      originsOfSubtype(originDocs, "race"),
+    ),
+    backgrounds: buildBackgrounds(originsOfSubtype(originDocs, "background")),
+    classes: buildClasses(originsOfSubtype(originDocs, "class")),
     talents,
     originBySlug,
     talentBySlug,
@@ -321,9 +355,8 @@ function buildFromPacks(
 }
 
 function localizeLabel(path: string, fallback: string): string {
-  if (typeof game === "undefined") return fallback;
-  const v = game.i18n?.localize?.(path);
-  if (!v || v === path) return fallback;
+  const v = readyI18n()?.localize?.(path);
+  if (v === undefined || v === "" || v === path) return fallback;
   return v;
 }
 
@@ -345,7 +378,7 @@ function buildFromDraft(
   }
 
   const regions: CatalogRegion[] = REGIONS.map((r) => {
-    const culturesRaw = CULTURES_BY_REGION[r.key] ?? [];
+    const culturesRaw = optionalRegions(CULTURES_BY_REGION)[r.key] ?? [];
     const weights = culturesRaw.map(() => 1);
     const pcts = culturePercents(weights);
     return {
